@@ -138,15 +138,15 @@ my $table = $html->table( { width      => '100%',
                            });
 
 foreach my $line (@$list) {
-  my $payments = ($permissions{1}) ?  $html->button("$_PAYMENTS", "index=2&UID=". $line->[6+$Ureports->{SEARCH_FIELDS_COUNT}], { CLASS => 'payments'  }) : ''; 
-  
   my @fields_array  = ();
   for(my $i=0; $i<$Ureports->{SEARCH_FIELDS_COUNT}; $i++){
      push @fields_array, $line->[6+$i];
    }
-  
+  my $uid = $line->[5+$Ureports->{SEARCH_FIELDS_COUNT}];
+  my $payments = ($permissions{1}) ?  $html->button("$_PAYMENTS", "index=2&UID=$uid", { CLASS => 'payments'  }) : ''; 
+
   $table->addrow(
-   $html->button("$line->[0]", "index=15&UID=". $line->[6+$Ureports->{SEARCH_FIELDS_COUNT}]), 
+   $html->button("$line->[0]", "index=15&UID=$uid"), 
    "$line->[1]",
    "$line->[2]", 
    "$line->[3]", 
@@ -154,7 +154,7 @@ foreach my $line (@$list) {
    "$service_status[$line->[5]]",
    @fields_array, 
    $payments, 
-   $html->button("$_STATS", "index=". ($index + 3) ."&UID=". $line->[6+$Ureports->{SEARCH_FIELDS_COUNT}], { CLASS => 'stats' })
+   $html->button("$_STATS", "index=". (get_function_index('ureports_stats')) ."&UID=$uid", { CLASS => 'stats' })
    );
 }
 print $table->show();
@@ -326,11 +326,9 @@ sub ureports_user {
 sub ureports_tp {
  
  my $tarif_info;
-
  $tarif_info = $tariffs->defaults();
  $tarif_info->{LNG_ACTION} = $_ADD;
  $tarif_info->{ACTION}     = 'ADD_TP';
-
 
 if($FORM{ADD_TP}) {
    $Ureports->tp_add( { %FORM, MODULE => 'Ureports' });
@@ -338,7 +336,7 @@ if($FORM{ADD_TP}) {
      $html->message('info', $_ADDED, "$_ADDED $tariffs->{TP_ID}");
     }
  }
-elsif ($FORM{TP_ID}) { 
+elsif ($FORM{TP_ID}) {
   $tarif_info = $Ureports->tp_info( $FORM{TP_ID} );
 
   if ($Ureports->{errno}) {
@@ -384,10 +382,8 @@ elsif ($FORM{TP_ID}) {
        $html->message('info', $_CHANGED, "$_CHANGED $tariffs->{TP_ID}");
      }
    }
-
   $tarif_info->{LNG_ACTION}=$_CHANGE;
   $tarif_info->{ACTION}='change';
-
  }
 elsif(defined($FORM{del}) && $FORM{is_js_confirmed}) {
   $tariffs->del($FORM{del});
@@ -401,6 +397,9 @@ elsif(defined($FORM{del}) && $FORM{is_js_confirmed}) {
 
 if ($tariffs->{errno}) {
   $html->message('err', $_ERROR, "[$tariffs->{errno}] $err_strs{$tariffs->{errno}}");	
+ }
+elsif ($Ureports->{errno}) {
+  $html->message('err', $_ERROR, "[$Ureports->{errno}] $err_strs{$Ureports->{errno}}");	
  }
 
 
