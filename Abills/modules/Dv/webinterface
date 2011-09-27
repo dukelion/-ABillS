@@ -358,12 +358,12 @@ if ($Dv->{errno}) {
   return 0;
  }
 elsif ($Dv->{TOTAL} == 1) {
-	$ui   = user_info($list->[0]->[6+$Dv->{SEARCH_FIELDS_COUNT}]);
-	print $ui->{TABLE_SHOW};
-	form_users({  USER => $ui });
-	return 0;
+  delete $FORM{LOGIN};
+  $ui   = user_info($list->[0]->[6+$Dv->{SEARCH_FIELDS_COUNT}]);
+  print $ui->{TABLE_SHOW};
+  form_users({  USER => $ui });
+  return 0;
 }
-
 
 
 my $table = $html->table( { width      => '100%',
