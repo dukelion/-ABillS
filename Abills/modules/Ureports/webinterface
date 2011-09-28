@@ -1417,7 +1417,7 @@ if(defined($attr->{TP})) {
   my $table = $html->table( { width      => '100%',
                               caption    => "$_REPORTS",
                               border     => 1,
-                              title      => ['#', $_NAME, "$_DEFAULT $_VALUE"],
+                              title      => ['#', $_NAME, "$_PRICE" ], #"$_DEFAULT $_VALUE"],
                               cols_align => ['center', 'left',  'center'],
                               qs         => $pages_qs,
                               ID         => 'TP_REPORTS'
