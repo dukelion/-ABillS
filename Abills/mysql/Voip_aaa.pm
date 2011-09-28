@@ -176,12 +176,12 @@ if($self->{errno}) {
 sub number_expr {
 	my ($RAD)=@_;
   my @num_expr = split(/;/, $conf->{VOIP_NUMBER_EXPR});
-  my $number = $RAD->{USER_NAME};
 
+my $number = $RAD->{CALLING_STATION_ID};
 for(my $i=0; $i<=$#num_expr; $i++) {
   my($left, $right)=split(/\//, $num_expr[$i]);
   my $r = eval "\"$right\"";
-  if($RAD->{USER_NAME} =~ s/$left/$r/) {
+  if($RAD->{CALLING_STATION_ID} =~ s/$left/$r/) {
 #    print "$i\n";
     last;
    }
@@ -520,9 +520,6 @@ sub accounting {
  my $sesssion_sum = 0;
  $RAD->{CLIENT_IP_ADDRESS}='0.0.0.0' if (! $RAD->{CLIENT_IP_ADDRESS});
 
- if($conf->{VOIP_NUMBER_EXPR}) {
- 	 number_expr($RAD);
-  }
  preproces($RAD);
 
  if ($NAS->{NAS_TYPE} eq 'cisco_voip') {
@@ -537,6 +534,10 @@ sub accounting {
    	 $RAD->{H323_CALL_ORIGIN} = 0;
    	 $RAD->{USER_NAME}=$RAD->{CALLED_STATION_ID};
     }
+  }
+
+ if($conf->{VOIP_NUMBER_EXPR}) {
+ 	 number_expr($RAD);
   }
 
 #Start
@@ -562,7 +563,7 @@ if ($acct_status_type == 1) {
       acct_session_id,
       route_id
      )
-    values ($acct_status_type, \"$RAD->{USER_NAME}\", $SESSION_START, UNIX_TIMESTAMP(), 
+    values ($acct_status_type, '$RAD->{USER_NAME}', $SESSION_START, UNIX_TIMESTAMP(), 
       '$RAD->{CALLING_STATION_ID}', '$RAD->{CALLED_STATION_ID}', '$NAS->{NAS_ID}',
       '$RAD->{H323_CONF_ID}',
       '$RAD->{H323_CALL_ORIGIN}',
