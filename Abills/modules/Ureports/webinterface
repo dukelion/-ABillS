@@ -460,7 +460,7 @@ foreach my $line (@$list) {
     $change = $html->button($_CHANGE, "index=$index&TP_ID=$line->[18]", { CLASS => 'change' });
    }
   
-  if($FORM{TP_ID} eq $line->[0]) {
+  if($FORM{TP_ID} eq $line->[18]) {
   	$table->{rowcolor}=$_COLORS[0];
    }
   else {
@@ -475,7 +475,7 @@ foreach my $line (@$list) {
    $line->[7], 
    $line->[8], 
    $line->[9],
-   $html->button($_REPORTS, "index=". ($index+2) ."&subf=". ($index + 1) ."&TP_ID=$line->[18]", { BUTTON => 1 }),
+   $html->button($_REPORTS, "index=". get_function_index('ureports_tp_reports') ."&subf=". get_function_index('ureports_tp')."&TP_ID=$line->[18]", { BUTTON => 1 }),
    $change,
    $delete);
 }

@@ -334,8 +334,6 @@ sub changes {
     $DATA{DISABLE} = (defined($DATA{'DISABLE'}) && $DATA{DISABLE} ne '') ? $DATA{DISABLE} : undef;
    }
 
-
-
   if(defined($DATA{EMAIL}) && $DATA{EMAIL} ne '') {
     if ($DATA{EMAIL} !~ /(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))/) {
       $self->{errno} = 11;
@@ -352,7 +350,7 @@ sub changes {
    }
 
   my $CHANGES_QUERY = "";
-  my $CHANGES_LOG = "";
+  my $CHANGES_LOG   = "";
   while(my($k, $v)=each(%DATA)) {
   	#print "$k / $v -> $FIELDS->{$k} && $DATA{$k} && $OLD_DATA->{$k} ne $DATA{$k}<br>\n";
     if ($FIELDS->{$k} && defined($DATA{$k}) && $OLD_DATA->{$k} ne $DATA{$k}) {

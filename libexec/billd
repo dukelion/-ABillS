@@ -31,7 +31,7 @@ require Abills::Base;
 Abills::Base->import(qw/check_time parse_arguments int2ip time2sec/);
 my $begin_time = check_time();
 
-$debug        = 0;
+$debug           = 0;
 my $debug_output = '';
 my $ARGV         = parse_arguments(\@ARGV);
 my $log_dir      = $var_dir.'/log';

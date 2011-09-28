@@ -240,7 +240,6 @@ else {
  $FORM{__BUFFER}=$buffer;
  @pairs = split(/--$boundary/, $buffer);
  @pairs = splice(@pairs,1,$#pairs-1);
-
  for my $part (@pairs) {
       $part =~ s/[\r]\n$//g;
       my ($dump, $firstline, $datas) = split(/[\r]\n/, $part, 3);

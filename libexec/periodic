@@ -752,18 +752,19 @@ foreach my $USER_GID (sort { $b <=> $a } keys %USERS_GIDS) {
   	$DEBUG .= "$line->[0] ($uid) DEPOSIT: $line->[2] CREDIT: $line->[3] LAST_PAYMENT: $last_payments GID: $gid -> $GID\n" if ($debug > 0);
 
     my $comments = "$line->[6]";
-
     if ($debug < 5) {
-  	  #Check group if not exist create it
-  	  
+  	  #Check group if not exist create it  	  
     	$users->change($uid, { GID     => $GID,
-    		               UID     => $uid,
-    		               DISABLE => $line->[4]
+    		                     UID     => $uid,
+    		                     DISABLE => $line->[4]
     		               });
-      
-      $users->pi_change({ 
-      	         UID      => $uid,
-      	         COMMENTS => "$comments $_GROUP $_DEBETORS: $DATE $TIME" });
+
+      $users->{debug}=1;
+      $users->pi_change({
+      	                 UID      => $uid,
+      	                 COMMENTS => "$comments $_GROUP $_DEBETORS: $DATE $TIME",
+      	                 SKIP_INFO_FIELDS  => 1
+      	               });
      } 
    }
 }
@@ -802,7 +803,9 @@ foreach my $DEBETOR_GID (sort { $b <=> $a } keys %DEBETORS_GIDS) {
  
       $users->pi_change({ 
       	         UID      => $uid,
-      	         COMMENTS => "$comments" });
+      	         COMMENTS => "$comments", 
+      	         SKIP_INFO_FIELDS  => 1
+      	         });
      } 
    }
 }

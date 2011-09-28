@@ -484,6 +484,7 @@ my %PI_FIELDS = (EMAIL       => 'email',
              );
 
 
+if (! $attr->{SKIP_INFO_FIELDS} ) {
   my $list = $self->config_list({ PARAM => 'ifu*'});
   if ($self->{TOTAL} > 0) {
     foreach my $line (@$list) {
@@ -513,6 +514,7 @@ my %PI_FIELDS = (EMAIL       => 'email',
       }
      }
    }
+}
 
   my ($prefix, $sufix); 
   if ($attr->{CONTRACT_TYPE}) {
@@ -522,7 +524,7 @@ my %PI_FIELDS = (EMAIL       => 'email',
 
  $admin->{MODULE}='';
 
-	$self->changes($admin, { CHANGE_PARAM => 'UID',
+ $self->changes($admin, { CHANGE_PARAM => 'UID',
 		                TABLE        => 'users_pi',
 		                FIELDS       => \%PI_FIELDS,
 		                OLD_INFO     => $self->pi({ UID => $attr->{UID} }),
