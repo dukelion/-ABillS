@@ -447,8 +447,8 @@ sub list {
    push @WHERE_RULES, @{ $self->search_expr("$attr->{CREDIT}", 'INT', 'c.credit') };
   }
 
- if ($attr->{LOGIN_EXPR}) {
-   push @WHERE_RULES, @{ $self->search_expr("$attr->{LOGIN_EXPR}", 'STR', 'c.name') };
+ if ($attr->{LOGIN}) {
+   push @WHERE_RULES, @{ $self->search_expr("$attr->{LOGIN}", 'STR', 'c.name') };
   }
 
  my $WHERE = ($#WHERE_RULES > -1) ?  "WHERE " . join(' and ', @WHERE_RULES) : ''; 

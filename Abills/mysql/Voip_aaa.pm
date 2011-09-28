@@ -520,6 +520,9 @@ sub accounting {
  my $sesssion_sum = 0;
  $RAD->{CLIENT_IP_ADDRESS}='0.0.0.0' if (! $RAD->{CLIENT_IP_ADDRESS});
 
+ if($conf->{VOIP_NUMBER_EXPR}) {
+ 	 number_expr($RAD);
+  }
  preproces($RAD);
 
  if ($NAS->{NAS_TYPE} eq 'cisco_voip') {

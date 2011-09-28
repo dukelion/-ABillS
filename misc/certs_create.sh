@@ -11,7 +11,7 @@ CA_pl='/usr/src/crypto/openssl/apps/CA.pl';
 
 hostname=`hostname`;
 password=whatever;
-VERSION=1.82;
+VERSION=1.83;
 days=730;
 DATE=`date`;
 CERT_TYPE=$1;
@@ -87,8 +87,12 @@ fi
 cd ${CERT_PATH};
 
 #Default Cert user
-if [ w${CERT_USER} = w ];  then
-  APACHE_USER=www;
+if [ x${CERT_USER} = x ];  then
+  if [ x`uname` = xLinux ]; then
+     APACHE_USER="www-data";
+  else 
+    APACHE_USER=www;
+  fi;
 else 
   APACHE_USER=${CERT_USER};
 fi;
