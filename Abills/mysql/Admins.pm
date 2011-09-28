@@ -314,6 +314,7 @@ sub change {
  
   $admin->{MODULE}='';
   $IP   = $admin->{SESSION_IP};
+  $attr->{DISABLE}=0 if (! $attr->{DISABLE} && $attr->{A_LOGIN});
   
   $self->changes($admin, { CHANGE_PARAM => 'AID',
 		                       TABLE        => 'admins',
