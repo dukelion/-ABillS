@@ -177,11 +177,11 @@ sub number_expr {
 	my ($RAD)=@_;
   my @num_expr = split(/;/, $conf->{VOIP_NUMBER_EXPR});
 
-my $number = $RAD->{CALLING_STATION_ID};
+my $number = $RAD->{CALLED_STATION_ID};
 for(my $i=0; $i<=$#num_expr; $i++) {
   my($left, $right)=split(/\//, $num_expr[$i]);
   my $r = eval "\"$right\"";
-  if($RAD->{CALLING_STATION_ID} =~ s/$left/$r/) {
+  if($RAD->{CALLED_STATION_ID} =~ s/$left/$r/) {
 #    print "$i\n";
     last;
    }
