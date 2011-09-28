@@ -1139,7 +1139,7 @@ if ($RESULT{version} =~ /DES-3550/ ) {
     elsif ($RESULT{version} =~ /DES-1210/) {
           $RESULT{oid_prefix} = '1.3.6.1.4.1.171.10.75.15.14.4.';
           $RESULT{oid_sufix} = {
-          	        'STATE'  => '5',
+          	        #'STATE'  => '5',
                     'IP'     => '5.1.5',
                     #'MAC'   => '4.1.2.2',
                     'MAKE'   => '5.1.5',
@@ -1478,13 +1478,11 @@ sub snmputils_dlink_pb_list {
      }
     #Binding Address 1210
     #1.5. 213.169.84.100 .2.35.69.103.137.1
-    elsif($line =~ /^\d\.\d.(\d).(\d{1,3}.\d{1,3}.\d{1,3}.\d{1,3})\.(\d{1,3}.\d{
-1,3}.\d{1,3}.\d{1,3}.\d{1,3}.\d{1,3}):(.+)/g) {
-            my $state  = $1;
-
-            my $ip     = $2;
-            my $mac    = $3;
-            my $port   = $4;
+    elsif($line =~ /^\d\.\d.(\d).(\d{1,3}.\d{1,3}.\d{1,3}.\d{1,3})\.(\d{1,3}.\d{1,3}.\d{1,3}.\d{1,3}.\d{1,3}.\d{1,3}):(.+)/g) {
+       my $state  = $1;
+       my $ip     = $2;
+       my $mac    = $3;
+       my $port   = $4;
 
        if($state == 5) {
         my $string = unpack("B48",  $port);
