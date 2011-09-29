@@ -1387,13 +1387,12 @@ for my $key (sort keys %$tpl_describe) {
     if ($pattern =~ /font_name=(\S+)/) {
     	$font_name  = $1;
       if($font_name =~ /\.ttf$/) {
-        $font = $pdf->corefont($font_name, -encode => "$encode");
+        $font = $pdf->ttffont($font_name, -encode => "$encode");
        }
       else {
-      	$font = $pdf->ttfont($font_name, -encode => "$encode");
+      	$font = $pdf->corefont($font_name, -encode => "$encode");
        } 
      }
-    #my $font = $pdf->ttfont('arialbold');
     
     my $txt = $page->text;
     $txt->font($font,$font_size);
