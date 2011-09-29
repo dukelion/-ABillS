@@ -1064,7 +1064,7 @@ if ($ARGV->{MPD_FILTER}) {
  }
 else {
   # Get global ips
-  open(IPFW, "/sbin/ipfw table $users_table_number list |") || die "Can't open file '' $!\n";
+  open(IPFW, "/sbin/ipfw table $users_table_number list |") || die "Can't open file '/sbin/ipfw table $users_table_number list' $!\n";
     while(<IPFW>) {
     	if (/(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\/\d+\s?(\d+)/) {
     		$fw_ips{$1}=$2;
@@ -1085,7 +1085,7 @@ if ($conf{ng_car}) {
           $login =~ s/___/\@/g;
 
 		      if ($ARGV->{LOGINS} && $ARGV->{LOGINS} ne $login) {
-		      	 next;
+		      	next;
 		       }
 		      print "Login: $login ($class". "_$login)\n" if ($debug > 1);
 
@@ -1237,7 +1237,7 @@ else {
   require Tariffs;
   Tariffs->import();
   my $tariffs = Tariffs->new($db, $admin);
-  my %speeds = ();
+  my %speeds  = ();
   
   my $tp_list = $tariffs->list({ MODULE => 'Dv',  
   	                            });
@@ -1336,27 +1336,14 @@ else {
               }
 
              if ($speed_in > 0) {
-   	           #if ($ARGV->{RECONFIGURE}) {
-  	           #  push @FW_ACTIONS, "$IPFW -q add $pipe_rule_in pipe $pipe_rule_in ip from table\\($users_table_number, $tp_id\\) to $dest_ip $via_if_in";
- 	             # }
-
   	           if (! $pipe_rules{$pipe_rule_in} || $pipe_rules{$pipe_rule_in} != $speed_out) { 
   	             push @FW_ACTIONS, "$IPFW -q pipe $pipe_rule_in config bw ". $speed_out ."Kbit/s queue ". (( $speed_in / 10 > 1000) ? 1000 : int( $speed_in / 10 ) ) ."Kbytes mask src-ip 0xfffffffff";
  	               print "Change TP: $tp Class: $traf_type IN: ". ( ($pipe_rules{$pipe_rule_in}) ? $pipe_rules{$pipe_rule_in} : 'Not set'  ) ." -> $speed_out\n";
   	             delete $pipe_rules{$pipe_rule_in};
                 }
               }
-             else{
-   	           #if ($ARGV->{RECONFIGURE}) {
-               #  push @FW_ACTIONS, "$IPFW -q add $pipe_rule_in allow ip from table\\($users_table_number, $tp_id\\) to $dest_ip $via_if_in";
-               # }
-              }
 
  	      	   if ($speed_out > 0) {
-               #if ($ARGV->{RECONFIGURE}) {
-  	      	   #	 push @FW_ACTIONS, "$IPFW -q add $pipe_rule_out pipe $pipe_rule_out ip from $dest_ip to table\\($users_table_number, $tp_id\\) $via_if_out";
-               # }
-
       	       if (! $pipe_rules{$pipe_rule_out} || $pipe_rules{$pipe_rule_out} != $speed_in) {
                  push @FW_ACTIONS, "$IPFW -q pipe $pipe_rule_out config bw ". $speed_in ."Kbit/s queue ". (( $speed_out / 10 > 1000) ? 1000 : int( $speed_out / 10 ) ) ."Kbytes mask dst-ip 0xffffffff";
              
@@ -1364,12 +1351,6 @@ else {
                  delete $pipe_rules{$pipe_rule_out};
                }
  	      	    }
-             else{
-            	 #if ($ARGV->{RECONFIGURE}) {
-               #  push @FW_ACTIONS, "$IPFW -q add $pipe_rule_out allow ip from $dest_ip to table\\($users_table_number, $tp_id\\) $via_if_out";
-               # }
-              }
-
              print "  Traffic Class: $traf_type Class: $traf_type IN: $line->[4] OUT: $line->[5] Pipe: $pipe_rule_in / $pipe_rule_out \n" if ($debug == 2 || $ARGV->{SHOW_SPEED});
             }
 #Table shaper section END
@@ -1434,8 +1415,6 @@ if ($ARGV->{MPD_FILTER}) {
 	    }
      #TP SPEED
    	 elsif(defined($speeds{$TP})) {
-
-
        while(my($class_id, $tp_speed_in)=each %{ $speeds{$TP}{IN} }) {
       	 #Only works with 1 class_id
       	 next if ($class_id  > 0);
@@ -1616,7 +1595,7 @@ elsif ($conf{ng_car}) {
                   $changed = 1;
                   $debug_outputs .= " [Changed] ". $info;
   	 	           }
-  	 	          elsif (! $fw_ips{$IP} && ($tp_speed_out > 0 || $tp_speed_in > 0)) {
+  	 	          elsif (! $fw_ips{$IP} && ($tp_speed_out + $tp_speed_in > 0)) {
                   $debug_outputs .= check_speed_change($user, $IFACE, $IP, {
                   	 NAS_TYPE => $NAS_TYPE,
                   	 debug    => ( $debug > 1) ? ' debug' : undef });

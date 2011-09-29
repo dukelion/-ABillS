@@ -1261,7 +1261,6 @@ sub snmputils_dlink_pb_add {
     if (snmpset($SNMP_COMMUNITY, @snmp_values)) {
     	$message .= " Ok\n";
      }
-
     return $message;
   }
 	

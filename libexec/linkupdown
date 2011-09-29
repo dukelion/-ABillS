@@ -487,6 +487,7 @@ if ($ACTION eq 'up' || $OS eq 'Linux') {
 
       if ($speed_in + $speed_out  == 0) {
         push @FW_ACTIONS, "$IPFW table ".($users_table_number - 1)." add $CLIENT_IP/$BIT_MASK $traf_type";
+        next;
        }
 
 #FreeBSD ------------------------------------------------------------------------------
