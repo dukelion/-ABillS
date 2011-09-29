@@ -431,11 +431,8 @@ sub dv_user {
      my ($y, $m, $d)=split(/-/, (($pi->{CONTRACT_DATE}) ? $pi->{CONTRACT_DATE} : $DATE ) , 3);
      $pi->{CONTRACT_DATE_LIT} = "$d ". $MONTHES_LIT[int($m)-1] ." $y $_YEAR";
 
- 
      if ($FORM{pdf}) {
-       print "Content-type: application/pdf\n";
-       print "Content-disposition: inline; name=".int(rand(32768)).".pdf\n\n";
-
+       print $html->header();
      	 $html->tpl_show(_include('dv_user_info', 'Dv', { pdf => 1 }), { %$user, 
      	 	                                                               %$pi, 
      	 	                                                               DATE => $DATE, 

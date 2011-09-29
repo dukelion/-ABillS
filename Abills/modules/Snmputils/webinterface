@@ -1227,14 +1227,41 @@ sub snmputils_dlink_pb_add {
 #     1.3.6.1.4.1.171.10.75.15.14.4.5.1.5.192.168.1.1.2.35.69.103.137.1 (ipMacPortBindingRowStatus) set to “5” (create and wait)
 #    P.S MAC must transform from hex to interger
 #    C:\>snmpset -v2c -c private 192.168.1.1 1.3.6.1.4.1.171.10.75.15.14.4.5.1.5.192.168.1.1.2.35.69.103.137.1 i 5
-     push @snmp_values, $oid_prefix.$oid_sufix{IP}.".$ip.$mac", "integer", "5";
-     push @snmp_values, $oid_prefix.$oid_sufix{PORT}.".$ip.$mac", "integer", "$ports";
-     push @snmp_values, $oid_prefix.$oid_sufix{MAKE}.".$ip.$mac", "integer", "5";
+
+    $port_list=~s/ //g;
+    my @get_port_arr = split(/,/, $port_list);
+    my @port_array = (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+    $port_count=26;
+    foreach my $id (@get_port_arr) {
+      $port_array[$id-1]=1;
+     }
+
+    my $unpack_ = "H2H2H2H2";
+    my @ar = unpack("$unpack_", pack("B48", join("", @port_array)));
+    my $port_binding = '';
+    foreach my $c (@ar) {
+      $port_binding .= chr(hex($c));
+     }
+    
+    my @mac_val_arr = split(':', $mac);
+    my @mac_dec_arr = ();
+    foreach my $val (@mac_val_arr) {
+     	 push @mac_dec_arr, hex($val);
+     }
+    my $mac_dec = join('.', @mac_dec_arr);
+    push @snmp_values, $oid_prefix.$oid_sufix{IP}.".$ip.$mac_dec", "integer", "5";
+    push @snmp_values, $oid_prefix.$oid_sufix{PORT}.".$ip.$mac_dec", "integer", "$ports";
+    push @snmp_values, $oid_prefix.$oid_sufix{MAKE}.".$ip.$mac_dec", "integer", "5";
 #    6.	Add port information. For example, add port 1 for the entry.
 #     1.3.6.1.4.1.171.10.75.15.14.4.5.1.3.192.168.1.1.2.35.69.103.137.1 set to “F0 00 00 00”
 #    C:\>snmpset -v2c -c private 192.168.1.1 1.3.6.1.4.1.171.10.75.15.14.4.5.1.3.192.168.1.1.2.35.69.103.137.1 x "F0 00 00 00"
 #    7.	Active.
 #    1.3.6.1.4.1.171.10.75.15.14.4.5.1.5.192.168.1.1.2.35.69.103.137.1 set to “1” (active)
+    print join('<br>', @snmp_values);
+    if (snmpset($SNMP_COMMUNITY, @snmp_values)) {
+    	$message .= " Ok\n";
+     }
+
     return $message;
   }
 	
@@ -1487,10 +1514,10 @@ sub snmputils_dlink_pb_list {
        my $mac    = $3;
        my $port   = $4;
 
-       if($state == 5) {
-        my $string = unpack("B48",  $port);
+       if($state == 3) {
+        my $string = unpack("B*",  $port);
         if ($debug > 0) {
-          my $hex_val = join(':', unpack("$unpack_", pack("B48", $string)));
+          my $hex_val = join(':', unpack("H2H2H2H2", pack("B48", $string)));
           print "IP: $ip PORT: $hex_val ($string)<BR>\n";
          }
 
@@ -1507,8 +1534,8 @@ sub snmputils_dlink_pb_list {
          }
         $info{MAC}{$ip}=join(':', @mac_hex_arr);
       }
-     elsif($state == 3) {
-        $info{ACTIVE}{$ip}=$state;
+     elsif($state == 5) {
+        $info{ACTIVE}{$ip}=$port+1;
        }
      }
     #Binding Address
