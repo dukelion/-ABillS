@@ -1247,9 +1247,9 @@ else {
   my %nets_hash     = ();
  
   foreach my $line ( @$tp_list ) {
-  	my $tp_id = $line->[18];
-  	my $tp    = $line->[0];
-    $TP_HASH{$tp}=$tp_id;
+  	my $tp_id    = $line->[18];
+  	my $tp       = $line->[0];
+    $TP_HASH{$tp}= $tp_id;
   	print "TP: $tp ($tp_id)\n" if (($debug > 2 || $ARGV->{SHOW_SPEED}) && ! $ARGV->{MPD_FILTER});
     my ($remaining_time, $ret_attr); 
     ($user->{TIME_INTERVALS},
@@ -1338,7 +1338,7 @@ else {
              if ($speed_in > 0) {
   	           if (! $pipe_rules{$pipe_rule_in} || $pipe_rules{$pipe_rule_in} != $speed_out) { 
   	             push @FW_ACTIONS, "$IPFW -q pipe $pipe_rule_in config bw ". $speed_out ."Kbit/s queue ". (( $speed_in / 10 > 1000) ? 1000 : int( $speed_in / 10 ) ) ."Kbytes mask src-ip 0xfffffffff";
- 	               print "Change TP: $tp Class: $traf_type IN: ". ( ($pipe_rules{$pipe_rule_in}) ? $pipe_rules{$pipe_rule_in} : 'Not set'  ) ." -> $speed_out\n";
+ 	               print "Change TP: $tp Class: $traf_type Pipe: $pipe_rule_in IN: ". ( ($pipe_rules{$pipe_rule_in}) ? $pipe_rules{$pipe_rule_in} : 'Not set'  ) ." -> $speed_out\n";
   	             delete $pipe_rules{$pipe_rule_in};
                 }
               }
@@ -1347,7 +1347,7 @@ else {
       	       if (! $pipe_rules{$pipe_rule_out} || $pipe_rules{$pipe_rule_out} != $speed_in) {
                  push @FW_ACTIONS, "$IPFW -q pipe $pipe_rule_out config bw ". $speed_in ."Kbit/s queue ". (( $speed_out / 10 > 1000) ? 1000 : int( $speed_out / 10 ) ) ."Kbytes mask dst-ip 0xffffffff";
              
-                 print "Change TP: $tp Class: $traf_type OUT: ". ( ($pipe_rules{$pipe_rule_out}) ? $pipe_rules{$pipe_rule_out} : 'Not set'  ) ." -> $speed_in\n";
+                 print "Change TP: $tp Class: $traf_type Pipe: $pipe_rule_out OUT: ". ( ($pipe_rules{$pipe_rule_out}) ? $pipe_rules{$pipe_rule_out} : 'Not set'  ) ." -> $speed_in\n";
                  delete $pipe_rules{$pipe_rule_out};
                }
  	      	    }
