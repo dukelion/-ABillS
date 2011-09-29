@@ -1211,6 +1211,7 @@ if ($FORM{s2} || $FORM{transfer}) {
 
             $html->message('info', $_PAYMENTS, $message);
             $users2->{PAYMENT_ID}=$Payments->{INSERT_ID};
+            cross_modules_call('_payments_maked', { USER => $users2, QUITE => 1 });
            }
          }
 
