@@ -205,9 +205,9 @@ else {
 
   my $user = $Dv->info(0, { LOGIN => $USER });	  
   if($Dv->{errno}) {
-     print "Error: User not exist '$USER' IP: $CLIENT_IP ([$Dv->{errno}] $Dv->{errstr})\n";
-     my $a = `echo "$DATE $TIME / $USER - $Dv->{errno}" >> /tmp/linkupdown`;    
-     exit 1;
+    print "Error: User not exist '$USER' IP: $CLIENT_IP ([$Dv->{errno}] $Dv->{errstr})\n";
+    my $a = `echo "$DATE $TIME / $USER - $Dv->{errno}" >> /tmp/linkupdown`;    
+    exit 1;
    }
   elsif($Dv->{TOTAL} < 1) {
     print "$USER - Not exist\n";
@@ -330,12 +330,6 @@ if ($ACTION eq 'up' || $OS eq 'Linux') {
       push @FW_ACTIONS, "$IPFW table ". ($users_table_number+1)." add $CLIENT_IP/$BIT_MASK $table_class";   	
       goto FW_ACTION;
      } 
-#    else {
-#    	# pipe 
-#      push @FW_ACTIONS, "$IPFW table $users_table_number add $CLIENT_IP/$BIT_MASK ". ( $user->{TP_NUM} );
-#      push @FW_ACTIONS, "$IPFW table ". ($users_table_number+1)." add $CLIENT_IP/$BIT_MASK $user->{TP_NUM}";   	
-#     }
-#    goto FW_ACTION;
    }
  
   if ($ARGV[0] eq 'mikrotik') {
@@ -435,8 +429,7 @@ if ($ACTION eq 'up' || $OS eq 'Linux') {
     		 });
      }
     #Linux shaper
-    elsif ($OS eq 'Linux') {
-    	
+    elsif ($OS eq 'Linux') {    	
       my $prefix=10000;
       my $flowid = ($speed_in > 0) ? sprintf("%x", $user->{UID} + $prefix * 2) : '';
       my $drop   = $speed_out > 0 ? "police rate $speed_out"."Kbit burst 12k drop" : '';
@@ -492,27 +485,26 @@ if ($ACTION eq 'up' || $OS eq 'Linux') {
         $users_table_number = $users_table_number + $traf_type * 2
        }
 
+      if ($speed_in + $speed_out  == 0) {
+        push @FW_ACTIONS, "$IPFW table ".($users_table_number - 1)." add $CLIENT_IP/$BIT_MASK $traf_type";
+       }
+
 #FreeBSD ------------------------------------------------------------------------------
       #Use ngcar shapper
       if ($conf{ng_car}) {
    	  # First out traffic table, second in
         #Add user to unlime rules
-        if ($speed_in + $speed_out  == 0) {
-          push @FW_ACTIONS, "$IPFW table ".($users_table_number - 1)." add $CLIENT_IP/$BIT_MASK ";
-         }
-        else {
-          my $prefix = 10000;
-          # Delete from unlim table
-  	      push @FW_ACTIONS, "$IPFW table $users_table_number delete $CLIENT_IP";
-  	      push @FW_ACTIONS, "$IPFW table ". ($users_table_number+1) ." delete $CLIENT_IP";
-          my $tablearg_in  = $user->{UID} + $prefix + $prefix * ($traf_type*2);
-          my $tablearg_out = $user->{UID} + $prefix + $prefix * ($traf_type*2+1);
-    	    push @FW_ACTIONS, "$IPFW table $users_table_number add $CLIENT_IP/$BIT_MASK ". $tablearg_in;
-          push @FW_ACTIONS, "$IPFW table ". ($users_table_number+1). " add $CLIENT_IP/$BIT_MASK ". $tablearg_out;
-          ng_car_shape("$USER", $tablearg_in, $tablearg_out, "class$traf_type", 
-          $speed_in * 1024, 
-          $speed_out * 1024);
-         }
+        my $prefix = 10000;
+        # Delete from unlim table
+	      push @FW_ACTIONS, "$IPFW table $users_table_number delete $CLIENT_IP";
+	      push @FW_ACTIONS, "$IPFW table ". ($users_table_number+1) ." delete $CLIENT_IP";
+        my $tablearg_in  = $user->{UID} + $prefix + $prefix * ($traf_type*2);
+        my $tablearg_out = $user->{UID} + $prefix + $prefix * ($traf_type*2+1);
+  	    push @FW_ACTIONS, "$IPFW table $users_table_number add $CLIENT_IP/$BIT_MASK ". $tablearg_in;
+        push @FW_ACTIONS, "$IPFW table ". ($users_table_number+1). " add $CLIENT_IP/$BIT_MASK ". $tablearg_out;
+        ng_car_shape("$USER", $tablearg_in, $tablearg_out, "class$traf_type", 
+        $speed_in * 1024, 
+        $speed_out * 1024);
        }
       #Dummynet shapper
       else {
