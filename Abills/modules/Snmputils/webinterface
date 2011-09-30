@@ -1245,18 +1245,13 @@ sub snmputils_dlink_pb_add {
      }
     
     my $mac_dec = mac2dec($mac);
-    
     push @snmp_values, $oid_prefix.$oid_sufix{IP}.".$ip.$mac_dec", "integer", "5";
     if (snmpset($SNMP_COMMUNITY, @snmp_values)) {
-
      }
-    @snmp_values = ($oid_prefix.$oid_sufix{PORT}.".$ip.$mac_dec", "integer", "$port_binding");
+    @snmp_values = ($oid_prefix.$oid_sufix{PORT}.".$ip.$mac_dec", "string", "$port_binding");
     if (snmpset($SNMP_COMMUNITY, @snmp_values)) {
-    	$message .= " Ok\n";
      }
     @snmp_values = (@snmp_values, $oid_prefix.$oid_sufix{MAKE}.".$ip.$mac_dec", "integer", "1");
-
-    print join('<br>', @snmp_values);
     if (snmpset($SNMP_COMMUNITY, @snmp_values)) {
     	$message .= " Ok\n";
      }
