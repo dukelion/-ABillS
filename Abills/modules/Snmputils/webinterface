@@ -1424,7 +1424,7 @@ sub snmputils_dlink_pb_del {
   #delete from binding list
   else {
   	if($sw_info->{version} =~ /DES-1210/) {
-      $attr->{DEL}. '.'.mac2dec($attr->{MAC});
+      $attr->{DEL}.= '.'.mac2dec($attr->{MAC});
   	 }
   	push @snmp_cmd, $oid_prefix.$oid_sufix{MAKE}.".$attr->{DEL}", "integer", "6";
    }
@@ -1539,7 +1539,7 @@ sub snmputils_dlink_pb_list {
         foreach my $val (split(/\./, $mac)) {
           push @mac_hex_arr, sprintf('%.2x', $val);
          }
-        $info{MAC}{$ip}=join(':', @mac_hex_arr);
+        $info{MAC}{$ip}=uc(join(':', @mac_hex_arr));
       }
      elsif($state == 5) {
         $info{ACTIVE}{$ip}=$port+1;
@@ -1817,15 +1817,16 @@ sub snmputils_dlink_ip_mac_port{
     my ($value, $ip) = split(/ /, $line, 2);
 
     print "value: '$value', IP: '$ip' ". $ACTIVE_MAC->{LOGIN}{"$ip"}.$html->br() if ($debug > 5);
+    my $mac = $ACTIVE_MAC->{MAC}{"$ip"};
     my @arr = (
              $table->td($ACTIVE_MAC->{LOGIN_URL}{"$ip"}),
              $table->td($ACTIVE_MAC->{MULTIPORTS}{"$ip"},  { colspan => 2 } ),
              $table->td($ip),
-             $table->td($ACTIVE_MAC->{MAC}{"$ip"}),
+             $table->td($mac),
              $table->td( $THREE_MODE{$ACTIVE_MAC->{ACTIVE}{"$ip"}} ),
              $table->td( $MODES{$ACTIVE_MAC->{MODE}{"$ip"}} ),
              $table->td($html->button(($state == 2) ? $THREE_MODE{3} : $THREE_MODE{2}, "NAS_ID=$FORM{NAS_ID}&TYPE=$FORM{TYPE}&SHOW=1&index=$index&PORT=$port&state=". (($state == 2) ? 3 : 2), { BUTTON => 1 })),
-             $table->td($html->button($_DEL, "index=$index&del=$ip&NAS_ID=$FORM{NAS_ID}&TYPE=$FORM{TYPE}&SHOW=1", { CLASS => 'del' }))
+             $table->td($html->button($_DEL, "index=$index&del=$ip&NAS_ID=$FORM{NAS_ID}&TYPE=$FORM{TYPE}&SHOW=1&MAC=$mac", { CLASS => 'del' }))
       );
     $table->addtd(@arr);
    }
