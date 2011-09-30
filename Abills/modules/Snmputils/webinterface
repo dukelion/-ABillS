@@ -969,6 +969,7 @@ sub snmputils_dlink_pb {
             	                                       DEL            => $ip,
      	                                               SWITCH_INFO    => $SWITCH_INFO,
      	                                               MAC            => $mac,
+     	                                               IP             => $ip,
      	                                               DEBUG          => $debug
      	                                          });
 
@@ -1243,13 +1244,7 @@ sub snmputils_dlink_pb_add {
       $port_binding .= chr(hex($c));
      }
     
-    my @mac_val_arr = split(':', $mac);
-    my @mac_dec_arr = ();
-    foreach my $val (@mac_val_arr) {
-     	 push @mac_dec_arr, hex($val);
-     }
-    my $mac_dec = join('.', @mac_dec_arr);
-    
+    my $mac_dec = mac2dec($mac);
     
     push @snmp_values, $oid_prefix.$oid_sufix{IP}.".$ip.$mac_dec", "integer", "5";
     push @snmp_values, $oid_prefix.$oid_sufix{PORT}.".$ip.$mac_dec", "integer", "$port_binding";
@@ -1424,31 +1419,46 @@ sub snmputils_dlink_pb_del {
 	my $sw_info = $attr->{SWITCH_INFO} || snmputils_dlink_pb_version({ SNMP_COMMUNITY => $SNMP_COMMUNITY });
 
 	my $oid_prefix = $sw_info->{oid_prefix};
-	my %oid_sufix = %{ $sw_info->{oid_sufix} } ;
+	my %oid_sufix  = %{ $sw_info->{oid_sufix} } ;
+  my @snmp_cmd   =  ();
 
 	if ($attr->{DEL} eq 'block') {
-    if(snmpset($SNMP_COMMUNITY, $oid_prefix. "1.$attr->{MAC}", "integer", "3")) {
-   	  $message = "$_DELETED $attr->{MAC}";
-     }
+    push @snmp_cmd, $oid_prefix. "1.$attr->{MAC}", "integer", "3";
    }
   #delete from binding list
-  elsif(snmpset($SNMP_COMMUNITY, $oid_prefix.$oid_sufix{MAKE}.".$attr->{DEL}", "integer", "6")) {
-  	 $message = "$_DELETED $attr->{DEL}";
+  else {
+  	if($sw_info->{version} =~ /DES-1210/) {
+      $attr->{DEL}. '.'.mac2dec($attr->{MAC});
+  	 }
+  	push @snmp_cmd, $oid_prefix.$oid_sufix{MAKE}.".$attr->{DEL}", "integer", "6";
    }
-
+  
+  snmpset($SNMP_COMMUNITY, @snmp_cmd);
   if($SNMP_Session::suppress_warnings) { 
   	$message =	"$SNMP_Session::suppress_warnings / $SNMP_Session::errmsg"; 
-   };
+   }
+  else {
+  	$message = "$_DELETED $attr->{DEL}";
+   }
 
   return $message;
 }
 
+
+
 #**********************************************************
 #
 #**********************************************************
-sub snmputils_dlink_pb_change {
+sub mac2dec {
+  my ($mac)=@_;
 
-
+  my @mac_val_arr = split(':', $mac);
+  my @mac_dec_arr = ();
+  foreach my $val (@mac_val_arr) {
+    push @mac_dec_arr, hex($val);
+   }
+  my $mac_dec = join('.', @mac_dec_arr);
+  return $mac_dec;
 }
 
 #**********************************************************
@@ -1677,6 +1687,7 @@ sub snmputils_dlink_ip_mac_port{
      	                                     DEL            => $FORM{del},
      	                                     SWITCH_INFO    => $SWITCH_INFO,
      	                                     MAC            => $FORM{MAC},
+     	                                     IP             => $FORM{IP},
      	                                     DEBUG          => $debug
      	                                   });
  
