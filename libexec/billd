@@ -1645,10 +1645,19 @@ else {
 
   #Static speed
 	foreach my $speed ( sort { $a <=> $b } keys %static_speeds) {
-  	my $table_class = ($speed > 10000) ? "$speed" : "1$speed";
+		my $table_class =  "1$speed";
+		if($speed >= 100000) {
+  	  $table_class = $speed / 10 + 1;
+  	 }
+		elsif($speed >= 50000) {
+  	  $table_class = '1'.$speed / 10;
+  	 }
+		elsif($speed >= 10000) {
+  	  $table_class = $speed;
+  	 }
+
  	  if (! $pipe_rules{$table_class} || $pipe_rules{$table_class} != $speed) { 
  	    push @FW_ACTIONS, "$IPFW pipe $table_class config bw ". $speed ."Kbit/s queue ". (( $speed / 10 > 1000) ? 1000 : int( $speed / 10 ) ) ."Kbytes mask src-ip 0xfffffffff";
-      print "Change Static Speed IN/OUT: ". (($pipe_rules{$table_class}) ? $pipe_rules{$table_class} : 'Not set' ) ." -> $speed\n";
       delete $pipe_rules{$table_class};
      }  
    }

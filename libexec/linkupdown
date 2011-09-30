@@ -246,7 +246,17 @@ if ($ACTION eq 'up' || $OS eq 'Linux') {
     $speeds{0}{IN} = int($user->{SPEED});
     $speeds{0}{OUT}= int($user->{SPEED});
     if($OS eq 'FreeBSD' && ! $conf{ng_car}) {
-    	my $table_class = ($user->{SPEED} > 10000) ? "$user->{SPEED}" : "1$user->{SPEED}";
+			my $table_class =  "1$user->{SPEED}";
+		  if($user->{SPEED} >= 100000) {
+  	    $table_class = $user->{SPEED} / 10 + 1;
+  	   }
+		  elsif($user->{SPEED} >= 50000) {
+  	    $table_class = '1'.$user->{SPEED} / 10;
+  	   }
+		  elsif($user->{SPEED} >= 10000) {
+  	    $table_class = $user->{SPEED};
+  	   }
+
       push @FW_ACTIONS, "$IPFW table $users_table_number add $CLIENT_IP/$BIT_MASK $table_class";   	
       push @FW_ACTIONS, "$IPFW table ". ($users_table_number+1)." add $CLIENT_IP/$BIT_MASK $table_class";   	
       goto FW_ACTION;
