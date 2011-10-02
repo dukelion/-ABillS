@@ -1038,14 +1038,6 @@ sub ureports_user_info {
 	  $Ureports->{ACTION}    ='add';
 	  $Ureports->{LNG_ACTION}=$_ACTIVATE;
     $Ureports->{TP_NAME}   ='';
-    $Ureports->{TP_ID}     = $html->form_select('TP_ID', 
-                                          { 
- 	                                          SELECTED          => $Ureports->{TP_ID},
- 	                                          SEL_MULTI_ARRAY   => $tariffs->list({ MODULE => 'Ureports' }),
- 	                                          MULTI_ARRAY_KEY   => 18,
- 	                                          MULTI_ARRAY_VALUE => 1,
- 	                                          NO_ID => 1
- 	                                        });
 	 }
 	else {
 	  if ($Ureports->{STATUS} == 2) {
@@ -1083,7 +1075,15 @@ sub ureports_user_info {
     $Ureports->{REPORTS_LIST} = $table->show({ OUTPUT2RETURN => 1 }); 
   }
 
-    $Ureports->{TP_ID}=$Ureports->{TP_NUM};
+    $Ureports->{TP_ID}               = $html->form_select('TP_ID', 
+                                          { 
+ 	                                          SELECTED          => $Ureports->{TP_ID},
+ 	                                          SEL_MULTI_ARRAY   => $tariffs->list({ MODULE => 'Ureports' }),
+ 	                                          MULTI_ARRAY_KEY   => 18,
+ 	                                          MULTI_ARRAY_VALUE => 1,
+ 	                                          NO_ID => 1
+ 	                                        });
+
     $Ureports->{TYPE_SEL}            = $html->form_select('TYPE', 
                                           { 
  	                                          SELECTED     => $Ureports->{TYPE},

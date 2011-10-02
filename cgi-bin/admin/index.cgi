@@ -3283,7 +3283,6 @@ my $list = $admin->admins_groups_list({ AID => $LIST_PARAMS{AID}  });
 my %admins_group_hash = ();
 
 foreach my $line (@$list) {
-	print "$line->[0]";
 	$admins_group_hash{$line->[0]}=1;
 }
 

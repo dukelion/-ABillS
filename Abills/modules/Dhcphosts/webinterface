@@ -860,11 +860,6 @@ sub dhcphosts_user {
  	  # If install Snmputils make make assign
  	  if (in_array('Snmputils', \@MODULES)) {
  	  	$Dhcphosts->host_info( $FORM{del} );
- 	  	if ($Dhcphosts->{NAS_ID}) {
- 	  		require "Abills/modules/Snmputils/webinterface";
- 	      my $return = snmputils_periodic({ NAS_IDS => $Dhcphosts->{NAS_ID}, DEBUG => 1 });
- 	      print $html->message('info', "SNMP", $html->pre($return, { OUTPUT2RETURN => 1 }));
- 	     }
 	   }
   	
    	$Dhcphosts->host_del({ ID => $FORM{del} });
@@ -875,6 +870,14 @@ sub dhcphosts_user {
 	    $FORM{NETWORK} = auto_net_sign($FORM{IP});
 	    dhcphosts_config({ NETWORKS => $FORM{NETWORK}, 
 	                       reconfig => 1 });
+
+ 	    if (in_array('Snmputils', \@MODULES)) {
+  	  	if ($Dhcphosts->{NAS_ID}) {
+   	  		require "Abills/modules/Snmputils/webinterface";
+ 	        my $return = snmputils_periodic({ NAS_IDS => $Dhcphosts->{NAS_ID}, DEBUG => 1 });
+ 	        print $html->message('info', "SNMP", $html->pre($return, { OUTPUT2RETURN => 1 }));
+ 	       }
+	     }
 	   }
    }
   
