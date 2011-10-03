@@ -1853,9 +1853,9 @@ while(my($k, $v)=each %uf_menus) {
 }
 
 foreach my $k (sort { $b <=> $a } keys %userform_menus) {
-	my $v = $userform_menus{$k};
+	my $v   = $userform_menus{$k};
   my $url =  "index=$k&UID=$user_info->{UID}";
-  my $a = (defined($FORM{$k})) ? $html->b($v) : $v;
+  my $a   = (defined($FORM{$k})) ? $html->b($v) : $v;
   $second_menu .= "<li class=umenu_item>" . $html->button($a,  "$url").'</li>';
 }
 
@@ -2019,7 +2019,7 @@ foreach my $name ( @statuses ) {
 	 }
 	else {
 		my $qs = $pages_qs;
-		$qs =~ s/\&USERS_STATUS=\d//;
+		$qs    =~ s/\&USERS_STATUS=\d//;
 	  $status_bar .= ' '.$html->button("$name", "index=$index&USERS_STATUS=$i$qs");
 	 }
   $i++;

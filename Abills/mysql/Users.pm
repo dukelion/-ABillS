@@ -70,7 +70,7 @@ sub info {
     	$WHERE .= " and u.disable='$attr->{DISABLE}'";
      }
    }
-  elsif(defined($attr->{LOGIN})) {
+  elsif($attr->{LOGIN}) {
     $WHERE = "WHERE u.id='$attr->{LOGIN}'";
    }
   else {
@@ -759,9 +759,10 @@ sub list {
   }
  else {
    if ($attr->{STREET_ID}) {
-     push @WHERE_RULES, @{ $self->search_expr($attr->{STREET_ID}, 'INT', 'builds.street_id', { EXT_FIELD => 'streets.name' }) };
+     push @WHERE_RULES, @{ $self->search_expr($attr->{STREET_ID}, 'INT', 'builds.street_id', { EXT_FIELD => 'streets.name, builds.number' }) };
      $EXT_TABLES .= "LEFT JOIN builds ON (builds.id=pi.location_id)
      LEFT JOIN streets ON (streets.id=builds.street_id)";
+     $self->{SEARCH_FIELDS_COUNT}+=1;
     }
    elsif ($attr->{DISTRICT_ID}) {
      push @WHERE_RULES, @{ $self->search_expr($attr->{DISTRICT_ID}, 'INT', 'streets.district_id', { EXT_FIELD => 'districts.name' }) };

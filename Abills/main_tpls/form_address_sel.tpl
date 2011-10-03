@@ -105,7 +105,7 @@ function district(go) {
 
 	if (document.getElementById(\"p1\").value.length > 0 || go == 0) {
 		JsHttpRequest.query	(
-			\"$SELF_URL\",
+			\"script.GET $SELF_URL\",
 			{
 				\"go\": go,
 				\"qindex\": 30,
