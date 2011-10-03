@@ -141,7 +141,7 @@ function street(go) {
 	{
 		JsHttpRequest.query
 		(
-			\"$SELF_URL\",
+			\"script.GET $SELF_URL\",
 			{
 				\"go\": go,
 				\"qindex\": 30,
@@ -180,7 +180,7 @@ function build (go) {
 	{
 		JsHttpRequest.query
 		(
-      \"$SELF_URL\",
+      \"script.GET $SELF_URL\",
 			{
 				\"go\": go,
 				\"qindex\": 30,
