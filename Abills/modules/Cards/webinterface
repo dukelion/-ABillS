@@ -1246,7 +1246,6 @@ sub cards_reseller_face {
   	 }
    }
   else {
-  	#$html->header();
   	print "Content-Type: text/html\n\n" if ($FORM{qindex});
   	$html->message('info', $_INFO, "$ERR_SMALL_DEPOSIT");
    }
@@ -1271,7 +1270,7 @@ sub cards_diller_face {
      return 0; 	
    }
 
-  if (($user->{DEPOSIT} + $user->{CREDIT} > 0 && $self->{PAYMENT_TYPE} == 0) || $self->{PAYMENT_TYPE} > 0) {
+  if (($user->{DEPOSIT} + $user->{CREDIT} > 0 && $Cards->{PAYMENT_TYPE} == 0) || $Cards->{PAYMENT_TYPE} > 0) {
   	if (cards_diller_add() > 0) {
   	  return 0;	
   	 }
@@ -1407,39 +1406,51 @@ print $html->form_main({ CONTENT => $table->show(),
 sub cards_diller_add {
  	my ($attr) = @_;
  	
- 	$Cards->{ACTION}='add';
- 	$Cards->{LNG_ACTION}=$_ADD;
+ 	$Cards->{ACTION}    = 'add';
+ 	$Cards->{LNG_ACTION}= $_ADD;
+  $FORM{EXPORT}       = '' if (! $FORM{EXPORT}); 
 
 if ($FORM{add}) {
 	   if (! $FORM{TYPE} && $FORM{SUM} && $FORM{SUM} <= 0 ) {
-	   	 print $html->header();
-	   	 $html->message('err', $_ERROR, "$ERR_WRONG_SUM");
-	   	 print $html->{OUTPUT};
+	   	 if($FORM{EXPORT} eq 'cards_server') {
+	   	 	 return { ERROR => 'ERR_WRONG_SUM' };
+	   	  }
+	   	 else {
+	   	   print $html->header();
+	   	   $html->message('err', $_ERROR, "$ERR_WRONG_SUM");
+	   	   print $html->{OUTPUT};
+	   	  }
 	   	 exit;
 	    }	
-	
      my $fees = Finance->fees($db, $admin, \%conf);
 
-     if ($FORM{EXPORT} && $FORM{EXPORT} eq 'xml') {
-     	  print "Content-Type: text/xml; filename=\"cards_$DATE.xml\"\n".
-  	    "Content-Disposition: attachment; filename=\"cards_$DATE.xml\"; size=$Msgs->{FILESIZE}".
-  	    "\n\n";
-     	  print "<?xml version=\"1.0\" encoding=\"$html->{CHARSET}\"?>\n";
-     	}
-     elsif ($FORM{EXPORT} && $FORM{EXPORT} eq 'text') {
+     if ($FORM{EXPORT}) {
+     	 if($FORM{EXPORT} eq 'xml') {
+     	   print "Content-Type: text/xml; filename=\"cards_$DATE.xml\"\n".
+  	     "Content-Disposition: attachment; filename=\"cards_$DATE.xml\"; size=$Msgs->{FILESIZE}".
+  	     "\n\n";
+     	   print "<?xml version=\"1.0\" encoding=\"$html->{CHARSET}\"?>\n";
+     	  }
+       elsif ($FORM{EXPORT} eq 'text') {
      	  print "Content-Type: text/plain; filename=\"cards_$DATE.csv\"\n".
   	    "Content-Disposition: attachment; filename=\"cards_$DATE.csv\"; size=$Msgs->{FILESIZE}".
   	    "\n\n";
-     	}
+     	  }
+      }
      else {
        print $html->header();
       }
 
-     if (defined($FORM{OP_SID}) and $FORM{OP_SID} eq $COOKIES{OP_SID}) {
-           $html->message('err', $_ERROR, "$_EXIST");
-           print "$_ICARDS $_EXIST ";
-           exit;
+     if (defined($FORM{OP_SID}) && $FORM{OP_SID} eq $COOKIES{OP_SID}) {
+       if($FORM{EXPORT} eq 'cards_server') {
+       	 return { ERROR => 'EXIST' };
+        }
+
+     	 $html->message('err', $_ERROR, "$_EXIST");
+       print "$_ICARDS $_EXIST ";
+       exit;
       }
+
 
      my $list = $Cards->cards_list({ SERIA     => '',
                                      PAGE_ROWS => 1,
@@ -1587,6 +1598,10 @@ if ($FORM{add}) {
                             });
 
             if ($Cards->{errno}) {
+      		   	 if($FORM{EXPORT} eq 'cards_server') {
+	   	 	         return { ERROR => 'CARDS_GENERATION_ERROR' };
+	   	          }
+
               $html->message('err', $_ERROR, "[$Cards->{errno}] $err_strs{$Cards->{errno}}");
               return 0;
              }
@@ -1639,20 +1654,31 @@ if ($FORM{add}) {
          }
        }
       elsif ($FORM{EXPORT} eq 'order_print') {
-        my $content = "Print Cards
-        ";
+        my $content = "Print Cards\n";
         foreach my $card_info (@CARDS_OUTPUT) {
         	$content .= "$card_info->{PIN}\t$card_info->{NUMBER}\t$card_info->{EXPIRE_DATE}\t$card_info->{DATE}\t$card_info->{SUM}\t$card_info->{DILLER_ID}\n";
          }
         sendmail("$user->{FROM}", "$conf{ADMIN_MAIL}", "Cards Print", "$content", "$conf{MAIL_CHARSET}", "$FORM{PRIORITY} ($MAIL_PRIORITY{$FORM{PRIORITY}})");
         $html->message('info', "$_INFO", "$_SENDED $_ORDER_PRINT");
        }
+      elsif($FORM{EXPORT} eq 'cards_server') {
+      	 foreach my $card_info (@CARDS_OUTPUT) {
+      	   return {
+      	         LOGIN     => $card_info->{LOGIN},
+      	         PIN       => $card_info->{PIN},
+      	         NUMBER    => $card_info->{NUMBER},
+      	         EXPIRE_DATE =>$card_info->{EXPIRE_DATE},
+      	         DATE      => $card_info->{DATE},
+      	         SUM       => $card_info->{SUM},
+      	         DILLER_ID => $card_info->{DILLER_ID}	   
+      		     };
+      		}
+       } 
       else {
         foreach my $card_info (@CARDS_OUTPUT) {
           $html->tpl_show(_include('cards_check', 'Cards'), $card_info );
          }
        }
-
 
      return 1;
   }
