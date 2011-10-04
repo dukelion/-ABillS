@@ -188,7 +188,7 @@ sub msgs_admin_add {
     if ($conf{MSGS_REDIRECT_FILTER_ADD}) {
        require "Dv.pm";
        $Dv = Dv->new($db, $admin, \%conf);
-     	 $conf{MSGS_REDIRECT_FILTER_ADD}=~/(EXEC:[a-zA-Z0-9\_\-\.\/ \>\%]+)?;?(RAD:.+)?/;
+     	 $conf{MSGS_REDIRECT_FILTER_ADD}=~/(EXEC:[a-zA-Z0-9\_\-\.\/ \>\%\"\']+)?;?(RAD:.+)?/;
        $cmd = $1;
        $rad = $2;
        $cmd =~ s/EXEC://;
