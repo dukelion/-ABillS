@@ -1252,13 +1252,13 @@ sub snmputils_dlink_pb_add {
     @snmp_values = ($oid_prefix.$oid_sufix{PORT}.".$ip.$mac_dec", "string", "$port_binding");
     if (snmpset($SNMP_COMMUNITY, @snmp_values)) {
      }
-    @snmp_values = (@snmp_values, $oid_prefix.$oid_sufix{MAKE}.".$ip.$mac_dec", "integer", "1");
+    @snmp_values = ($oid_prefix.$oid_sufix{MAKE}.".$ip.$mac_dec", "integer", "1");
     if (snmpset($SNMP_COMMUNITY, @snmp_values)) {
     	$message .= " Ok\n";
      }
     
-    if($RESULT{save_conf}) {
-    	snmpset($SNMP_COMMUNITY, $RESULT{save_conf}, 'integer', 1);
+    if($sw_info->{save_conf}) {
+    	snmpset($SNMP_COMMUNITY, $sw_info->{save_conf}, 'integer', 1);
      }
      
     return $message;

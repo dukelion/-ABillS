@@ -1411,7 +1411,7 @@ sub cards_diller_add {
   $FORM{EXPORT}       = '' if (! $FORM{EXPORT}); 
 
 if ($FORM{add}) {
-	   if (! $FORM{TYPE} && $FORM{SUM} && $FORM{SUM} <= 0 ) {
+	   if (! $FORM{TYPE} && defined($FORM{SUM}) && $FORM{SUM} <= 0 ) {
 	   	 if($FORM{EXPORT} eq 'cards_server') {
 	   	 	 return { ERROR => 'ERR_WRONG_SUM' };
 	   	  }
