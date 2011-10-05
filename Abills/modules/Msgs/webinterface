@@ -692,13 +692,13 @@ sub msgs_admin {
       $line->[2] = convert($line->[2], { text2html => 1 });
       $line->[2] =~ s/> (.+)/<font color='$_COLORS[8]'> > $1 <\/font>/g;
       $line->[2] =~ s/&gt; (.+)/<font color='$_COLORS[8]'> > $1 <\/font>/g;
-      my $msg_color = $_COLORS[1];
+      my $msg_color = 'odd';
       
       if ($line->[13]) {
-      	$msg_color = $_COLORS[0]
+      	$msg_color = 'title_color'
        }
       elsif ($line->[12] > 0) {
-      	$msg_color = $_COLORS[2];
+      	$msg_color = 'even';
        } 
       
       $Msgs->{REPLY} .= $html->tpl_show(_include('msgs_reply_show', 'Msgs'), {
@@ -1151,7 +1151,7 @@ sub msgs_user {
             CAPTION  => convert($line->[5], { text2html => 1 }),
             PERSON   =>	$line->[3],
       	    MESSAGE  => $line->[2],
-        	  COLOR    => ($line->[12] == 0) ? $_COLORS[2] : $_COLORS[1],
+        	  COLOR    => ($line->[12] == 0) ? 'even' : 'odd',
         	  QUOTING  => $html->button($_QUOTING, "index=$index&QUOTING=$line->[0]&ID=$FORM{ID}&sid=$sid", { BUTTON => 1 }),
         	  ATTACHMENT =>  ($line->[7]) ? "$_ATTACHMENT: ". $html->button("$line->[7]", "qindex=$index&ATTACHMENT=$line->[9]", { TARGET => '_new' }). " ($_SIZE:   ". int2byte($line->[8]) .')' : '',
       	    }, { OUTPUT2RETURN => 1 } );

@@ -4,7 +4,7 @@
 <table width=600>
 <tr><td>$_ADMIN</td><td>%ADMIN%</td></tr>
 
-<tr bgcolor='$_COLORS[0]'><th colspan=2>$_CHAPTERS</th></tr>
+<tr class='title_color'><th colspan=2>$_CHAPTERS</th></tr>
 <tr><th colspan=2>%CHAPTERS%</th></tr>
 
 </table>

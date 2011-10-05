@@ -3,7 +3,7 @@
 <TABLE width=100% cellspacing=1 cellpadding=0 border=0>
 <TR><TD bgcolor=#FFFFFF>
 <table width=100%>
-<tr><th bgcolor=$_COLORS[0]>
+<tr><th class='title_color'>
 Congratulation
 </th></tr>
 <tr><td>
