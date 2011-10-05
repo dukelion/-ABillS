@@ -110,6 +110,10 @@ th, li {
   font-size: 12px;
 }
 
+.title_color {
+  background-color: %_COLOR_0%;
+}
+
 /* odd items 1,3,5,7,... */
 table tr.odd th,
 .odd {

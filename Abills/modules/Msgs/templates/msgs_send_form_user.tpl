@@ -12,7 +12,7 @@
 <table width=100%>
 <tr><td>$_SUBJECT:</td><td><input type='text' name='SUBJECT' value='%SUBJECT%' size='50'/></td></tr>
 <tr><td>$_CHAPTERS:</td><td>%CHAPTER_SEL%</td></tr>
-<tr><th bgcolor='$_COLORS[0]' colspan='2'>$_MESSAGE</th></tr>
+<tr><th class='title_color' colspan='2'>$_MESSAGE</th></tr>
 <tr><th colspan='2'><textarea name='MESSAGE' cols='70' rows='9' onkeydown='keyDown(event)' onkeyup='keyUp(event)'>%MESSAGE%</textarea></th></tr>
 
 

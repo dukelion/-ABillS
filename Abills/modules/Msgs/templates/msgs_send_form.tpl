@@ -49,7 +49,7 @@ else {
 <tr><td>$_CHAPTERS:</td><td>%CHAPTER_SEL%</td></tr>
 <tr><td>$_SUBJECT:</td><td><input type='text' name='SUBJECT' value='%SUBJECT%' size='50'/></td></tr>
 %GROUP_SEND%
-<tr><th bgcolor='$_COLORS[0]' colspan='2'>$_MESSAGE</th></tr>
+<tr><th class='title_color' colspan='2'>$_MESSAGE</th></tr>
 <tr><th colspan='2'><textarea name='MESSAGE' cols='70' rows='9' onkeydown='keyDown(event)' onkeyup='keyUp(event)'>%MESSAGE%</textarea></th></tr>
 <tr><td>$_PHONE:</td><td><input type='text' name='PHONE' value='%PHONE%' size='30'/></td></tr>
 %ATTACHMENT%
@@ -60,7 +60,7 @@ else {
 <TR><TD>$_RESPOSIBLE:</TD><TD>%RESPOSIBLE%</TD></TR>
 <TR><TD>$_EXECUTION $_DATE:</TD><TD>%PLAN_DATE% $_TIME: <input type=text value='%PLAN_TIME%' name='PLAN_TIME'></TD></TR>
 
-<TR bgcolor=$_COLORS[2]><TD>$_DISPATCH:</TD><TD><div id=dispatch_list style='display: block'>%DISPATCH_SEL%</div> <input type=checkbox id=DISPATCH_CREATE name=DISPATCH_CREATE value=1 onClick=\"add_comments();\"> $_CREATE $_DISPATCH
+<TR class=even><TD>$_DISPATCH:</TD><TD><div id=dispatch_list style='display: block'>%DISPATCH_SEL%</div> <input type=checkbox id=DISPATCH_CREATE name=DISPATCH_CREATE value=1 onClick=\"add_comments();\"> $_CREATE $_DISPATCH
 
 <br>
 

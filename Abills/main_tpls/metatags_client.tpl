@@ -93,6 +93,10 @@ th, li {
   font-size: 12px;
 }
 
+.title_color {
+  background-color: %_COLOR_0%;
+}
+
 .table_title {
   background-color: %_COLOR_0%;
   color: %_COLOR_9%;
@@ -611,7 +615,6 @@ div#tcal td:hover {
 	padding-top:60px;
 	font-weight:bold;
 	font-size:20px;
-
 }
 
 </style>
