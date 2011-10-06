@@ -791,6 +791,17 @@ CREATE TABLE `payments` (
   KEY `uid` (`uid`)
 ) COMMENT "Payments log"  ;
 
+
+CREATE TABLE fees_types (
+`id` smallint(6) unsigned NOT NULL auto_increment,
+`sum` double(10,2) NOT NULL default '0.00',
+`name` varchar(16) NOT NULL default '',
+`default_describe` varchar(80) NOT NULL default '',
+PRIMARY KEY  (`id`),
+UNIQUE KEY `name` (`name`)
+) COMMENT='Payments types';
+
+
 CREATE TABLE `s_detail` (
   `acct_session_id` varchar(25) NOT NULL default '',
   `nas_id` smallint(5) unsigned NOT NULL default '0',
@@ -874,6 +885,7 @@ CREATE TABLE `tarif_plans` (
   `priority` smallint(5) unsigned NOT NULL DEFAULT '0',
   `comments` text not null default '',
   `bills_priority` tinyint(5) unsigned NOT NULL DEFAULT '0',
+  `fine` double(14,2) unsigned NOT NULL default '0.00',
   PRIMARY KEY  (`id`,`module`, `domain_id`),
   UNIQUE KEY `tp_id` (`tp_id`),
   KEY `name` (`name`, `domain_id`)

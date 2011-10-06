@@ -2,7 +2,7 @@
 
 <table width=400 border=0>
 
-<tr bgcolor=$_COLORS[0]><th colspan=2>Privat Bank - Privat 24</th></tr>
+<tr><th colspan=2 class='form_title'>Privat Bank - Privat 24</th></tr>
 <tr><td>Operation ID:</td><td>$FORM{OPERATION_ID}</td></tr>
 <tr><td>$_SUM:</td><td>$FORM{SUM}</td></tr>
 

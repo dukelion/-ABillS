@@ -12,7 +12,7 @@
 <input type='hidden' name='success_url' value='http://$ENV{SERVER_NAME}:$ENV{SERVER_PORT}$ENV{REQUEST_URI}?UID=$LIST_PARAMS{UID}&index=$index&sid=$FORM{sid}&OPERATION_ID=%OPERATION_ID%&PAYMENT_SYSTEM=2&TRUE=1'>
 <input type='hidden' name='fail_url' value='http://$ENV{SERVER_NAME}:$ENV{SERVER_PORT}$ENV{REQUEST_URI}?UID=$LIST_PARAMS{UID}&index=$index&sid=$FORM{sid}&FALSE=1&OPERATION_ID=%OPERATION_ID%&PAYMENT_SYSTEM=2&FALSE=1'>
 <table>
-<tr><th colspan='2' align='right' bgcolor=$_COLORS[0]>RUpay</th></tr>
+<tr><th colspan='2' class='form_title'>RUpay</th></tr>
 <tr><td>$_MONEY:</td><td>%SUM_VAL_SEL%</td></tr>
 <tr><td>$_SUM:</td><td><input type='text' name='sum_pol' value='%SUM%'></td></tr>
 <tr><td>$_DESCRIBE:</td><td><input type='text' name='name_service' value='%DESCRIBE%'></td></tr>

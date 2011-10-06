@@ -62,7 +62,8 @@ my %FIELDS = ( ID               => 'id',
                SMALL_DEPOSIT_ACTION => 'small_deposit_action',
                COMMENTS        => 'comments',
                BILLS_PRIORITY  => 'bills_priority',
-             );
+               FINE            => 'fine'
+              );
 
 #**********************************************************
 # Init 
@@ -440,7 +441,8 @@ sub add {
      domain_id,
      priority,
      comments,
-     bills_priority
+     bills_priority,
+     fine
      )
     values ('$DATA{ID}', '$DATA{ALERT}', \"$DATA{NAME}\", 
      '$DATA{MONTH_FEE}', '$DATA{DAY_FEE}', '$DATA{ACTIVE_DAY_FEE}', '$DATA{REDUCTION_FEE}', 
@@ -465,7 +467,8 @@ sub add {
      '$admin->{DOMAIN_ID}',
      '$DATA{PRIORITY}',
      '$DATA{COMMENTS}',
-     '$DATA{BILLS_PRIORITY}'
+     '$DATA{BILLS_PRIORITY}',
+     '$DATA{FINE}'
      );", 'do' );
      
   $self->{TP_ID}=$self->{INSERT_ID};
@@ -580,7 +583,8 @@ sub info {
       domain_id,
       priority,
       comments,
-      bills_priority
+      bills_priority,
+      fine
     FROM tarif_plans
     WHERE $WHERE;");
 
@@ -634,7 +638,8 @@ sub info {
    $self->{DOMAIN_ID},
    $self->{PRIORITY},
    $self->{COMMENTS},
-   $self->{BILLS_PRIORITY}
+   $self->{BILLS_PRIORITY},
+   $self->{FINE}
   ) = @{ $self->{list}->[0] };
 
   return $self;
@@ -731,8 +736,8 @@ sub list {
     tp.tp_id,
     $self->{SEARCH_FIELDS}
     tp.small_deposit_action,
-    active_day_fee
-    
+    tp.active_day_fee,
+    tp.fine
     FROM (tarif_plans tp)
     LEFT JOIN intervals i ON (i.tp_id=tp.tp_id)
     LEFT JOIN trafic_tarifs tt ON (tt.interval_id=i.id)

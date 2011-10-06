@@ -8,7 +8,7 @@
 
 <table width=400 border=0>
 
-<tr bgcolor=$_COLORS[0]><th colspan=2>Qiwi</th></tr>
+<tr><th class='form_title' colspan=2>Qiwi</th></tr>
 <tr><td>Operation ID:</td><td>$FORM{OPERATION_ID}</td></tr>
 <tr><td>$_SUM:</td><td>$FORM{SUM} <br><font size=-1>%DESCRIBE%</font></td></tr>
 <tr><td>$_PHONE:</td><td><input type='input' name='PHONE' value='%PHONE%' /></td></tr>

@@ -3,6 +3,7 @@ CREATE TABLE `paysys_log` (
   `system_id` tinyint(4) unsigned NOT NULL default '0',
   `datetime` datetime NOT NULL default '0000-00-00 00:00:00',
   `sum` double(10,2) unsigned NOT NULL default '0.00',
+  `commission` double(10,2) unsigned NOT NULL default '0.00',
   `uid` int(11) unsigned NOT NULL default '0',
   `transaction_id` varchar(24) NOT NULL DEFAULT '',
   `info` text NOT NULL,

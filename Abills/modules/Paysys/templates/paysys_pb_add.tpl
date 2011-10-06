@@ -1,10 +1,10 @@
 <table width=300>
-<tr><th align=right bgcolor=$_COLORS[0]>PrivatBank</th></tr>
+<tr><th class='form_title'>PrivatBank</th></tr>
 <tr><td>
 
 <TABLE width='500'cellspacing='0' cellpadding='0' border='0'><TR><TD bgcolor='#E1E1E1'>
 <TABLE width='100%' cellspacing='1' cellpadding='0' border='0'>
-<tr><td bgcolor=$_COLORS[1]>
+<tr><td class='title_color'>
 
 
 

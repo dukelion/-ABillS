@@ -4,7 +4,7 @@
 
 <input type='hidden' name='OPERATION_ID' value='%OPERATION_ID%'>
 <table width=300>
-<tr bgcolor=$_COLORS[0]><th colspan='2' class=form_title>$_BALANCE_RECHARCHE</th></tr>
+<tr><th colspan='2' class=form_title>$_BALANCE_RECHARCHE</th></tr>
 <tr><td>$_TRANSACTION #:</td><td>%OPERATION_ID%</td></tr>
 <tr><td>$_SUM:</td><td><input type='text' name='SUM' value='$FORM{SUM}'></td></tr>
 <tr><td>$_DESCRIBE:</td><td><input type='text' name='DESCRIBE' value='Пополнение счёта'></td></tr>

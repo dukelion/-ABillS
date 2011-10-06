@@ -2,10 +2,10 @@
 
 <TABLE width='500'cellspacing='0' cellpadding='0' border='0'><TR><TD bgcolor='#E1E1E1'>
 <TABLE width='100%' cellspacing='1' cellpadding='0' border='0'>
-<tr><td bgcolor=$_COLORS[1]>
+<tr><td class='odd'>
 
 <table width=100%>
-<tr><th align=right bgcolor=$_COLORS[0] colspan=2>Visa / Mastercard (Portmone)</th></tr>
+<tr><th class='form_title' colspan=2>Visa / Mastercard (Portmone)</th></tr>
 
 
 <INPUT TYPE='HIDDEN' NAME='PAYEE_ID' VALUE='$conf{PAYSYS_PORTMONE_PAYEE_ID}' />

@@ -2,7 +2,7 @@
 <input type='hidden' name='index' value='$index'>
 
 <table>
-<tr><th align=right colspan=2 bgcolor='$_COLORS[0]'>IMPORT</th></tr>
+<tr><th align=right colspan=2 class='form_title'>IMPORT</th></tr>
 <tr><td>$_FILE:</td><td><input type=file name='FILE_DATA' value='%FILE_DATA%'> <input type=submit name=IMPORT value='IMPORT'></td></tr>
 <tr><td>$_FROM:</td><td>%IMPORT_TYPE_SEL%</td></tr>
 <!-- <tr><td>$_CANCEL_PAYMENT:</td><td><input type=checkbox name=CANCEL_PAYMENT value='1'></td></tr> -->
