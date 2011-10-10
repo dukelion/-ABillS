@@ -5426,7 +5426,7 @@ sub get_fees_types  {
  my $fees = Finance->fees($db, $admin, \%conf);
  my $fees_type_list = $fees->fees_type_list();
  foreach my $line (@$fees_type_list) {
-   if ($FORM{METHOD} && $FORM{METHOD} == $line->[0] && $line->[0] > 0) {
+   if ($FORM{METHOD} && $FORM{METHOD} == $line->[0] && $line->[3] > 0) {
  		 $FORM{SUM}=$line->[3];
  	  }
  	 $FEES_METHODS{$line->[0]}=($line->[1]=~/\$/) ? eval($line->[1]) : $line->[1];
