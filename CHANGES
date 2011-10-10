@@ -1,4 +1,29 @@
 =====0.54=====
+10.10.2011\\
+
+  * Улучшена типизация начислений, добавлена возможность одноразовых начислений, заведение новых типов начислений через веб. (Система -  Другое - Типы снятия денег)
+  * ''Dhcphosts'' добавлена галочка статический рендж адресов. Если она установлена параметр рендж не устанавливается в сети
+  * Переименована секция DHCP в IP
+  * Улучшен модуль Cisco_ISG и freeradius Dhcp
+  * Автоматическое включение IPN сессий для адресов модуля IP (Бывший модуль DHCP) $conf{DHCPHOSTS_IPN}
+  * Добавлена возможность создавать собственные правила сброса для дополнительных серверов доступа 
+
+MySQL:\\
+
+  CREATE TABLE `fees_types` (
+    `id` smallint(6) unsigned NOT NULL auto_increment,
+    `sum` double(10,2) NOT NULL default '0.00',
+    `name` varchar(16) NOT NULL default '',
+    `default_describe` varchar(80) NOT NULL default '',
+    PRIMARY KEY  (`id`),
+    UNIQUE KEY `name` (`name`)
+  ) COMMENT='Payments types';
+  
+  INSERT INTO fees_types (id, name) VALUES (0, '$_ONE_TIME'), (1, '$_ABON'), (2, '$_FINE'), (3, '$_ACTIVATE'), (4, '$_MONEY_TRANSFER');
+  UPDATE fees_types SET id=0 where name='$_ONE_TIME';
+
+  
+
 06.10.2011\\
 
   * ''Paysys'' Обновлен модуль для платёжной системы Regulpay 
