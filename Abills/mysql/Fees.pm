@@ -513,7 +513,7 @@ sub fees_type_change {
 
  my %FIELDS = (ID          => 'id',
                NAME        => 'name',
-               DEFAULT_DESCRIBE => 'DEFAULT_DESCRIBE',
+               DEFAULT_DESCRIBE => 'default_describe',
                SUM         => 'sum'
                );
 
@@ -537,7 +537,7 @@ sub fees_type_add {
  my ($attr) = @_;
 
  $self->query($db, "INSERT INTO fees_types (id, name, default_describe, sum) 
-  values ('$attr->{ID}', '$attr->{NAME}', '$attr->{DEFAULT_DECRIBE}', '$attr->{SUM}');", 'do');
+  values ('$attr->{ID}', '$attr->{NAME}', '$attr->{DEFAULT_DESCRIBE}', '$attr->{SUM}');", 'do');
 
  $admin->system_action_add("FEES_TYPES:$self->{INSERT_ID}:$attr->{NAME}", { TYPE => 1 }) if (! $self->{errno});
  return $self;
