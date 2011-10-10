@@ -144,10 +144,13 @@ if [ x${RADIUS_ACTION} = x1 ]; then
     RADIUS_IP=127.0.0.1;
   fi;
 
-echo ${RAD_FILE};
+echo "RAD FILE: ${RAD_FILE}";
 
-  if [ x${ACTION} = x"acct" ]; then
-    PORT=1813;
+  if [ x${RAD_FILE} != x ]; then
+    if [ x${ACTION} = xacct ]; then
+      PORT=1813;
+    fi;
+    
     radclient -f ${RAD_FILE}  ${RADIUS_IP}:${PORT} ${ACTION} ${RADIUS_SECRET}
     echo "radclient -f ${RAD_FILE}  ${RADIUS_IP}:${PORT} ${ACTION} ${RADIUS_SECRET}";
   else

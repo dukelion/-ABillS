@@ -3,6 +3,7 @@
 use Ipn;
 use Ipn_Collector;
 use Dv;
+use Dhcphosts;
 use Dv_Sessions;
 use Nas;
 use Tariffs;
@@ -12,10 +13,12 @@ use Log;
 my $Ipn      = Ipn->new($db, \%conf);
 my $Ipn_Collector = Ipn_Collector->new($db, \%conf);
 my $sessions = Dv_Sessions->new($db, $admin, \%conf);
+my $Dhcphosts= Dhcphosts->new($db, $admin, \%conf);
 my $tariffs  = Tariffs->new($db, \%conf, $admin);
 my $users    = Users->new($db, $admin, \%conf); 
 my $Nas      = Nas->new($db, \%conf);;
 my $Log      = Log->new($db, \%conf);
+
 
 my @TT_COLORS = ("$_COLORS[1]", "#80FF80", "#FFFF80", "#BFBFFF");
 
@@ -1163,6 +1166,8 @@ sub ipn_form_user {
 #
 #**********************************************************
 sub ipn_user_activate {
+  my ($attr) = @_;
+  
   my $ip       = '0.0.0.0';
   my $IP_INPUT = '';
   my $Dv = Dv->new($db, $admin, \%conf);  
@@ -1182,13 +1187,13 @@ sub ipn_user_activate {
   	return 0 if (! $FORM{activate});
    }
   
-  if (! $user->{UID})  {
-     $ENV{REMOTE_ADDR} = $Dv->{IP} if ($Dv->{IP} ne '0.0.0.0');
-     $IP_INPUT = $html->form_input('REMOTE_ADDR', "$ENV{REMOTE_ADDR}", { OUTPUT2RETURN => 1});
-     $ip = ($FORM{REMOTE_ADDR}) ? $FORM{REMOTE_ADDR} : $ENV{REMOTE_ADDR};
+  if (! $user->{UID} && ! $attr->{IP})  {
+    $ENV{REMOTE_ADDR} = $Dv->{IP} if ($Dv->{IP} ne '0.0.0.0');
+    $IP_INPUT         = $html->form_input('REMOTE_ADDR', "$ENV{REMOTE_ADDR}", { OUTPUT2RETURN => 1});
+    $ip               = ($FORM{REMOTE_ADDR}) ? $FORM{REMOTE_ADDR} : $ENV{REMOTE_ADDR};
    }
   else {
-    $ip = $ENV{REMOTE_ADDR};
+    $ip = $attr->{IP} || $ENV{REMOTE_ADDR};
    }
 
 
@@ -1268,8 +1273,7 @@ sub ipn_user_activate {
   		 });
     	
     	
-    	if ($Ipn->{TOTAL} < 1) {
-      
+    	if ($Ipn->{TOTAL} < 1) {      
         $Nas->info({ NAS_ID => $nas_id });
         my %DATA = (ACCT_STATUS_TYPE   => 1, 
                   USER_NAME          => $user->{LOGIN}, 
@@ -1386,11 +1390,11 @@ sub ipn_user_activate {
                             ID          => 'IPN_ONLINE'
                           } );
 
-  foreach my $line (@$list) {
-    my $online_ip = int2ip($line->[3]);
-    $online_ips{$ip}=1;
+    foreach my $line (@$list) {
+      my $online_ip = int2ip($line->[3]);
+      $online_ips{$ip}=1;
 
-    if ($online_ip eq $ip && $user->{UID}) {
+      if ($online_ip eq $ip && $user->{UID}) {
        if ($line->[11] == $LIST_PARAMS{UID}) {
          @ACTION=('LOGOUT', "$_HANGUP");    	
          $HIDDEN{SESSION_ID} = $line->[21];
@@ -1403,19 +1407,19 @@ sub ipn_user_activate {
        	  $html->message('err', $_ERROR, "$_IP_IN_USE");
        	  return 0;
         }
-    }
+       }
 
-    $table->addrow($line->[0], 
-       $line->[2],  
-       $online_ip,  
-       $line->[4], 
-       int2byte($line->[5]), 
-       int2byte($line->[6]),
-       $html->button("$_HANGUP", "index=$index&UID=$LIST_PARAMS{UID}&LOGOUT=1&SESSION_ID=$line->[21]&REMOTE_ADDR=$online_ip&sid=$html->{SID}", { BUTTON => 1 })
+      $table->addrow($line->[0], 
+        $line->[2],  
+        $online_ip,  
+        $line->[4], 
+        int2byte($line->[5]), 
+        int2byte($line->[6]),
+        $html->button("$_HANGUP", "index=$index&UID=$LIST_PARAMS{UID}&LOGOUT=1&SESSION_ID=$line->[21]&REMOTE_ADDR=$online_ip&sid=$html->{SID}", { BUTTON => 1 })
        )  if ($line->[11] == $LIST_PARAMS{UID});
-    }
+     }
     $online_session = $table->show({ OUTPUT2RETURN => 1 });	
-   } 
+   }
   else {
     @ACTION = ('ACTIVE', "$_ACTIVATE");    
    }
@@ -1430,6 +1434,7 @@ $html->tpl_show(_include('ipn_form_active', 'Ipn'), { IP             => $ip,
 	                                                    ACTION         => $ACTION[0],
 	                                                    ACTION_LNG     => $ACTION[1],
 	                                                    ONLINE         => $online_session,
+	                                                    INDEX          => get_function_index('ipn_user_activate'),
 	                                                    %HIDDEN
 	                                                    });
 }
@@ -2491,7 +2496,6 @@ my $poll_list = $Nas->nas_ip_pools_list({  });
 my %nas_pools_hash = ();  
 # Get valid NAS
 foreach my $line (@$poll_list) {
-	# 
 	$nas_pools_hash{$line->[3]}="$line->[4]:$line->[11]" if ($line->[11] && defined($nas_info{$line->[11]}));
  }
 
@@ -2503,20 +2507,32 @@ foreach my $line (@$tp_list) {
 }
 
 my $list = $sessions->online({ NAS_ID => join(', ', @nas_ids_arr),
-	                       FIELDS_NAMES => [ 'UID' ], 
-	                       #FIELDS => [ 0, 21, 27, 23, 12, 22, 10 ] 
-	                       });
+	                             FIELDS_NAMES => [ 'UID' ], 
+	                             #FIELDS => [ 0, 21, 27, 23, 12, 22, 10 ] 
+	                           });
 
 my $count = 0;
 my %online_uids = ();
-foreach my $line (@$list)   {
+foreach my $line (@$list) {
 	$online_uids{$line->[0]}=1;
 }
 
-$list = $Dv->list({ LOGIN        => $attr->{LOGINS} || undef,
+my %DHCP_IPS = ();
+if($conf{IPN_DHCP_ACTIVE}) {
+	$list = $Dhcphosts->hosts_list({ STATUS    => 0, 
+   	                               PAGE_ROWS => 1000000,
+                                 });
+
+  foreach my $line (@$list) {
+  	my $uid = $line->[13+$Dhcphosts->{SEARCH_FIELDS_COUNT}];
+  	push @{ $DHCP_IPS{$uid} }, $line->[11];
+   }
+ }
+
+  $list = $Dv->list({ LOGIN      => $attr->{LOGINS} || undef,
                     ACTIVATE     => "<='$DATE'",
                     EXPIRE       => ">'$DATE'",
-	                  IP           => '>0.0.0.0',
+	                  IP           => '>'.(($conf{IPN_DHCP_ACTIVE}) ? '=': '').'0.0.0.0',
 	                  STATUS       => 0,
 	                  LOGIN_STATUS => 0,
 	                  ALL_FILTER_ID=> '*',
@@ -2535,9 +2551,20 @@ foreach my $line (@$list) {
   my $nas_id       = 0;
   my $tp_id        = $line->[9 + $Dv->{SEARCH_FIELDS_COUNT}];
   my $port         = $line->[7];
+  
+ 
+  DHCP_IP_ASSIGN:
+  if($conf{IPN_DHCP_ACTIVE} && $#{ $DHCP_IPS{$uid} } > -1) {
+    $ip = pop @{ $DHCP_IPS{$uid} };
+   }
+  
   my $ip_num       = unpack("N", pack("C4", split( /\./, $ip))); 
 
-  if ($online_uids{$uid}) {
+  if ($ip eq '0.0.0.0') {
+  	next;
+   }
+  elsif ($online_uids{$uid}) {
+  	print "Account Online\n" if ($debug > 3);
   	next;
    }
   elsif (! $line->[2]) {
@@ -2545,6 +2572,7 @@ foreach my $line (@$list) {
   	next;
    }
   elsif ($line->[2]+$line->[3] <= 0 && !  $TPS{$tp_id}) {
+  	print "Small deposit or TP not defined\n" if ($debug > 3);
   	next;
    }
    
@@ -2594,6 +2622,10 @@ foreach my $line (@$list) {
       
       ipn_change_status({ STATUS => 'ONLINE_ENABLE', %DATA });
       $debug_output .= "$_ACTIVATE IP: $ip\n" if ($debug > 1);
+   }
+
+  if($conf{IPN_DHCP_ACTIVE} && $#{ $DHCP_IPS{$uid} } > -1) {
+    goto DHCP_IP_ASSIGN;
    }
 }
 

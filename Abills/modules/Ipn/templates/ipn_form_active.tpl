@@ -1,7 +1,7 @@
 
 <FORM action='$SELF_URL' METHOD='POST'>
 <input type='hidden' name='SESSION_ID' value='%SESSION_ID%'>
-<input type='hidden' name='index' value='$index'>
+<input type='hidden' name='index' value='%INDEX%'>
 <input type='hidden' name='UID' value='%UID%'>
 <input type='hidden' name='sid' value='$sid'>
 <input type='hidden' name='ACCT_INTERIUM_INTERVAL' value='%ACCT_INTERIUM_INTERVAL%'>

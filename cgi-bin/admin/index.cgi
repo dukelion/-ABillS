@@ -29,7 +29,7 @@ use vars qw(%conf
   %FUNCTIONS_LIST
   @PAYMENT_METHODS
   @EX_PAYMENT_METHODS  
-  @FEES_METHODS
+  %FEES_METHODS
 
   @state_colors
   %permissions
@@ -238,7 +238,6 @@ if  ($admin->{MAX_ROWS} > 0) {
 @action         = ('add', $_ADD);
 @bool_vals      = ($_NO, $_YES);
 @PAYMENT_METHODS= ("$_CASH", "$_BANK", "$_EXTERNAL_PAYMENTS", 'Credit Card', "$_BONUS", "$_CORRECTION", "$_COMPENSATION", "$_MONEY_TRANSFER");
-@FEES_METHODS   = ($_ONE_TIME, $_ABON, $_FINE, $_ACTIVATE, $_MONEY_TRANSFER);
 @status         = ("$_ENABLE", "$_DISABLE");
 my %menu_items  = ();
 my %menu_names  = ();
@@ -4357,8 +4356,8 @@ sub report_fees {
   	return 0;
   }
 
-  push @FEES_METHODS, @EX_FEES_METHODS if (@EX_FEES_METHODS);
-  for(my $i=0; $i<=$#FEES_METHODS; $i++) {
+  %FEES_METHODS = %{ get_fees_types() };
+  while(my($k, $v)=each %FEES_METHODS ) {
   	$METHODS_HASH{"$i:$i"}="$FEES_METHODS[$i]";
    }
 
@@ -4370,10 +4369,8 @@ sub report_fees {
   	        	               ADMINS => $_ADMINS,
   	        	               FIO    => $_FIO,
   	        	               COMPANIES => "$_COMPANIES"
-  	        	                }
-
-  	         });
-
+  	        	              }
+         });
 
   if ( defined($FORM{FIELDS}) && $FORM{FIELDS} >= 0 ) {
   	$LIST_PARAMS{METHODS}=$FORM{FIELDS};
@@ -4856,6 +4853,7 @@ my @m = (
  "95:90:$_SQL_BACKUP:form_sql_backup:::",
  "96:90:$_INFO_FIELDS:form_info_fields:::",
  "97:96:$_LIST:form_info_lists:::",
+ "98:90:$_TYPE $_FEES:form_fees_types:::",
  "6:0:$_MONITORING:null:::",
   
  "7:0:$_SEARCH:form_search:::",
@@ -5347,6 +5345,96 @@ print $table->show();
 }
 
 
+#*******************************************************************
+# form_fees_types
+#*******************************************************************
+sub form_fees_types {
+ my ($attr) = @_;
+
+ use Finance;
+ my $fees = Finance->fees($db, $admin, \%conf);
+
+  
+ $fees->{ACTION}     = 'add';
+ $fees->{LNG_ACTION} = $_ADD;
+
+
+if ($FORM{add}) {
+  $fees->fees_type_add( { %FORM });
+  if (! $fees->{errno}) {
+      $html->message('info', $_ADDED, "$_ADDED");
+    }
+ }
+elsif($FORM{change}){
+  $fees->fees_type_change({ %FORM });
+  if (! $fees->{errno}) {
+    $html->message('info', $_CHANGED, "$_CHANGED $nas->{GID}");
+   }
+ }
+elsif($FORM{chg}){
+  $fees->fees_type_info({ ID => $FORM{chg} });
+  $fees->{ACTION}    ='change';
+  $fees->{LNG_ACTION}=$_CHANGE;
+ }
+elsif(defined($FORM{del}) && $FORM{is_js_confirmed}){
+  $fees->fees_type_del( $FORM{del} );
+  if (! $fees->{errno}) {
+    $html->message('info', $_DELETED, "$_DELETED $FORM{del}");
+   }
+}
+
+
+if ($fees->{errno}) {
+   $html->message('err', $_ERROR, "[$fees->{errno}] $err_strs{$fees->{errno}}");	
+  }
+
+$html->tpl_show(templates('form_fees_types'), $fees);
+
+my $list =  $fees->fees_type_list({ %LIST_PARAMS });
+my $table = $html->table( { width      => '100%',
+                            caption    => "$_FEES $_TYPES",
+                            border     => 1,
+                            title      => ['#', $_NAME, $_COMMENTS, $_SUM, '-', '-'],
+                            cols_align => ['right', 'left', 'left', 'center', 'center:noprint'],
+                            qs         => $pages_qs,
+                            pages      => $nas->{TOTAL}
+                       } );
+
+foreach my $line (@$list) {
+  my $delete = $html->button($_DEL, "index=$index$pages_qs&del=$line->[0]", { MESSAGE => "$_DEL [$line->[0]]?", CLASS => 'del' }); 
+
+  $table->addrow($line->[0], 
+   ($line->[1]=~/\$/) ? eval($line->[1]) : $line->[1], 
+   "$line->[2]", 
+   "$line->[3]", 
+   $html->button($_CHANGE, "index=$index&chg=$line->[0]", { CLASS => 'change' }),
+   $delete);
+}
+print $table->show();
+}
+
+#*******************************************************************
+# get_fees_types
+# 
+# return $Array_ref
+#*******************************************************************
+sub get_fees_types  {
+ my ($attr) = @_;
+
+ my %FEES_METHODS = ();
+ use Finance;
+ my $fees = Finance->fees($db, $admin, \%conf);
+ my $fees_type_list = $fees->fees_type_list();
+ foreach my $line (@$fees_type_list) {
+   if ($FORM{METHOD} && $FORM{METHOD} == $line->[0] && $line->[0] > 0) {
+ 		 $FORM{SUM}=$line->[3];
+ 	  }
+ 	 $FEES_METHODS{$line->[0]}=($line->[1]=~/\$/) ? eval($line->[1]) : $line->[1];
+  }
+
+ 
+ return \%FEES_METHODS;
+}
 
 #*******************************************************************
 # form_fees
@@ -5361,7 +5449,8 @@ sub form_fees  {
  my $fees = Finance->fees($db, $admin, \%conf);
  my %BILL_ACCOUNTS = ();
  
- push @FEES_METHODS, @EX_FEES_METHODS if ($FORM{UID} && @EX_FEES_METHODS);
+
+ %FEES_METHODS = %{ get_fees_types() };
 
 
 if ($attr->{USER}) {
@@ -5460,7 +5549,8 @@ if ($attr->{USER}) {
 
 
   my $list = $shedule->list({ UID  => $user->{UID},
-                              TYPE => 'fees' });
+                              TYPE => 'fees' 
+                             });
   
   if ($shedule->{TOTAL} > 0) {
      my $table2 = $html->table( { width      => '100%',
@@ -5504,11 +5594,25 @@ if ($attr->{USER}) {
  	                             "</td></tr>\n";
       }
 
-    $fees->{SEL_METHOD} =  $html->form_select('METHOD', 
-                                { SELECTED      => (defined($FORM{METHOD}) && $FORM{METHOD} ne '') ? $FORM{METHOD} : '',
- 	                                SEL_ARRAY     => \@FEES_METHODS,
- 	                                ARRAY_NUM_ID  => 1
+    $fees->{SEL_METHOD} = $html->form_select('METHOD', 
+                                { SELECTED     => (defined($FORM{METHOD}) && $FORM{METHOD} ne '') ? $FORM{METHOD} : '',
+ 	                                SEL_HASH     => \%FEES_METHODS,
+ 	                                NO_ID        => 1,
+ 	                                SORT_KEY     => 1
  	                               });
+
+
+
+#    $fees->{SEL_METHOD}=$html->form_select('METHOD', 
+#                                { 
+# 	                                SELECTED          => undef,
+# 	                                SEL_MULTI_ARRAY   => $fees->fees_type_list(),
+# 	                                MULTI_ARRAY_KEY   => 1,
+# 	                                MULTI_ARRAY_VALUE => '1,3',
+# 	                                NO_ID             => 1
+# 	                               });
+
+    
 
     $html->tpl_show(templates('form_fees'), $fees);
    }	
@@ -5563,7 +5667,7 @@ foreach my $line (@$list) {
   $line->[3]. ( ($line->[11] ) ? $html->br(). $html->b($line->[11]) : '' ), 
   $line->[4], 
   "$line->[5]",
-  $FEES_METHODS[$line->[6]], 
+  $FEES_METHODS{$line->[6]}, 
   ($BILL_ACCOUNTS{$line->[7]}) ? $BILL_ACCOUNTS{$line->[7]} : "$line->[7]",
   "$line->[8]", 
   "$line->[9]",
@@ -5744,10 +5848,9 @@ elsif($search_form{$FORM{type}}) {
  	                               });
    }
   elsif ($FORM{type} == 3) {
-    push @FEES_METHODS, @EX_FEES_METHODS if (@EX_FEES_METHODS);
     $info{SEL_METHOD} =  $html->form_select('METHOD', 
                                 { SELECTED      => (defined($FORM{METHOD}) && $FORM{METHOD} ne '') ? $FORM{METHOD} : '',
- 	                                SEL_ARRAY     => \@FEES_METHODS,
+ 	                                SEL_HASH      => get_fees_types(),
  	                                ARRAY_NUM_ID  => 1,
                                   SEL_OPTIONS   => { '' => $_ALL }
  	                               });
@@ -7199,15 +7302,12 @@ sub form_info_lists {
 		 }
 	 }
 	elsif ($FORM{change}) {
-		
-		print "$FORM{chg} // ";
 		$users->info_list_change($FORM{chg}, { ID => $FORM{chg}, %FORM  });
 		if (! $users->{errno}) {
 			$html->message('info', $_INFO, "$_CHANGED: $FORM{ID}");
 		 }
 	 }
 	elsif ($FORM{chg}) {
-	
 		$users->info_list_info($FORM{chg},  {  %FORM  });
 		if (! $users->{errno}) {
 			$html->message('info', $_INFO, "$_CHANGE: $FORM{chg}");

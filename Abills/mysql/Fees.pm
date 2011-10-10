@@ -450,5 +450,120 @@ if ($self->{TOTAL} > 0 || $PG > 0 ) {
 	return $list;
 }
 
+#**********************************************************
+# fees_type_list()
+#**********************************************************
+sub fees_type_list {
+ my $self = shift;
+ my ($attr) = @_;
+
+
+ $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
+ $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
+ $PG   = ($attr->{PG}) ? $attr->{PG} : 0;
+ $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
+
+ @WHERE_RULES = ();
+ 
+ if ($attr->{NAME}) {
+	 push @WHERE_RULES, @{ $self->search_expr($attr->{NAME}, 'STR', 'name') };
+  }
+
+ if ($attr->{ID}) {
+	 push @WHERE_RULES, @{ $self->search_expr($attr->{ID}, 'INT', 'id') };
+  }
+
+ my $WHERE = ($#WHERE_RULES > -1) ?  "WHERE " . join(' and ', @WHERE_RULES) : ''; 
+
+ $self->query($db, "SELECT id, name, default_describe, sum FROM fees_types
+  $WHERE 
+  ORDER BY $SORT $DESC
+  LIMIT $PG, $PAGE_ROWS;");
+
+ return $self->{list};
+}
+
+
+#**********************************************************
+# fees_types_info()
+#**********************************************************
+sub fees_type_info {
+ my $self = shift;
+ my ($attr) = @_;
+ 
+ $self->query($db, "select id, name, default_describe, sum FROM fees_types WHERE id='$attr->{ID}';");
+
+ return $self if ($self->{errno} || $self->{TOTAL} < 1);
+
+ ($self->{ID},
+ 	$self->{NAME},
+ 	$self->{DEFAULT_DESCRIBE},
+ 	$self->{SUM}
+ 	) = @{ $self->{list}->[0] };
+
+ return $self;
+}
+
+#**********************************************************
+# fees_types_change()
+#**********************************************************
+sub fees_type_change {
+ my $self = shift;
+ my ($attr) = @_;
+
+ my %FIELDS = (ID          => 'id',
+               NAME        => 'name',
+               DEFAULT_DESCRIBE => 'DEFAULT_DESCRIBE',
+               SUM         => 'sum'
+               );
+
+ $self->changes($admin, { CHANGE_PARAM => 'ID',
+		               TABLE        => 'fees_types',
+		               FIELDS       => \%FIELDS,
+		               OLD_INFO     => $self->fees_type_info({ %$attr }),
+		               DATA         => $attr
+		              } );
+
+ return $self;
+}
+
+
+
+#**********************************************************
+# fees_type_add()
+#**********************************************************
+sub fees_type_add {
+ my $self = shift;
+ my ($attr) = @_;
+
+ $self->query($db, "INSERT INTO fees_types (id, name, default_describe, sum) 
+  values ('$attr->{ID}', '$attr->{NAME}', '$attr->{DEFAULT_DECRIBE}', '$attr->{SUM}');", 'do');
+
+ $admin->system_action_add("FEES_TYPES:$self->{INSERT_ID}:$attr->{NAME}", { TYPE => 1 }) if (! $self->{errno});
+ return $self;
+}
+
+
+#**********************************************************
+# fees_type_del()
+#**********************************************************
+sub fees_type_del {
+ my $self = shift;
+ my ($id) = @_;
+
+ $self->query($db, "DELETE FROM fees_types WHERE id='$id';", 'do');
+
+ $admin->system_action_add("FEES_TYPES:$id", { TYPE => 10 }) if (! $self->{errno});
+ return $self;
+}
+
+
+
+
+
+
+
+
+
 
 1

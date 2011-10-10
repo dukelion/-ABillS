@@ -4364,12 +4364,7 @@ sub dv_daily_fees {
         if ($user{BILL_ID} > 0 && defined($user{DEPOSIT})) {
           #If deposit is above-zero or TARIF PALIN is POST PAID or PERIODIC PAYMENTS is POSTPAID
           #Active day fees
-          if($user{DV_STATUS} == 5 && $fine > 0) {
-            $FEES_PARAMS{DESCRIBE} = "$_FINE";
-            $sum      = $fine;
-            $EXT_INFO = "FINE";
-           } 
-          elsif((($user{DEPOSIT} + $user{CREDIT} > 0 || $line->[4] == 1 || $TP_INFO{POSTPAID_DAILY} == 1) && $active_day_fee==0) || 
+          if((($user{DEPOSIT} + $user{CREDIT} > 0 || $line->[4] == 1 || $TP_INFO{POSTPAID_DAILY} == 1) && $active_day_fee==0) || 
             ($active_day_fee==1 && $active_logins{$user{LOGIN}})
             ) {
              my $sum = $line->[5];
@@ -4406,6 +4401,14 @@ sub dv_daily_fees {
               }
            }
           # If status too small deposit get fine from user
+          elsif($fine > 0) {
+             %FEES_PARAMS = (DESCRIBE => "$_FINE",
+                             METHOD   => 2,
+                             DATE     => $ADMIN_REPORT{DATE} );
+             $EXT_INFO = "FINE";
+             $fees->take(\%user, $fine, { %FEES_PARAMS } );  
+             $debug_output .= " $user{LOGIN}  UID: $user{UID} SUM: $sum REDUCTION: $user{REDUCTION} FINE\n" if ($debug > 0);
+           }
         }
        else {
        	  print "[ $user{UID} ] $user{LOGIN} - Don't have money account\n";
@@ -4898,6 +4901,7 @@ sub dv_monthly_fees {
              $FEES_PARAMS{DESCRIBE} .= " - $_ABON_DISTRIBUTION" if ($abon_distrib);
              if($user{DV_STATUS} == 5 && $fine > 0) {
                $FEES_PARAMS{DESCRIBE} = "$_FINE";
+               $FEES_PARAMS{METHOD}   = 2;
                $sum = $fine;
                $EXT_INFO = "FINE";
               }
@@ -4982,7 +4986,17 @@ sub dv_monthly_fees {
                }
              }
             else {
-            	 print "<<<<<<<<<<<<<\n";
+              # Get Fine
+              if($fine > 0) {
+                %FEES_PARAMS= (DESCRIBE => "$_FINE",
+                               METHOD   => 1,
+                               DATE     => $ADMIN_REPORT{DATE} );
+                $sum = $fine;
+                $EXT_INFO = "FINE";
+                $fees->take(\%user, $sum, { %FEES_PARAMS } );  
+                $debug_output .= " $user{LOGIN}  UID: $user{UID} SUM: $sum REDUCTION: $user{REDUCTION} FINE\n" if ($debug > 0);
+               }
+
                #Block small deposit
                if ($user{DV_STATUS}==0 && $small_deposit_block && $date_unixtime - $active_unixtime > 30 * 86400) {
     	            if ($small_deposit_block == -1) {

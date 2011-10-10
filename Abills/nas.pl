@@ -12,14 +12,12 @@ use SNMP_Session;
 use SNMP_util;
 use Radius;
 
-my $PPPCTL = '/usr/sbin/pppctl';
-my $SUDO = '/usr/local/bin/sudo';
-
 my $NAS;
 my $nas_type = '';
 my %stats = ();
 my $USER_NAME='';
 
+use FindBin '$Bin';
 
 #*******************************************************************
 # Hangup active port
@@ -92,7 +90,14 @@ sub hangup {
  elsif ($nas_type eq 'lisg_cst') {
    hangup_radius($NAS, $PORT, "$attr->{FRAMED_IP_ADDRESS}", $attr);
   }
- else {
+ elsif(-f "$lib_path/nas/$nas_type".'.pm') {
+ 	 require "$lib_path/nas/$nas_type".'.pm';
+ 	 my $fn = 'hangup_'.$nas_type;
+ 	 if (defined($fn)) {
+ 	 	 $fn->($NAS, $PORT, $attr);
+ 	  }
+ 	} 
+ else {  
    return 1;
   }
 
@@ -721,28 +726,10 @@ sub hangup_exppp {
  my ($ip, $mng_port)=split(/:/, $NAS->{NAS_MNG_IP_PORT}, 2);
   
  my $ctl_port = $mng_port + $PORT;
+ my $PPPCTL = '/usr/sbin/pppctl';
  my $out=`$PPPCTL -p "$NAS->{NAS_MNG_PASSWORD}" $NAS->{NAS_IP}:$ctl_port down`;
   
  return 0;
-}
-
-#*******************************************************************
-# Get stats from exppp
-# get_exppp_stats($SERVER, $PORT)
-#*******************************************************************
-sub stats_exppp {
- my ($NAS, $PORT) = @_;
- my %stats = ();
-
- my ($ip, $mng_port)=split(/:/, $NAS->{NAS_MNG_IP_PORT}, 2);
- my $ctlport = $mng_port + $PORT;
- my $std_out  = `$PPPCTL -p "$NAS->{NAS_MNG_PASSWORD}" $NAS->{NAS_IP}:$ctlport ! echo OCTETSIN OCTETSOUT USER`;
- my ($in, $out, $user) = split(/ +/, $out);
-   
- $stats{in} = $in;
- $stats{out} = $out;
- 
- return %stats;
 }
 
 
@@ -830,24 +817,6 @@ sub hangup_mpd {
  print $result;
  return 0;
 }
-
-#*******************************************************************
-# Get stats from MPD
-# stats_mpd($SERVER, $PORT)
-#*******************************************************************
-sub stats_mpd {
- my ($NAS, $PORT) = @_;
- 
- my ($ip, $mng_port)=split(/:/, $NAS->{NAS_MNG_IP_PORT}, 2);
- my $ctlport = $mng_port + $PORT;
- 
- my $std_out  = `$PPPCTL -p "$NAS->{NAS_MNG_PASSWORD}" $NAS->{NAS_IP}:$ctlport ! echo OCTETSIN OCTETSOUT USER`;
- my ($in, $out, $user) = split(/ +/, $out);
-   
- $stats{in} = $in;
- $stats{out} = $out;
-}
-
 
 #####################################################################
 # radppp functions

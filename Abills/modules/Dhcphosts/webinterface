@@ -467,6 +467,8 @@ sub dhcphosts_networks {
   }
 
 
+
+   $Dhcphosts->{STATIC}              = ' checked' if($Dhcphosts->{STATIC});
    $Dhcphosts->{DISABLE}             = ' checked' if($Dhcphosts->{DISABLE});
    $Dhcphosts->{DENY_UNKNOWN_CLIENTS}= ' checked' if($Dhcphosts->{DENY_UNKNOWN_CLIENTS});
    $Dhcphosts->{AUTHORITATIVE}       = ' checked' if($Dhcphosts->{AUTHORITATIVE});
@@ -515,6 +517,7 @@ function CheckAllINBOX() {
 
 
     foreach my $line (@$list) {
+      $table->{rowcolor} = ($line->[0] eq $FORM{chg}) ? $_COLORS[0] : undef;
       $table->addrow(
 	    $line->[0]. $html->form_input('IDS', "$line->[0]", { TYPE => 'checkbox', }), 
 	    $line->[1],
@@ -793,7 +796,15 @@ sub dhcphosts_user {
 	        $html->message('info', $_ADDED, "$_ADDED [$FORM{HOSTNAME}] ");
           dhcphosts_config({ NETWORKS => $FORM{NETWORK}, 
       	                     reconfig => 1 
-      	                  });
+      	                    });
+      	  
+      	  #Activate IPN Section
+      	  if($conf{IPN_DHCP_ACTIVE} && in_array('Snmputils', \@MODULES)) {
+      	  	require "Abills/modules/Ipn/webinterface";
+      	  	$FORM{ACTIVE}=1;
+      	  	ipn_user_activate({ IP => $FORM{IP} });
+      	   }
+      	  
       	  # If install Snmputils make make assign
       	  if (in_array('Snmputils', \@MODULES) && $FORM{NAS_ID}) {
       	  	require "Abills/modules/Snmputils/webinterface";
@@ -930,6 +941,17 @@ sub dhcphosts_user {
                                                   MULTI_ARRAY_VALUE => 1,
                                            });
   dhcphosts_hosts();
+
+  my $nas_index = get_function_index('form_nas');
+  if($nas_index) {
+  	$Dhcphosts->{NAS_BUTTON} = $html->button($_INFO, "&index=$nas_index&NAS_ID=$Dhcphosts->{NAS_ID}", { CLASS => 'show rightAlignText' });
+   }
+
+  my $network_index = get_function_index('dhcphosts_networks');
+  if($network_index) {
+  	$Dhcphosts->{NETWORK_BUTTON} = $html->button($_INFO, "&index=$network_index&chg=$Dhcphosts->{NETWORK}", { CLASS => 'show rightAlignText' });
+   }
+
 
   $html->tpl_show(_include('dhcphosts_host', 'Dhcphosts'), { %{ $Dhcphosts->host_defaults() }, 
   	    HOSTNAME => $users->{LOGIN} . (($Dhcphosts->{TOTAL}) ? '_'.($Dhcphosts->{TOTAL}+1) : ''),  
@@ -1073,7 +1095,7 @@ foreach my $line (@$list) {
   $INFO{AUTHORITATIVE}= ($Dhcphosts->{AUTHORITATIVE}) ? 'authoritative;' : '';
   $INFO{DENY_UNKNOWN_CLIENTS}= ($Dhcphosts->{DENY_UNKNOWN_CLIENTS}) ? 'deny unknown-clients;' : '';
   
-  if ($Dhcphosts->{IP_RANGE_FIRST} ne '0.0.0.0') {
+  if (! $Dhcphosts->{STATIC} && $Dhcphosts->{IP_RANGE_FIRST} ne '0.0.0.0') {
     $INFO{RANGE}        = "range $Dhcphosts->{IP_RANGE_FIRST} $Dhcphosts->{IP_RANGE_LAST};";
    }
   else {

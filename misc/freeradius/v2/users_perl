@@ -1,6 +1,3 @@
-DEFAULT Auth-Type = Perl
-    Fall-Through = 1 
-
 
 SERVICE_L4R     User-Password == "cisco", Auth-Type = Accept
                 Cisco-AVPair += "ip:l4redirect=redirect list 197 to group REDIRECT_NOPAY",
@@ -35,3 +32,8 @@ BILLING_ACCESS  Password == "cisco", Auth-Type = Accept
 #        Cisco-Account-Info += "NPREPAID_INTERNET",
 #        Idle-Timeout = 120,
 #        Cisco-Account-Info += "ABILLING_ACCESS"                
+
+
+
+DEFAULT Auth-Type = Perl
+    Fall-Through = 1

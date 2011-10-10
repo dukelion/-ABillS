@@ -793,12 +793,12 @@ CREATE TABLE `payments` (
 
 
 CREATE TABLE fees_types (
-`id` smallint(6) unsigned NOT NULL auto_increment,
-`sum` double(10,2) NOT NULL default '0.00',
-`name` varchar(16) NOT NULL default '',
-`default_describe` varchar(80) NOT NULL default '',
-PRIMARY KEY  (`id`),
-UNIQUE KEY `name` (`name`)
+  `id` smallint(6) unsigned NOT NULL auto_increment,
+  `sum` double(10,2) NOT NULL default '0.00',
+  `name` varchar(16) NOT NULL default '',
+  `default_describe` varchar(80) NOT NULL default '',
+  PRIMARY KEY  (`id`),
+  UNIQUE KEY `name` (`name`)
 ) COMMENT='Payments types';
 
 

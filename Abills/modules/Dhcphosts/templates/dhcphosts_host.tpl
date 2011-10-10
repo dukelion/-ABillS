@@ -7,7 +7,7 @@
 
 <tr><th class=form_title colspan=2>DHCP</th></tr>			
 <tr><td>$_HOSTS_HOSTNAME:</td><td><input type=text name=HOSTNAME value='%HOSTNAME%'></td></tr>			
-<tr><td>$_HOSTS_NETWORKS:</td><td>%NETWORKS_SEL%</td></tr>
+<tr><td>$_HOSTS_NETWORKS:</td><td>%NETWORKS_SEL% %NETWORK_BUTTON%</td></tr>
 <tr><td>IP:</td><td><input type=text name=IP value='%IP%' size=15> $_AUTO: <input type=checkbox name=AUTO_IP value=1></td></tr>			
 <tr><td>$_HOSTS_MAC:<BR>(00:00:00:00:00:00)</td><td><input type=text name=MAC value='%MAC%'></td></tr>
 <tr><td>$_FILE:</td><td><input type=text name=BOOT_FILE value='%BOOT_FILE%'></td></tr>
@@ -19,8 +19,7 @@
 <tr><th colspan=2><input type=checkbox name=OPTION_82 onClick='samechanged(this)' value='1' %OPTION_82% NAME='same'> Option 82 </th></tr>
 <tr><td>$_PORT (1,2,5):</td><td><input type=text name=PORTS value='%PORTS%'></td></tr>
 <tr><td>VLAN ID:</td><td><input type=text name=VID value='%VID%'></td></tr>
-<tr><td>$_SWITCH:</td><td>%SWITCH_SEL%</td></tr>
-
+<tr><td>$_SWITCH:</td><td>%SWITCH_SEL% %NAS_BUTTON%</td></tr>
 </table>
 <input type=submit name=%ACTION% value='%ACTION_LNG%'>
 </FORM>

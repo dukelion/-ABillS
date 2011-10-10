@@ -101,7 +101,8 @@ sub network_defaults {
    COMMENTS        => '',
    DENY_UNKNOWN_CLIENTS => 0,
    AUTHORITATIVE   => 0, 
-   GUEST_VLAN      => 0
+   GUEST_VLAN      => 0,
+   STATIC          => 0
   );
 
  
@@ -125,7 +126,7 @@ sub network_add {
   $self->query($db,"INSERT INTO dhcphosts_networks 
      (name,network,mask, routers, coordinator, phone, dns, dns2, ntp,
       suffix, disable,
-      ip_range_first, ip_range_last, comments,  deny_unknown_clients,  authoritative, net_parent, guest_vlan) 
+      ip_range_first, ip_range_last, comments,  deny_unknown_clients,  authoritative, net_parent, guest_vlan, static) 
      VALUES('$DATA{NAME}', INET_ATON('$DATA{NETWORK}'), INET_ATON('$DATA{MASK}'), INET_ATON('$DATA{ROUTERS}'),
        '$DATA{COORDINATOR}', '$DATA{PHONE}', '$DATA{DNS}', '$DATA{DNS2}',  '$DATA{NTP}', 
        '$DATA{DOMAINNAME}',
@@ -136,7 +137,8 @@ sub network_add {
        '$DATA{DENY_UNKNOWN_CLIENTS}',
        '$DATA{AUTHORITATIVE}',
        '$DATA{NET_PARENT}',
-       '$DATA{GUEST_VLAN}'
+       '$DATA{GUEST_VLAN}',
+       '$DATA{STATIC}'
        )", 'do');
 
   $admin->system_action_add("DHCPHOSTS_NET:$self->{INSERT_ID}", { TYPE => 1 });    
@@ -152,7 +154,6 @@ sub network_del {
   my ($id)=@_;
 
   $self->query($db, "DELETE FROM dhcphosts_networks where id='$id';", 'do');
-
   $self->query($db, "DELETE FROM dhcphosts_hosts where network='$id';", 'do');
 
   $admin->system_action_add("DHCPHOSTS_NET:$id", { TYPE => 10 });    
@@ -188,13 +189,15 @@ sub network_change {
    DENY_UNKNOWN_CLIENTS => 'deny_unknown_clients',
    AUTHORITATIVE   => 'authoritative',
    NET_PARENT      => 'net_parent',
-   GUEST_VLAN      => 'guest_vlan'
+   GUEST_VLAN      => 'guest_vlan',
+   STATIC          => 'static'
    );
 
 
   $attr->{DENY_UNKNOWN_CLIENTS} = (defined($attr->{DENY_UNKNOWN_CLIENTS})) ? 1 : 0;
   $attr->{AUTHORITATIVE}        = (defined($attr->{AUTHORITATIVE})) ? 1 : 0;
   $attr->{DISABLE}              = (defined($attr->{DISABLE})) ? 1 : 0;
+  $attr->{STATIC}               = (defined($attr->{STATIC})) ? 1 : 0;
 
 	$self->changes($admin, { CHANGE_PARAM => 'ID',
 		               TABLE        => 'dhcphosts_networks',
@@ -232,6 +235,7 @@ sub network_info {
    disable,
    INET_NTOA(ip_range_first),
    INET_NTOA(ip_range_last),
+   static,
    comments,
    deny_unknown_clients,
    authoritative,
@@ -263,6 +267,7 @@ sub network_info {
    $self->{DISABLE},
    $self->{IP_RANGE_FIRST},
    $self->{IP_RANGE_LAST},
+   $self->{STATIC},
    $self->{COMMENTS},
    $self->{DENY_UNKNOWN_CLIENTS},
    $self->{AUTHORITATIVE},

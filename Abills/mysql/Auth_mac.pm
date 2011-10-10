@@ -214,9 +214,6 @@ else {
 }
 
 
-
-
-
   if ($self->{TP_RAD_PAIRS}) {
     my @p = split(/,/, $self->{TP_RAD_PAIRS});
     foreach my $line (@p) {
@@ -260,7 +257,7 @@ if ($attr->{NAS_TYPE} eq 'mac_auth') {
   	if ($RAD->{CALLING_STATION_ID} && $RAD->{CALLING_STATION_ID} =~ /([A-Fa-f0-9]{2})([A-Fa-f0-9]{2})\.([A-Fa-f0-9]{2})([A-Fa-f0-9]{2})\.([A-Fa-f0-9]{2})([A-Fa-f0-9]{2})/) {
   		$RAD->{CALLING_STATION_ID} = "$1:$2:$3:$4:$5:$6";
   	 }
-    elsif ($RAD->{USER_NAME} =~ /([a-f0-9]{2})([a-f0-9]{2})([a-f0-9]{2})([a-f0-9]{2})([a-f0-9]{2})([a-f0-9]{2})/i) {
+    elsif ($RAD->{USER_NAME} && $RAD->{USER_NAME} =~ /([a-f0-9]{2})([a-f0-9]{2})([a-f0-9]{2})([a-f0-9]{2})([a-f0-9]{2})([a-f0-9]{2})/i) {
       $RAD->{CALLING_STATION_ID} = "$1:$2:$3:$4:$5:$6";
      }
   	else { 
