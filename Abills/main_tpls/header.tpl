@@ -1,4 +1,4 @@
-<tr class='HEADER' class='total'><td colspan='2'>
+<tr class='header'><td colspan='2'>
 <div class='header'>
 
 <table width='100%' border='0' cellpadding='0' cellspacing='0'>

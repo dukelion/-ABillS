@@ -24,6 +24,11 @@ body {
   /* this attribute sets the basis for all the other scrollbar colors (Internet Explorer 5.5+ only) */
 }
 
+.header {
+  background-color: %_COLOR_3%;
+  height: 45;
+}
+
 
 A:hover {text-decoration: none; color: %_COLOR_9%;}
 
