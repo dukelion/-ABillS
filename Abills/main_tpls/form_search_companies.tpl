@@ -11,7 +11,7 @@
 
 <tr><td colspan='2'>$_VAT (%):</TD><TD><input type=text name=VAT value='%VAT%'></TD></TR>
 <tr><td colspan='2'>$_REGISTRATION:</TD><TD>%REGISTRATION%</TD></TR>
-<TR bgcolor=$_COLORS[0]><TH colspan=3>$_BANK_INFO</th></tr>
+<TR class='title_color'><TH colspan=3>$_BANK_INFO</th></tr>
 <TR><TD colspan='2'>$_TAX_NUMBER:</TD><TD><input type=text name=TAX_NUMBER value='%TAX_NUMBER%' size=60></TD></TR>
 <TR><TD colspan='2'>$_ACCOUNT:</TD><TD><input type=text name=BANK_ACCOUNT value='%BANK_ACCOUNT%' size=60></TD></TR>
 <TR><TD colspan='2'>$_BANK:</TD><TD><input type=text name=BANK_NAME value='%BANK_NAME%' size=60></TD></TR>

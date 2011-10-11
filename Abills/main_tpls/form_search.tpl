@@ -5,7 +5,7 @@
 %HIDDEN_FIELDS%
 <TABLE>
 
-<TR bgcolor='$_COLORS[0]'><TH colspan='2' align='right'>$_SEARCH</TH></TR>
+<TR><TH colspan='2' class='form_title'>$_SEARCH</TH></TR>
 %SEL_TYPE%
 <TR><TD>$_LOGIN (*,):</TD><TD><input tabindex=1 type='text' name='LOGIN' value='%LOGIN%'></TD></TR>
 <TR><TD>$_PERIOD:</TD><TD>$_FROM: %FROM_DATE% $_TO: %TO_DATE% </TD></TR>

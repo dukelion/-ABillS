@@ -1,5 +1,5 @@
 <TABLE border='0' WIDTH='100%' style='margin: 0' CELLSPACING='0' CELLPADDING='0'>
-<TR BGCOLOR='$_COLORS[2]' id='statusbar'>
+<TR class='even' id='statusbar'>
 
 <TD width=33% align='left'><b>$_USER:</b> %LOGIN% <b>IP:</b> %IP%</TD>
 <TD width=33% align='center'><b>$_STATE:</b> %STATE%</TD>

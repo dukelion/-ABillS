@@ -14,7 +14,7 @@
 <TR class='even'><TD><b>$_CONTRACT:</b></TD><TD>%CONTRACT_ID%%CONTRACT_SUFIX%</TD></TR>
 <TR class='even'><TD><b>$_CONTRACT $_DATE:</b></TD><TD>%CONTRACT_DATE%</TD></TR>
 <TR class='odd'><TD><b>$_STATUS:</b></TD><TD>%DISABLE%</TD></TR>
-<TR bgcolor='#DDDDDD'><TD colspan='2'>&nbsp;</TD></TR>
+<TR class='total'><TD colspan='2'>&nbsp;</TD></TR>
 <TR class='odd'><TD><b>$_ACTIVATE:</b></TD><TD>%ACTIVATE%</TD></TR>
 <TR class='odd'><TD><b>$_EXPIRE:</b></TD><TD>%EXPIRE%</TD></TR>
 <TR class='odd'><th colspan='2'>$_PAYMENTS</th></TR>
