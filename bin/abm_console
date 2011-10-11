@@ -13,7 +13,7 @@ use vars  qw($db %AUTH %conf $sql $DATE $TIME $ENV
 
 #use strict;
 
-my $version = 0.13;
+my $version = 0.14;
 my $debug   = 0;
 
 use FindBin '$Bin';
@@ -58,13 +58,13 @@ chomp($ip);
 
 $admin->{SESSION_IP}=$ip;
 
-my $ARGV = parse_arguments(\@ARGV);
+my $ARGV             = parse_arguments(\@ARGV);
 my $retries          = 0;
 my $max_acccess_rets = 3;
 my $language         = 'english';
 
 %permissions = ();
-my $admin_info    = get_admin_info(); 
+my $admin_info       = get_admin_info(); 
 
 if ($ARGV->{language}) {
 	$language = $ARGV->{language};
@@ -447,9 +447,9 @@ sub get_admin_info {
      }
 
     print "_ADMIN: ";
-	  chop($REMOTE_USER   = <STDIN>);
+	  chop($admin_info{USERNAME}  = <STDIN>);
 	  print "_PASSWD: ";
-    chop($REMOTE_PASSWD = <STDIN>);
+    chop($admin_info{PASSWD} = <STDIN>);
    }
 
  #return \%admin_info;
@@ -476,7 +476,6 @@ sub check_permissions {
                  SECRETKEY => $conf{secretkey},
                  IP        => $ip
                 );
-
 
   $admin->info(0, { %PARAMS } );  
 
