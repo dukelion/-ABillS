@@ -20,6 +20,8 @@
 <tr><td>$_PORT (1,2,5):</td><td><input type=text name=PORTS value='%PORTS%'></td></tr>
 <tr><td>VLAN ID:</td><td><input type=text name=VID value='%VID%'></td></tr>
 <tr><td>$_SWITCH:</td><td>%SWITCH_SEL% %NAS_BUTTON%</td></tr>
+
+<tr class=even><td>$_ACTIVATE IPN:</td><td><input type=checkbox name=IPN_ACTIVATE value=1 %IPN_ACTIVATE%></td></tr>
 </table>
 <input type=submit name=%ACTION% value='%ACTION_LNG%'>
 </FORM>

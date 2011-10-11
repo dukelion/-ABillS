@@ -2519,8 +2519,11 @@ foreach my $line (@$list) {
 
 my %DHCP_IPS = ();
 if($conf{IPN_DHCP_ACTIVE}) {
-	$list = $Dhcphosts->hosts_list({ STATUS    => 0, 
-   	                               PAGE_ROWS => 1000000,
+	$list = $Dhcphosts->hosts_list({ STATUS       => 0, 
+   	                               PAGE_ROWS    => 1000000,
+   	                               IPN_ACTIVATE => 1,
+   	                               DISABLE      => 0,
+   	                               USER_DISABLE => 0
                                  });
 
   foreach my $line (@$list) {

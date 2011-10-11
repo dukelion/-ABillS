@@ -274,8 +274,7 @@ sub check_lines {
       if ($debug > 1) {
         printf("%-14s|%16s|%8s|%10s|%10s|%12s|\n", $user_name, int2ip($client_ip), $duration, $acct_input_octets, $acct_output_octets, $deposit);
        } 
-      
-      
+
       if (($calls_tp_id ne $tp_num || 
            $state 
            || ($POSTPAIDS{$tp_num} == 0 && $deposit+$credit <= 0 && ! $Billing->{NEG_DEPOSIT_FILTER}) # && $bill_priority == 0)

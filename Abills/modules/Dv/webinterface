@@ -4402,12 +4402,16 @@ sub dv_daily_fees {
            }
           # If status too small deposit get fine from user
           elsif($fine > 0) {
-             %FEES_PARAMS = (DESCRIBE => "$_FINE",
-                             METHOD   => 2,
-                             DATE     => $ADMIN_REPORT{DATE} );
-             $EXT_INFO = "FINE";
-             $fees->take(\%user, $fine, { %FEES_PARAMS } );  
-             $debug_output .= " $user{LOGIN}  UID: $user{UID} SUM: $sum REDUCTION: $user{REDUCTION} FINE\n" if ($debug > 0);
+            if ($conf{DV_FINE_LIMIT} && $user{DEPOSIT}+$user{CREDIT} < $conf{DV_FINE_LIMIT}) {
+             	next;
+             }
+
+            %FEES_PARAMS = (DESCRIBE => "$_FINE",
+                            METHOD   => 2,
+                            DATE     => $ADMIN_REPORT{DATE} );
+            $EXT_INFO = "FINE";
+            $fees->take(\%user, $fine, { %FEES_PARAMS } );  
+            $debug_output .= " $user{LOGIN}  UID: $user{UID} SUM: $sum REDUCTION: $user{REDUCTION} FINE\n" if ($debug > 0);
            }
         }
        else {
@@ -4747,8 +4751,6 @@ sub dv_monthly_fees {
        	 $user{MAIN_BILL_ID}=0;
        	 $ext_deposit_op=0;
         }
-
-
        
        if (($user{BILL_ID} && $user{BILL_ID} > 0) && defined($user{DEPOSIT})) {
          my %FEES_PARAMS = (
@@ -4900,10 +4902,13 @@ sub dv_monthly_fees {
              $FEES_PARAMS{DESCRIBE}="$_MONTH_FEE ($TP_ID)";  
              $FEES_PARAMS{DESCRIBE} .= " - $_ABON_DISTRIBUTION" if ($abon_distrib);
              if($user{DV_STATUS} == 5 && $fine > 0) {
+               if ($conf{DV_FINE_LIMIT} && $user{DEPOSIT}+$user{CREDIT} < $conf{DV_FINE_LIMIT}) {
+               	 next;
+                }
                $FEES_PARAMS{DESCRIBE} = "$_FINE";
                $FEES_PARAMS{METHOD}   = 2;
-               $sum = $fine;
-               $EXT_INFO = "FINE";
+               $sum                   = $fine;
+               $EXT_INFO              = "FINE";
               }
              # If activation set to monthly fees taken throught 30 days
              elsif($user{ACTIVATE} ne '0000-00-00') {
@@ -4975,7 +4980,10 @@ sub dv_monthly_fees {
                   next;
                  }
                }
-              
+              else {
+              	next;
+               }
+
               # get fees
               if ($debug > 4) {
                 $debug_output .= " UID: $user{UID} SUM: $sum REDUCTION: $user{REDUCTION}\n";
@@ -4988,6 +4996,9 @@ sub dv_monthly_fees {
             else {
               # Get Fine
               if($fine > 0) {
+                if ($conf{DV_FINE_LIMIT} && $user{DEPOSIT}+$user{CREDIT} < $conf{DV_FINE_LIMIT}) {
+                	next;
+                 }
                 %FEES_PARAMS= (DESCRIBE => "$_FINE",
                                METHOD   => 1,
                                DATE     => $ADMIN_REPORT{DATE} );
@@ -5731,12 +5742,17 @@ sub dv_wizard_user {
       # Abon
       if (in_array('Abon', \@MODULES) && $add_values{9}) {
         require "Abills/modules/Abon/webinterface";
-        #my $Msgs = Msgs->new($db, $admin, \%conf);
-        
         %FORM=%{ $add_values{9} };
         $FORM{UID}   =$UID;
         $FORM{change}=$UID;
         abon_user({ QUITE => 1 });
+       }
+      #Fees wizard form
+      if ($add_values{10}) {
+        %FORM=%{ $add_values{10} };
+        $FORM{UID}   =$UID;
+        $FORM{add}=$UID;
+      	form_fees_wizard({ USER => $user });
        }
 
 
@@ -5812,15 +5828,13 @@ sub dv_wizard_user {
     	 $FORM{"$key"}=$val;
      }
    }
-   
- 
 
   my $users_defaults = $users->defaults();
   $users_defaults->{DISABLE}=($users_defaults->{DISABLE} == 1) ? ' checked' : '';
   $users_defaults->{GID} = sel_groups();
   #Info fields
-  
-  
+
+
   if (! $attr->{NO_EXTRADATA}) {
     $users_defaults->{EXDATA}  =  $user_info->{EXDATA} .=  $html->tpl_show(templates('form_user_exdata_add'), { CREATE_BILL => ' checked' }, { OUTPUT2RETURN => 1 });
     $users_defaults->{EXDATA} .=  $html->tpl_show(templates('form_ext_bill_add'), { CREATE_EXT_BILL => ' checked' }, { OUTPUT2RETURN => 1 }) if ($conf{EXT_BILL_ACCOUNT});
@@ -5946,10 +5960,10 @@ else {
  		                                      });
 
  my %tpls = (
-	            "1:$_LOGIN::"    => $html->tpl_show(templates('form_user'), { %$users_defaults, %FORM},    { OUTPUT2RETURN => 1, ID => 'FORM_USER'     }),  
-	            "2:$_PASSWD::"   => $html->tpl_show(templates('form_password'), { %$password_form, %FORM}, { OUTPUT2RETURN => 1, ID => 'FORM_PASSWORD' }),
-	            "3:$_INFO::"     => $html->tpl_show(templates('form_pi'), { %pi_form, %FORM},           { OUTPUT2RETURN => 1, ID => 'FORM_PI'       }), 
-	            "4:Internet::"   => $html->tpl_show(_include('dv_user', 'Dv'), { %$dv_defaults, %FORM},    { OUTPUT2RETURN => 1, ID => 'DV_USER'       }),
+	            "01:$_LOGIN::"    => $html->tpl_show(templates('form_user'), { %$users_defaults, %FORM},    { OUTPUT2RETURN => 1, ID => 'FORM_USER'     }),  
+	            "02:$_PASSWD::"   => $html->tpl_show(templates('form_password'), { %$password_form, %FORM}, { OUTPUT2RETURN => 1, ID => 'FORM_PASSWORD' }),
+	            "03:$_INFO::"     => $html->tpl_show(templates('form_pi'), { %pi_form, %FORM},           { OUTPUT2RETURN => 1, ID => 'FORM_PI'       }), 
+	            "04:Internet::"   => $html->tpl_show(_include('dv_user', 'Dv'), { %$dv_defaults, %FORM},    { OUTPUT2RETURN => 1, ID => 'DV_USER'       }),
              );
  
  #Payments
@@ -5969,7 +5983,7 @@ else {
  	                                NO_ID             => 1
  	                               });
  	
- 	 $tpls{"5:$_PAYMENTS::"} = $html->tpl_show(templates('form_payments'), $payments,      { OUTPUT2RETURN => 1, ID => 'FORM_PAYMENTS' });
+ 	 $tpls{"05:$_PAYMENTS::"} = $html->tpl_show(templates('form_payments'), $payments,      { OUTPUT2RETURN => 1, ID => 'FORM_PAYMENTS' });
   }
  
  #If mail module added
@@ -5998,7 +6012,7 @@ else {
  	                               });
 
 
-    $tpls{"6:E-Mail::"}=$html->tpl_show(_include('mail_box', 'Mail'), $Mail,  { OUTPUT2RETURN => 1, ID => 'MAIL_BOX' });
+    $tpls{"06:E-Mail::"}=$html->tpl_show(_include('mail_box', 'Mail'), $Mail,  { OUTPUT2RETURN => 1, ID => 'MAIL_BOX' });
   }
  
  #If msgs module added
@@ -6006,9 +6020,10 @@ else {
    require "Abills/modules/Msgs/webinterface";
    my $Msgs = Msgs->new($db, $admin, \%conf);
    $FORM{UID}=-1;
-   $tpls{"7:$_MESSAGE::"}=msgs_admin_add({ OUTPUT2RETURN => 1 });
+   $tpls{"07:$_MESSAGE::"}=msgs_admin_add({ OUTPUT2RETURN => 1 });
   } 
 
+  $tpls{"10:$_FEES::"}=form_fees_wizard({ OUTPUT2RETURN => 1 });
  
  
  if ($attr->{TPLS}) {
@@ -6024,12 +6039,14 @@ else {
  
  foreach my $key (@sorted_templates) {
      my($n, $descr, $pre, $post)=split(/:/, $key, 4);
-     $template .= "<tr bgcolor=\"$_COLORS[0]\"><th>$descr</th></tr>\n";
+     $n=int($n);
+     $template .= "<tr class='title_color'><th>$descr</th></tr>\n";
      my $sub_tpl .= $html->tpl_show($tpls{"$key"}, $wizard, { OUTPUT2RETURN => 1, ID => "$descr" });
      $sub_tpl =~ s/(<input .*?UID.*?>)//gi;
      $sub_tpl =~ s/(<input .*?index.*?>)//gi;
      $sub_tpl =~ s/name=[\'\"]?([A-Z_0-9]+)[\'\"]? /name=$n.$1 /ig;
-     $template .= "<tr><th align=\"center\">". $sub_tpl . "</th></tr>\n";
+     my $class = ($n%2) ? 'odd' :  'even';
+     $template .= "<tr><th class=$class align=center>". $sub_tpl . "</th></tr>\n";
    }
 
   $template =~ s/(<form .*?>)//gi;

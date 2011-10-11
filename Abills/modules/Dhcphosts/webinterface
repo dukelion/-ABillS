@@ -758,7 +758,7 @@ sub dhcphosts_user {
     if ($FORM{AUTO_IP} && ! $FORM{NETWORK}) {
     	$html->message('err', $_ERROR, "$ERR_WRONG_DATA: Select network");
      }
-    elsif ($FORM{IP} eq '0.0.0.0' && $FORM{AUTO_IP} && $FORM{NETWORK}) {
+    elsif (($FORM{IP} eq '0.0.0.0' || $FORM{IP} eq '') && $FORM{AUTO_IP} && $FORM{NETWORK}) {
   	 	$FORM{IP}=dhcphosts_get_static_ip($FORM{NETWORK});
      }
     
@@ -799,7 +799,7 @@ sub dhcphosts_user {
       	                    });
       	  
       	  #Activate IPN Section
-      	  if($conf{IPN_DHCP_ACTIVE} && in_array('Snmputils', \@MODULES)) {
+      	  if($FORM{IPN_ACTIVATE} && $conf{IPN_DHCP_ACTIVE} && in_array('Snmputils', \@MODULES)) {
       	  	require "Abills/modules/Ipn/webinterface";
       	  	$FORM{ACTIVE}=1;
       	  	ipn_user_activate({ IP => $FORM{IP} });
@@ -924,6 +924,7 @@ sub dhcphosts_user {
                                           });
 
   $Dhcphosts->{DISABLE}=' checked' if($Dhcphosts->{DISABLE});
+  $Dhcphosts->{IPN_ACTIVATE}=' checked' if($Dhcphosts->{IPN_ACTIVATE});
 
   if (! $Dhcphosts->{OPTION_82}) {
     #$Dhcphosts->{INPUT_STATE}=" DISABLED STYLE='background-color: $_COLORS[3]'";

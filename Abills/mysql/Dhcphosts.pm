@@ -350,7 +350,8 @@ sub host_defaults {
    EXPIRE         => '',
    PORTS          => '',
    BOOT_FILE      => '',
-   NEXT_SERVER    => ''
+   NEXT_SERVER    => '',
+   IPN_ACTIVATE   => ''
   );
 
  
@@ -369,16 +370,15 @@ sub host_add {
   my %DATA = $self->get_data($attr, { default => host_defaults() }); 
 
   $self->query($db, "INSERT INTO dhcphosts_hosts (uid, hostname, network, ip, mac, blocktime, 
-    forced, disable, expire, comments, option_82, vid, nas, ports, boot_file, next_server) 
+    forced, disable, expire, comments, option_82, vid, nas, ports, boot_file, next_server, ipn_activate) 
     VALUES('$DATA{UID}', '$DATA{HOSTNAME}', '$DATA{NETWORK}',
       INET_ATON('$DATA{IP}'), '$DATA{MAC}', '$DATA{BLOCKTIME}', '$DATA{FORCED}', '$DATA{DISABLE}',
       '$DATA{EXPIRE}',
       '$DATA{COMMENTS}', '$DATA{OPTION_82}', '$DATA{VID}', '$DATA{NAS_ID}', '$DATA{PORTS}',
       '$DATA{BOOT_FILE}',
-      '$DATA{NEXT_SERVER}'
+      '$DATA{NEXT_SERVER}',
+      '$DATA{IPN_ACTIVATE}'
       );", 'do');
-
-
   
   $admin->action_add($DATA{UID}, "ADD $DATA{IP}/$DATA{MAC}");
 
@@ -468,7 +468,8 @@ sub host_info {
    ports,
    boot_file, 
    changed,
-   next_server
+   next_server,
+   ipn_activate
   FROM dhcphosts_hosts
   WHERE $WHERE;");
 
@@ -495,6 +496,7 @@ sub host_info {
    $self->{BOOT_FILE},
    $self->{CHANGED},
    $self->{NEXT_SERVER},
+   $self->{IPN_ACTIVATE},
    ) = @{ $self->{list}->[0] };
 
   return $self;
@@ -526,10 +528,13 @@ sub host_change {
    PORTS       => 'ports',
    BOOT_FILE   => 'boot_file',
    NEXT_SERVER => 'next_server',
+   IPN_ACTIVATE=> 'ipn_activate'
 #   CHANGED     => 'changed'
   );
 
-  $attr->{OPTION_82} = ($attr->{OPTION_82}) ? 1 : 0;
+  $attr->{OPTION_82}    = ($attr->{OPTION_82}) ? 1 : 0;
+  $attr->{IPN_ACTIVATE} = ($attr->{IPN_ACTIVATE}) ? 1 : 0;
+  
 
 	$self->changes($admin, { CHANGE_PARAM => 'ID',
 		               TABLE        => 'dhcphosts_hosts',
@@ -537,7 +542,6 @@ sub host_change {
 		               OLD_INFO     => $self->host_info($attr->{ID}),
 		               DATA         => $attr
 		              } );
-
 
   return $self;
 };
@@ -552,8 +556,7 @@ sub route_add {
     my $self=shift;
     my ($attr) = @_;
 
-    my %DATA = $self->get_data($attr); 
-
+    my %DATA = $self->get_data($attr);
     $self->query($db, "INSERT INTO dhcphosts_routes 
        (network, src, mask, router) 
     values($DATA{NET_ID},INET_ATON('$DATA{SRC}'), INET_ATON('$DATA{MASK}'), INET_ATON('$DATA{ROUTER}'))", 'do');
@@ -663,8 +666,8 @@ sub hosts_list {
    }
  }
 
- if ($attr->{LOGIN_EXPR}) {
-   push @WHERE_RULES, @{ $self->search_expr("$attr->{LOGIN_EXPR}", 'STR', 'u.id') };
+ if ($attr->{LOGIN}) {
+   push @WHERE_RULES, @{ $self->search_expr("$attr->{LOGIN}", 'STR', 'u.id') };
   }
 
  if ($attr->{GIDS}) {
@@ -680,6 +683,10 @@ sub hosts_list {
  
  if ($attr->{MAC}) {
    push @WHERE_RULES, @{ $self->search_expr("$attr->{MAC}", 'STR', 'h.mac') };
+  }
+
+ if ($attr->{IPN_ACTIVATE}) {
+   push @WHERE_RULES, @{ $self->search_expr("$attr->{IPN_ACTIVATE}", 'INT', 'h.ipn_activate') };
   }
 
  if ($attr->{NETWORK}) {
@@ -734,19 +741,12 @@ sub hosts_list {
     push @WHERE_RULES, "u.disable='$attr->{USER_DISABLE}'";
    }
 
-
  if (defined($attr->{DELETED})) {
  	 push @WHERE_RULES,  @{ $self->search_expr("$attr->{DELETED}", 'INT', 'u.deleted', { EXT_FIELD => 1 })  };
   }
  elsif (! $admin->{permissions}->{0} || ! $admin->{permissions}->{0}->{8}) {
 	 push @WHERE_RULES,  @{ $self->search_expr(0, 'INT', 'u.deleted', { EXT_FIELD => 1 })  };
   }
-
-
-  #if (defined($attr->{D})) {
-  #  push @WHERE_RULES, "u.disable='$attr->{USER_DISABLE}'";
-  # }
-
 
   # Deposit chech
   my $EXT_TABLES   = ''; 
@@ -758,7 +758,6 @@ sub hosts_list {
             LEFT JOIN companies company ON  (u.company_id=company.id) 
             LEFT JOIN bills ext_b ON (u.ext_bill_id = ext_b.id)
             LEFT JOIN bills ext_cb ON  (company.ext_bill_id=ext_cb.id) ";
-
    }
   elsif (defined($attr->{DHCPHOSTS_DEPOSITCHECK})) {
   	$EXT_TABLES = 'LEFT JOIN bills b ON (u.bill_id = b.id)

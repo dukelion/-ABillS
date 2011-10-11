@@ -759,7 +759,6 @@ foreach my $USER_GID (sort { $b <=> $a } keys %USERS_GIDS) {
     		                     DISABLE => $line->[4]
     		               });
 
-      $users->{debug}=1;
       $users->pi_change({
       	                 UID      => $uid,
       	                 COMMENTS => "$comments $_GROUP $_DEBETORS: $DATE $TIME",
