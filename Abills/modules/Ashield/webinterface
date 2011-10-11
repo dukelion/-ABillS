@@ -449,7 +449,7 @@ sub ashield_user {
    	 	  $radio_but = "$ERR_SMALL_DEPOSIT";
    	  }
    	 $table->addrow($line->[0], 
-   	   $html->b($line->[1]).$html->br().( ($conf{dbcharset} eq 'utf8') ? $line->[19] : convert($line->[19], { text2html => 1  }) ),
+   	   $html->b($line->[1]).$html->br().( ($conf{dbcharset} eq 'utf8') ? convert(convert($line->[19], { utf82win => 1 }), {win2utf8 => 1}) : convert($line->[19], { text2html => 1  }) ),
        $ashield_tps_info->{$line->[1]}->{GRACE_PERIOD},
        $line->[6],
    	   $radio_but
@@ -562,7 +562,7 @@ sub ashield_user {
         	$download_url =~ s/http:\/\/([a-z\.\-0-9\_]+)\//$conf{ASHIELD_DRWEB_DOWNLOAD_PREFIX}/i;
          }
         
-    	  $table->addrow($html->color_mark( (($conf{dbcharset} eq 'utf8') ? $name : convert($name, { utf82win => 1 })), 'code'),
+    	  $table->addrow($html->color_mark( (($conf{dbcharset} eq 'utf8') ? convert(convert($name, { utf82win => 1 }), {win2utf8 => 1}) : convert($name, { utf82win => 1 })), 'code'),
 ##    	               $k->{agentuuid}->[0], 
     	               ($error) ? $error : $tp,
     	               ($activated eq 'no' || $error) ? $_NO: $_YES,
@@ -858,7 +858,7 @@ sub ashield_users_list {
  
  foreach my $line  (@{ $result_hash->{customers}->[0]->{customer} } ) {
  	 # Computer -> Hash info
- 	 $drweb_logins{(($conf{dbcharset} eq 'utf8') ? $line->{name}->[0] : convert($line->{name}->[0], { utf82win => 1 })) }=keys %{ $line->{group} };
+ 	 $drweb_logins{(($conf{dbcharset} eq 'utf8') ? convert(convert($line->{name}->[0], { utf82win => 1 }), {win2utf8 => 1}) : convert($line->{name}->[0], { utf82win => 1 })) }=keys %{ $line->{group} };
   } 
  
 
@@ -1555,6 +1555,7 @@ sub ashield_drweb_report_users {
                            cols_align => ['left', 'left', 'left', 'left', 'left'],
                            qs          => $pages_qs,
                            pages      => $Ashield->{TOTAL},
+                           ID         => 'ASHIELD_LOG'
                           });
  
  
