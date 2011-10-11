@@ -913,9 +913,10 @@ sub list {
  if ($attr->{ACTIVE}) {
  	 push @WHERE_RULES,  "(u.expire<curdate() or u.expire='0000-00-00') and u.credit + if(company.id IS NULL, b.deposit, cb.deposit) > 0 and u.disable=0 ";
   }
-
- if ((! $admin->{permissions}->{0} && ! $admin->{permissions}->{0}->{8}) || 
-    ($attr->{USER_STATUS} && ! $attr->{DELETED})) {
+ 
+ if ((! $admin->{permissions}->{0}->{8})
+  || ($attr->{USER_STATUS} && ! $attr->{DELETED})
+  ){
 	 push @WHERE_RULES,  @{ $self->search_expr(0, 'INT', 'u.deleted', { EXT_FIELD => 1 })  };
   }
  elsif ($attr->{DELETED}) {
@@ -949,9 +950,7 @@ if ($self->{TOTAL} > 0) {
             $self->{SEARCH_FIELDS_COUNT}++;
             
             $EXT_TABLES .= "
-            LEFT JOIN $field_name" ."_list ON (pi.$field_name = $field_name" ."_list.id)";
-
-            
+            LEFT JOIN $field_name" ."_list ON (pi.$field_name = $field_name" ."_list.id)";            
           	next;
            }
           else {

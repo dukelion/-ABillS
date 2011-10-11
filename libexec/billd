@@ -338,8 +338,6 @@ sub check_lines {
                                                     ACCT_SESSION_ID => $acct_session_id
                                                   });
 
-           my $ddddd = `echo "/ $user_name / $ACCT_INFO->{USER_NAME} / $acct_session_id / $ACCT_INFO->{ACCT_SESSION_ID}" >> /tmp/billd`;
-
            $ACCT_INFO->{INBYTE}               = $acct_input_octets;
            $ACCT_INFO->{OUTBYTE}              = $acct_output_octets;
            $ACCT_INFO->{INBYTE2}              = $acct_input_octets_ext;
@@ -1036,11 +1034,12 @@ sub check_speed {
     exit;
    }
 
+  @START_FW=(5000, 3000, 1000) if ($#START_FW < 0);
 	my %LOGINS_SPEEDS = ();
   my %rule_speed = ();
   my %pipe_rules = ();
   my %fw_ips     = ();
-  my $OS  = `uname`;
+  my $OS         = `uname`;
   my @FW_ACTIONS = ();
   my $fw_step    = 0;
 
