@@ -69,9 +69,7 @@ sub new {
   $CONF->{MB_SIZE} = $CONF->{KBYTE_SIZE} * $CONF->{KBYTE_SIZE};
   $self->{TRAFFIC_ROWS}=0;
   $self->{UNKNOWN_TRAFFIC_ROWS}=0;
-
-  $Billing = Billing->new($db, $CONF);
-  
+  $Billing = Billing->new($db, $CONF); 
 
   return $self;
 }
@@ -205,14 +203,6 @@ sub user_ips {
 
      #Get IP/mask
      if ($line->[16] && $line->[16] < 4294967295) {
-       #my $first_ip =  $line->[17] & $line->[16];
-       #for(my $i=0; $i<=4294967295 -  $line->[16]; $i++) {
-       #	 my $ip            = $first_ip+$i;
-     	 #  $ips{$ip}         =$line->[0];
-     	 #  #print int2ip($first_ip+$i)."\n";
-     	 #  $session_ids{$ip} = "v$ip" if (! $session_ids{$ip});
-     	 #  $self->{$ip}{OCTET_DIRECTION} = $line->[12];
-       # }
        my $count = 4294967295-$line->[16];
        $ip = pack('N4N4', $ip, $count);
        $ip_range{$line->[0]}=$ip;

@@ -1273,8 +1273,18 @@ sub ipn_user_activate {
   		 });
     	
     	
-    	if ($Ipn->{TOTAL} < 1) {      
+    	if ($Ipn->{TOTAL} < 1) {
         $Nas->info({ NAS_ID => $nas_id });
+        
+        if ($Dv->{SIMULTANEONSLY} == 1) {
+ 	        $Ipn->acct_stop({ 
+        	     	       USER_NAME            => $user->{LOGIN},
+        	     	       NAS_ID               => $nas_id,
+        	     	       STATUS               => 2,
+     	                 ACCT_TERMINATE_CAUSE => $attr->{ACCT_TERMINATE_CAUSE} || 6 
+     	                 });
+         }
+
         my %DATA = (ACCT_STATUS_TYPE   => 1, 
                   USER_NAME          => $user->{LOGIN}, 
                   SESSION_START      => 0, 
@@ -1325,7 +1335,7 @@ sub ipn_user_activate {
           exit;
          }
        }
-     }
+       }
     else {
     	$html->message('info', $_INFO, "$_ACTIVATE");
      }
@@ -1363,13 +1373,14 @@ sub ipn_user_activate {
                          NAS_MNG_USER          => $Nas->{NAS_MNG_USER},
                          NAS_MNG_IP_PORT       => $Nas->{NAS_MNG_IP_PORT},
   	 	         	 	     });
-       }
+      }
      else {
        require "Abills/nas.pl";
        my $ret = hangup($nas, "$nas_port_id", "$user_name", 
                                                 { ACCT_SESSION_ID   => "$FORM{SESSION_ID}",
   	                                              FRAMED_IP_ADDRESS => "$FORM{FRAMED_IP_ADDRESS}",
-  	                                              UID               => $user->{LOGIN} });
+  	                                              UID               => $user->{LOGIN} 
+  	                                             });
       }
      $html->message('info', $_INFO, "$_DISABLE IP: $ip");
    }

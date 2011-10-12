@@ -169,12 +169,16 @@ sub acct_stop {
   my ($attr) = @_;
   my $session_id='';
 
+  my $WHERE = '';
   if (defined($attr->{SESSION_ID})) {
-  	$session_id=$attr->{SESSION_ID};
+  	$WHERE="acct_session_id='$attr->{SESSION_ID}'";
+   }
+  elsif ($attr->{USER_NAME} && $attr->{NAS_ID} && $attr->{STATUS}) {
+  	$WHERE="user_name='$attr->{USER_NAME}' AND calls.nas_id='$attr->{NAS_ID}' AND  status='$attr->{STATUS}' ";
    }
   else {
     return $self;
-  }
+   }
 
   my $ACCT_TERMINATE_CAUSE = (defined($attr->{ACCT_TERMINATE_CAUSE})) ? $attr->{ACCT_TERMINATE_CAUSE} : 0;
 
@@ -195,7 +199,7 @@ sub acct_stop {
       LEFT JOIN bills b ON (u.bill_id=b.id)
       LEFT JOIN bills cb ON (c.bill_id=cb.id)
       LEFT JOIN dv_main dv ON (u.uid=dv.uid)
-    WHERE u.id=calls.user_name and acct_session_id='$session_id';";
+    WHERE u.uid=calls.uid and $WHERE;";
 
   $self->query($db, $sql);
   
@@ -204,7 +208,6 @@ sub acct_stop {
   	 $self->{errstr}='ERROR_NOT_EXIST';
   	 return $self;
    }
-
 
   ($self->{UID},
    $self->{FRAMED_IP_ADDRESS},
@@ -220,8 +223,6 @@ sub acct_stop {
    $self->{NAS_ID},
    $self->{NAS_PORT}
   ) = @{ $self->{list}->[0] };
-
-
  
  $self->query($db, "SELECT sum(l.traffic_in), 
    sum(l.traffic_out),
@@ -1011,9 +1012,8 @@ sub online_alive {
   my $session_id = ($attr->{SESSION_ID}) ? "and acct_session_id='$attr->{SESSION_ID}'" : '';
 	
   $self->query($db, "SELECT CID FROM dv_calls
-   WHERE  user_name = '$attr->{LOGIN}'    
-    and framed_ip_address=INET_ATON('$attr->{REMOTE_ADDR}')
-    ;");
+   WHERE  user_name='$attr->{LOGIN}'
+    and framed_ip_address=INET_ATON('$attr->{REMOTE_ADDR}');");
  
   if ($self->{TOTAL} > 0) {
     my $sql = "UPDATE dv_calls SET  lupdated=UNIX_TIMESTAMP(),

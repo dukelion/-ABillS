@@ -449,7 +449,7 @@ sub ashield_user {
    	 	  $radio_but = "$ERR_SMALL_DEPOSIT";
    	  }
    	 $table->addrow($line->[0], 
-   	   $html->b($line->[1]).$html->br().( ($conf{dbcharset} eq 'utf8') ? convert(convert($line->[19], { utf82win => 1 }), {win2utf8 => 1}) : convert($line->[19], { text2html => 1  }) ),
+   	   $html->b($line->[1]).$html->br().$line->[19],
        $ashield_tps_info->{$line->[1]}->{GRACE_PERIOD},
        $line->[6],
    	   $radio_but

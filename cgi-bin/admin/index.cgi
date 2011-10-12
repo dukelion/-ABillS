@@ -5427,6 +5427,7 @@ sub get_fees_types  {
  foreach my $line (@{ $fees->fees_type_list() }) {
    if ($FORM{METHOD} && $FORM{METHOD} == $line->[0] && $line->[3] > 0) {
  		 $FORM{SUM}=$line->[3];
+ 		 $FORM{DESCRIBE}=$line->[2];
  	  }
  	 $FEES_METHODS{$line->[0]}=(($line->[1]=~/\$/) ? eval($line->[1]) : $line->[1]) . (($line->[3] > 0) ? (($attr->{SHORT}) ? ":$line->[3]" : " ($_SERVICE $_PRICE: $line->[3])") : '');
   }

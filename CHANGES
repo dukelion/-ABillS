@@ -1,11 +1,18 @@
 =====0.54=====
-10.10.2011\\
+  * В визард Internet заведения пользователей добавлена форма начисления
+  * Добавлен лимит начисления пени
 
+MySQL:\\
+  ALTER TABLE `dhcphosts_hosts` ADD COLUMN `ipn_activate` tinyint(1) NOT NULL default '0';
+
+
+10.10.2011\\
   * Улучшена типизация начислений, добавлена возможность одноразовых начислений, заведение новых типов начислений через веб. (Система -  Другое - Типы снятия денег)
   * ''Dhcphosts'' добавлена галочка статический рендж адресов. Если она установлена параметр рендж не устанавливается в сети
   * Переименована секция DHCP в IP
   * Улучшен модуль Cisco_ISG и freeradius Dhcp
-  * Автоматическое включение IPN сессий для адресов модуля IP (Бывший модуль DHCP) $conf{DHCPHOSTS_IPN}
+  * Автоматическое включение IPN сессий для адресов модуля IP (Бывший модуль DHCP) $conf{IPN_DHCP_ACTIVE}=1;
+  * Автоматическое включение IPN при заведении адресов в IP (Бывший модуль DHCP) модуле при включенной опции $conf{IPN_DHCP_ACTIVE}=1;
   * Добавлена возможность создавать собственные правила сброса для дополнительных серверов доступа 
 
 MySQL:\\
@@ -19,6 +26,7 @@ MySQL:\\
     UNIQUE KEY `name` (`name`)
   ) COMMENT='Payments types';
   
+  ALTEr TABLE dhcphosts_networks ADD COLUMN `static` tinyint(1) unsigned NOT NULL default '0';
   INSERT INTO fees_types (id, name) VALUES (0, '$_ONE_TIME'), (1, '$_ABON'), (2, '$_FINE'), (3, '$_ACTIVATE'), (4, '$_MONEY_TRANSFER');
   UPDATE fees_types SET id=0 where name='$_ONE_TIME';
 
