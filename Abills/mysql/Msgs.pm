@@ -152,10 +152,10 @@ sub messages_list {
 
  # Show groups
  if ($attr->{GIDS}) {
-   push @WHERE_RULES, "u.gid IN ($attr->{GIDS})"; 
+   push @WHERE_RULES, "(u.gid IN ($attr->{GIDS}) OR m.aid='$admin->{AID}')"; 
   }
  elsif ($attr->{GID}) {
-   push @WHERE_RULES, "u.gid='$attr->{GID}'"; 
+   push @WHERE_RULES, "(u.gid='$attr->{GID}' OR m.aid='$admin->{AID}')"; 
   }
 
  if ($attr->{USER_READ}) {

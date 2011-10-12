@@ -168,6 +168,10 @@ sub dv_users {
   print "LOGIN: $users->{LOGIN} UID: $users->{UID}\n";
 	
 	if ($ARGV->{add}) {
+		#0001	12345	3.ADDRESS_STREET="Красноармейская 56 кв 54"	3.FIO="Катрич Андрей Николаевич"	3._interface="1"	3._monitor_ip="172.16.1.232"	4.CID="10.1.232.2"	4.IP="10.1.232.2"	4.TP_ID="20"	5.SUM="3.23"	
+
+    #0002	12345	3.ADDRESS_STREET="Красноармейская 56 кв 29"	3.FIO="Борисова В И"	3.PHONE="067 115-63-30"	3._interface="2"	3._monitor_ip="172.16.1.232"	4.CID="10.1.232.6"	4.IP="10.1.232.6"	4.TP_ID="20"	
+		
 		
 	 }
 	elsif ($ARGV->{change}) {
