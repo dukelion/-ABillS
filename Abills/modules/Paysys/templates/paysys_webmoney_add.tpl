@@ -19,7 +19,7 @@
 <tr><th colspan='2' class='form_title'>Webmoney</th></tr>
 <tr><td>ID:</td><td>%LMI_PAYMENT_NO%</td></tr>
 <tr><td>$_SUM:</td><td><input type='text' name='LMI_PAYMENT_AMOUNT' value='%LMI_PAYMENT_AMOUNT%'></td></tr>
-<tr><td>$_DESCRIBE:</td><td><input type='text' name='LMI_PAYMENT_DESC' value='Пополнение счёта Login: $LIST_PARAMS{LOGIN}, UID: $LIST_PARAMS{UID}'></td></tr>
+<tr><td>$_DESCRIBE:</td><td><input type='text' name='LMI_PAYMENT_DESC' value='%LMI_PAYMENT_DESC%'></td></tr>
 <tr><td>$_ACCOUNT:</td><td>%ACCOUNTS_SEL%</td></tr>
 </table>
 <input type='submit' value='$_ADD'>

@@ -1374,8 +1374,9 @@ elsif($FORM{LMI_HASH}) {
      }
     
     #my $er = ($FORM{'5.ER'}) ? $payments->exchange_info() : { ER_RATE => 1 } ;  
+    my $pay_describe = ($FORM{LMI_PAYMENT_DESC} && $conf{dbcharset} eq 'utf8') ? convert($FORM{LMI_PAYMENT_DESC}, { win2utf8 => 1 }) : 'Webmoney';
     $payments->add($user, {SUM          => $FORM{LMI_PAYMENT_AMOUNT},
-    	                     DESCRIBE     => 'Webmoney', 
+    	                     DESCRIBE     => $pay_describe, 
     	                     METHOD       => ($conf{PAYSYS_PAYMENTS_METHODS} && $PAYSYS_PAYMENTS_METHODS{41}) ? 41 : '2', 
   	                       EXT_ID       => $FORM{LMI_PAYMENT_NO}, 
   	                       ER           => $er
