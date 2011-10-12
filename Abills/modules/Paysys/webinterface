@@ -844,7 +844,8 @@ $info{ACCOUNTS_SEL}=$html->form_select('LMI_PAYEE_PURSE',
                                        });
 
 $info{LMI_PAYMENT_AMOUNT}    = $FORM{SUM};
-my $pay_describe             = "$_PAYMENTS Login: $LIST_PARAMS{LOGIN}, UID: $LIST_PARAMS{UID}";
+my $pay_describe             = "Login: $LIST_PARAMS{LOGIN}, UID: $LIST_PARAMS{UID}";
+$info{DESCRIBE}              = $pay_describe;
 $info{LMI_PAYMENT_DESC}      = ($conf{dbcharset} eq 'utf8') ? convert($pay_describe, { utf82win => 1 }) : $pay_describe;
 $conf{PAYSYS_LMI_RESULT_URL} = "http://$ENV{SERVER_NAME}". ( ($ENV{SERVER_PORT} != 80) ? ":$ENV{SERVER_PORT}" : '' ) ."/paysys_check.cgi" if (! $conf{PAYSYS_LMI_RESULT_URL});
 
