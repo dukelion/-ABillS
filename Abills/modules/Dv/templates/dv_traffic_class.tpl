@@ -3,7 +3,7 @@
 <input type=hidden name='index' value='$index'>
 <input type=hidden name='ID' value='$FORM{chg}'>
 <table>
-<tr bgcolor='$_COLORS[1]'><th colspan=3 align=right>$_TRAFFIC_CLASS</th></tr>
+<tr><th colspan=3 class='form_title'>$_TRAFFIC_CLASS</th></tr>
 
 <tr><td colspan=2>$_NAME:</td><td><input type=text name='NAME' value='%NAME%'></td></tr>
 

@@ -6785,9 +6785,7 @@ sub dv_traffic_classes {
     $html->message('err', $_ERROR, "[$tariffs->{errno}] $err_strs{$tariffs->{errno}}");
    }
 
-  $html->tpl_show(_include('dv_traffic_class', 'Dv'), $tariffs);
-
-
+$html->tpl_show(_include('dv_traffic_class', 'Dv'), $tariffs);
 
 my $list = $tariffs->traffic_class_list( { %LIST_PARAMS } );
 my $table = $html->table( { width      => '100%',

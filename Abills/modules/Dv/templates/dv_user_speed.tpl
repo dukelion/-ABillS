@@ -7,8 +7,8 @@
 <TR><TD bgcolor='#E1E1E1'>
 
 <TABLE width='100%' cellspacing='1' cellpadding='0' border='0'>
-<tr bgcolor='$_COLORS[0]'><th align=right colspan=2>TURBO $_MODE</th></tr>
-<tr bgcolor='$_COLORS[1]'><td>$_SPEED (kb):</td><td>%SPEED_SEL% 
+<tr><th class='form_title' colspan=2>TURBO $_MODE</th></tr>
+<tr class='odd'><td>$_SPEED (kb):</td><td>%SPEED_SEL% 
  <input type=submit name=change value='$_CHANGE'></td></tr>
 </table>
 

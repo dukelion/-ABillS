@@ -530,16 +530,21 @@ sub form_select {
    }
 
 	$self->{SELECT} .= "</select>\n";
+	
+	if ($attr->{MAIN_MENU}){
+		$self->{SELECT} .= ' '. $self->button('info', "index=$attr->{MAIN_MENU}". (($attr->{MAIN_MENU_AGRV}) ? "&$attr->{MAIN_MENU_AGRV}" : ''), { CLASS=>'show rightAlignText' });
+	 }
+	
 	return $self->{SELECT};
 }
 
 
 sub dirname {
-    my($x) = @_;
-    if ( $x !~ s@[/\\][^/\\]+$@@ ) {
-     	$x = '.';
-    }
-    $x;
+  my($x) = @_;
+  if ( $x !~ s@[/\\][^/\\]+$@@ ) {
+   	$x = '.';
+   }
+  $x;
 }
 
 

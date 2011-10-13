@@ -2944,9 +2944,11 @@ if (defined($FORM{tt})) {
   $tarif_plan->{NETS_SEL} = $html->form_select('TT_NET_ID', 
                                          { 
  	                                          SELECTED          => $tarif_plan->{TT_NET_ID},
- 	                                        SEL_MULTI_ARRAY   => [ [ 0, ''], @{ $tarif_plan->traffic_class_list({ %LIST_PARAMS}) } ],
+ 	                                          SEL_MULTI_ARRAY   => [ [ 0, ''], @{ $tarif_plan->traffic_class_list({ %LIST_PARAMS}) } ],
  	                                          MULTI_ARRAY_KEY   => 0,
  	                                          MULTI_ARRAY_VALUE => 1,
+ 	                                          MAIN_MENU         => get_function_index('dv_traffic_classes'),
+ 	                                          MAIN_MENU_AGRV    => "chg=$tarif_plan->{TT_NET_ID}"
  	                                        });
 
   $html->tpl_show(_include('dv_tt', 'Dv'), $tarif_plan);
@@ -3400,13 +3402,152 @@ sub form_admin_permissions {
     return 0;
   }
 
- %permits = %$p;
+my %ADMIN_TYPES = (1 => "$_ALL $_PERMISSION",
+                   2 => "$_MANAGER",
+                   3 => "$_SUPPORT",
+                   4 => "$_ACCOUNTANT",
+                   );
+
+
+if ($FORM{ADMIN_TYPE}) {
+	my %admins_type_permits = ();
+	my %admins_modules      = ();
+
+  $admins_type_permits{1} = {
+    0 => { 0 => 1,
+           1 => 1,
+   	       2 => 1,
+   	       3 => 1,
+   	       4 => 1,
+   	       5 => 1,
+   	       6 => 1,
+   	       7 => 1,
+   	       8 => 1, 
+   	       9 => 1, 
+   	       10=> 1, 
+   	      },
+   	1 => { 0 => 1,
+   	       1 => 1,
+   	       2 => 1,
+   	       3 => 1,
+   	       4 => 1 
+   	      },
+   	2 => { 0 => 1,
+   	       1 => 1,
+   	       2 => 1,
+   	       3 => 1
+   	      },
+   	3 => { 0 => 1,
+   	       1 => 1
+   	      },
+   	4 => { 0 => 1,
+   	       1 => 1,
+   	       2 => 1,
+   	       3 => 1,
+   	       4 => 1,
+   	       5 => 1,
+   	       6 => 1
+   		    },
+   	5 => { 0 => 1,
+   		     1 => 1
+   		    },
+   	6 => { 0 => 1 },
+   	7 => { 0 => 1 },
+  	8 => { 0 => 1 },
+	};
+
+  $admins_type_permits{2} = {
+    0 => { 0 => 1,
+           1 => 1,
+   	       2 => 1,
+   	       3 => 1,
+   	       4 => 1,
+   	       9 => 1, 
+   	       10=> 1, 
+   	      },
+   	1 => { 0 => 1,
+   	       1 => 1,
+   	      },
+   	2 => { 0 => 1,
+   	       1 => 1,
+   	      },
+   	5 => { 0 => 1,
+   		     1 => 1
+   		    },
+   	6 => { 0 => 1 },
+   	7 => { 0 => 1 },
+  	8 => { 0 => 1 },
+	};
+
+
+  $admins_type_permits{3} = {
+    0 => { 0 => 1,
+           2 => 1,
+   	      },
+   	5 => { 0 => 1,
+   		     1 => 1
+   		    },
+   	6 => { 0 => 1 },
+   	7 => { 0 => 1 },
+  	8 => { 0 => 1 },
+	};
+
+  $admins_modules{3} = { 'Msgs'      => 1,
+  	                     'Maps'      => 1,
+  	                     'Snmputils' => 1,
+  	                     'Notepad'   => 1 };
+
+  $admins_type_permits{4} = {
+    0 => { 0 => 1,
+   	       2 => 1,
+   	      },
+   	1 => { 0 => 1,
+   	       1 => 1,
+   	       2 => 1,
+   	       3 => 1,
+   	       4 => 1 
+   	      },
+   	2 => { 0 => 1,
+   	       1 => 1,
+   	       2 => 1,
+   	       3 => 1
+   	      },
+   	3 => { 0 => 1,
+   	       1 => 1
+   	      },
+   	6 => { 0 => 1 },
+   	7 => { 0 => 1 },
+  	8 => { 0 => 1 },
+	};
+
+  $admins_modules{4} = { 'Docs'      => 1,
+  	                     'Paysys'    => 1,
+  	                     'Cards'     => 1,
+  	                     'Extfin'    => 1,
+  	                     'Notepad'   => 1
+  	                    };
+
+  %permits               = %{ $admins_type_permits{$FORM{ADMIN_TYPE}} };
+  $admin_form->{MODULES} = $admins_modules{$FORM{ADMIN_TYPE}};
+ }
+else {
+	%permits = %$p;
+}
+
+
+foreach my $k (sort keys(%ADMIN_TYPES)) {
+	my $button = ($FORM{ADMIN_TYPE} eq $k) ? $html->b($ADMIN_TYPES{$k}. ' ') : $html->button($ADMIN_TYPES{$k}, "index=$index&subf=$FORM{subf}&AID=$FORM{AID}&ADMIN_TYPE=$k", { BUTTON => 1 }) .'  ';
+	print $button;
+}
+
+
 
 my $table = $html->table( { width       => '90%',
                             border      => 1,
                             caption     => "$_PERMISSION",
                             title_plain => ['ID', $_NAME, $_DESCRIBE, '-'],
                             cols_align  => ['right', 'left', 'center'],
+                            ID          => 'ADMIN_PERMISSIONS',
                         } );
 
 
@@ -3423,10 +3564,10 @@ foreach my $k ( sort keys %menu_items ) {
     foreach my $action (@$actions_list) {
 
       $table->addrow("$action_index", "$action", '',
-      $html->form_input($k."_$action_index", 'yes', { TYPE          => 'checkbox',
-       	                                              OUTPUT2RETURN => 1,
-       	                                              STATE         => (defined($permits{$k}{$action_index})) ? '1' : undef  
-       	                                              })  
+      $html->form_input($k."_$action_index", 1, { TYPE          => 'checkbox',
+       	                                          OUTPUT2RETURN => 1,
+       	                                          STATE         => (defined($permits{$k}{$action_index})) ? '1' : undef  
+       	                                         })  
        	                                              );
 
       $action_index++;
@@ -3436,7 +3577,6 @@ foreach my $k ( sort keys %menu_items ) {
 
 if (in_array('Multidoms', \@MODULES)) {
   	my $k=10;
-
   	$table->{rowcolor}='row_active';
   	$table->addrow("10:", $html->b($_DOMAINS), '', '');
     my $actions_list  = $actions[9];
@@ -3444,12 +3584,11 @@ if (in_array('Multidoms', \@MODULES)) {
     $table->{rowcolor}= undef;
     foreach my $action (@$actions_list) {
       $table->addrow("$action_index", "$action", '',
-      $html->form_input($k."_$action_index", 'yes', { TYPE          => 'checkbox',
-       	                                              OUTPUT2RETURN => 1,
-       	                                              STATE         => (defined($permits{$k}{$action_index})) ? '1' : undef  
-       	                                              })  
-       	                                              );
-
+        $html->form_input($k."_$action_index", 1, { TYPE          => 'checkbox',
+       	                                            OUTPUT2RETURN => 1,
+       	                                            STATE         => (defined($permits{$k}{$action_index})) ? '1' : undef  
+       	                                         })  
+       	                                     );
       $action_index++;
      }
 }
@@ -3459,6 +3598,7 @@ my $table2 = $html->table( { width       => '500',
                             caption     => "$_MODULES",
                             title_plain => [$_NAME, ''],
                             cols_align  => ['right', 'left', 'center'],
+                            ID          => 'ADMIN_MODULES'
                         } );
 
 

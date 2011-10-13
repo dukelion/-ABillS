@@ -33,7 +33,7 @@
 <tr><td align=right>$_TARIF_PLAN:</td><td>%TP_SEL%</td></tr>
 %PAYMENTS%
 
-<tr><th colspan=2 bgcolor=$_COLORS[0]>$_RULES</th></tr>
+<tr><th colspan=2 class='title_color'>$_RULES</th></tr>
 <tr><th colspan=2><textarea cols=60 rows=8></textarea></th></tr>
 <tr><td align=right>$_ACCEPT:</td><td><input type='checkbox' name='ACCEPT_RULES' value='1'></td></tr>
 

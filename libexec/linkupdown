@@ -88,7 +88,7 @@ exit 0;
 }
 
 
-use vars  qw(%RAD %conf $db @START_FW $DATE $TIME);
+use vars  qw(%RAD %conf $db @START_FW $DATE $TIME $base_dir);
 use strict;
 
 use FindBin '$Bin';
@@ -296,27 +296,24 @@ if ($ACTION eq 'up' || $OS eq 'Linux') {
         $user->{TI_ID}=$v;
  	      my $list = $tariffs->tt_list({ TI_ID => $v, SHOW_NETS => 1 });
 
- 	      foreach my $line (@$list)  {
+ 	      foreach my $line (@$list) {
  	    	  $speeds{$line->[0]}{IN} = "$line->[4]";
  	    	  $speeds{$line->[0]}{OUT}= "$line->[5]";
  	    	  $nets_id{$line->[0]}    = "$line->[9]";
  	    	  $nets{$line->[0]}       = $line->[10];
  	    	  $expr{$line->[0]}       = "$line->[8]" if (length($line->[8]) > 5);
  	      }
-      }
+       }
     }
    else {
    	 my $a = `echo "$DATE $TIME / $USER - Not intervals" >> /tmp/linkupdown`;
     }
    }
 
- # speed apply
+  # speed apply
   my $fw_num_in    =0;
   my $fw_num_out   =0;
-#  my $pipe_num_in  =0;
-#  my $pipe_num_out =0;
-  
-  
+
   print "Expresion:================================\n" if ($debug > 0);
   my $RESULT = $Billing->expression($Dv->{UID}, \%expr, { START_PERIOD => $Dv->{ACCOUNT_ACTIVATE},
   	                                                      debug        => $debug } );
@@ -344,7 +341,8 @@ if ($ACTION eq 'up' || $OS eq 'Linux') {
  
   if ($ARGV[0] eq 'mikrotik') {
     mikrotik_ext({ SPEEDS => \%speeds,
-    	             NETS   => \%nets });
+    	             NETS   => \%nets 
+                 });
   	exit;
    }
 
@@ -715,8 +713,7 @@ sub mikrotik_ext {
   my $proto     = $argv->{PROTO} || 'pptp';
   my $nas_host  = $argv->{NAS_HOST} || '';
   my $nas_admin = $argv->{NAS_ADMIN}|| 'admin';
-  my $SSH       = $argv->{SSH_CMD}  || '/usr/bin/ssh -i /usr/abills/Certs/id_dsa.'.$nas_admin;
-
+  my $SSH       = $argv->{SSH_CMD}  || "/usr/bin/ssh -i $base_dir/Certs/id_dsa.".$nas_admin;
 
   my $cmds = "$SSH $nas_admin\@$nas_host '/ppp active print where name=$USER'";
   open(CMD, "$cmds |") || die "Can't open '$cmds' $!\n";
@@ -731,61 +728,56 @@ sub mikrotik_ext {
 
   if($ACTION eq 'down') {
     foreach my $traf_type (sort keys %$speeds) {
-        my @nets_arr = ();
-        if ($nets->{$traf_type}) {
-            $nets->{$traf_type} =~ s/[\r]?\n//g;
-            $nets->{$traf_type} =~ s/;/,/g;
-            @nets_arr = split(/;|,/, $nets->{$traf_type});
-        }
-
+        my $class_list        = 'traffic_class_'.$traf_type;
         my $address_list_name = "TT_$user->{TP_ID}_".$traf_type."_".$USER;
-        my $mark_name=$address_list_name. "_mark"; 
-        my $mark_name_in=$address_list_name. "_mark_in";
-        my $mark_name_out=$address_list_name. "_mark_out";
+        my $mark_name         = $address_list_name. "_mark"; 
+        my $mark_name_in      = $address_list_name. "_mark_in";
+        my $mark_name_out     = $address_list_name. "_mark_out";
 
-        push  @commands,  "/ip firewall address-list remove [ find list=$address_list_name ]; ";
+        #push  @commands,  "/ip firewall address-list remove [ find list=$address_list_name ]; ";
         push  @commands,  "/ip firewall mangle remove [ find comment=$mark_name_in ]; ";
         push  @commands,  "/ip firewall mangle remove [ find comment=$mark_name_out ]; ";
         push  @commands,  "/queue tree remove [ find name=$mark_name_out ] ";
         push  @commands,  "/queue tree remove [ find name=$mark_name_in ] ";
         }
 
-    } else {
+     } 
+    else {
+      foreach my $traf_type (sort keys %$speeds) {
+        my $speed = $speeds->{$traf_type};
 
-    foreach my $traf_type (sort keys %$speeds) {
-    my $speed = $speeds->{$traf_type};
-    
-    my $speed_in  = (defined($speed->{IN}))  ? $speed->{IN} * 1024 : 0;
-    my $speed_out = (defined($speed->{OUT})) ? $speed->{OUT}* 1024 : 0;
-   
-        my @nets_arr = ();                                                                                                                                     
-            if ($nets->{$traf_type}) {                                                                                                                             
-            $nets->{$traf_type} =~ s/[\r]?\n//g;                                                                                                                 
-            $nets->{$traf_type} =~ s/;/,/g;                                                                                                                      
-            @nets_arr = split(/;|,/, $nets->{$traf_type});                                                                                                       
-        }                                                                                                                                                     
-    
-    my $address_list_name = "TT_$user->{TP_ID}_".$traf_type."_".$USER;
-    my $mark_name_in=$address_list_name. "_mark_in";
-    my $mark_name_out=$address_list_name. "_mark_out";
-    my $priority = 5 - $traf_type;
+        my $speed_in  = (defined($speed->{IN}))  ? $speed->{IN} * 1024 : 0;
+        my $speed_out = (defined($speed->{OUT})) ? $speed->{OUT}* 1024 : 0;
 
-    if ($traf_type == 0) {
+        my @nets_arr = ();                                                                                         
+        if ($nets->{$traf_type}) {
+          $nets->{$traf_type} =~ s/[\r]?\n//g;
+          $nets->{$traf_type} =~ s/;/,/g;
+          $nets->{$traf_type} =~ s/ //g;
+          chop($nets->{$traf_type});
+          @nets_arr = split(/,/, $nets->{$traf_type});
+         }                                                                                                                                                      
     
-      push @commands, qq{ /ip firewall mangle add chain=forward out-interface=$INTERFACE action=mark-packet new-packet-mark=$mark_name_in comment=$mark_name_in passthrough=yes };
-      push @commands, qq{ /ip firewall mangle add chain=forward in-interface=$INTERFACE action=mark-packet new-packet-mark=$mark_name_out comment=$mark_name_out passthrough=yes };
-      push @commands, qq{ /queue tree add name=$mark_name_in parent=$INTERFACE packet-mark=$mark_name_in limit-at=$speed_in max-limit=$speed_in queue=default-small priority=8 burst-limit=0 }; 
-      push @commands, qq{ /queue tree add name=$mark_name_out parent=global-out packet-mark=$mark_name_out limit-at=$speed_out max-limit=$speed_out queue=default-small priority=8 burst-limit=0 }; 
-      next;
-    
-     }
+      my $class_list        = 'traffic_class_'.$traf_type;
+      my $address_list_name = "TT_$user->{TP_ID}_".$traf_type."_".$USER;
+      my $mark_name_in      = $address_list_name. "_mark_in";
+      my $mark_name_out     = $address_list_name. "_mark_out";
+      my $priority          = 5 - $traf_type;
 
-    foreach my $address (@nets_arr) {
-   	  push @commands, qq{ /ip firewall address-list add list=$address_list_name address=$address };
-    }
+      if ($traf_type == 0) {
+        push @commands, qq{ /ip firewall mangle add chain=forward out-interface=$INTERFACE action=mark-packet new-packet-mark=$mark_name_in comment=$mark_name_in passthrough=yes };
+        push @commands, qq{ /ip firewall mangle add chain=forward in-interface=$INTERFACE action=mark-packet new-packet-mark=$mark_name_out comment=$mark_name_out passthrough=yes };
+        push @commands, qq{ /queue tree add name=$mark_name_in parent=$INTERFACE packet-mark=$mark_name_in limit-at=$speed_in max-limit=$speed_in queue=default-small priority=8 burst-limit=0 }; 
+        push @commands, qq{ /queue tree add name=$mark_name_out parent=global-out packet-mark=$mark_name_out limit-at=$speed_out max-limit=$speed_out queue=default-small priority=8 burst-limit=0 }; 
+        next;    
+      }
 
-      push @commands, qq{ /ip firewall mangle add chain=forward out-interface=$INTERFACE src-address-list=$address_list_name action=mark-packet new-packet-mark=$mark_name_in comment=$mark_name_in passthrough=yes };
-      push @commands, qq{ /ip firewall mangle add chain=forward in-interface=$INTERFACE dst-address-list=$address_list_name action=mark-packet new-packet-mark=$mark_name_out comment=$mark_name_out passthrough=yes };
+      foreach my $address (@nets_arr) {
+   	    push @commands, qq{ /ip firewall address-list add list=$class_list address=$address };
+       }
+
+      push @commands, qq{ /ip firewall mangle add chain=forward out-interface=$INTERFACE src-address-list=$class_list action=mark-packet new-packet-mark=$mark_name_in comment=$mark_name_in passthrough=yes };
+      push @commands, qq{ /ip firewall mangle add chain=forward in-interface=$INTERFACE dst-address-list=$class_list action=mark-packet new-packet-mark=$mark_name_out comment=$mark_name_out passthrough=yes };
       push @commands, qq{ /queue tree add name=$mark_name_in parent=$INTERFACE packet-mark=$mark_name_in limit-at=$speed_in max-limit=$speed_in queue=default-small priority=8 burst-limit=0 }; 
       push @commands, qq{ /queue tree add name=$mark_name_out parent=global-out packet-mark=$mark_name_out limit-at=$speed_out max-limit=$speed_out queue=default-small priority=8 burst-limit=0 }; 
 
@@ -818,7 +810,7 @@ sub mikrotik_ext {
 
 #Make ssh command	
 	my $result = '';
-    $result .= `echo "===> Initialising remote commands executing:" >> /var/log/shaper`;
+  $result .= `echo "===> Initialising remote commands executing:" >> /var/log/shaper`;
 	foreach my $cmd (@commands)  {
 		print "$cmd\n" if ($debug > 0);
         $result .= `$SSH $nas_admin\@$nas_host "$cmd"; echo "$cmd" >> /var/log/shaper`;

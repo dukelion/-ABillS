@@ -2,7 +2,7 @@
 <input type=hidden name='index' value='$index'>
 <input type=hidden name='UID' value='$FORM{UID}'>
 <table width=400 cellspacing='0' cellpadding='3'>
-<tr><th colspan=2 bgcolor=$_COLORS[0] align=right>$_COMPENSATION</th></tr>
+<tr><th colspan=2 class='form_title'>$_COMPENSATION</th></tr>
 <tr><td>$_FROM:</td><td>%FROM_DATE%</td></tr>
 <tr><td>$_TO:</td><td>%TO_DATE%</td></tr>
 <tr><td>$_DESCRIBE:</td><td><textarea name='DESCRIBE' cols=35 rows=2>%DESCRIBE%</textarea></td></tr>
