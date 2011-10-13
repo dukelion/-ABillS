@@ -890,6 +890,38 @@ sub authentication {
   my $SECRETKEY = (defined($CONF->{secretkey})) ? $CONF->{secretkey} : '';
   my %RAD_PAIRS = ();
   
+if ($NAS->{NAS_TYPE} eq 'cid_auth') {
+  $self->query($db, "select
+  u.uid,
+  DECODE(u.password, '$SECRETKEY'),
+  UNIX_TIMESTAMP(),
+  UNIX_TIMESTAMP(DATE_FORMAT(FROM_UNIXTIME(UNIX_TIMESTAMP()), '%Y-%m-%d')),
+  DAYOFWEEK(FROM_UNIXTIME(UNIX_TIMESTAMP())),
+  DAYOFYEAR(FROM_UNIXTIME(UNIX_TIMESTAMP())),
+  u.company_id,
+  u.disable,
+  u.bill_id,
+  u.credit,
+  u.activate,
+  u.reduction,
+  u.ext_bill_id,
+  UNIX_TIMESTAMP(u.expire),
+  u.id
+     FROM users u, dv_main dv
+     WHERE dv.uid=u.uid 
+        AND dv.CID='$RAD->{CALLING_STATION_ID}'
+        AND (u.expire='0000-00-00' or u.expire > CURDATE())
+        AND (u.activate='0000-00-00' or u.activate <= CURDATE())
+        AND u.deleted='0'
+       GROUP BY u.id;");
+   if ($self->{TOTAL} < 1) {
+     $RAD->{USER_NAME}=$RAD->{CALLING_STATION_ID};
+    }
+   else {
+   	 $RAD->{USER_NAME}=$self->{list}->[0]->[14];
+    } 
+ }
+else {
   #Get callback number
   if ($RAD->{USER_NAME} =~ /(\d+):(\S+)/) {
     my $number = $1;
@@ -930,6 +962,7 @@ sub authentication {
   else {
   	$WHERE = "AND u.domain_id='0'";
    }
+
   $self->query($db, "select
   u.uid,
   DECODE(password, '$SECRETKEY'),
@@ -952,7 +985,7 @@ sub authentication {
         AND (u.activate='0000-00-00' or u.activate <= CURDATE())
         AND u.deleted='0'
        GROUP BY u.id;");
-
+}
   if($self->{errno}) {
   	$RAD_PAIRS{'Reply-Message'}='SQL error';
   	undef $db;
@@ -984,7 +1017,7 @@ sub authentication {
 if( $RAD->{HINT} && $RAD->{HINT} eq 'NOPASS') {
 
  } 
-elsif (defined($RAD->{CHAP_PASSWORD}) && defined($RAD->{CHAP_CHALLENGE})) {
+elsif ($RAD->{CHAP_PASSWORD} && $RAD->{CHAP_CHALLENGE}) {
   if (check_chap("$RAD->{CHAP_PASSWORD}", "$self->{PASSWD}", "$RAD->{CHAP_CHALLENGE}", 0) == 0) {
     $RAD_PAIRS{'Reply-Message'}="Wrong CHAP password";
     return 1, \%RAD_PAIRS;

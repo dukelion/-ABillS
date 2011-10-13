@@ -3819,6 +3819,7 @@ if ($nas->{errno}) {
   'pppd_coa'  => 'pppd + RADIUS plugin + radcoad (Linux)',
   'accel_pptp'=> 'Linux accel-pptp',
   'gnugk'     => 'GNU GateKeeper',
+  'cid_auth'  => 'Auth clients by CID',
   'cisco'     => 'Cisco',
   'cisco_voip'=> 'Cisco Voip',
   'dell'      => 'Dell Switch',

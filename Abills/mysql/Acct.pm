@@ -65,8 +65,24 @@ sub accounting {
    $RAD->{ACCT_SESSION_ID} = substr($RAD->{ACCT_SESSION_ID}, 0, 24);
   }
 
+
+
+if ($NAS->{NAS_TYPE} eq 'cid_auth') {
+  $self->query($db, "select
+  u.uid,
+  u.id
+     FROM users u, dv_main dv
+     WHERE dv.uid=u.uid AND dv.CID='$RAD->{CALLING_STATION_ID}';");
+
+   if ($self->{TOTAL} < 1) {
+     $RAD->{USER_NAME}=$RAD->{CALLING_STATION_ID};
+    }
+   else {
+   	 $RAD->{USER_NAME}=$self->{list}->[0]->[1];
+    } 
+ }
 #Call back function
-if ($RAD->{USER_NAME} =~ /(\d+):(\S+)/) {
+elsif ($RAD->{USER_NAME} =~ /(\d+):(\S+)/) {
   $RAD->{USER_NAME}=$2;
   $RAD->{CALLING_STATION_ID}=$1;
 }  
