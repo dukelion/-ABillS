@@ -3376,9 +3376,9 @@ sub form_admin_permissions {
 
  my $admin_form = $attr->{ADMIN};
 
- if (defined($FORM{set})) {
+ if ($FORM{set}) {
    while(my($k, $v)=each(%FORM)) {
-       if ($v eq 'yes') {
+       if ($v eq '1') {
          my($section_index, $action_index)=split(/_/, $k, 2);
          $permits{$section_index}{$action_index}=1 if ($section_index >= 0);
         }

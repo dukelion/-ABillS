@@ -918,7 +918,10 @@ if ($NAS->{NAS_TYPE} eq 'cid_auth' && $RAD->{CALLING_STATION_ID}) {
      $RAD->{USER_NAME}=$RAD->{CALLING_STATION_ID};
     }
    else {
-   	 $RAD->{USER_NAME}=$self->{list}->[0]->[14];
+     $RAD->{USER_NAME}=$self->{list}->[0]->[14];
+     if(defined($RAD->{USER_PASSWORD}) && $RAD->{USER_PASSWORD} eq '') {
+        delete($RAD->{USER_PASSWORD});
+       }
     } 
  }
 else {

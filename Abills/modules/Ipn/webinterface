@@ -2571,7 +2571,7 @@ foreach my $line (@$list) {
   if($conf{IPN_DHCP_ACTIVE} && $#{ $DHCP_IPS{$uid} } > -1) {
     $ip = pop @{ $DHCP_IPS{$uid} };
    }
-  
+
   my $ip_num       = unpack("N", pack("C4", split( /\./, $ip))); 
 
   if ($ip eq '0.0.0.0') {
