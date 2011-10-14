@@ -890,7 +890,7 @@ sub authentication {
   my $SECRETKEY = (defined($CONF->{secretkey})) ? $CONF->{secretkey} : '';
   my %RAD_PAIRS = ();
   
-if ($NAS->{NAS_TYPE} eq 'cid_auth' && $RAD->{CALLING_STATION_ID}) {
+if ($NAS->{NAS_TYPE} eq 'cid_auth' && $RAD->{CALLING_STATION_ID} && ! $RAD->{USER_PASSWORD}) {
   $self->query($db, "select
   u.uid,
   DECODE(u.password, '$SECRETKEY'),

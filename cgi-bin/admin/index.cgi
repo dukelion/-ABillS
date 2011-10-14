@@ -2933,7 +2933,7 @@ if (defined($FORM{tt})) {
  	                               });
   
   if ($conf{DV_EXPPP_NETFILES}) {
-     $tarif_plan->{DV_EXPPP_NETFILES}="EXPPP_NETFILES: ". $html->form_input('DV_EXPPP_NETFILES', 'yes', 
+     $tarif_plan->{DV_EXPPP_NETFILES}="EXPPP_NETFILES: ". $html->form_input('DV_EXPPP_NETFILES', '1', 
                                                        { TYPE          => 'checkbox',
        	                                                 OUTPUT2RETURN => 1,
        	                                                 STATE         => 1
@@ -3605,7 +3605,7 @@ my $table2 = $html->table( { width       => '500',
 my $i=0;
 foreach my $name (sort @MODULES) {
   	$table2->addrow("$name", 
-  	  	$html->form_input("9_". $i. "_". $name, 'yes', { TYPE          => 'checkbox',
+  	  	$html->form_input("9_". $i. "_". $name, '1', { TYPE          => 'checkbox',
        	                                 OUTPUT2RETURN => 1,
        	                                 STATE         => ($admin_form->{MODULES}{$name}) ? '1' : undef  
        	                                    })
