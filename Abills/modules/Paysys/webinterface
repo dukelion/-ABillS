@@ -457,7 +457,6 @@ sub paysys_import_parse {
         	
         	 my %DATA_HASH = ();
            #next if ($#params < $#EXPR_IDS);
-           print $expration;
            if (my @res = ($line =~ /$expration/)) {
            	 for (my $i=0; $i<=$#res; $i++) {
            	 	 print "$EXPR_IDS[$i] / $res[$i]". $html->br() if ($debug > 0);
