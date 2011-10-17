@@ -191,9 +191,6 @@ if ($FORM{AWEB_OPTIONS}) {
     $web_options.="qm=$admin->{WEB_OPTIONS}{qm};";
    }
   
-  #print "Content-Type: text/html\n\n";
-  #print "/ $admin->{SESSION_IP} / ";
-  
   $admin->change({ AID => $admin->{AID}, WEB_OPTIONS => $web_options });
 
   print "Location: $SELF_URL?index=$FORM{index}", "\n\n";
@@ -641,6 +638,39 @@ print $table2->show();
 }
 
 
+#**********************************************************
+# 1.	Регистрация пользователя (изменение набора реквизитов персональной информации о пользователе);
+# 2.	Подключение  пользователю Интернет-тарифа;
+# 3.	Подключение набора периодических сервисов;
+# 4.	Регистрация набора одноразовых сервисов;
+# 5.	Генерация первого инвойса.
+# 6.	Генерация договора.
+# 7.	Создание тикета на подключение
+#**********************************************************
+sub form_wizard {
+  my ($attr) = @_;
+
+my %steps = (
+  1 =>  'user_form',
+  2 =>  'dv_user',
+  3 =>  'abon_user',
+  4 =>  'abon_fees_wizard',
+  5 =>  'msgs_users'
+);
+
+
+$FORM{step}=1 if (! $FORM{step});
+
+  if (! $steps{$FORM{step}}) {
+  	print "Finish";
+   }
+  else {
+  	my $fn = $steps{$FORM{step}};
+  	$fn->();
+    print $html->button("Step $FORM{step} (". $steps{$FORM{step}}. ") ", "index=$index&step=".($FORM{step}+1), { BUTTON => 1 });
+   }
+
+}
 
 #**********************************************************
 #
@@ -1120,6 +1150,15 @@ sub user_form {
   
    $user_info->{ACTION}='add';
    $user_info->{LNG_ACTION}=$_ADD;
+
+   my $main_account = $html->tpl_show(templates('form_user'), $user_info, { OUTPUT2RETURN => 1 });
+   $main_account =~ s/<FORM.+>//ig;
+   $main_account =~ s/<\/FORM>//ig;
+   $main_account =~ s/<input.+type=submit.+>//ig;
+   $main_account =~ s/<input.+index.+>//ig;
+   $main_account =~ s/user_form/users_pi/ig;
+   
+   user_pi({ MAIN_USER_TPL => $main_account });
   }
  else { 	
  	 $FORM{UID}=$user_info->{UID};
@@ -1167,10 +1206,9 @@ sub user_form {
      $user_info->{PASSWORD} .= ' '. $html->button("$_SEND $_PASSWD SMS", "index=$index&header=1&UID=$LIST_PARAMS{UID}&SHOW_PASSWORD=1&SEND_SMS_PASSWORD=1", {  BUTTON => 1, MESSAGE => "$_SEND $_PASSWD SMS ?" });
    }
 
-    
+   $html->tpl_show(templates('form_user'), $user_info);
   } 
 
-$html->tpl_show(templates('form_user'), $user_info);
 }
 
 
@@ -1445,7 +1483,6 @@ sub form_show_attach {
 # Ajax address form
 #**********************************************************
 sub form_address_sel {
-
    print "Content-Type: text/html\n\n";
    my $js_list = ''; 	
  	 my $id        =   $FORM{'JsHttpRequest'};
@@ -1476,6 +1513,7 @@ sub form_address_sel {
      my $list = $users->street_list({ DISTRICT_ID => $FORM{DISTRICT_ID}, PAGE_ROWS => 1000, SORT => 2 });
      if ($users->{TOTAL} > 0) {
        foreach my $line (@$list) {
+       	 $line->[1]=~s/\'/&rsquo;/g;
          $js_list .= "<option class='spisok' value='p2|$line->[1]|l2|$line->[0]'>$line->[1]</option>"; 
         }
       }
@@ -1485,8 +1523,7 @@ sub form_address_sel {
 
      my $size = ($users->{TOTAL} > 10) ? 10 : $users->{TOTAL};
      $size = 2 if ($size < 2);
-     $js_list = "<select style='width: inherit;' size='$size' onchange='insert(this)' id='street'>".
-         $js_list . "</select>";
+     $js_list = "<select style='width: inherit;' size='$size' onchange='insert(this)' id='street'></select>";
 
      print qq{JsHttpRequest.dataReady({ "id": "$id", 
    	    "js": { "list": "$js_list" }, 
@@ -1495,23 +1532,19 @@ sub form_address_sel {
    else {
      my $list = $users->district_list({ %LIST_PARAMS, PAGE_ROWS => 1000 });
      foreach my $line (@$list) {
+     	 $line->[1]=~s/\'/&rsquo;/g;
      	 $js_list .= "<option class='spisok' value='p1|$line->[1]|l1|$line->[0]'>$line->[1]</option>"; 
       }
 
      my $size = ($users->{TOTAL} > 10) ? 10 : $users->{TOTAL};
      $size=2 if ($size < 2);
-     $js_list = "<select style='width: inherit;' size='$size' onchange='insert(this)' id='block'>".
-       $js_list . "</select>";
+     $js_list = "<select style='width: inherit;' size='$size' onchange='insert(this)' id='block'></select>";
 
      print qq{JsHttpRequest.dataReady({ "id": "$id", 
    	    "js": { "list": "$js_list" }, 
         "text": "" }) };
     }
  	 exit;
-
-
-
-
 }
 
 #**********************************************************
@@ -1543,6 +1576,7 @@ sub user_pi {
 
  	 my $user_pi = $user->pi_add({ %FORM });
    if (! $user_pi->{errno}) {
+   	return 0 if ($attr->{REGISTRATION});
     $html->message('info', $_ADDED, "$_ADDED");	
    }
   }
@@ -1667,7 +1701,7 @@ sub user_pi {
     $user_pi->{ACCEPT_RULES} = ($user_pi->{ACCEPT_RULES}) ? $_YES :  $html->color_mark($html->b($_NO), $_COLORS[6]);
    }
 
-  $index=30;
+  $index=30 if (! $attr->{MAIN_USER_TPL});
   $user_pi->{PASPORT_DATE} = $html->date_fld2('PASPORT_DATE', { FORM_NAME => 'users_pi',
   	                                                            WEEK_DAYS => \@WEEKDAYS,
   	                                                            MONTHES   => \@MONTHES,
@@ -1700,7 +1734,7 @@ sub user_pi {
     $user_pi->{ADDRESS_TPL} = $html->tpl_show(templates('form_address'), $user_pi, { OUTPUT2RETURN => 1 });	
    }
 
-  $html->tpl_show(templates('form_pi'), $user_pi);
+  $html->tpl_show(templates('form_pi'), { %$user_pi,  MAIN_USER_TPL => $attr->{MAIN_USER_TPL} });
 }
 
 #**********************************************************
@@ -1915,8 +1949,10 @@ elsif ( $FORM{add}) {
 
     $user_info = $users->info( $user_info->{UID}, { SHOW_PASSWORD => 1 } );
     $html->tpl_show(templates('form_user_info'), $user_info);
-    $LIST_PARAMS{UID}=$user_info->{UID};
-    $index=2;
+    $LIST_PARAMS{UID}= $user_info->{UID};
+    $FORM{UID}       = $user_info->{UID};
+    user_pi({ REGISTRATION => 1 });
+    $index=get_function_index('form_payments');
     form_payments({ USER => $user_info });
     return 0;
    }
@@ -3186,7 +3222,7 @@ if ($admin_form->{errno}) {
   $html->message('err', $_ERROR, $err_strs{$admin_form->{errno}});	
  }
 
-$admin_form->{PASPORT_DATE} = $html->date_fld2('PASPORT_DATE', { FORM_NAME => 'users_pi',
+$admin_form->{PASPORT_DATE} = $html->date_fld2('PASPORT_DATE', { FORM_NAME => 'admin_form',
 	                                                            WEEK_DAYS => \@WEEKDAYS,
  	                                                            MONTHES   => \@MONTHES,
  	                                                            DATE      => $user_pi->{PASPORT_DATE}
@@ -5034,7 +5070,7 @@ if ($permissions{4} && $permissions{4}{5}) {
 }
 
 if ($permissions{0} && $permissions{0}{1}) {
-  push @m, "24:11:$_ADD:user_form:::" ;
+  push @m, "24:11:$_ADD:form_wizard:::" ;
   push @m, "14:13:$_ADD:add_company:::";
   push @m, "28:27:$_ADD:add_groups:::";
 }
