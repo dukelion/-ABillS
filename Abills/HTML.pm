@@ -1688,7 +1688,7 @@ sub tpl_show {
     	$tpl =~ s/\%$var$delimiter$default%/$variables_ref->{$var}/g;
      }
     elsif (defined($variables_ref->{$var})) {
-    	if ($variables_ref->{$var} !~ /\=\'|\' /) {
+    	if ($variables_ref->{$var} !~ /\=\'|\' | \'/) {
     	  $variables_ref->{$var} =~ s/\'/&rsquo;/g;
     	 }
     	$tpl =~ s/\%$var$delimiter$default%/$variables_ref->{$var}/g;
