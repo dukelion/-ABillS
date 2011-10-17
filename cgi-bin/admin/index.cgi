@@ -1482,7 +1482,11 @@ sub form_show_attach {
 #**********************************************************
 # Ajax address form
 #**********************************************************
+#**********************************************************
+# Ajax address form
+#**********************************************************
 sub form_address_sel {
+
    print "Content-Type: text/html\n\n";
    my $js_list = ''; 	
  	 my $id        =   $FORM{'JsHttpRequest'};
@@ -1493,6 +1497,7 @@ sub form_address_sel {
      my $list = $users->build_list({ STREET_ID => $FORM{STREET}, PAGE_ROWS => 10000 });
      if ($users->{TOTAL} > 0) {
        foreach my $line (@$list) {
+       	 $line->[1]=~s/\'/&rsquo;/g;
          $js_list .= "<option class='spisok' value='p3|$line->[0]|l3|$line->[6]'>$line->[0]</option>"; 
         }
       }
@@ -1523,7 +1528,8 @@ sub form_address_sel {
 
      my $size = ($users->{TOTAL} > 10) ? 10 : $users->{TOTAL};
      $size = 2 if ($size < 2);
-     $js_list = "<select style='width: inherit;' size='$size' onchange='insert(this)' id='street'></select>";
+     $js_list = "<select style='width: inherit;' size='$size' onchange='insert(this)' id='street'>".
+         $js_list . "</select>";
 
      print qq{JsHttpRequest.dataReady({ "id": "$id", 
    	    "js": { "list": "$js_list" }, 
@@ -1532,19 +1538,23 @@ sub form_address_sel {
    else {
      my $list = $users->district_list({ %LIST_PARAMS, PAGE_ROWS => 1000 });
      foreach my $line (@$list) {
-     	 $line->[1]=~s/\'/&rsquo;/g;
      	 $js_list .= "<option class='spisok' value='p1|$line->[1]|l1|$line->[0]'>$line->[1]</option>"; 
       }
 
      my $size = ($users->{TOTAL} > 10) ? 10 : $users->{TOTAL};
      $size=2 if ($size < 2);
-     $js_list = "<select style='width: inherit;' size='$size' onchange='insert(this)' id='block'></select>";
+     $js_list = "<select style='width: inherit;' size='$size' onchange='insert(this)' id='block'>".
+       $js_list . "</select>";
 
      print qq{JsHttpRequest.dataReady({ "id": "$id", 
    	    "js": { "list": "$js_list" }, 
         "text": "" }) };
     }
  	 exit;
+
+
+
+
 }
 
 #**********************************************************
