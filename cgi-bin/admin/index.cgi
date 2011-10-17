@@ -1482,9 +1482,6 @@ sub form_show_attach {
 #**********************************************************
 # Ajax address form
 #**********************************************************
-#**********************************************************
-# Ajax address form
-#**********************************************************
 sub form_address_sel {
 
    print "Content-Type: text/html\n\n";
@@ -7671,7 +7668,6 @@ if ($FORM{add}) {
     	if ($FORM{FILE_UPLOAD}{filename} =~ /\.(\S+)$/i) {
     		$name = $users->{INSERT_ID}.'.'.lc($1);
     	 }
-
     	upload_file($FORM{FILE_UPLOAD}, { PREFIX => 'maps', FILE_NAME => $name, REWRITE => 1 });
      }
 

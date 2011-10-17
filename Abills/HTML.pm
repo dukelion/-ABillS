@@ -219,8 +219,9 @@ if (! defined($ENV{CONTENT_TYPE}) || $ENV{CONTENT_TYPE} !~ /boundary/ ) {
 
       #Check quotes
       $value =~ s/\\/\\\\/g;
-      $value =~ s/"/\\"/g;
-      $value =~ s/'/\\'/g;      
+      $value =~ s/\"/\\\"/g;
+      $value =~ s/\'/\\\'/g;
+      $value =~ s/&rsquo;/\\\'/g;
      }
     else {
       $value = '';
@@ -1687,6 +1688,9 @@ sub tpl_show {
     	$tpl =~ s/\%$var$delimiter$default%/$variables_ref->{$var}/g;
      }
     elsif (defined($variables_ref->{$var})) {
+    	if ($variables_ref->{$var} !~ /\=\'|\' /) {
+    	  $variables_ref->{$var} =~ s/\'/&rsquo;/g;
+    	 }
     	$tpl =~ s/\%$var$delimiter$default%/$variables_ref->{$var}/g;
      }
     else {
