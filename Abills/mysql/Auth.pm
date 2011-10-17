@@ -916,6 +916,9 @@ if ($NAS->{NAS_TYPE} eq 'cid_auth' && $RAD->{CALLING_STATION_ID}) {
        GROUP BY u.id;");
    if ($self->{TOTAL} < 1) {
      $RAD->{USER_NAME}=$RAD->{CALLING_STATION_ID};
+     if ($RAD->{USER_NAME}) {
+     	  goto AUTH;
+      }
     }
    else {
      $RAD->{USER_NAME}=$self->{list}->[0]->[14];
@@ -958,6 +961,8 @@ else {
     return 1, \%RAD_PAIRS;
    }
 
+  AUTH:
+  
   my $WHERE  = '';
   if ($NAS->{DOMAIN_ID}) {
   	$WHERE = "AND u.domain_id='$NAS->{DOMAIN_ID}'";
