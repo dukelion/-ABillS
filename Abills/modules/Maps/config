@@ -2,7 +2,7 @@
 %FUNCTIONS_LIST = (
 					"01:0:$_MAP:maps_main:"          	 	=> 8,
 					"02:1:Google Maps:google_maps_show:" 	=> 8,
-					"03:1:Google Maps test:google_maps_show_client:" => 8,
+	#				"03:1:Google Maps test:google_maps_show_client:" => 8,     # карта для заявок на подключение
 				   	
 				   	"04:0:$_MAP:maps_add:"          	    => 5,
                    	"05:4:Google map:google_maps_add:"  	=> 5,
