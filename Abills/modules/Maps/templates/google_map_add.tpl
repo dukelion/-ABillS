@@ -191,7 +191,7 @@ function placeMarker() {
       map.addOverlay(marker);
       var coordx = latlng.x;
       var coordy = latlng.y;
-      var cells = addFeatureEntry(\"<a href=index.cgi?index=$index&coordx=\" + coordx + \"&coordy=\" + coordy + \" > Точка \" + (++markerCounter_) + \"</a>\", color);
+      var cells = addFeatureEntry(\"<a href=index.cgi?index=$index&coordx=\" + coordx + \"&coordy=\" + coordy + \" > $_BUILD \" + (++markerCounter_) + \"</a>\", color);
       updateMarker(marker, cells);
       GEvent.addListener(marker, \"dragend\", function() {
         updateMarker(marker, cells);
@@ -219,7 +219,7 @@ function placeRoute() {
       map.addOverlay(marker);
       var coordx = latlng.x;
       var coordy = latlng.y;
-      var cells = addFeatureEntry(\"<a href=index.cgi?index=$index&coordlx=\" + coordx + \"&coordly=\" + coordy + \" > Линия \" + (++markerCounter_) + \"</a>\", color);
+      var cells = addFeatureEntry(\"<a href=index.cgi?index=$index&coordlx=\" + coordx + \"&coordly=\" + coordy + \" > $_LINE \" + (++markerCounter_) + \"</a>\", color);
       updateMarker(marker, cells);
       GEvent.addListener(marker, \"dragend\", function() {
         updateMarker(marker, cells);
@@ -252,7 +252,7 @@ function placedistrict() {
       var coordy = latlng.y;
       
       
-      var cells = addFeatureEntry(\"<a href=index.cgi?index=$index&DCOORDX=\" + coordx + \"&DCOORDY=\" + coordy + \"&ZOOM=\"+ zoom + \" > Район \" + (++markerCounter_) + \"</a>\", color);
+      var cells = addFeatureEntry(\"<a href=index.cgi?index=$index&DCOORDX=\" + coordx + \"&DCOORDY=\" + coordy + \"&ZOOM=\"+ zoom + \" > $_DISTRICT \" + (++markerCounter_) + \"</a>\", color);
       updateMarker(marker, cells);
       GEvent.addListener(marker, \"dragend\", function() {
         updateMarker(marker, cells);
@@ -322,19 +322,19 @@ function chgposition (x, y , zoom) {
 	 onclick=\"stopEditing()\"/ ></td>
 
 <td><div id=\"placemark_b\"
-	 onclick=\"placeMarker()\"/ title=\"Добавить дом\"></td>
+	 onclick=\"placeMarker()\"/ title=\"$_ADD_HOUSE\"></td>
 
  <td><div  id=\"line_b\" style=\"display:none\"
 	 onclick=\"startLine()\"/></td> 
 
 <td><div id=\"placedistrict\"
-	onclick=\"placedistrict()\" title=\"Добавить район\"/></td>
+	onclick=\"placedistrict()\" title=\"$_ADD_DISTRICT\"/></td>
 
 <td><div id=\"placeroute_b\"
-	onclick=\"placeRoute()\" title=\"Добавить маршрут\"/></td>
+	onclick=\"placeRoute()\" title=\"$_ADD_ROUTE\"/></td>
 
 <td><div id=\"addroute\"
-	onclick=\"location.href='index.cgi?index=$index&route=add' \" title=\"Добавить путь\"/></td>	
+	onclick=\"location.href='index.cgi?index=$index&route=add' \" title=\"$_CREATE_EDIT_ROUTE\"/></td>	
 </tr></table>
 
     <input type=\"hidden\" id=\"featuredetails\" rows=2>

@@ -597,7 +597,7 @@ sub google_maps_add {
 		$html->message('info', $_INFO, "$FORM{message}");	
 	}
 	
-@TYPES = ('Коаксиальный', 'Опто-волоконный');
+@TYPES = ($_COAXIAL, $_FIBER_OPTIC);
 @TYPES_COLORS = ('#ff0000', '#000000');
 my $line_size = 10; 
 
@@ -784,8 +784,8 @@ my $line_size = 10;
 							$line->[6],
 							$line->[7],
 							$line->[8],   
-							$html->button($_SHOW, "index=$index&chg_route=$line->[0]", { BUTTON => 1 }), 
-							(defined($permissions{0}{5})) ? $html->button($_DEL, "index=$index&del_route=$line->[0]", { MESSAGE => "$_DEL $line->[1]?", BUTTON => 1 }) : ''
+							$html->button($_SHOW, "index=$index&chg_route=$line->[0]", { CLASS => 'change' }), 
+							(defined($permissions{0}{5})) ? $html->button($_DEL, "index=$index&del_route=$line->[0]", { MESSAGE => "$_DEL $line->[1]?", CLASS => 'del' }) : ''
 			);
 		}
 		print $table->show() . $html->br();
@@ -909,7 +909,7 @@ sub google_maps_show {
 	
 		my ($attr)=@_;
 	
-@TYPES = ('Коаксиальный', 'Опто-волоконный');
+@TYPES = ($_COAXIAL, $_FIBER_OPTIC);
 @TYPES_COLORS = ('#ff0000', '#000000');
 my $line_size = 10; 
 
@@ -1121,14 +1121,17 @@ foreach my $line ( @$list ) {
  		#$users->{debug}=1;
  		$list = $Maps->districts_list({});
 		#print $list->[0]->[6];
+		my $district = '<table>'; 
 		foreach my $line ( @$list ) {
 			if ($line->[7] == 0 ){
 					next;
 			}
-			$deldistrict = (defined($permissions{0}{5})) ? $html->button($_DEL, "index=$index&del=$line->[0]", { MESSAGE => "$_DEL $line->[1]?", BUTTON => 1 }) : '';
-			$district .=  "<a style=\"text-decoration:none; font-weight:bold; color:black; \" href=javascript:chgposition(". $line->[5] . ',' . $line->[6]. ',' . $line->[7]. ")>$line->[1]</a>" . ' ' . $deldistrict . $html->br() . $html->br();	
+			$deldistrict = (defined($permissions{0}{5})) ? $html->button($_DEL, "index=$index&del=$line->[0]", { MESSAGE => "$_DEL $line->[1]?", CLASS => "del" }) : '';
+			$district .=  "<tr><td><a style=\"text-decoration:none; font-weight:bold; color:black; \" href=javascript:chgposition(". $line->[5] . ',' . $line->[6]. ',' . $line->[7]. ")>$line->[1]</a></td><td>" . $deldistrict . '</td></tr>';	
 			
 		}
+		$district .= '</table>';
+		
 		if (defined($list->[0]->[6]) and defined($list->[0]->[7]) ) {
 		
 			$mapsetcenter = $list->[0]->[5] . ', ' . $list->[0]->[6] . ', ' .  $list->[0]->[7];
@@ -1151,7 +1154,7 @@ foreach my $line ( @$list ) {
 									GEvent.addListener(polyline, \'click\', function(latlng) 
 									{ 
 										     
-        								map.openInfoWindowHtml(latlng, \'<strong>'.$_NAME . '</strong>: '. $line2->[1] . ' <br /><strong>' .$_TYPE . '</strong>: '. $TYPES[$line2->[2]] . ' <br /><strong>' .NAS1 . '</strong>: '. $line2->[4] .'  <br /><strong>' .NAS2 . '</strong>: '. $line2->[5] .'  <br /><strong> NAS1 port </strong>: '. $line2->[6] .'<br /><strong>NAS2 port </strong>: '. $line2->[7] .'<br /><strong>' . $_LENGTH . '</strong>: '. $line2->[8] .'<br /><strong>' . $_DESCRIBE . '</strong>: '. $line2->[3] .'<br /><br /> \'); 
+        								map.openInfoWindowHtml(latlng, \'<strong>'. $_NAME . '</strong>: '. $line2->[1] . ' <br /><strong>' .$_TYPE . '</strong>: '. $TYPES[$line2->[2]] . ' <br /><strong>' .NAS1 . '</strong>: '. $line2->[4] .'  <br /><strong>' .NAS2 . '</strong>: '. $line2->[5] .'  <br /><strong> NAS1 port </strong>: '. $line2->[6] .'<br /><strong>NAS2 port </strong>: '. $line2->[7] .'<br /><strong>' . $_LENGTH . '</strong>: '. $line2->[8] .'<br /><strong>' . $_DESCRIBE . '</strong>: '. $line2->[3] .'<br /><br /> \'); 
 										
 									}); 
 									map.addOverlay(polyline); ';

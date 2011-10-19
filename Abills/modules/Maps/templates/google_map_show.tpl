@@ -219,10 +219,10 @@ function hideShowDistrict ()
 	
 	if (document.getElementById('districts').style.display == 'none') {
 		document.getElementById('districts').style.display = 'block';
-		document.getElementById('districtButton').firstChild.nodeValue = 'Спрятать районы';
+		document.getElementById('districtButton').firstChild.nodeValue = '$_HIDE_DISTRICTS';
 	} else {
 		document.getElementById('districts').style.display = 'none';
-		document.getElementById('districtButton').firstChild.nodeValue = 'Показать районы';
+		document.getElementById('districtButton').firstChild.nodeValue = '$_SHOW_DISTRICTS';
 		
 		
 	}
@@ -351,8 +351,8 @@ function fullScreenDistrict()
 <body onload=\"initialize(%MAPSETCENTER%)\" onunload=\"GUnload\">
 
 <br />
-<a  class='link_button' id=\"districtButton\" onclick=javascript:hideShowDistrict()>Спрятать районы</a>
-<a  class='link_button' id=\"districtButton\" onclick=javascript:fullScreenDistrict()>В новом окне</a>
+<a  class='link_button' id=\"districtButton\" onclick=javascript:hideShowDistrict()>$_HIDE_DISTRICTS</a>
+<a  class='link_button' id=\"districtButton\" onclick=javascript:fullScreenDistrict()>$_IN_NEW_WINDOW</a>
 
 <table><tr style=\"vertical-align:top\">
   <td style=\"width:15em;\" id=\"districts\" >
