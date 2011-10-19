@@ -889,7 +889,7 @@ sub authentication {
 
   my $SECRETKEY = (defined($CONF->{secretkey})) ? $CONF->{secretkey} : '';
   my %RAD_PAIRS = ();
-  
+
 if ($NAS->{NAS_TYPE} eq 'cid_auth' && $RAD->{CALLING_STATION_ID}) {
   $self->query($db, "select
   u.uid,
@@ -914,6 +914,7 @@ if ($NAS->{NAS_TYPE} eq 'cid_auth' && $RAD->{CALLING_STATION_ID}) {
         AND (u.activate='0000-00-00' or u.activate <= CURDATE())
         AND u.deleted='0'
        GROUP BY u.id;");
+
    if ($self->{TOTAL} < 1) {
      $RAD->{USER_NAME}=$RAD->{CALLING_STATION_ID};
      if ($RAD->{USER_NAME}) {
@@ -921,11 +922,9 @@ if ($NAS->{NAS_TYPE} eq 'cid_auth' && $RAD->{CALLING_STATION_ID}) {
       }
     }
    else {
-     $RAD->{USER_NAME}=$self->{list}->[0]->[14];
-     if(defined($RAD->{USER_PASSWORD}) && $RAD->{USER_PASSWORD} eq '') {
-        delete($RAD->{USER_PASSWORD});
-       }
-    } 
+     $RAD->{USER_NAME}  = $self->{list}->[0]->[14];
+     delete($RAD->{USER_PASSWORD});
+    }
  }
 else {
   #Get callback number
