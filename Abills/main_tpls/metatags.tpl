@@ -29,8 +29,13 @@ body {
   height: 45;
 }
 
-
 A:hover {text-decoration: none; color: %_COLOR_9%;}
+
+.MENU_BACK {
+  background:%_COLOR_2%;
+  width:18%;
+}
+
 
 .small {
   font-size: 11px;
@@ -478,7 +483,6 @@ a.help {
         font-size: 0px;
 }
 
-
 a.routes {
         background:url(/img/button_routes.png) no-repeat center;
         padding-left:22px;
@@ -489,14 +493,11 @@ a.routes {
         text-indent:-9000px;
 }
 
-
-
 a.rightAlignText {
 	padding-left:20px;
 	padding-top:0px;
 	display:inline-block;
 }
-
 
 .link_button {
   font-family:  Arial, Tahoma,Verdana, Helvetica, sans-serif;
@@ -629,27 +630,21 @@ TABLE.border {
   font-size:11;
   background:%_COLOR_2%;
   border:1px solid %_COLOR_4%;
-  color:#000;
+  color:%_COLOR_9%;
   text-decoration:none;
   margin:1px 1px;
 }
 
 #rules .center a:hover{
-  background:#ccc;
-  border:1px solid #666;
+  background:%_COLOR_10%;
+  border:1px solid %_COLOR_0%;
 }
 
 #rules .center a.active{
-  background:#666;
+  background:%_COLOR_10%;
   border:1px solid #666;
   color:#fff;
 }
-
-.MENU_BACK {
-  background:%_COLOR_2%;
-  width:18%;
-}
-
 
 
 /* calendar icon */
@@ -748,14 +743,10 @@ div#tcal td:hover {
 	height:1px;
 }
 
-
 #topNav {
 	margin:0;
 	padding:0;
 }
-
- 
-
 
 #topNav ul {
 	height:30px;
@@ -769,21 +760,15 @@ div#tcal td:hover {
   	z-index:0;
 }
 
-
-
 #topNav ul li a {
 	font-size:12px; 
 	display: block; 
 	text-decoration: none;
 	text-align:center; 
-	background: #fff; 
+	background: %_COLOR_2%; 
 	padding: 5px; 
 	border: 1px solid #ccc; 
 }
-
-
-
-
 
 #topNav li ul {
 	position: absolute; 
@@ -795,7 +780,6 @@ div#tcal td:hover {
 
 }
 
-
 #topNav li ul li {
 	width:150px;
 }
@@ -803,8 +787,8 @@ div#tcal td:hover {
 #topNav li:hover ul {
  	display:block;
  	z-index:25;
- 	 
 }
+
 #topNav li:hover ul li ul,
 #topNav li ul li:hover ul li ul,
 #topNav li ul li ul li:hover ul li ul,
@@ -813,8 +797,6 @@ div#tcal td:hover {
 	left:110px; 
 	top:0px;
 	display:none;
-	
-	 
 }
 #topNav li ul li:hover ul,
 #topNav li ul li ul li:hover ul,
@@ -830,12 +812,10 @@ div#tcal td:hover {
 }
 #quick_menu ul #topNav {
 	text-decoration:none;
-	
 }
 #quick_menu {
 	float:left;
 }
-
 </style>
 
 <title>%title%</title>

@@ -780,10 +780,17 @@ sub list {
    elsif ($attr->{ADDRESS_STREET}) {
      push @WHERE_RULES, @{ $self->search_expr($attr->{ADDRESS_STREET}, 'STR', 'pi.address_street', { EXT_FIELD => 1 }) };
     }
- 
-   if ($attr->{ADDRESS_BUILD}) {
-     push @WHERE_RULES, @{ $self->search_expr($attr->{ADDRESS_BUILD}, 'STR', 'pi.address_build', { EXT_FIELD => 1 }) };
+
+
+   if ($CONF->{ADDRESS_REGISTER}) {
+     if ($attr->{ADDRESS_BUILD}) {
+       push @WHERE_RULES, @{ $self->search_expr($attr->{ADDRESS_BUILD}, 'STR', 'builds.number', { EXT_FIELD => 'builds.number' }) };
+          $EXT_TABLES .= "INNER JOIN builds ON (builds.id=pi.location_id)";
+      }
     }
+   elsif ($attr->{ADDRESS_BUILD}) {
+     push @WHERE_RULES, @{ $self->search_expr($attr->{ADDRESS_BUILD}, 'STR', 'pi.address_build', { EXT_FIELD => 1 }) };
+    } 
 
    if ($attr->{COUNTRY_ID}) {
      push @WHERE_RULES, @{ $self->search_expr($attr->{COUNTRY_ID}, 'STR', 'pi.country_id', { EXT_FIELD => 1 }) };
