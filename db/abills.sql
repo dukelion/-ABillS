@@ -1305,4 +1305,7 @@ INSERT INTO `ippools` ( id, nas, ip, counts, name, priority) VALUES (1,1,1677721
 INSERT INTO `nas_ippools` (pool_id, nas_id) VALUES (1,1);
 INSERT INTO `msgs_chapters` (name) VALUES ('-');
 
+INSERT INTO fees_types (id, name) VALUES (1, '$_ABON'), (2, '$_FINE'), (3, '$_ACTIVATE'), (4, '$_MONEY_TRANSFER'), (0, '$_ONE_TIME');
+UPDATE fees_types SET id=0 where name='$_ONE_TIME';
+
 

@@ -1752,39 +1752,45 @@ sub letters_list {
  
  my $pages_qs = $attr->{pages_qs} if (defined($attr->{pages_qs}));
  $pages_qs =~ s/letter=\S+//g;
- my @alphabet = ('a-z');
+ my @alphabet = ('0-9', 'a-z');
+
 
  if ($attr->{EXPR}) {
-  push @alphabet, $attr->{EXPR};
+   push @alphabet, $attr->{EXPR};
   }
 
-my $letters = $self->button('All ', "index=$index"). '::';
+my $letters = $self->button('All ', "index=$index");
 
 foreach my $line (@alphabet) {
-  $line=~/(\S)-(\S)/;
-  my $first = ord($1);
-  my $last  = ord($2);
+
+  my $first = '';
+  my $last  = '';
+  if ($line=~/(\d)\-(\d)/) {
+    $first = $1;
+    $last  = $2;
+   }
+  else {
+    $line=~/(\S)-(\S)/;
+    $first = ord($1);
+    $last  = ord($2);
+   }
 
   for (my $i=$first; $i<=$last; $i++) {
-    my $l = chr($i);
+    my $l = ($i>10) ? chr($i) : $i;   
     if ($FORM{letter} && $FORM{letter} eq $l) {
       $letters .= $self->b("$l ");
      }
     else {
-      $letters .= $self->button("$l", "index=$index&letter=$l$pages_qs") . " \n";
+      $letters .= $self->button("$l", "index=$index&letter=$l$pages_qs");
     }
    }
-
-  $letters.="<br>\n";
 }
   if (defined($self->{NO_PRINT})) {
   	$self->{OUTPUT}.=$letters;
   	return '';
    }
 	else { 
- 	  return "<div id=\"rules\"><ul><li class=\"center\">
- 	  $letters
- 	  </li></ul></div>\n";
+ 	  return "<div id=\"rules\"><ul><li class=\"center\">$letters</li></ul></div>\n";
 	 }
 }
 
