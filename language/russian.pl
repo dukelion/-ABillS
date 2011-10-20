@@ -200,6 +200,7 @@ $_DURATION='Длительность';
 $_SESSIONS='Сессий';
 $_OVERQUOTA='Оверквота';
 $_ADDRESS_STREET='Улица';
+$_NEG_DEPOSIT_IP_POOL='Пул адресов негативного депозита';
 $_MAP='Карта сети';
 $ERR_WRONG_FILE_NAME='Неправильно имя или формат файла';
 $_ACCOUNTABILITY='Подотчётность';

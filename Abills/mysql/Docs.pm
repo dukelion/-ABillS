@@ -65,8 +65,8 @@ sub docs_invoice_list {
 
  @WHERE_RULES = ("d.id=o.invoice_id");
  
- if($attr->{LOGIN_EXPR}) {
-	 push @WHERE_RULES, @{ $self->search_expr($attr->{LOGIN_EXPR}, 'STR', 'u.id') };
+ if ($attr->{LOGIN}) {
+    push @WHERE_RULES, @{ $self->search_expr($attr->{LOGIN}, 'STR', 'u.id') }; 
   }
  elsif($attr->{CUSTOMER}) {
    push @WHERE_RULES, @{ $self->search_expr($attr->{CUSTOMER}, 'STR', 'd.customer') };
@@ -309,8 +309,8 @@ sub accounts_list {
  if($attr->{CUSTOMER}) {
 	 push @WHERE_RULES, @{ $self->search_expr($attr->{CUSTOMER}, 'STR', 'd.customer') };
   }
- elsif($attr->{LOGIN_EXPR}) {
-	 push @WHERE_RULES, @{ $self->search_expr($attr->{LOGIN_EXPR}, 'STR', 'u.id') };
+ elsif ($attr->{LOGIN}) {
+    push @WHERE_RULES, @{ $self->search_expr($attr->{LOGIN}, 'STR', 'u.id') }; 
   }
  
  if ($attr->{FROM_DATE}) {
@@ -669,8 +669,7 @@ sub tax_invoice_list {
 
   @WHERE_RULES = ();
  
- if($attr->{LOGIN_EXPR}) {
- 	 require Users;
+ if($attr->{UID}) {
 	 push @WHERE_RULES, @{ $self->search_expr($attr->{UID}, 'INT', 'd.uid') };
   }
 
@@ -770,11 +769,6 @@ sub tax_invoice_reports {
 
 
  @WHERE_RULES = ();
- 
- if($attr->{LOGIN_EXPR}) {
- 	 require Users;
-	 push @WHERE_RULES, @{ $self->search_expr($attr->{UID}, 'INT', 'd.uid') };
-  }
 
  if ($attr->{FROM_DATE}) {
     push @WHERE_RULES, "(date_format(d.date, '%Y-%m-%d')>='$attr->{FROM_DATE}' and date_format(d.date, '%Y-%m-%d')<='$attr->{TO_DATE}')";
@@ -1028,11 +1022,6 @@ sub acts_list {
 
 
  @WHERE_RULES = ();
- 
- if($attr->{LOGIN_EXPR}) {
- 	 require Users;
-	 push @WHERE_RULES, @{ $self->search_expr($attr->{UID}, 'INT', 'd.uid') };
-  }
 
  if ($attr->{FROM_DATE}) {
     push @WHERE_RULES, "(date_format(d.date, '%Y-%m-%d')>='$attr->{FROM_DATE}' and date_format(d.date, '%Y-%m-%d')<='$attr->{TO_DATE}')";
@@ -1383,18 +1372,8 @@ sub user_list {
  undef @WHERE_RULES;
  push @WHERE_RULES, "u.uid = service.uid";
  
- # Start letter 
- if ($attr->{FIRST_LETTER}) {
-    push @WHERE_RULES, "u.id LIKE '$attr->{FIRST_LETTER}%'";
-  }
- elsif ($attr->{LOGIN}) {
-    $attr->{LOGIN_EXPR} =~ s/\*/\%/ig;
-    push @WHERE_RULES, "u.id='$attr->{LOGIN}'";
-  }
- # Login expresion
- elsif ($attr->{LOGIN_EXPR}) {
-    $attr->{LOGIN_EXPR} =~ s/\*/\%/ig;
-    push @WHERE_RULES, "u.id LIKE '$attr->{LOGIN_EXPR}'";
+ if ($attr->{LOGIN}) {
+    push @WHERE_RULES, @{ $self->search_expr($attr->{LOGIN}, 'STR', 'u.id') }; 
   }
  
 

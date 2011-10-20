@@ -44,6 +44,8 @@ my %PAY_SYSTEMS = (41 => "Webmoney",
                    64 => 'Regulpay',
                    65 => 'Privat - Terminal',
                    66 => 'Paypal',
+                   67 => 'Sberbank',
+                   68 => 'x1'
                   );
 
 my %CONF_OPTIONS = (PAYSYS_WEBMONEY_ACCOUNTS => 41,
@@ -591,6 +593,7 @@ if ($FORM{info}) {
     $table->addrow($k, $v);
    }
 
+  $Paysys->{debug}=1;
   $Paysys->{INFO}=$table->show();
   $table = $html->table( { width   => '500',
   	                       caption => $_INFO,

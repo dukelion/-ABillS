@@ -358,9 +358,8 @@ sub list {
  if ($attr->{UID}) {
     push @WHERE_RULES, "l.uid='$attr->{UID}'";
   }
- elsif ($attr->{LOGIN_EXPR}) {
-    $attr->{LOGIN_EXPR} =~ s/\*/\%/ig;
-    push @WHERE_RULES, "u.id LIKE '$attr->{LOGIN_EXPR}'";
+ elsif ($attr->{LOGIN}) {
+    push @WHERE_RULES, @{ $self->search_expr($attr->{LOGIN}, 'STR', 'u.id') };
   }
 
  if ($attr->{LIST_UIDS}) {

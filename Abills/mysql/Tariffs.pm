@@ -62,7 +62,9 @@ my %FIELDS = ( ID               => 'id',
                SMALL_DEPOSIT_ACTION => 'small_deposit_action',
                COMMENTS        => 'comments',
                BILLS_PRIORITY  => 'bills_priority',
-               FINE            => 'fine'
+               FINE            => 'fine',
+               NEG_DEPOSIT_IPPOOL => 'neg_deposit_ippool',
+               NEXT_TARIF_PLAN => 'next_tp_id'
               );
 
 #**********************************************************
@@ -399,7 +401,9 @@ sub defaults {
             SMALL_DEPOSIT_ACTION => 0,
             COMMENTS         => '',
             BILLS_PRIORITY   => 0,
-            ACTIVE_DAY_FEE   => 0
+            ACTIVE_DAY_FEE   => 0,
+            NEG_DEPOSIT_IPPOOL => 0,
+            NEXT_TARIF_PLAN => 0
          );   
  
   $self = \%DATA;
@@ -442,7 +446,9 @@ sub add {
      priority,
      comments,
      bills_priority,
-     fine
+     fine,
+     neg_deposit_ippool,
+     next_tp_id
      )
     values ('$DATA{ID}', '$DATA{ALERT}', \"$DATA{NAME}\", 
      '$DATA{MONTH_FEE}', '$DATA{DAY_FEE}', '$DATA{ACTIVE_DAY_FEE}', '$DATA{REDUCTION_FEE}', 
@@ -468,7 +474,9 @@ sub add {
      '$DATA{PRIORITY}',
      '$DATA{COMMENTS}',
      '$DATA{BILLS_PRIORITY}',
-     '$DATA{FINE}'
+     '$DATA{FINE}',
+     '$DATA{NEG_DEPOSIT_IPPOOL}',
+     '$DATA{NEXT_TARIF_PLAN}
      );", 'do' );
      
   $self->{TP_ID}=$self->{INSERT_ID};
@@ -584,7 +592,9 @@ sub info {
       priority,
       comments,
       bills_priority,
-      fine
+      fine,
+      neg_deposit_ippool,
+      next_tp_id
     FROM tarif_plans
     WHERE $WHERE;");
 
@@ -639,7 +649,9 @@ sub info {
    $self->{PRIORITY},
    $self->{COMMENTS},
    $self->{BILLS_PRIORITY},
-   $self->{FINE}
+   $self->{FINE},
+   $self->{NEG_DEPOSIT_IPPOOL},
+   $self->{NEXT_TARIF_PLAN}
   ) = @{ $self->{list}->[0] };
 
   return $self;
@@ -671,7 +683,6 @@ sub list {
    push @WHERE_RULES, @{ $self->search_expr($attr->{COMMENTS}, 'STR', 'tp.comments', { EXT_FIELD => 1 }) };
   }
 
-
  if (defined($attr->{MODULE})) {
    push @WHERE_RULES, "tp.module='$attr->{MODULE}'"; 
   }
@@ -695,23 +706,25 @@ sub list {
  	 push @WHERE_RULES, @{ $self->search_expr("$attr->{ACTIVE_DAY_FEE}", 'INT', 'tp.active_day_fee') };  	
   }
 
+ if ($attr->{NEXT_TARIF_PLAN}) {
+ 	 push @WHERE_RULES, @{ $self->search_expr("$attr->{NEXT_TARIF_PLAN}", 'INT', 'tp.next_tp_id') };  	
+  }
+
+
  if ($attr->{CHANGE_PRICE}) {
  	  my $sql = '';  	
  	  
  	  if (defined($attr->{PRIORITY})) {
-            $sql = "tp.change_price$attr->{CHANGE_PRICE}+tp.credit";
+      $sql = "tp.change_price$attr->{CHANGE_PRICE}+tp.credit";
  	    $sql = "($sql or (tp.priority > '$attr->{PRIORITY}'))";
-            #Old
-            # $sql = "($sql or (tp.change_price=0 AND tp.priority > '$attr->{PRIORITY}'))";
+      #Old
+      # $sql = "($sql or (tp.change_price=0 AND tp.priority > '$attr->{PRIORITY}'))";
  	   }
-           else {
-             $sql = join('', @{ $self->search_expr("$attr->{CHANGE_PRICE}", 'INT', 'tp.change_price') });
-            }
- 	  
+    else {
+      $sql = join('', @{ $self->search_expr("$attr->{CHANGE_PRICE}", 'INT', 'tp.change_price') });
+     }
  	  push @WHERE_RULES, $sql;
   }
-
-
 
 
  my $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
@@ -737,7 +750,8 @@ sub list {
     $self->{SEARCH_FIELDS}
     tp.small_deposit_action,
     tp.active_day_fee,
-    tp.fine
+    tp.fine,
+    tp.next_tp_id
     FROM (tarif_plans tp)
     LEFT JOIN intervals i ON (i.tp_id=tp.tp_id)
     LEFT JOIN trafic_tarifs tt ON (tt.interval_id=i.id)

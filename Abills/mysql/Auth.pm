@@ -107,7 +107,8 @@ sub dv_auth {
   tp.ippool,
   dv.join_service,
   tp.tp_id,
-  tp.active_day_fee
+  tp.active_day_fee,
+  tp.neg_deposit_ippool
 
      FROM (dv_main dv)
      LEFT JOIN tarif_plans tp ON (dv.tp_id=tp.id $DOMAIN_ID)
@@ -158,7 +159,8 @@ sub dv_auth {
    $self->{TP_IPPOOL},
    $self->{JOIN_SERVICE},
    $self->{TP_ID},
-   $self->{ACTIVE_DAY_FEE}
+   $self->{ACTIVE_DAY_FEE},
+   $self->{NEG_DEPOSIT_IP_POOL},
     ) = @{ $self->{list}->[0] };
 
 #DIsable
@@ -1622,14 +1624,15 @@ sub neg_deposit_filter_former () {
 	else {
 		undef $RAD_PAIRS;
 	 }
-		
+
+	
 	if (! $attr->{USER_FILTER}) {
     # Return radius attr    
-      if ($self->{IP} ne '0') {
+      if ($self->{IP} ne '0' && ! $self->{NEG_DEPOSIT_IP_POOL}) {
         $RAD_PAIRS->{'Framed-IP-Address'} = "$self->{IP}";
        }
       else {
-        my $ip = $self->get_ip($NAS->{NAS_ID}, "$RAD->{NAS_IP_ADDRESS}", { TP_IPPOOL => $self->{TP_IPPOOL} });
+        my $ip = $self->get_ip($NAS->{NAS_ID}, "$RAD->{NAS_IP_ADDRESS}", { TP_IPPOOL => $self->{NEG_DEPOSIT_IP_POOL} || $self->{TP_IPPOOL} });
         if ($ip eq '-1') {
           $RAD_PAIRS->{'Reply-Message'}="Rejected! There is no free IPs in address pools (USED: $self->{USED_IPS}) ". (($self->{TP_IPPOOL}) ? " TP_IPPOOL: $self->{TP_IPPOOL}" : '' );
           return 1, $RAD_PAIRS;
@@ -1650,8 +1653,7 @@ sub neg_deposit_filter_former () {
 	 if ($NEG_DEPOSIT_FILTER_ID =~ /RAD:(.+)/) {
       	my $rad_pairs = $1;
         my @p = split(/,/, $rad_pairs);
-        foreach my $line (@p) {
-        	
+        foreach my $line (@p) {        	
           if ($line =~ /([a-zA-Z0-9\-]{6,25})\s?\+\=(.{1,200})/ ) {
             my $left=$1;
             my $right=$2;

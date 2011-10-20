@@ -1090,8 +1090,8 @@ sub log_list {
    push @WHERE_RULES, "l.id='$attr->{ID}'"; 
   }
 
- if ($attr->{LOGIN_EXPR}) {
-   push @WHERE_RULES, @{ $self->search_expr("$attr->{LOGIN_EXPR}", 'STR', 'u.id') };
+ if ($attr->{LOGIN}) {
+    push @WHERE_RULES, @{ $self->search_expr($attr->{LOGIN}, 'STR', 'u.id', { EXT_FIELD => 1 }) }; 
   }
 
  if ($attr->{GIDS}) {

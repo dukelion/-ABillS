@@ -1295,20 +1295,9 @@ sub list {
  push @WHERE_RULES, "u.uid = sharing.uid";
  
 
- # Start letter 
- if ($attr->{FIRST_LETTER}) {
-    push @WHERE_RULES, "u.id LIKE '$attr->{FIRST_LETTER}%'";
+ if ($attr->{LOGIN}) {
+    push @WHERE_RULES, @{ $self->search_expr($attr->{LOGIN}, 'STR', 'u.id') };
   }
- elsif ($attr->{LOGIN}) {
-    $attr->{LOGIN_EXPR} =~ s/\*/\%/ig;
-    push @WHERE_RULES, "u.id='$attr->{LOGIN}'";
-  }
- # Login expresion
- elsif ($attr->{LOGIN_EXPR}) {
-    $attr->{LOGIN_EXPR} =~ s/\*/\%/ig;
-    push @WHERE_RULES, "u.id LIKE '$attr->{LOGIN_EXPR}'";
-  }
- 
 
  if ($attr->{IP}) {
     if ($attr->{IP} =~ m/\*/g) {
@@ -1481,11 +1470,7 @@ sub sessions_list {
 
  # Show debeters
  if ($attr->{LOGIN}) {
-    push @WHERE_RULES, "sl.username='$attr->{LOGIN}'";
-   }
- elsif ($attr->{LOGIN_EXPR}) {
-    $attr->{LOGIN_EXPR} =~ s/\*/\%/ig;
-    push @WHERE_RULES, "u.id LIKE '$attr->{LOGIN_EXPR}'";
+    push @WHERE_RULES, @{ $self->search_expr($attr->{LOGIN}, 'STR', 'sl.username') };
   }
 
 #NAS ID
@@ -1819,18 +1804,8 @@ sub errors_list {
  undef @WHERE_RULES;
  
 
-# Start letter 
- if ($attr->{FIRST_LETTER}) {
-    push @WHERE_RULES, "username LIKE '$attr->{FIRST_LETTER}%'";
-  }
- elsif ($attr->{LOGIN}) {
-    $attr->{LOGIN_EXPR} =~ s/\*/\%/ig;
-    push @WHERE_RULES, "username='$attr->{LOGIN}'";
-  }
- # Login expresion
- elsif ($attr->{LOGIN_EXPR}) {
-    $attr->{LOGIN_EXPR} =~ s/\*/\%/ig;
-    push @WHERE_RULES, "username LIKE '$attr->{LOGIN_EXPR}'";
+ if ($attr->{LOGIN}) {
+    push @WHERE_RULES, @{ $self->search_expr($attr->{LOGIN}, 'STR', 'username') };
   }
  
 

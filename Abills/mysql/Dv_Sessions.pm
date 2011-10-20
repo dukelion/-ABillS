@@ -1027,26 +1027,16 @@ sub list {
                                  SEND            => 'l.sent2', 
                                  RECV            => 'l.recv2');
  
-#UID
- if ($attr->{UIDS}) {
-   push @WHERE_RULES, "l.uid IN ($attr->{UIDS})";
+ if ($attr->{UID}) {
+   push @WHERE_RULES, @{ $self->search_expr($attr->{UID}, 'INT', 'l.uid') };
   }
- elsif ($attr->{UID}) {
-    push @WHERE_RULES, "l.uid='$attr->{UID}'";
+ elsif ($attr->{LOGIN}) {
+   push @WHERE_RULES, @{ $self->search_expr($attr->{LOGIN}, 'STR', 'u.id') };
   }
- elsif ($attr->{LOGIN_EXPR}) {
-    $attr->{LOGIN_EXPR} =~ s/\*/\%/ig;
-    push @WHERE_RULES, "u.id LIKE '$attr->{LOGIN_EXPR}'";
-  }
-
- if ($attr->{LIST_UIDS}) {
-   push @WHERE_RULES, "l.uid IN ($attr->{LIST_UIDS})";
-  }
-
 
 #IP
  if ($attr->{IP}) {
-   push @WHERE_RULES, "l.ip=INET_ATON('$attr->{IP}')";
+   push @WHERE_RULES, @{ $self->search_expr($attr->{IP}, 'IP', 'l.ip') };
   }
 
 #NAS ID
@@ -1061,13 +1051,7 @@ sub list {
 
 #NAS ID
  if ($attr->{CID}) {
-   if($attr->{CID}) {
-     $attr->{CID} =~ s/\*/\%/ig;
-     push @WHERE_RULES, "l.cid LIKE '$attr->{CID}'";
-    }
-   else {
-     push @WHERE_RULES, "l.cid='$attr->{CID}'";
-    }
+   push @WHERE_RULES, @{ $self->search_expr($attr->{CID}, 'STR', 'l.cid') }; 
   }
 
 #NAS PORT
@@ -1082,8 +1066,7 @@ sub list {
 
 #Session ID
 if ($attr->{ACCT_SESSION_ID}) {
-   $attr->{ACCT_SESSION_ID} =~ s/\*/\%/ig;
-   push @WHERE_RULES, "l.acct_session_id LIKE '$attr->{ACCT_SESSION_ID}'";
+   push @WHERE_RULES, @{ $self->search_expr($attr->{ACCT_SESSION_ID}, 'STR', 'l.acct_session_id') }; 
   }
 
  # Show groups

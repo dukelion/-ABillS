@@ -280,19 +280,10 @@ sub user_list {
    return $list;
   }
 
- # Start letter 
- if ($attr->{FIRST_LETTER}) {
-    push @WHERE_RULES, "u.id LIKE '$attr->{FIRST_LETTER}%'";
+ if ($attr->{LOGIN}) {
+    push @WHERE_RULES, @{ $self->search_expr($attr->{LOGIN}, 'STR', 'u.id') }; 
   }
- elsif ($attr->{LOGIN}) {
-    $attr->{LOGIN} =~ s/\*/\%/ig;
-    push @WHERE_RULES, "u.id='$attr->{LOGIN}'";
-  }
- # Login expresion
- elsif ($attr->{LOGIN_EXPR}) {
-    $attr->{LOGIN_EXPR} =~ s/\*/\%/ig;
-    push @WHERE_RULES, "u.id LIKE '$attr->{LOGIN_EXPR}'";
-  }
+
  
 
  if ($attr->{IP}) {

@@ -153,7 +153,6 @@ else {
 $md5 = new Digest::MD5;
 
 
-
 my $ip_num   = unpack("N", pack("C4", split( /\./, $ENV{REMOTE_ADDR})));
 if ($ip_num >= ip2int('213.186.115.164') && $ip_num <= ip2int('213.186.115.190')) {
   require "Ibox.pm";
@@ -167,6 +166,11 @@ elsif( $FORM{signature} && $FORM{operation_xml}) {
 # IP: 77.120.97.36
 elsif( $FORM{merchantid} ) {
   require "Regulpay.pm";
+  exit;
+ }
+# IP: -
+elsif( $FORM{sberbank} ) {
+  require "Sberbank.pm";
   exit;
  }
 elsif( $FORM{txn_id} || $FORM{prv_txn} || defined($FORM{prv_id}) || ( $FORM{command} && $FORM{account}  ) ) {

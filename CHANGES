@@ -1,4 +1,16 @@
 =====0.54=====
+20.10.2011\\
+  * Добавлен пошаговый визард заведения пользователей
+  * Добавлены шаблоны прав администраторов
+  * Добавлен новый тип сервера доступа cid_auth -  авторизация по RADIUS Calling-Station-Id (сервер доступа NOKIA APN GSM)
+  * Добавлен пул негативного депозита 
+  * Добавлена опция перехода на другой тарифный план по завершению учётного периода
+
+MYSQL:\\
+  ALTER TABLE tarif_plans ADD COLUMN `neg_deposit_ippool` smallint(6) unsigned NOT NULL DEFAULT '0';
+  ALTER TABLE tarif_plans ADD COLUMN `next_tp_id` smallint(6) unsigned NOT NULL DEFAULT '0';
+
+15.10.2011\\
   * В визард Internet заведения пользователей добавлена форма начисления
   * Добавлен лимит начисления пени
 
@@ -27,7 +39,7 @@ MySQL:\\
   ) COMMENT='Payments types';
   
   ALTEr TABLE dhcphosts_networks ADD COLUMN `static` tinyint(1) unsigned NOT NULL default '0';
-  INSERT INTO fees_types (id, name) VALUES (0, '$_ONE_TIME'), (1, '$_ABON'), (2, '$_FINE'), (3, '$_ACTIVATE'), (4, '$_MONEY_TRANSFER');
+  INSERT INTO fees_types (id, name) VALUES (1, '$_ABON'), (2, '$_FINE'), (3, '$_ACTIVATE'), (4, '$_MONEY_TRANSFER'), (0, '$_ONE_TIME');
   UPDATE fees_types SET id=0 where name='$_ONE_TIME';
 
   

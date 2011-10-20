@@ -51,10 +51,20 @@
   <tr><td>$_MIN_USE:</td><td><input type=text name=MIN_USE value='%MIN_USE%'></td></tr>
 
   <tr><td>$_TRAFFIC_TRANSFER_PERIOD:</td><td><input type=text name=TRAFFIC_TRANSFER_PERIOD value='%TRAFFIC_TRANSFER_PERIOD%'></td></tr>
-  <tr><td>$_NEG_DEPOSIT_FILTER_ID:</td><td><input type=text name=NEG_DEPOSIT_FILTER_ID value='%NEG_DEPOSIT_FILTER_ID%'></td></tr>
+  <tr class='even'><td>$_NEG_DEPOSIT_FILTER_ID:</td><td><input type=text name=NEG_DEPOSIT_FILTER_ID value='%NEG_DEPOSIT_FILTER_ID%'></td></tr>
+  <tr class='even'><td>$_NEG_DEPOSIT_IP_POOL:</td><td>%NEG_DEPOSIT_IPPOOL_SEL%</td></tr>
+  
+  
   <tr><td>IP Pool:</td><td>%IP_POOLS_SEL%</td></tr>
   <tr><td>$_PRIORITY:</td><td><input type=text name=PRIORITY value='%PRIORITY%' size=5></td></tr>
   <tr><td>$_FINE:</td><td><input type=text name=FINE value='%FINE%' size=5></td></tr>
+
+  <tr><td>$_FINE:</td><td><input type=text name=FINE value='%FINE%' size=5></td></tr>
+  <tr><td>$_TARIF_PLAN $_NEXT_PERIOD:</td><td>%NEXT_TARIF_PLAN_SEL%</td></tr>
+                 
+  
+
+
   %BONUS%
   <tr><th colspan=2 class='even'>RADIUS Parameters (,)</th></tr>
   <tr><th colspan=2><textarea cols=55 rows=5 name=RAD_PAIRS>%RAD_PAIRS%</textarea></th></tr>

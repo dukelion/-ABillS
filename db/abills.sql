@@ -874,7 +874,7 @@ CREATE TABLE `tarif_plans` (
   `tp_id` int(11) unsigned NOT NULL auto_increment,
   `ext_bill_account` tinyint(1) unsigned NOT NULL DEFAULT '0',
   `credit` double(10,2) unsigned NOT NULL DEFAULT '0.00',
-  `ippool` int(11) NOT NULL DEFAULT '0',
+  `ippool` smallint(6) unsigned NOT NULL DEFAULT '0',
   `period_alignment` tinyint(1) NOT NULL DEFAULT '0',
   `min_use` double(14,2) unsigned NOT NULL DEFAULT '0.00',
   `abon_distribution` tinyint(1) NOT NULL DEFAULT '0',
@@ -886,6 +886,8 @@ CREATE TABLE `tarif_plans` (
   `comments` text not null default '',
   `bills_priority` tinyint(5) unsigned NOT NULL DEFAULT '0',
   `fine` double(14,2) unsigned NOT NULL default '0.00',
+  `neg_deposit_ippool` smallint(6) unsigned NOT NULL DEFAULT '0',
+  `next_tp_id` smallint(6) unsigned NOT NULL DEFAULT '0',
   PRIMARY KEY  (`id`,`module`, `domain_id`),
   UNIQUE KEY `tp_id` (`tp_id`),
   KEY `name` (`name`, `domain_id`)

@@ -350,7 +350,6 @@ if(($FORM{UID} && $FORM{UID} > 0) || ($FORM{LOGIN} && $FORM{LOGIN} ne ''  && $FO
  	$html->{WEB_TITLE} = "$conf{WEB_TITLE} [$ui->{LOGIN}]";
  }
 
-
 print $html->header();
 my ($menu_text, $navigat_menu) = mk_navigator();
 ($admin->{ONLINE_USERS}, $admin->{ONLINE_COUNT}) = $admin->online();

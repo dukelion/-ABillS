@@ -370,6 +370,7 @@ $_PASPORT='Passport';
 $_GRANT='Grant';
 
 $_NEG_DEPOSIT_FILTER_ID="Negative deposit filter ID";
+$_NEG_DEPOSIT_IP_POOL="Negative deposit IP Pool";
 $_USER_CHG_TP='User change tarif plan';
 $_NOT_ALLOW='Not allowed operation';
 $_IP_IN_USE='THIS IP IS CURRENTLY IN USE BY OTHER USER';
