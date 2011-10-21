@@ -387,20 +387,24 @@ sub abon_tariffs {
 
 
   push @FEES_METHODS, @EX_FEES_METHODS if (@EX_FEES_METHODS);
-  $Abon->{FEES_TYPES_SEL} =  $html->form_select('FEES_TYPE', 
-                                { SELECTED      => $Abon->{FEES_TYPE},
- 	                                SEL_ARRAY     => \@FEES_METHODS,
- 	                                ARRAY_NUM_ID  => 1
- 	                               });
   
-   $Abon->{FEES_TYPE}     = ($Abon->{FEES_TYPE})  ? 'checked' : ''; 
-   $Abon->{NOTIFICATION_ACCOUNT}= ($Abon->{NOTIFICATION_ACCOUNT})  ? 'checked' : '';  
-   $Abon->{ALERT}         = ($Abon->{ALERT})  ? 'checked' : '';  
-   $Abon->{ALERT_ACCOUNT} = ($Abon->{ALERT_ACCOUNT}) ? 'checked' : '';
-   $Abon->{CREATE_ACCOUNT}= ($Abon->{CREATE_ACCOUNT}) ? 'checked' : ''; 
-   $Abon->{ACTIVATE_NOTIFICATION} = ($Abon->{ACTIVATE_NOTIFICATION}) ? 'checked' : ''; 
-   $Abon->{VAT}           = ($Abon->{VAT}) ? 'checked' : ''; 
-   $Abon->{DISCOUNT}      = ($Abon->{DISCOUNT}) ? 'checked' : ''; 
+  my %FEES_METHODS = %{ get_fees_types({ }) };
+  
+  $Abon->{FEES_TYPES_SEL} =  $html->form_select('METHOD_'.$i, 
+                                { SELECTED     => $Abon->{FEES_TYPE},
+ 	                                SEL_HASH     => {'' => '', %FEES_METHODS },
+ 	                                NO_ID        => 1,
+ 	                                SORT_KEY     => 1
+ 	                               });
+
+  $Abon->{FEES_TYPE}     = ($Abon->{FEES_TYPE})  ? 'checked' : ''; 
+  $Abon->{NOTIFICATION_ACCOUNT}= ($Abon->{NOTIFICATION_ACCOUNT})  ? 'checked' : '';  
+  $Abon->{ALERT}         = ($Abon->{ALERT})  ? 'checked' : '';  
+  $Abon->{ALERT_ACCOUNT} = ($Abon->{ALERT_ACCOUNT}) ? 'checked' : '';
+  $Abon->{CREATE_ACCOUNT}= ($Abon->{CREATE_ACCOUNT}) ? 'checked' : ''; 
+  $Abon->{ACTIVATE_NOTIFICATION} = ($Abon->{ACTIVATE_NOTIFICATION}) ? 'checked' : ''; 
+  $Abon->{VAT}           = ($Abon->{VAT}) ? 'checked' : ''; 
+  $Abon->{DISCOUNT}      = ($Abon->{DISCOUNT}) ? 'checked' : ''; 
 
  $html->tpl_show(_include('abon_tp', 'Abon'), $Abon);
 

@@ -45,7 +45,7 @@ my %PAY_SYSTEMS = (41 => "Webmoney",
                    65 => 'Privat - Terminal',
                    66 => 'Paypal',
                    67 => 'Sberbank',
-                   68 => 'x1'
+                   68 => 'Gigs'
                   );
 
 my %CONF_OPTIONS = (PAYSYS_WEBMONEY_ACCOUNTS => 41,
@@ -73,7 +73,9 @@ my %CONF_OPTIONS = (PAYSYS_WEBMONEY_ACCOUNTS => 41,
                    PAYSYS_UKRNET_ACCOUNT_KEY => 63,
                    PAYSYS_REGULPAY_ACCOUNT_KEY  => 64,
                    PAYSYS_PRIVAT_TERMINAL_KEY   => 65,
-                   PAYSYS_PAYPAL_RECIEVER_EMAIL => 66
+                   PAYSYS_PAYPAL_RECIEVER_EMAIL => 66,
+                   PAYSYS_SBERBANK_PASSWORD     => 67,
+                   PAYSYS_GIGS_IPS              => 68,
                   );
 
 
@@ -82,7 +84,9 @@ my @status = ('UNKNOWN', 'IN PROCCESS', 'COMLETE', 'CENCELE', 'EXPIRED',
    'PAYMENT_ERROR', 
    'DUBLICATE', 
    'USER_ERROR',
-   'USER_NOT_EXIST');
+   'USER_NOT_EXIST',
+   'SMALL_PAYMENT_SUM',
+   'SQL_ERROR');
 
 
 #require "modules/Paysys/paysys_cons";

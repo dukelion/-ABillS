@@ -199,6 +199,9 @@ elsif($FORM{ACT}) {
 	require "24_non_stop.pm";
 	exit;
 }
+elsif($conf{PAYSYS_GIGS_IPS} =~ /$ENV{REMOTE_ADDR}/) {
+	require "Gigs.pm";
+}
 
 #Check payment system by IP
 
