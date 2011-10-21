@@ -58,8 +58,6 @@
   <tr><td>IP Pool:</td><td>%IP_POOLS_SEL%</td></tr>
   <tr><td>$_PRIORITY:</td><td><input type=text name=PRIORITY value='%PRIORITY%' size=5></td></tr>
   <tr><td>$_FINE:</td><td><input type=text name=FINE value='%FINE%' size=5></td></tr>
-
-  <tr><td>$_FINE:</td><td><input type=text name=FINE value='%FINE%' size=5></td></tr>
   <tr><td>$_TARIF_PLAN $_NEXT_PERIOD:</td><td>%NEXT_TARIF_PLAN_SEL%</td></tr>
                  
   

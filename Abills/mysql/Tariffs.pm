@@ -476,7 +476,7 @@ sub add {
      '$DATA{BILLS_PRIORITY}',
      '$DATA{FINE}',
      '$DATA{NEG_DEPOSIT_IPPOOL}',
-     '$DATA{NEXT_TARIF_PLAN}
+     '$DATA{NEXT_TARIF_PLAN}'
      );", 'do' );
      
   $self->{TP_ID}=$self->{INSERT_ID};

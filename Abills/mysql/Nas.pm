@@ -309,7 +309,9 @@ sub nas_ip_pools_list {
  
  $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
  $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
- 
+
+ @WHERE_RULES = ();
+
  if ($attr->{NAS_ID}) {
  	 push @WHERE_RULES, @{ $self->search_expr("$attr->{NAS_ID}", 'INT', 'np.nas_id') };  	
   }
