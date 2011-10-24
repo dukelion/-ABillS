@@ -3,27 +3,27 @@ $_RBL_TIMEOUT='';
 $_DNS_AVAILABLE='';
 
 
-$_REQUIRED_SCORE='Рейтинг срабатывания фильтра';
-$_REWRITE_HEADER='Изменить тему письма';
-$_REPORT_SAFE='Тип отчёта по спаму';
-$_USER_IN_WHITELIST='Рейтинг белого списка';
-$_USER_IN_BLACKLIST='Рейтинг для чёрного списка';
-$_OK_LOCALES='Разрешить локализацию';
+$_REQUIRED_SCORE='Р РµР№С‚РёРЅРі СЃСЂР°Р±Р°С‚С‹РІР°РЅРёСЏ С„РёР»СЊС‚СЂР°';
+$_REWRITE_HEADER='РР·РјРµРЅРёС‚СЊ С‚РµРјСѓ РїРёСЃСЊРјР°';
+$_REPORT_SAFE='РўРёРї РѕС‚С‡С‘С‚Р° РїРѕ СЃРїР°РјСѓ';
+$_USER_IN_WHITELIST='Р РµР№С‚РёРЅРі Р±РµР»РѕРіРѕ СЃРїРёСЃРєР°';
+$_USER_IN_BLACKLIST='Р РµР№С‚РёРЅРі РґР»СЏ С‡С‘СЂРЅРѕРіРѕ СЃРїРёСЃРєР°';
+$_OK_LOCALES='Р Р°Р·СЂРµС€РёС‚СЊ Р»РѕРєР°Р»РёР·Р°С†РёСЋ';
 
-$_USE_BAYES='Использовать Bayesian Classifier';
-$_BAYES_AUTO_LEARN='Включить Bayes самообучение';
-$_BAYES_AUTO_LEARN_THRESHOLD_SPAM='Обучение Bayes Spam Auto';
-$_BAYES_AUTO_LEARN_THRESHOLD_NONSPAM='Обучение Bayes Non-Spam Auto';
-$_USE_AUTO_WHITELIST='Автоматический белый список';
+$_USE_BAYES='РСЃРїРѕР»СЊР·РѕРІР°С‚СЊ Bayesian Classifier';
+$_BAYES_AUTO_LEARN='Р’РєР»СЋС‡РёС‚СЊ Bayes СЃР°РјРѕРѕР±СѓС‡РµРЅРёРµ';
+$_BAYES_AUTO_LEARN_THRESHOLD_SPAM='РћР±СѓС‡РµРЅРёРµ Bayes Spam Auto';
+$_BAYES_AUTO_LEARN_THRESHOLD_NONSPAM='РћР±СѓС‡РµРЅРёРµ Bayes Non-Spam Auto';
+$_USE_AUTO_WHITELIST='РђРІС‚РѕРјР°С‚РёС‡РµСЃРєРёР№ Р±РµР»С‹Р№ СЃРїРёСЃРѕРє';
 $_AUTO_WHITELIST_FACTOR='Auto Whitelist Factor';
 
-$_USE_DCC='Использовать DCC (Distributed Checksum Clearinghouse)';
-$_USE_PYZOR='Использовать Pyzor collaborative filtering network';
-$_USE_RAZOR2='Использовать Razor V2';
-$_SCORE='Рейтинг';
+$_USE_DCC='РСЃРїРѕР»СЊР·РѕРІР°С‚СЊ DCC (Distributed Checksum Clearinghouse)';
+$_USE_PYZOR='РСЃРїРѕР»СЊР·РѕРІР°С‚СЊ Pyzor collaborative filtering network';
+$_USE_RAZOR2='РСЃРїРѕР»СЊР·РѕРІР°С‚СЊ Razor V2';
+$_SCORE='Р РµР№С‚РёРЅРі';
 
-$_AUTO_LEARN='Автообучение';
-$_NETWORK_CHECK='Сетевая проверка';
+$_AUTO_LEARN='РђРІС‚РѕРѕР±СѓС‡РµРЅРёРµ';
+$_NETWORK_CHECK='РЎРµС‚РµРІР°СЏ РїСЂРѕРІРµСЂРєР°';
 
-$_BLACK_LIST ='Чёрный список';
-$_WHITE_LIST ='Берый список';
+$_BLACK_LIST ='Р§С‘СЂРЅС‹Р№ СЃРїРёСЃРѕРє';
+$_WHITE_LIST ='Р‘РµСЂС‹Р№ СЃРїРёСЃРѕРє';

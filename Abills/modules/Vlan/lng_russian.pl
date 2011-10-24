@@ -1,4 +1,4 @@
-$_INTERFACE = 'Интерфейс';
-$_RANGE     = 'Диапазон';
-$ERR_DHCP_SELECT_CORRECT_IP_MASK='Ошибка DHCP. Укажите правильную IP/MASK  сети';
-$ERR_WRONG_VLAN_NUMBER='Неправильный номер VLAN';
+$_INTERFACE = 'РРЅС‚РµСЂС„РµР№СЃ';
+$_RANGE     = 'Р”РёР°РїР°Р·РѕРЅ';
+$ERR_DHCP_SELECT_CORRECT_IP_MASK='РћС€РёР±РєР° DHCP. РЈРєР°Р¶РёС‚Рµ РїСЂР°РІРёР»СЊРЅСѓСЋ IP/MASK  СЃРµС‚Рё';
+$ERR_WRONG_VLAN_NUMBER='РќРµРїСЂР°РІРёР»СЊРЅС‹Р№ РЅРѕРјРµСЂ VLAN';

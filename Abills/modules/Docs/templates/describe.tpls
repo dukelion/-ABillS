@@ -1,12 +1,12 @@
 #
-docs_account.tpl:russian:Счёт (КВИТАНЦІЯ) для оплаты физическим лицами
-docs_account_add.tpl:russian:Форма выписки счёта
-docs_account_company.tpl:russian:Счёт для оплаты юридическими лицами
-docs_account_order_row.tpl:russian:Форма строки товаров в счете абонента
-docs_act.tpl:russian:Форма акта оказания услуг
-docs_contract.tpl:russian:Форма договора
-docs_invoice.tpl:russian:Форма счёта фактуры (чека), выставляется абоненту после внесения суммы на счёт,
-docs_multi_invoice.tpl:russian:Форма мультивыгрузки счетов
-docs_search.tpl:russian:Форма поиска по документам
-docs_tax_invoice.tpl:russian:Налоговая накладная
+docs_account.tpl:russian:РЎС‡С‘С‚ (РљР’РРўРђРќР¦Р†РЇ) РґР»СЏ РѕРїР»Р°С‚С‹ С„РёР·РёС‡РµСЃРєРёРј Р»РёС†Р°РјРё
+docs_account_add.tpl:russian:Р¤РѕСЂРјР° РІС‹РїРёСЃРєРё СЃС‡С‘С‚Р°
+docs_account_company.tpl:russian:РЎС‡С‘С‚ РґР»СЏ РѕРїР»Р°С‚С‹ СЋСЂРёРґРёС‡РµСЃРєРёРјРё Р»РёС†Р°РјРё
+docs_account_order_row.tpl:russian:Р¤РѕСЂРјР° СЃС‚СЂРѕРєРё С‚РѕРІР°СЂРѕРІ РІ СЃС‡РµС‚Рµ Р°Р±РѕРЅРµРЅС‚Р°
+docs_act.tpl:russian:Р¤РѕСЂРјР° Р°РєС‚Р° РѕРєР°Р·Р°РЅРёСЏ СѓСЃР»СѓРі
+docs_contract.tpl:russian:Р¤РѕСЂРјР° РґРѕРіРѕРІРѕСЂР°
+docs_invoice.tpl:russian:Р¤РѕСЂРјР° СЃС‡С‘С‚Р° С„Р°РєС‚СѓСЂС‹ (С‡РµРєР°), РІС‹СЃС‚Р°РІР»СЏРµС‚СЃСЏ Р°Р±РѕРЅРµРЅС‚Сѓ РїРѕСЃР»Рµ РІРЅРµСЃРµРЅРёСЏ СЃСѓРјРјС‹ РЅР° СЃС‡С‘С‚,
+docs_multi_invoice.tpl:russian:Р¤РѕСЂРјР° РјСѓР»СЊС‚РёРІС‹РіСЂСѓР·РєРё СЃС‡РµС‚РѕРІ
+docs_search.tpl:russian:Р¤РѕСЂРјР° РїРѕРёСЃРєР° РїРѕ РґРѕРєСѓРјРµРЅС‚Р°Рј
+docs_tax_invoice.tpl:russian:РќР°Р»РѕРіРѕРІР°СЏ РЅР°РєР»Р°РґРЅР°СЏ
 

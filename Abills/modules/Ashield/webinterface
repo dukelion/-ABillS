@@ -3,7 +3,6 @@
 
 use LWP::UserAgent;
 use HTTP::Request::Common;
-
 my $ua = new LWP::UserAgent();
 
 
@@ -304,7 +303,6 @@ sub ashield_user {
   	$html->message('info', "UPDATE", "Please update module 'Ashield' to version 6.03 or higher. http://abills.net.ua/ (Current Version: $Ashield::VERSION)");
   	return 0;
    }
-
 
   my $users = Users->new($db, $admin, \%conf); 
  	$Ashield->{UID}=$FORM{UID};	  
@@ -1037,6 +1035,9 @@ if (! $admin->{MAX_ROWS}) {
   print $table->show();
  }
 
+
+
+
   return 0;
 }
 
@@ -1485,6 +1486,7 @@ foreach my $k (sort @info_keys){
 
 }
 
+
 print $table->show();
 
 }
@@ -1495,13 +1497,17 @@ print $table->show();
 sub val_parser {
   my ($val)=@_;
 
-  if ($val =~ /\d{10}/) {
+  if ($val =~ /^\d{10}$/) {
     return strftime "%Y-%m-%d", localtime($val);
+   }
+  elsif ($val =~ /^(\d{4})(\d{2})(\d{2})\d{9}$/) {
+    return "$1-$2-$3";
    }
   else {
     return "$val";
    }
 }
+
 
 #**********************************************************
 # send-message.ds
@@ -1620,12 +1626,16 @@ sub ashield_drweb_report_users {
  
  my $table = $html->table({ width       => '100%',
  	                          caption     => "$_AGENTS - $_ACTIVE",
- 	                          title_plain => ["$_LOGIN", "Dr.Web uuid", $_NAME, "$_TARIF_PLAN", $_EXPIRE, "$_DOWNLOADED", $_CREATE, $_CHANGED, '-'],
+ 	                          title_plain => ["$_LOGIN", "Dr.Web uuid", $_NAME, "$_TARIF_PLAN", 
+ 	                            $_EXPIRE, "$_DOWNLOADED", $_CREATE, $_CHANGED, $_STATUS, '-'],
+ 	                          ID          => 'ASHIELD_DRWEB_AGENTS'
  	                        });
 
  my $date = $DATE.'000000000';
  $date =~ s/-//g;
  my $drweb_active_users = 0;
+ my $cur_date    = $date;
+
  foreach my $line  (@{ $result_hash->{customers}->[0]->{customer} } ) {
  	 $drweb_logins{$line->{name}->[0]}=keys %{ $line->{group} };
    my $expires = "";
@@ -1642,6 +1652,38 @@ sub ashield_drweb_report_users {
    my $create = "$1-$2-$3 $4:$5:$6";
    $line->{modifiedtime}->[0]=~ /(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})/;
  	 my $changed = "$1-$2-$3 $4:$5:$6";
+   
+   my $expire      = $line->{expires}->[0];
+
+   # Status Section
+   my $status = '-';
+
+        if ($expire > 0 && $expire > $cur_date) {
+    	  	$status = $html->color_mark("$_EXPIRE: ". val_parser($expires), $_COLORS[6]);
+    	  	print "!!!";
+    	   } 
+      	elsif ($expire > 0 && $expire < $cur_date) {
+    	  	$status = $html->color_mark("$_EXPIRE: ". val_parser($expires), $_COLORS[6]);
+    	  	$satus_code=1;
+    	   } 
+    	  else {
+      	  $blockbeg = $line->{blocking}->[0]->{begin}->[0];
+      	  if ($blockbeg > 0 ) {
+    		    $blockbeg = val_parser($blockbeg)
+  	  	   }
+  
+      	  $blockend = $line->{blocking}->[0]->{end}->[0];
+    		  if ($blockbeg > 0 && $blockbeg < $cur_date && $blockend < $cur_date) {
+    		  	
+    	     }
+          else {
+          	$status_code=1;
+           }
+   			  $blockend = val_parser($blockend);
+          $status = $html->color_mark("$_STATUS_4: $blockbeg - $blockend", $_COLORS[8]) if ($blockbeg > 0);
+    	   }
+
+   
 
  	 my ($uid, $login, $tp) = split(/:/, $agent_hash{$line->{id}->[0]});
  	 
@@ -1656,6 +1698,7 @@ sub ashield_drweb_report_users {
  	 ((ref $line->{lastseenfrom}->[0] eq 'HASH') ? '-' : "$_DOWNLOADED" ),
  	 $create,
  	 $changed,
+ 	 $status,
  	 $html->button($_DEL, "index=$index&del=$line->{id}->[0]", { MESSAGE => "$_DEL $line->{id}->[0] ?",  CLASS => 'del' })
  	 );
   } 
@@ -1664,8 +1707,8 @@ print $table->show();
 
 $table = $html->table( { width      => '100%',
                          cols_align => ['right', 'right'],
-                         rows       => [ [ "$_TOTAL:", $html->b($drweb_total_users) ],
-                                         [ "$_TOTAL:", $html->b($drweb_active_users) ], 
+                         rows       => [ [ "$_TOTAL $_AGENTS:", $html->b($drweb_total_users) ],
+                                         [ "$_TOTAL $_ACTIV:", $html->b($drweb_active_users) ], 
                                            ]
                      } );
 print $table->show();

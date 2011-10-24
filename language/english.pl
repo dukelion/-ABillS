@@ -1,5 +1,5 @@
 # 0.5
-$CHARSET='windows-1251';
+$CHARSET='utf-8';
 $CONTENT_LANGUAGE='EN';
 
 @PERIODS=('Today', 'Yesterday', 'Week', 'Month', 'All sessions', 'From activation');
@@ -27,7 +27,7 @@ $_NOT_EXIST='Not found';
 $_SEND_MAIL='Send e-mail';
 $_MESSAGE='Message';
 $_MESSAGES='Help Desk';
-#$_MESSAGES_DESCRIBE='По всіх питаннях які Вас цікавлять можете відправити повідомлення адміністратору.';
+#$_MESSAGES_DESCRIBE='РџРѕ РІСЃС–С… РїРёС‚Р°РЅРЅСЏС… СЏРєС– Р’Р°СЃ С†С–РєР°РІР»СЏС‚СЊ РјРѕР¶РµС‚Рµ РІС–РґРїСЂР°РІРёС‚Рё РїРѕРІС–РґРѕРјР»РµРЅРЅСЏ Р°РґРјС–РЅС–СЃС‚СЂР°С‚РѕСЂСѓ.';
 $_SUBJECT='Subject';
 $_DEPOSIT='Deposit';
 $_ACTIVATE='Activation';
@@ -101,7 +101,7 @@ $_CONFIRM='Confirmation';
 $_ENTER='Enter';
 $_BALANCE='Balance';
 $_PERIOD='Period';
-$_NEXT_PERIOD='Next account period';
+$_NoEXT_PERIOD='Next account period';
 $_SENT='Sent';
 $_RECV='Received';
 $_LAST_PAYMENT='Late payment';
@@ -482,3 +482,4 @@ $_EXTRA_TARIFICATION='Extra tarification';
 $_SUPPORT='Support';
 $_MANAGER='Manager';
 $_ACCOUNTANT='Accountant';
+$_NEXT='Next';

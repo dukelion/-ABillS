@@ -17,5 +17,5 @@
 <tr><td>$_SUM:</td><td><input type='text' name='sum_pol' value='%SUM%'></td></tr>
 <tr><td>$_DESCRIBE:</td><td><input type='text' name='name_service' value='%DESCRIBE%'></td></tr>
 </table>
-<input type='submit' name='button' value=' оплатить ' style='font-family:Verdana, Arial, sans-serif; font-size : 11px;'>
+<input type='submit' name='button' value=' РѕРїР»Р°С‚РёС‚СЊ ' style='font-family:Verdana, Arial, sans-serif; font-size : 11px;'>
 </form>

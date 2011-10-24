@@ -1250,6 +1250,16 @@ CREATE TABLE `web_online` (
   `logtime` int(11) unsigned NOT NULL default '0',
   `page_index` int unsigned NOT NULL Default 0
 ) ;
+
+CREATE TABLE `reg_wizard` (
+  `param` varchar(40) NOT NULL default '',
+  `value` text NOT NULL default '',
+  `aid` smallint(6) unsigned NOT NULL default '0',
+  `module` varchar(40) NOT NULL default '',
+  `step` tinyint(2) NOT NULL default '0',
+  `session_id` varchar(30) NOT NULL default '' 
+) COMMENT "Registration wizard temp table";
+
     
 
 

@@ -2366,4 +2366,70 @@ sub build_del {
  $admin->system_action_add("BUILD:$id", { TYPE => 10 }) if (! $self->{errno});
  return $self;
 }
+
+
+
+
+
+
+
+#**********************************************************
+# wizard_list()
+#**********************************************************
+sub wizard_list {
+ my $self = shift;
+ my ($attr) = @_;
+
+
+ $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
+ $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
+ $PG   = ($attr->{PG}) ? $attr->{PG} : 0;
+ $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
+
+ if ($attr->{SESSION_ID}) {
+	 push @WHERE_RULES, @{ $self->search_expr($attr->{SESSION_ID}, 'INT', 'session_id') };
+  }
+
+ my $WHERE = ($#WHERE_RULES > -1) ?  "WHERE " . join(' and ', @WHERE_RULES) : ''; 
+ my $sql = "SELECT session_id, step, param, value
+   FROM reg_wizard
+     $WHERE ORDER BY $SORT $DESC;";
+
+ $self->query($db, "$sql");
+ my $list = $self->{list};
+
+ return $list;
+}
+
+
+#**********************************************************
+# wizard_add()
+#**********************************************************
+sub wizard_add {
+ my $self = shift;
+ my ($attr) = @_;
+
+ $self->query($db, "INSERT INTO reg_wizard (param, value, aid, module,
+  step, session_id) 
+ values ('$attr->{PARAM}', '$attr->{VALUE}', '$admin->{AID}', '$attr->{MODULE}', '$attr->{STEP}', 
+ '$attr->{SESSION_ID}');", 'do');
+
+ $admin->system_action_add("REG_WIZARD:$self->{INSERT_ID}:$attr->{NAME}", { TYPE => 1 }) if (! $self->{errno});
+ return $self;
+}
+
+
+#**********************************************************
+# wizard_del()
+#**********************************************************
+sub wizard_del {
+ my $self = shift;
+ my ($id) = @_;
+
+ $self->query($db, "DELETE FROM reg_wizard WHERE session_id='$id';", 'do');
+
+ $admin->system_action_add("REG_WIZARD:$id", { TYPE => 10 }) if (! $self->{errno});
+ return $self;
+}
+
 1

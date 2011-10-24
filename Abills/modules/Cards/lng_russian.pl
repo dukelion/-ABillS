@@ -1,5 +1,5 @@
-$_OPERATION_PAYMENT='Цена операции';
-$_ORDER_PRINT='Отправить на печать';
-$ERR_SELECT_TARIF_PLAN='Выбирите Тарифный План';
-$_ACTIVATION_PAYMENTS='Оплата после активации';
-$_COMMISSION='Комиссия';
+$_OPERATION_PAYMENT='Р¦РµРЅР° РѕРїРµСЂР°С†РёРё';
+$_ORDER_PRINT='РћС‚РїСЂР°РІРёС‚СЊ РЅР° РїРµС‡Р°С‚СЊ';
+$ERR_SELECT_TARIF_PLAN='Р’С‹Р±РёСЂРёС‚Рµ РўР°СЂРёС„РЅС‹Р№ РџР»Р°РЅ';
+$_ACTIVATION_PAYMENTS='РћРїР»Р°С‚Р° РїРѕСЃР»Рµ Р°РєС‚РёРІР°С†РёРё';
+$_COMMISSION='РљРѕРјРёСЃСЃРёСЏ';

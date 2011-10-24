@@ -1,30 +1,30 @@
 <font  color=red size=+2>
-Образец документа<BR>
+РћР±СЂР°Р·РµС† РґРѕРєСѓРјРµРЅС‚Р°<BR>
 </font>
 
 <table style=\"border-collapse:collapse;\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\" namo_sheet=\":EmbededSheet1\" width=\"498\">
     <tr>
         <td width=\"133\" height=\"17\" align=\"left\" valign=\"bottom\" style=\"border-top-width:1pt; border-right-width:1; border-left-width:1pt; border-top-color:black; border-right-color:black; border-left-color:black; border-right-style:solid;\">
-          <p><b><span style=\"font-size:8pt;\">ПОВІДОМЛЕННЯ</span></b></p>
+          <p><b><span style=\"font-size:8pt;\">РџРћР’Р†Р”РћРњР›Р•РќРќРЇ</span></b></p>
 
         </td>
         <td height=\"17\" align=\"center\" valign=\"bottom\" colspan=\"2\" style=\"border-top-width:1pt; border-bottom-width:1; border-left-width:1; border-top-color:black; border-bottom-color:black; border-left-color:black; border-bottom-style:solid; border-left-style:solid;\">
-          <p><b><span style=\"font-size:9pt;\">ТОВ &quot;НВФ &quot;ВОЛЗ&quot;</span></b></p>
+          <p><b><span style=\"font-size:9pt;\">РўРћР’ &quot;РќР’Р¤ &quot;Р’РћР›Р—&quot;</span></b></p>
         </td>
   <td width=\"60\" height=\"17\" align=\"left\" valign=\"bottom\" style=\"border-top-width:1pt; border-top-color:black;\">
       <p>&nbsp;</p>
         </td>
 
   <td height=\"17\" align=\"left\" valign=\"bottom\" style=\"border-top-width:1pt; border-right-width:1pt; border-bottom-width:1; border-top-color:black; border-right-color:black; border-bottom-color:black; border-bottom-style:solid;\" colspan=\"2\">
-      <p><b><span style=\"font-size:9pt;\">ОКПО &nbsp;&nbsp;24251847</span></b></p>
+      <p><b><span style=\"font-size:9pt;\">РћРљРџРћ &nbsp;&nbsp;24251847</span></b></p>
         </td>
   </tr>
     <tr>
         <td width=\"133\" height=\"14\" align=\"left\" valign=\"bottom\" style=\"border-right-width:1; border-left-width:1pt; border-right-color:black; border-left-color:black; border-right-style:solid;\">        </td>
         <td height=\"14\" align=\"center\" valign=\"top\" colspan=\"2\" style=\"border-top-width:1; border-left-width:1; border-top-color:black; border-left-color:black; border-top-style:solid; border-left-style:solid;\">
 
-          <p><span style=\"font-size:7pt;\">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;отримувач 
-            платежу </span></p>
+          <p><span style=\"font-size:7pt;\">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;РѕС‚СЂРёРјСѓРІР°С‡ 
+            РїР»Р°С‚РµР¶Сѓ </span></p>
         </td>
       <td width=\"60\" height=\"14\" align=\"left\" valign=\"bottom\">        </td>
       <td width=\"75\" height=\"14\" align=\"left\" valign=\"bottom\">        </td>
@@ -36,15 +36,15 @@
           <p>&nbsp;</p>
         </td>
         <td width=\"76\" height=\"15\" align=\"left\" valign=\"bottom\">
-          <p><span style=\"font-size:7pt;\">Установа банку</span></p>
+          <p><span style=\"font-size:7pt;\">РЈСЃС‚Р°РЅРѕРІР° Р±Р°РЅРєСѓ</span></p>
         </td>
   <td width=\"78\" height=\"15\" align=\"left\" valign=\"bottom\" style=\"border-bottom-width:1; border-bottom-color:black; border-bottom-style:solid;\">
       <p>&nbsp;</p>
 
         </td>
   <td height=\"15\" align=\"left\" valign=\"bottom\" colspan=\"3\" style=\"border-right-width:1pt; border-bottom-width:1; border-right-color:black; border-bottom-color:black; border-bottom-style:solid;\">
-  <p><b><span style=\"font-size:9pt;\">АКБ &quot;Правекс банк&quot; 
-            &nbsp;м. Києва</span></b></p>
+  <p><b><span style=\"font-size:9pt;\">РђРљР‘ &quot;РџСЂР°РІРµРєСЃ Р±Р°РЅРє&quot; 
+            &nbsp;Рј. РљРёС”РІР°</span></b></p>
         </td>
   </tr>
     <tr>
@@ -62,7 +62,7 @@
           <p>&nbsp;</p>
         </td>
         <td width=\"76\" height=\"14\" align=\"left\" valign=\"bottom\">
-          <p><span style=\"font-size:7pt;\">&nbsp;&nbsp;&nbsp;Рахунок <br>отримувача</span></p>
+          <p><span style=\"font-size:7pt;\">&nbsp;&nbsp;&nbsp;Р Р°С…СѓРЅРѕРє <br>РѕС‚СЂРёРјСѓРІР°С‡Р°</span></p>
         </td>
   <td height=\"14\" align=\"left\" valign=\"center\" colspan=\"2\">
 
@@ -76,7 +76,7 @@
        </td>
   <td width=\"75\" height=\"14\" align=\"left\" valign=\"bottom\">
 
-      <p align=\"center\">&nbsp;<span style=\"font-size:8pt;\">МФО</span></p>
+      <p align=\"center\">&nbsp;<span style=\"font-size:8pt;\">РњР¤Рћ</span></p>
         </td>
 <td width=\"76\" height=\"14\" align=\"left\" valign=\"bottom\" style=\"border-right-width:1pt; border-right-color:black;\">
 <table border=\"1\" cellspacing=\"0\" bordercolordark=\"white\" bordercolorlight=\"black\">
@@ -98,8 +98,8 @@
         <td width=\"133\" height=\"17\" align=\"left\" valign=\"bottom\" style=\"border-right-width:1; border-left-width:1pt; border-right-color:black; border-left-color:black; border-right-style:solid;\">        </td>
        <td width=\"76\" height=\"17\" align=\"left\" valign=\"bottom\" style=\"border-top-width:1; border-bottom-width:thin; border-left-width:1; border-top-color:black; border-bottom-color:black; border-left-color:black; border-top-style:solid; border-bottom-style:solid; border-left-style:solid;\">      </td>
   <td height=\"17\" align=\"left\" valign=\"top\" colspan=\"3\" style=\"border-top-width:1; border-bottom-width:thin; border-top-color:black; border-bottom-color:black; border-top-style:solid; border-bottom-style:solid;\">
-      <p align=\"center\"><span style=\"font-size:7pt;\">прізвище, ім`я, та по-батькові, 
-            адреса</span></p>
+      <p align=\"center\"><span style=\"font-size:7pt;\">РїСЂС–Р·РІРёС‰Рµ, С–Рј`СЏ, С‚Р° РїРѕ-Р±Р°С‚СЊРєРѕРІС–, 
+            Р°РґСЂРµСЃР°</span></p>
         </td>
       <td width=\"76\" height=\"17\" align=\"left\" valign=\"bottom\" style=\"border-top-width:1; border-right-width:1pt; border-bottom-width:thin; border-top-color:black; border-right-color:black; border-bottom-color:black; border-top-style:solid; border-bottom-style:solid;\">       </td>
   </tr>
@@ -108,12 +108,12 @@
         <td width=\"133\" height=\"10\" align=\"left\" valign=\"bottom\" style=\"border-right-width:1; border-left-width:1pt; border-right-color:black; border-left-color:black; border-right-style:solid;\">        </td>
         <td width=\"76\" height=\"10\" align=\"left\" valign=\"bottom\" style=\"border-top-width:thin; border-bottom-width:thin; border-left-width:1; border-top-color:black; border-bottom-color:black; border-left-color:black; border-top-style:solid; border-bottom-style:solid; border-left-style:solid;\">        </td>
   <td width=\"78\" height=\"10\" align=\"left\" valign=\"bottom\" style=\"border-top-width:thin; border-bottom-width:thin; border-top-color:black; border-bottom-color:black; border-top-style:solid; border-bottom-style:solid;\">
-      <p><b><span style=\"font-size:7pt;\">&nbsp;&nbsp;&nbsp;&nbsp;Вид платежу</span></b></p>
+      <p><b><span style=\"font-size:7pt;\">&nbsp;&nbsp;&nbsp;&nbsp;Р’РёРґ РїР»Р°С‚РµР¶Сѓ</span></b></p>
         </td>
       <td height=\"10\" align=\"left\" valign=\"bottom\" colspan=\"2\" style=\"border-top-width:thin; border-bottom-width:thin; border-top-color:black; border-bottom-color:black; border-top-style:solid; border-bottom-style:solid;\">        </td>
 
   <td width=\"76\" height=\"10\" align=\"center\" valign=\"middle\" style=\"border-top-width:thin; border-right-width:1pt; border-bottom-width:thin; border-top-color:black; border-right-color:black; border-bottom-color:black; border-style:none;\" bordercolordark=\"black\" bordercolorlight=\"black\">
-      <p><span style=\"font-size:8pt;\"><b>Сума</b></span></p>
+      <p><span style=\"font-size:8pt;\"><b>РЎСѓРјР°</b></span></p>
       </td>
   </tr>
     <tr>
@@ -122,7 +122,7 @@
         </td>
 
   <td height=\"24\" align=\"left\" valign=\"bottom\" style=\"border-top-width:thin; border-bottom-width:1; border-left-width:1; border-top-color:black; border-bottom-color:black; border-left-color:black; border-top-style:solid; border-bottom-style:solid; border-left-style:solid;\" colspan=\"4\">
-      <p><span style=\"font-size:10pt;\">Послуга мережі &nbsp;Інтернет по договору </span><span style=\"font-size:10pt;\">№ <u>%CONTRACT_ID%</u> за ___<u>%PERIOD%</u>__</span>&nbsp;</p>
+      <p><span style=\"font-size:10pt;\">РџРѕСЃР»СѓРіР° РјРµСЂРµР¶С– &nbsp;Р†РЅС‚РµСЂРЅРµС‚ РїРѕ РґРѕРіРѕРІРѕСЂСѓ </span><span style=\"font-size:10pt;\">в„– <u>%CONTRACT_ID%</u> Р·Р° ___<u>%PERIOD%</u>__</span>&nbsp;</p>
       </td>
   <td width=\"76\" height=\"24\" align=\"left\" valign=\"bottom\" style=\"border-top-width:thin; border-right-width:1pt; border-bottom-width:1; border-left-width:1; border-color:black; border-top-style:solid; border-bottom-style:solid; border-left-style:solid;\">
       <p>&nbsp;%TOTAL_SUM%</p>
@@ -153,7 +153,7 @@
   </tr>
     <tr>
         <td width=\"133\" height=\"18\" align=\"left\" valign=\"bottom\" style=\"border-right-width:1; border-left-width:1pt; border-right-color:black; border-left-color:black; border-right-style:solid;\">
-          <p><span style=\"font-size:8pt;\"><b>КВИТАНЦІЯ</b></span></p>
+          <p><span style=\"font-size:8pt;\"><b>РљР’РРўРђРќР¦Р†РЇ</b></span></p>
         </td>
         <td width=\"76\" height=\"18\" align=\"left\" valign=\"bottom\">        </td>
       <td width=\"78\" height=\"18\" align=\"left\" valign=\"bottom\">        </td>
@@ -169,17 +169,17 @@
       <td width=\"78\" height=\"18\" align=\"left\" valign=\"bottom\">        </td>
       <td width=\"60\" height=\"18\" align=\"left\" valign=\"bottom\">        </td>
   <td width=\"75\" height=\"18\" align=\"left\" valign=\"bottom\">
-      <p><span style=\"font-size:7pt;\">Всього . . .</span></p>
+      <p><span style=\"font-size:7pt;\">Р’СЃСЊРѕРіРѕ . . .</span></p>
         </td>
       <td width=\"76\" height=\"18\" align=\"left\" valign=\"bottom\" style=\"border-top-width:1; border-right-width:1pt; border-bottom-width:1; border-left-width:1; border-color:black; border-top-style:solid; border-bottom-style:solid; border-left-style:solid;\">   %TOTAL_SUM%     </td>
   </tr>
 
     <tr>
         <td width=\"133\" height=\"18\" align=\"left\" valign=\"bottom\" style=\"border-right-width:1; border-bottom-width:thin; border-left-width:1pt; border-right-color:black; border-bottom-color:black; border-left-color:black; border-right-style:solid; border-bottom-style:solid;\">
-          <p><b><span style=\"font-size:8pt;\">Касир</span></b></p>
+          <p><b><span style=\"font-size:8pt;\">РљР°СЃРёСЂ</span></b></p>
         </td>
         <td width=\"76\" height=\"18\" align=\"left\" valign=\"bottom\" style=\"border-bottom-width:thin; border-bottom-color:black; border-bottom-style:solid;\">
-          <p><span style=\"font-size:7pt;\"><b>Платник</b></span> %FIO%</p>
+          <p><span style=\"font-size:7pt;\"><b>РџР»Р°С‚РЅРёРє</b></span> %FIO%</p>
         </td>
       <td width=\"78\" height=\"18\" align=\"left\" valign=\"bottom\" style=\"border-bottom-width:thin; border-bottom-color:black; border-bottom-style:solid;\">        </td>
 
@@ -193,25 +193,25 @@
     <tr>
         <td width=\"133\" height=\"17\" align=\"left\" valign=\"bottom\" style=\"border-top-width:1pt; border-right-width:1; border-left-width:1pt; border-top-color:black; border-right-color:black; border-left-color:black; border-right-style:solid;\">
 
-          <p><b><span style=\"font-size:8pt;\">ПОВІДОМЛЕННЯ</span></b></p>
+          <p><b><span style=\"font-size:8pt;\">РџРћР’Р†Р”РћРњР›Р•РќРќРЇ</span></b></p>
         </td>
         <td height=\"17\" align=\"center\" valign=\"bottom\" colspan=\"2\" style=\"border-top-width:1pt; border-bottom-width:1; border-left-width:1; border-top-color:black; border-bottom-color:black; border-left-color:black; border-bottom-style:solid; border-left-style:solid;\">
-          <p><b><span style=\"font-size:9pt;\">ТОВ &quot;НВФ &quot;ВОЛЗ&quot;</span></b></p>
+          <p><b><span style=\"font-size:9pt;\">РўРћР’ &quot;РќР’Р¤ &quot;Р’РћР›Р—&quot;</span></b></p>
         </td>
   <td width=\"60\" height=\"17\" align=\"left\" valign=\"bottom\" style=\"border-top-width:1pt; border-top-color:black;\">
       <p>&nbsp;</p>
 
         </td>
   <td height=\"17\" align=\"left\" valign=\"bottom\" style=\"border-top-width:1pt; border-right-width:1pt; border-bottom-width:1; border-top-color:black; border-right-color:black; border-bottom-color:black; border-bottom-style:solid;\" colspan=\"2\">
-      <p><b><span style=\"font-size:9pt;\">ОКПО &nbsp;&nbsp;24251847</span></b></p>
+      <p><b><span style=\"font-size:9pt;\">РћРљРџРћ &nbsp;&nbsp;24251847</span></b></p>
         </td>
   </tr>
     <tr>
         <td width=\"133\" height=\"14\" align=\"left\" valign=\"bottom\" style=\"border-right-width:1; border-left-width:1pt; border-right-color:black; border-left-color:black; border-right-style:solid;\">        </td>
 
         <td height=\"14\" align=\"center\" valign=\"top\" colspan=\"2\" style=\"border-top-width:1; border-left-width:1; border-top-color:black; border-left-color:black; border-top-style:solid; border-left-style:solid;\">
-          <p><span style=\"font-size:7pt;\">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;отримувач 
-            платежу </span></p>
+          <p><span style=\"font-size:7pt;\">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;РѕС‚СЂРёРјСѓРІР°С‡ 
+            РїР»Р°С‚РµР¶Сѓ </span></p>
         </td>
       <td width=\"60\" height=\"14\" align=\"left\" valign=\"bottom\">        </td>
       <td width=\"68\" height=\"14\" align=\"left\" valign=\"bottom\">        </td>
@@ -223,15 +223,15 @@
           <p>&nbsp;</p>
         </td>
         <td width=\"87\" height=\"15\" align=\"left\" valign=\"bottom\">
-          <p><span style=\"font-size:7pt;\">Установа банку</span></p>
+          <p><span style=\"font-size:7pt;\">РЈСЃС‚Р°РЅРѕРІР° Р±Р°РЅРєСѓ</span></p>
         </td>
   <td width=\"67\" height=\"15\" align=\"left\" valign=\"bottom\" style=\"border-bottom-width:1; border-bottom-color:black; border-bottom-style:solid;\">
 
       <p>&nbsp;</p>
         </td>
   <td height=\"15\" align=\"left\" valign=\"bottom\" colspan=\"3\" style=\"border-right-width:1pt; border-bottom-width:1; border-right-color:black; border-bottom-color:black; border-bottom-style:solid;\">
-  <p><b><span style=\"font-size:9pt;\">АКБ &quot;Правекс банк&quot; 
-            &nbsp;м. Києва</span></b></p>
+  <p><b><span style=\"font-size:9pt;\">РђРљР‘ &quot;РџСЂР°РІРµРєСЃ Р±Р°РЅРє&quot; 
+            &nbsp;Рј. РљРёС”РІР°</span></b></p>
         </td>
   </tr>
     <tr>
@@ -249,7 +249,7 @@
           <p>&nbsp;</p>
         </td>
         <td width=\"87\" height=\"14\" align=\"left\" valign=\"bottom\">
-          <p><span style=\"font-size:7pt;\">&nbsp;&nbsp;&nbsp;Рахунок <br>отримувача</span></p>
+          <p><span style=\"font-size:7pt;\">&nbsp;&nbsp;&nbsp;Р Р°С…СѓРЅРѕРє <br>РѕС‚СЂРёРјСѓРІР°С‡Р°</span></p>
         </td>
 
   <td height=\"14\" align=\"left\" valign=\"center\" colspan=\"2\">
@@ -263,7 +263,7 @@
        </td>
 
   <td width=\"68\" height=\"14\" align=\"left\" valign=\"bottom\">
-      <p align=\"center\">&nbsp;<span style=\"font-size:8pt;\">МФО</span></p>
+      <p align=\"center\">&nbsp;<span style=\"font-size:8pt;\">РњР¤Рћ</span></p>
         </td>
   <td width=\"83\" height=\"14\" align=\"left\" valign=\"bottom\" style=\"border-right-width:1pt; border-right-color:black;\">
 <table border=\"1\" cellspacing=\"0\" bordercolordark=\"white\" bordercolorlight=\"black\">
@@ -285,8 +285,8 @@
         <td width=\"133\" height=\"17\" align=\"left\" valign=\"bottom\" style=\"border-right-width:1; border-left-width:1pt; border-right-color:black; border-left-color:black; border-right-style:solid;\">        </td>
        <td width=\"87\" height=\"17\" align=\"left\" valign=\"bottom\" style=\"border-top-width:1; border-bottom-width:thin; border-left-width:1; border-top-color:black; border-bottom-color:black; border-left-color:black; border-top-style:solid; border-bottom-style:solid; border-left-style:solid;\">       </td>
   <td height=\"17\" align=\"left\" valign=\"top\" colspan=\"3\" style=\"border-top-width:1; border-bottom-width:thin; border-top-color:black; border-bottom-color:black; border-top-style:solid; border-bottom-style:solid;\">
-      <p align=\"center\"><span style=\"font-size:7pt;\">прізвище, ім`я, та по-батькові, 
-            адреса</span></p>
+      <p align=\"center\"><span style=\"font-size:7pt;\">РїСЂС–Р·РІРёС‰Рµ, С–Рј`СЏ, С‚Р° РїРѕ-Р±Р°С‚СЊРєРѕРІС–, 
+            Р°РґСЂРµСЃР°</span></p>
         </td>
 
       <td width=\"83\" height=\"17\" align=\"left\" valign=\"bottom\" style=\"border-top-width:1; border-right-width:1pt; border-bottom-width:thin; border-top-color:black; border-right-color:black; border-bottom-color:black; border-top-style:solid; border-bottom-style:solid;\">       </td>
@@ -295,12 +295,12 @@
         <td width=\"133\" height=\"10\" align=\"left\" valign=\"bottom\" style=\"border-right-width:1; border-left-width:1pt; border-right-color:black; border-left-color:black; border-right-style:solid;\">        </td>
         <td width=\"87\" height=\"10\" align=\"left\" valign=\"bottom\" style=\"border-top-width:thin; border-bottom-width:thin; border-left-width:1; border-top-color:black; border-bottom-color:black; border-left-color:black; border-top-style:solid; border-bottom-style:solid; border-left-style:solid;\">        </td>
   <td width=\"67\" height=\"10\" align=\"left\" valign=\"bottom\" style=\"border-top-width:thin; border-bottom-width:thin; border-top-color:black; border-bottom-color:black; border-top-style:solid; border-bottom-style:solid;\">
-      <p><b><span style=\"font-size:7pt;\">&nbsp;&nbsp;&nbsp;&nbsp;Вид платежу</span></b></p>
+      <p><b><span style=\"font-size:7pt;\">&nbsp;&nbsp;&nbsp;&nbsp;Р’РёРґ РїР»Р°С‚РµР¶Сѓ</span></b></p>
 
         </td>
       <td height=\"10\" align=\"left\" valign=\"bottom\" colspan=\"2\" style=\"border-top-width:thin; border-bottom-width:thin; border-top-color:black; border-bottom-color:black; border-top-style:solid; border-bottom-style:solid;\">        </td>
         <td width=\"83\" height=\"10\" align=\"center\" valign=\"middle\" style=\"border-top-width:thin; border-right-width:1pt; border-bottom-width:thin; border-top-color:black; border-right-color:black; border-bottom-color:black; border-style:none;\" bordercolordark=\"black\" bordercolorlight=\"black\">
-          <p><span style=\"font-size:8pt;\"><b>Сума</b></span></p>
+          <p><span style=\"font-size:8pt;\"><b>РЎСѓРјР°</b></span></p>
       </td>
   </tr>
     <tr>
@@ -309,7 +309,7 @@
           <p>&nbsp;</p>
         </td>
   <td height=\"24\" align=\"left\" valign=\"bottom\" style=\"border-top-width:thin; border-bottom-width:1; border-left-width:1; border-top-color:black; border-bottom-color:black; border-left-color:black; border-top-style:solid; border-bottom-style:solid; border-left-style:solid;\" colspan=\"4\">
-      <p><span style=\"font-size:10pt;\">Послуга мережі &nbsp;Інтернет по договору </span><span style=\"font-size:10pt;\">№ <u>%CONTRACT_ID%</u> за ___<u>%PERIOD%</u>__ </span>&nbsp;</p>
+      <p><span style=\"font-size:10pt;\">РџРѕСЃР»СѓРіР° РјРµСЂРµР¶С– &nbsp;Р†РЅС‚РµСЂРЅРµС‚ РїРѕ РґРѕРіРѕРІРѕСЂСѓ </span><span style=\"font-size:10pt;\">в„– <u>%CONTRACT_ID%</u> Р·Р° ___<u>%PERIOD%</u>__ </span>&nbsp;</p>
       </td>
   <td width=\"83\" height=\"24\" align=\"left\" valign=\"bottom\" style=\"border-top-width:thin; border-right-width:1pt; border-bottom-width:1; border-left-width:1; border-color:black; border-top-style:solid; border-bottom-style:solid; border-left-style:solid;\">
       <p>&nbsp; %TOTAL_SUM%</p>
@@ -340,7 +340,7 @@
   </tr>
     <tr>
         <td width=\"133\" height=\"18\" align=\"left\" valign=\"bottom\" style=\"border-right-width:1; border-left-width:1pt; border-right-color:black; border-left-color:black; border-right-style:solid;\">
-          <p><span style=\"font-size:8pt;\"><b>КВИТАНЦІЯ</b></span></p>
+          <p><span style=\"font-size:8pt;\"><b>РљР’РРўРђРќР¦Р†РЇ</b></span></p>
         </td>
 
         <td width=\"87\" height=\"18\" align=\"left\" valign=\"bottom\">        </td>
@@ -356,18 +356,18 @@
       <td width=\"67\" height=\"18\" align=\"left\" valign=\"bottom\">        </td>
       <td width=\"60\" height=\"18\" align=\"left\" valign=\"bottom\">        </td>
   <td width=\"68\" height=\"18\" align=\"left\" valign=\"bottom\">
-      <p><span style=\"font-size:7pt;\">Всього . . .</span></p>
+      <p><span style=\"font-size:7pt;\">Р’СЃСЊРѕРіРѕ . . .</span></p>
 
         </td>
       <td width=\"83\" height=\"18\" align=\"left\" valign=\"bottom\" style=\"border-top-width:1; border-right-width:1pt; border-bottom-width:1; border-left-width:1; border-color:black; border-top-style:solid; border-bottom-style:solid; border-left-style:solid;\">    %TOTAL_SUM%    </td>
   </tr>
     <tr>
         <td width=\"133\" height=\"18\" align=\"left\" valign=\"bottom\" style=\"border-right-width:1; border-bottom-width:thin; border-left-width:1pt; border-right-color:black; border-bottom-color:black; border-left-color:black; border-right-style:solid; border-bottom-style:solid;\">
-          <p><b><span style=\"font-size:8pt;\">Касир</span></b></p>
+          <p><b><span style=\"font-size:8pt;\">РљР°СЃРёСЂ</span></b></p>
         </td>
         <td width=\"87\" height=\"18\" align=\"left\" valign=\"bottom\" style=\"border-bottom-width:thin; border-bottom-color:black; border-bottom-style:solid;\">
 
-          <p><span style=\"font-size:7pt;\"><b>Платник</b></span> %FIO%</p>
+          <p><span style=\"font-size:7pt;\"><b>РџР»Р°С‚РЅРёРє</b></span> %FIO%</p>
         </td>
       <td width=\"67\" height=\"18\" align=\"left\" valign=\"bottom\" style=\"border-bottom-width:thin; border-bottom-color:black; border-bottom-style:solid;\">        </td>
       <td width=\"60\" height=\"18\" align=\"left\" valign=\"bottom\" style=\"border-bottom-width:thin; border-bottom-color:black; border-bottom-style:solid;\">        </td>

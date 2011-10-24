@@ -6,5 +6,5 @@
 <tr><th colspan='2' class='form_title'>SMS Proxy</th></tr>
 <tr><td>$_PASSWD:</td><td><input type='text' name='CODE' value=''></td></tr>
 </table>
-<input type='submit' name='button' value=' оплатить ' style='font-family:Verdana, Arial, sans-serif; font-size : 11px;'>
+<input type='submit' name='button' value=' РѕРїР»Р°С‚РёС‚СЊ ' style='font-family:Verdana, Arial, sans-serif; font-size : 11px;'>
 </form>

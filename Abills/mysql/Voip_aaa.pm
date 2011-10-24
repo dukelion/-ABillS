@@ -526,14 +526,14 @@ sub accounting {
    if ($RAD->{USER_NAME} =~ /(\S+):(\d+)/) {
   	 $RAD->{USER_NAME} = $2;
     }
-   if ($RAD->{H323_CALL_ORIGIN}==0) {
- 	   $RAD->{H323_CALL_ORIGIN} = 1;
- 	   $RAD->{USER_NAME}=$RAD->{CALLING_STATION_ID};
-    }
-   else {
-   	 $RAD->{H323_CALL_ORIGIN} = 0;
-   	 $RAD->{USER_NAME}=$RAD->{CALLED_STATION_ID};
-    }
+#   if ($RAD->{H323_CALL_ORIGIN}==0) {
+# 	   $RAD->{H323_CALL_ORIGIN} = 1;
+# 	   $RAD->{USER_NAME}=$RAD->{CALLING_STATION_ID};
+#    }
+#   else {
+#   	 $RAD->{H323_CALL_ORIGIN} = 0;
+#   	 $RAD->{USER_NAME}=$RAD->{CALLED_STATION_ID};
+#    }
   }
 
  if($conf->{VOIP_NUMBER_EXPR}) {

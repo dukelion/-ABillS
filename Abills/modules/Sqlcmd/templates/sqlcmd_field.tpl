@@ -9,8 +9,8 @@
 <tr><td>$_TYPE: </td><td>%COLUMN_TYPE_SEL%</td></tr>
 <tr><td>$_LENGTH: 	</td><td><input type=text name=COLUMN_LENGTH value='%COLUMN_LENGTH%'></td></tr>
 <tr><td>$_DEFAULT: 	</td><td>%DEFAULT_SEL% <BR> <input type=text name=DEFAULT value='%DEFAULT%'></td></tr>
-<tr><td>Сравнение: 	</td><td>%COLLATION_SEL%</td></tr>
-<tr><td>Атрибуты: 	</td><td>%ATTRIBUTE_TYPE_SEL%</td></tr>
+<tr><td>РЎСЂР°РІРЅРµРЅРёРµ: 	</td><td>%COLLATION_SEL%</td></tr>
+<tr><td>РђС‚СЂРёР±СѓС‚С‹: 	</td><td>%ATTRIBUTE_TYPE_SEL%</td></tr>
 <tr><td>Null: 	 </td><td><input type=checkbox name=NULL value='%NULL%'></td></tr>
 <tr><td>AUTO_INCREMENT: 	</td><td><input type=checkbox name=AUTO_INCREMENT value='1' %AUTO_INCREMENT%></td></tr>
 <tr><td>$_COMMENTS: </td><td><input type=text name=COMMENTS value='%COMMENTS%'></td></tr>

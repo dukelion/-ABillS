@@ -1,32 +1,32 @@
 
 
-<h2>Накладная № %NUMBER% от %FROM_DATE_LIT% (%DATE%)</h2>
+<h2>РќР°РєР»Р°РґРЅР°СЏ в„– %NUMBER% РѕС‚ %FROM_DATE_LIT% (%DATE%)</h2>
  
 <table width=600 border=0>
-<tr><td><b><u>Поставщик</u></b></td><td>Transinform  </td></tr>
-<tr><td><b><u>ЗКПО   </u></b> </td><td>  </td></tr>
-<tr><td><b><u>Р/с    </u></b>  </td><td>  </td></tr>
-<tr><td><b><u>ИИН    </u></b>  </td><td>  </td></tr>
-<tr><td><b><u>Адрес  </u></b>    </td><td>  </td></tr>
-<tr><td><b><u>Отправитель  </u></b>  </td><td> %FROM%  </td></tr>
-<tr><td><b><u>Получатель  </u></b>  </td><td>  %CUSTOMER% (%LOGIN%) </td></tr>
-<tr><td><b><u>Тип продажи </u></b>  </td><td>  в долг      </td></tr>
-<tr><td><b><u>Тип операции </u></b> </td><td>  Передача товара  %OPERATION%  </td></tr>
+<tr><td><b><u>РџРѕСЃС‚Р°РІС‰РёРє</u></b></td><td>Transinform  </td></tr>
+<tr><td><b><u>Р—РљРџРћ   </u></b> </td><td>  </td></tr>
+<tr><td><b><u>Р /СЃ    </u></b>  </td><td>  </td></tr>
+<tr><td><b><u>РРРќ    </u></b>  </td><td>  </td></tr>
+<tr><td><b><u>РђРґСЂРµСЃ  </u></b>    </td><td>  </td></tr>
+<tr><td><b><u>РћС‚РїСЂР°РІРёС‚РµР»СЊ  </u></b>  </td><td> %FROM%  </td></tr>
+<tr><td><b><u>РџРѕР»СѓС‡Р°С‚РµР»СЊ  </u></b>  </td><td>  %CUSTOMER% (%LOGIN%) </td></tr>
+<tr><td><b><u>РўРёРї РїСЂРѕРґР°Р¶Рё </u></b>  </td><td>  РІ РґРѕР»Рі      </td></tr>
+<tr><td><b><u>РўРёРї РѕРїРµСЂР°С†РёРё </u></b> </td><td>  РџРµСЂРµРґР°С‡Р° С‚РѕРІР°СЂР°  %OPERATION%  </td></tr>
 <tr><td colspan=2>
 
 <br>
 <br>
 <table width=100% border=0>	
-<tr><th>#</th><th>Товар</th><th>Од.</th><th>Кол-во</th><th>Цена(грн.)</th><th>Сумма(грн.) </th></tr>
+<tr><th>#</th><th>РўРѕРІР°СЂ</th><th>РћРґ.</th><th>РљРѕР»-РІРѕ</th><th>Р¦РµРЅР°(РіСЂРЅ.)</th><th>РЎСѓРјРјР°(РіСЂРЅ.) </th></tr>
 <tr><th colspan=6><img src=/img/black.gif width=630 height=1></th></tr>
 %ORDER%
 <tr><th colspan=6><img src=/img/black.gif width=630 height=1></th></tr>
-<tr><th colspan=3>ВСЕГО:</th><th colspan=3 align='right'>%TOTAL_SUM%</th></tr>
+<tr><th colspan=3>Р’РЎР•Р“Рћ:</th><th colspan=3 align='right'>%TOTAL_SUM%</th></tr>
 </table>
 </td></tr>
 
 <tr><td colspan=2><br><br><br><br><br></td></tr>
 
-<tr><td>Выдал:__________________</td><td>Принял:___________________</td></tr>
+<tr><td>Р’С‹РґР°Р»:__________________</td><td>РџСЂРёРЅСЏР»:___________________</td></tr>
 <tr><td colspan=2><br><br><br><br><br></td></tr>
 </table>

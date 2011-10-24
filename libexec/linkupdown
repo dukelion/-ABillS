@@ -839,62 +839,69 @@ sub mikrotik_ext {
 sub mikrotik_ext2 {
 	my ($attr)=@_;
 
-	my $speeds    = $attr->{SPEEDS};
-	my $nets      = $attr->{NETS};
-  my $proto     = $argv->{PROTO} || 'pptp';
   my $nas_host  = $argv->{NAS_HOST} || '';
   my $nas_admin = $argv->{NAS_ADMIN}|| 'admin';
   my $SSH       = $argv->{SSH_CMD}  || "/usr/bin/ssh -i $base_dir/Certs/id_dsa.".$nas_admin;
+
+  my $count;
+	my $speeds    = $attr->{SPEEDS};
+	my $nets      = $attr->{NETS};
+  my $proto     = $argv->{PROTO} || 'pptp';
   my @commands  = ();
 
 # ADD client to address-list
   push  @commands, qq{/ip firewall address-list add list=CLIENTS_$attr->{TP_ID} address=$CLIENT_IP };
 
-# ADD NET1
-# my $cmds = "$SSH $nas_admin\@$nas_host '/ip firewall address-list print where list=clients ";
-# open(CMD, "$cmds |") || die "Can't open '$cmds' $!\n";
-#   my @check_int = <CMD>;   
-# close(CMD);
-
 if($ACTION eq 'down') {
-   push @commands, qq{ ip firewall address-list remove [find address=$CLIENT_IP] };
+   push @commands, qq{/ip firewall address-list remove [find address=$CLIENT_IP] };
  }
 else {
   foreach my $traf_type (sort keys %$speeds) {
     my $speed     = $speeds->{$traf_type};
     my $speed_in  = (defined($speed->{IN}))  ? $speed->{IN} * 1024 : 0;
     my $speed_out = (defined($speed->{OUT})) ? $speed->{OUT}* 1024 : 0;                                          
-#      my $class_list        = 'traffic_class_'.$traf_type;
-#      my $address_list_name = "TT_$user->{TP_ID}_".$traf_type."_".$USER;
-#      my $mark_name_in      = $address_list_name. "_mark_in";
-#      my $mark_name_out     = $address_list_name. "_mark_out";
-    my $priority             = 5 - $traf_type;
-
+    my $priority  = 5 - $traf_type;
+      # 450 LEFTY53 Framed-IP-Address := 10.10.10.145
+      # 456 LEFTY53 Mikrotik-Address-List := basic
       #Global Shapper
       if ($traf_type == 0) {
-        push @commands, qq{/ip firewall mangle add chain=forward action=mark-packet new-packet-mark=ALLOW_GLOBAL passthrough=yes src-address-list=CLIENTS_$attr->{TP_ID} dst-address=0.0.0.0/0};
-        push @commands, "/queue tree add name=\"". 'TP_'.$attr->{TP_ID} ."_in_global\" parent=global-in packet-mark=ALLOW_GLOBAL limit-at=$speed_in queue=default priority=$priority max-limit=$speed_in burst-limit=0 burst-threshold=0 burst-time=0s";
-        push @commands, "/queue tree add name=\"". 'TP_'.$attr->{TP_ID} ."_out_global\" parent=global-out packet-mark=ALLOW_GLOBAL limit-at=$speed_out queue=default priority=$priority max-limit=$speed_out burst-limit=0 burst-threshold=0 burst-time=0s";
+      	my $count = get_mikrotik_value(qq{ /ip firewall mangle print count-only where new-packet-mark=ALLOW_GLOBAL }, $argv);
+      	
+      	if ($count->[0]) {
+          push @commands, qq{/ip firewall mangle add chain=forward action=mark-packet new-packet-mark=ALLOW_GLOBAL passthrough=yes src-address-list=CLIENTS_$attr->{TP_ID} dst-address=0.0.0.0/0};
+          push @commands, "/queue tree add name=\"". 'TP_'.$attr->{TP_ID} ."_in_global\" parent=global-in packet-mark=ALLOW_GLOBAL limit-at=$speed_in queue=default priority=$priority max-limit=$speed_in burst-limit=0 burst-threshold=0 burst-time=0s";
+          push @commands, "/queue tree add name=\"". 'TP_'.$attr->{TP_ID} ."_out_global\" parent=global-out packet-mark=ALLOW_GLOBAL limit-at=$speed_out queue=default priority=$priority max-limit=$speed_out burst-limit=0 burst-threshold=0 burst-time=0s";
+         }
        }
       #Peering shapper
       else {
-      	#Check TP, Check Nets
-      	push @commands, qq{ /ip firewall mangle add chain=forward action=mark-packet new-packet-mark=ALLOW_TRAFFIC_CLASS_$traf_type passthrough=yes src-address-list=CLIENTS_$attr->{TP_ID} dst-address-list=TRAFFIC_CLASS_$traf_type };
-        push @commands, "/queue tree add name=\"". 'TP_'.$attr->{TP_ID} ."_in_traffic_class_". $traf_type ."\" parent=global-in packet-mark=ALLOW_TRAFFIC_CLASS_2 limit-at=$speed_in  queue=default priority=$priority max-limit=$speed_in burst-limit=0 burst-threshold=0 burst-time=0s";
-        push @commands, "/queue tree add name=\"". 'TP_'.$attr->{TP_ID} ."_out_traffic_class_". $traf_type ."\" parent=global-out packet-mark=ALLOW_GLOBAL limit-at=$speed_out  queue=default priority=$priority max-limit=$speed_out burst-limit=0 burst-threshold=0 burst-time=0s";
+      	#Check TP,
+      	$count = get_mikrotik_value("/ip firewall mangle print count-only where new-packet-mark=ALLOW_TRAFFIC_CLASS_". $attr->{TP_ID}.'_'. $traf_type, $argv);
 
-        #Add traffic_class nets
-        my @nets_arr = (); 
-        if ($nets->{$traf_type}) {
-          $nets->{$traf_type} =~ s/[\r]?\n//g;
-          $nets->{$traf_type} =~ s/;/,/g;
-          $nets->{$traf_type} =~ s/ //g;
-          chop($nets->{$traf_type});
-          @nets_arr = split(/,/, $nets->{$traf_type});
-         }                                                                                                        
+        if ($count->[0]) {      	
+      	  push @commands, " /ip firewall mangle add chain=forward action=mark-packet new-packet-mark=ALLOW_TRAFFIC_CLASS_". $attr->{TP_ID}.'_'. $traf_type ." passthrough=yes src-address-list=CLIENTS_$attr->{TP_ID} dst-address-list=TRAFFIC_CLASS_$traf_type ";
+
+          push @commands, "/queue tree add name=\"". 'TP_'.$attr->{TP_ID} ."_in_traffic_class_". $traf_type ."\" parent=global-in packet-mark=ALLOW_TRAFFIC_CLASS_". $attr->{TP_ID}.'_'. $traf_type ." limit-at=$speed_in  queue=default priority=$priority max-limit=$speed_in burst-limit=0 burst-threshold=0 burst-time=0s";
+          
+          push @commands, "/queue tree add name=\"". 'TP_'.$attr->{TP_ID} ."_out_traffic_class_". $traf_type ."\" parent=global-out packet-mark=ALLOW_TRAFFIC_CLASS_". $attr->{TP_ID}.'_'. $traf_type ." limit-at=$speed_out  queue=default priority=$priority max-limit=$speed_out burst-limit=0 burst-threshold=0 burst-time=0s";
+         }
+
+        #Check Nets
+        $count = get_mikrotik_value(qq{/ip firewall address-list print count-only where list=TRAFFIC_CLASS_$traf_type }, $argv);
+        if ($count->[0]) {
+          #Add traffic_class nets
+          my @nets_arr = (); 
+          if ($nets->{$traf_type}) {
+            $nets->{$traf_type} =~ s/[\r]?\n//g;
+            $nets->{$traf_type} =~ s/;/,/g;
+            $nets->{$traf_type} =~ s/ //g;
+            chop($nets->{$traf_type});
+            @nets_arr = split(/,/, $nets->{$traf_type});
+           }                                                                                                        
         
-        foreach my $address (@nets_arr) {
-          push @commands, qq{ /ip firewall address-list add list=TRAFFIC_CLASS_$traf_type address=$address };
+          foreach my $address (@nets_arr) {
+            push @commands, qq{ /ip firewall address-list add list=TRAFFIC_CLASS_$traf_type address=$address };
+           }
          }
    } 
  }
@@ -910,6 +917,26 @@ else {
 	 }
 
   print $result;
+}
+
+#*****************************************************
+#
+#*****************************************************
+sub get_mikrotik_value {
+ my ($cmd, $attr)=@_;
+
+ my $nas_host  = $attr->{NAS_HOST} || '';
+ my $nas_admin = $attr->{NAS_ADMIN}|| 'admin';
+ my $SSH       = $attr->{SSH_CMD}  || "/usr/bin/ssh -i $base_dir/Certs/id_dsa.".$nas_admin;
+
+ my @value = ();
+
+ my $cmds = "$SSH $nas_admin\@$nas_host '$cmd'";
+ open(CMD, "$cmds |") || die "Can't open '$cmds' $!\n";
+   my @value = <CMD>;   
+ close(CMD);
+
+ return \@value; 
 }
 
 #*****************************************************

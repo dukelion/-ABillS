@@ -7,6 +7,6 @@
 <tr><td>$_COMMENTS:</td><td><textarea name=COMMENTS rows=6 cols=45>%COMMENTS%</textarea></td></tr>
 </TABLE>
 
-<input type=submit name='%ACTION%' value='%ACTION_LNG%'>
+<input type=submit name='%ACTION%' value='%LNG_ACTION%'>
 
 </form>

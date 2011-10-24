@@ -170,8 +170,14 @@ print $table->show();
 sub msgs_admin_add {
   my ($attr)=@_;
 
-  $Msgs->{ACTION}='add';
-  $Msgs->{ACTION_LNG}=$_SEND;
+  if ($attr->{ACTION}) {
+    $Msgs->{ACTION}    = $attr->{ACTION};
+    $Msgs->{LNG_ACTION}= $attr->{LNG_ACTION};
+   }
+  else {
+    $Msgs->{ACTION}    = 'add';
+    $Msgs->{LNG_ACTION}= $_SEND;
+   }
 
   if ($FORM{add}) {
     if ($FORM{DISPATCH_CREATE}) {
@@ -342,7 +348,7 @@ sub msgs_admin_add {
       return 0;
      }
 
-    return 0 if ($attr->{SEND_ONLY});
+    return 0 if ($attr->{SEND_ONLY} || $attr->{REGISTRATION} );
    }
 
   my $a_list = $Msgs->admins_list({ AID => $admin->{AID} });
@@ -465,7 +471,7 @@ sub msgs_admin {
 
   @msg_status = @msg_status_all;
   $Msgs->{ACTION}='send';
-  $Msgs->{ACTION_LNG}=$_SEND;
+  $Msgs->{LNG_ACTION}=$_SEND;
   #Get admin privileges
   my $a_list = $Msgs->admins_list({ AID => $admin->{AID} });
   my %A_PRIVILEGES        = ();
@@ -603,7 +609,7 @@ sub msgs_admin {
 
     $Msgs->message_info($FORM{chg});
     $Msgs->{ACTION}    = 'reply';
-    $Msgs->{ACTION_LNG}= $_REPLY;
+    $Msgs->{LNG_ACTION}= $_REPLY;
     $Msgs->{STATE_NAME}= $html->color_mark($msg_status[$Msgs->{STATE}], $style[$Msgs->{STATE}]);
     $Msgs->{STATE_SEL} = $html->form_select('STATE', 
                                           { 
@@ -1120,7 +1126,7 @@ sub msgs_user {
  	 $Msgs->message_info($FORM{ID}, { UID => $LIST_PARAMS{UID} });
 
    $Msgs->{ACTION}       = 'reply';
-   $Msgs->{ACTION_LNG}   = $_REPLY;
+   $Msgs->{LNG_ACTION}   = $_REPLY;
    $Msgs->{STATE_NAME}   = ($Msgs->{STATE} == 6) ? "<blink>$msg_status_all[$Msgs->{STATE}]</blink>" :  ( ($Msgs->{STATE} == 0) ? $html->color_mark($msg_status_all[$Msgs->{STATE}], $_COLORS[8]) :  $msg_status_all[$Msgs->{STATE}]);
    $Msgs->{PRIORITY_TEXT}= $html->color_mark($priority[$Msgs->{PRIORITY}], $priority_colors[$Msgs->{PRIORITY}]);
 
@@ -1323,7 +1329,7 @@ print $table->show();
 #*******************************************************************
 sub msgs_chapters {
   $Msgs->{ACTION}='add';
-  $Msgs->{ACTION_LNG}=$_ADD;
+  $Msgs->{LNG_ACTION}=$_ADD;
 
   if ($FORM{add}) {
     $Msgs->chapter_add({ %FORM });
@@ -1341,7 +1347,7 @@ sub msgs_chapters {
     $Msgs->chapter_info($FORM{chg});
 
     $Msgs->{ACTION}='change';
-    $Msgs->{ACTION_LNG}=$_CHANGE;
+    $Msgs->{LNG_ACTION}=$_CHANGE;
 
     $html->message('info', $_INFO, "$_CHANGING") if (! $Msgs->{errno});  	  	
    }
@@ -1433,7 +1439,7 @@ print $html->form_main({ CONTENT => $table->show(),
 #*******************************************************************
 sub msgs_dispatch {
 	$Msgs->{ACTION}    = 'add';
-  $Msgs->{ACTION_LNG}= $_ADD;
+  $Msgs->{LNG_ACTION}= $_ADD;
 
   if ($FORM{add}) {
     $Msgs->dispatch_add({ %FORM });
@@ -1484,7 +1490,7 @@ sub msgs_dispatch {
   elsif ($FORM{chg}) {
     $Msgs->dispatch_info($FORM{chg});
     $Msgs->{ACTION}='change';
-    $Msgs->{ACTION_LNG}=$_CHANGE;
+    $Msgs->{LNG_ACTION}=$_CHANGE;
     $html->message('info', $_INFO, "$_CHANGING") if (! $Msgs->{errno});  	  	
    }
   elsif ($FORM{del} && $FORM{is_js_confirmed} ) {
@@ -2222,12 +2228,12 @@ sub msgs_unreg_requests_list {
     $Msgs->unreg_requests_info($FORM{ID});
 
     $Msgs->{ACTION}='change';
-    $Msgs->{ACTION_LNG}=$_CHANGE;
+    $Msgs->{LNG_ACTION}=$_CHANGE;
    }
   elsif ($FORM{chg}) {
     $Msgs->unreg_requests_info($FORM{chg});
     $Msgs->{ACTION}='change';
-    $Msgs->{ACTION_LNG}=$_CHANGE;
+    $Msgs->{LNG_ACTION}=$_CHANGE;
    }
   elsif ($FORM{del} && $FORM{is_js_confirmed}) {
     $Msgs->unreg_requests_del({ ID => $FORM{del} });
@@ -2436,7 +2442,7 @@ sub msgs_unreg_requests {
    } 
 
   $Msgs->{ACTION}       = 'add';
-  $Msgs->{ACTION_LNG}   = $_SEND;
+  $Msgs->{LNG_ACTION}   = $_SEND;
 
   $Msgs->{PRIORITY_SEL} =  $html->form_select('PRIORITY', 
                                           {
@@ -2613,7 +2619,7 @@ sub msgs_survey_sel {
 #**********************************************************
 sub msgs_survey {
   $Msgs->{ACTION}='add';
-  $Msgs->{ACTION_LNG}=$_ADD;
+  $Msgs->{LNG_ACTION}=$_ADD;
 
 
   if ($FORM{SURVEY}) {
@@ -2635,7 +2641,7 @@ sub msgs_survey {
     $Msgs->survey_subject_info($FORM{chg});
 
     $Msgs->{ACTION}='change';
-    $Msgs->{ACTION_LNG}=$_CHANGE;
+    $Msgs->{LNG_ACTION}=$_CHANGE;
 
     $html->message('info', $_INFO, "$_CHANGING") if (! $Msgs->{errno});  	  	
    }
@@ -2682,7 +2688,7 @@ print $table->show();
 #**********************************************************
 sub msgs_survey_questions {
   $Msgs->{ACTION}='add';
-  $Msgs->{ACTION_LNG}=$_ADD;
+  $Msgs->{LNG_ACTION}=$_ADD;
   $Msgs->{FILL_DEFAULT}=1;  
 
   if ($FORM{add}) {
@@ -2700,7 +2706,7 @@ sub msgs_survey_questions {
     $Msgs->survey_question_info($FORM{chg});
 
     $Msgs->{ACTION}='change';
-    $Msgs->{ACTION_LNG}=$_CHANGE;
+    $Msgs->{LNG_ACTION}=$_CHANGE;
 
     $html->message('info', $_INFO, "$_CHANGING") if (! $Msgs->{errno});  	  	
    }
@@ -2847,7 +2853,7 @@ foreach my $line (@$list) {
 	else {
     return $html->tpl_show(_include('msgs_survey', 'Msgs'), { %$Msgs, 
     	                                                      ACTION     => 'change',
-  	                                                        ACTION_LNG => "$_SEND", 
+  	                                                        LNG_ACTION => "$_SEND", 
   	                                                        SURVEY_ID  => $attr->{SURVEY_ID},
   	                                                        SURVEY     => $table->show({ OUTPUT2RETURN => 1 }),
   	                                                        DELETE     => ($user->{UID}) ? '' : $del_button,	

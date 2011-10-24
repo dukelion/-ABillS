@@ -1,4 +1,4 @@
-$_MINUTES='Минут';
+$_MINUTES='РњРёРЅСѓС‚';
 %COUNTRY_LIST = ();
 $_WRONG_CAPTCHA='Wrong Captcha';
 

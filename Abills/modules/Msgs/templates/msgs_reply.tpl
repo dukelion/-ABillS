@@ -30,7 +30,7 @@ samechanged('STATE');
 <tr><td>$_SURVEY:</td><td>%SURVEY_SEL%</td></tr>
 </table>
 <input type='hidden' name='sid' value='$sid'/>
-<input type='submit' name='%ACTION%' value='  %ACTION_LNG%  ' id='go' title='Ctrl+C'/>
+<input type='submit' name='%ACTION%' value='  %LNG_ACTION%  ' id='go' title='Ctrl+C'/>
 <br>
 <br>
 </div>

@@ -4,7 +4,7 @@
 <tr><td>$_LOGIN:</td><td>%login%</td></tr>
 <tr><td>E-mail:</td><td>%email%</td></tr>
 <tr><td>$_STATUS:</td><td>%STATUS%</td></tr>
-<tr><td colspan=2>После успешной активации управление производиться через кабинет Dr. Web. В качестве логина используйте ваш действующий логин и пароль. </td></tr>
+<tr><td colspan=2>РџРѕСЃР»Рµ СѓСЃРїРµС€РЅРѕР№ Р°РєС‚РёРІР°С†РёРё СѓРїСЂР°РІР»РµРЅРёРµ РїСЂРѕРёР·РІРѕРґРёС‚СЊСЃСЏ С‡РµСЂРµР· РєР°Р±РёРЅРµС‚ Dr. Web. Р’ РєР°С‡РµСЃС‚РІРµ Р»РѕРіРёРЅР° РёСЃРїРѕР»СЊР·СѓР№С‚Рµ РІР°С€ РґРµР№СЃС‚РІСѓСЋС‰РёР№ Р»РѕРіРёРЅ Рё РїР°СЂРѕР»СЊ. </td></tr>
 <tr><td>$_DRWEB_CABINET:</td><td><a href='$conf{ASHIELD_DRWEB_CABINET_HOST}' target=new>$conf{ASHIELD_DRWEB_CABINET_HOST}</a></td></tr>
 </table>
 

@@ -7,6 +7,6 @@
 <tr><td>$_INNER:</td><td><input type=checkbox name=INNER_CHAPTER value='1' %INNER_CHAPTER%></td></tr>
 </TABLE>
 
-<input type=submit name='%ACTION%' value='%ACTION_LNG%'>
+<input type=submit name='%ACTION%' value='%LNG_ACTION%'>
 
 </form>

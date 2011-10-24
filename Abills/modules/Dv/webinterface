@@ -484,7 +484,15 @@ sub dv_user {
   	  #Make month feee
   	  $Dv->{ACTIVATE}=$attr->{USER}->{ACTIVATE};
    	  dv_get_month_fee($Dv) if (! $FORM{STATUS});
-      $html->message('info', $_INFO, "$_ADDED");	
+   	  
+   	  if ($attr->{REGISTRATION}) {
+   	  	$Dv->info($Dv->{UID});
+   	  	$html->tpl_show(_include('dv_user_info', 'Dv'), $Dv);
+   	  	return 0;
+   	   }
+   	  else {
+        $html->message('info', $_INFO, "$_ADDED");	
+       }
      }
    }
 	elsif($FORM{set}) {
@@ -538,12 +546,12 @@ sub dv_user {
 
   if ($Dv->{errno}) {
     $html->message('err', $_ERROR, "[$Dv->{errno}] $err_strs{$Dv->{errno}}");
+    return 1 if ($attr->{REGISTRATION});
    }
 
   $Dv->info($Dv->{UID});
 
   if($Dv->{TOTAL} < 1) {
-	  $html->message('info', $_INFO, $_NOT_ACTIVE);
     $Dv->{TP_ID}=$html->form_select('TP_ID', 
                                          { 
  	                                          SELECTED          => $Dv->{TP_ID},
@@ -551,8 +559,16 @@ sub dv_user {
  	                                          MULTI_ARRAY_KEY   => 0,
  	                                          MULTI_ARRAY_VALUE => 1,
  	                                        });
-	  $Dv->{ACTION}='add';
-	  $Dv->{LNG_ACTION}=$_ACTIVATE;
+
+	  if ($attr->{ACTION}) {
+	    $Dv->{ACTION}    = $attr->{ACTION};
+	    $Dv->{LNG_ACTION}= $attr->{LNG_ACTION}
+	   }
+	  else {
+	    $Dv->{ACTION}    = 'add';
+	    $Dv->{LNG_ACTION}= $_ACTIVATE;
+  	  $html->message('info', $_INFO, $_NOT_ACTIVE);
+	   }
 	 }
 	else {
     if ($FORM{pay_to}) {
@@ -644,6 +660,14 @@ sub dv_user {
          $Dv->{REACTIVE_SUM}= $sum  if ($period < $days);
        }
      }
+
+
+    $Dv->{CALLBACK}         = ($Dv->{CALLBACK} == 1) ? ' checked' : '';
+    $Dv->{REGISTRATION_INFO}= $html->button("$_REGISTRATION", "index=$index&UID=$Dv->{UID}&REGISTRATION_INFO=1", { BUTTON => 1 });
+
+    if ($conf{DOCS_PDF_PRINT}) {
+      $Dv->{REGISTRATION_INFO_PDF}= $html->button("PDF", "qindex=$index&UID=$Dv->{UID}&REGISTRATION_INFO=1&pdf=1", { ex_params => 'target=_new', BUTTON => 1 } );
+     }
 	} 
 
   $Dv->{STATUS_SEL}          = $html->form_select('STATUS', 
@@ -658,12 +682,6 @@ sub dv_user {
     $Dv->{STATUS_COLOR} = $service_status_colors[$Dv->{STATUS}] ;
    }
 
-  $Dv->{CALLBACK}         = ($Dv->{CALLBACK} == 1) ? ' checked' : '';
-  $Dv->{REGISTRATION_INFO}= $html->button("$_REGISTRATION", "index=$index&UID=$Dv->{UID}&REGISTRATION_INFO=1", { BUTTON => 1 });
-
-  if ($conf{DOCS_PDF_PRINT}) {
-    $Dv->{REGISTRATION_INFO_PDF}= $html->button("PDF", "qindex=$index&UID=$Dv->{UID}&REGISTRATION_INFO=1&pdf=1", { ex_params => 'target=_new', BUTTON => 1 } );
-   }
 
   $Dv->{TURBO_MODE_SEL} = $html->form_select('TURBO_MODE', 
                                           { 
@@ -712,7 +730,6 @@ sub dv_user {
  	}                                        
 
   $list = $Nas->ip_pools_list({ STATIC => 1 });
-  
   $Dv->{STATIC_IP_POOL}=$html->form_select('STATIC_IP_POOL', 
                                           { 
  	                                          SELECTED          => $FORM{STATIC_POOL},

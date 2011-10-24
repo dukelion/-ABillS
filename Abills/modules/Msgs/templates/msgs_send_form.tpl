@@ -42,6 +42,7 @@ else {
 <input type='hidden' name='UID' value='$FORM{UID}'/>
 <input type='hidden' name='ID' value='%ID%'/>
 <input type='hidden' name='PARENT' value='%PARENT%'/>
+<input type='hidden' name='step' value='$FORM{step}'/>
 
 <table>
 <tr><th class=form_title colspan=2>$_MESSAGES</th></tr>
@@ -73,5 +74,5 @@ else {
 %EXTRA_PARAMS%
 <!-- <tr><td>$_LOCK:</td><td><input type=checkbox name=LOCK value=1 %LOCK%></td></tr> -->
 </table>
-<input type=submit name='%ACTION%' value='%ACTION_LNG%' id='go' title='Ctrl+C'/>
+<input type=submit name='%ACTION%' value='%LNG_ACTION%' id='go' title='Ctrl+C'/>
 </FORM>

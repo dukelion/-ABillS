@@ -12,6 +12,6 @@
 <tr><td>$_DEFAULT:</td><td><input type=checkbox name=FILL_DEFAULT value=1 %FILL_DEFAULT%></td></tr>
 </TABLE>
 
-<input type=submit name='%ACTION%' value='%ACTION_LNG%'>
+<input type=submit name='%ACTION%' value='%LNG_ACTION%'>
 
 </form>

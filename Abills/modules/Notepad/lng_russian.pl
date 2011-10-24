@@ -1,3 +1,3 @@
-$ERR_FIELDS_FOR_NOTIFIED_AND_SUBJECT_ARE_REQUIRED = 'Поле \'Текст\' не заполнено';
-$_ACTIVE = 'Открыта';
-$_INWORK = 'В обработке';
+$ERR_FIELDS_FOR_NOTIFIED_AND_SUBJECT_ARE_REQUIRED = 'РџРѕР»Рµ \'РўРµРєСЃС‚\' РЅРµ Р·Р°РїРѕР»РЅРµРЅРѕ';
+$_ACTIVE = 'РћС‚РєСЂС‹С‚Р°';
+$_INWORK = 'Р’ РѕР±СЂР°Р±РѕС‚РєРµ';

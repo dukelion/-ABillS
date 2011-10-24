@@ -34,11 +34,12 @@ sub abon_user_del {
 sub abon_user {
  my ($attr) = @_;
 
- if ($FORM{change}) {
+
+ if ($FORM{change} || $FORM{add}) {
     $FORM{QUICK}=1;
   	require "Abills/modules/Docs/webinterface";
 
-    $users->pi({ UID => $users->{UID} });
+    $users->pi({ UID => $users->{UID} || $FORM{UID} || $LIST_PARAMS{UID} });
 
     my @new_arr  = ();
     my @ids_arr  = split(/, /, $FORM{IDS});
@@ -154,20 +155,18 @@ sub abon_user {
      }
 
       delete $FORM{IDS};
-      
       $Abon->user_tariff_change({ %FORM, 
       	                         IDS => join(', ', @add_arr),
       	                         DEL => join(', ', @del_arr) }) ;  
 
       if (! $Abon->{errno}){
-    	   $html->message('info', $_INFO, "$_CHANGED");
+    	   $html->message('info', $_ABON, "$_CHANGED");
        }
       else {
     	  $html->message('err', $_ERROR, "[$Abon->{errno}] $err_strs{$Abon->{errno}}");	
        }
    
-   return 0 if ($attr->{QUITE});
-  
+   return 0 if ($attr->{QUITE} || $attr->{REGISTRATION});
   }
  
 my $list = $Abon->user_tariff_list($FORM{UID});
@@ -191,21 +190,32 @@ foreach my $line (@$list) {
      "$line->[5]",
      ($line->[6]) ? "$line->[6]" : $html->date_fld2('DATE_'.$line->[0], { FORM_NAME => 'ABON_USER_TPS', WEEK_DAYS => \@WEEKDAYS, MONTHES => \@MONTHES, DATE => '0000-00-00' }),
      $html->form_input('DISCOUNT_'.$line->[0], "$line->[7]", { SIZE => '8'   }),
-     $html->form_input('CREATE_DOCS_'.$line->[0], "1", { TYPE => 'CHECKBOX', 
-  	                                                      STATE => ($line->[12]) ? 1 : undef   }),
-     $html->form_input('SEND_DOCS_'.$line->[0], "1", { TYPE => 'CHECKBOX', 
-  	                                                      STATE => ($line->[13]) ? 1 : undef   })                                                     
-     
+     $html->form_input('CREATE_DOCS_'.$line->[0], "1", { TYPE  => 'CHECKBOX', 
+  	                                                     STATE => ($line->[12]) ? 1 : undef   }),
+     $html->form_input('SEND_DOCS_'.$line->[0], "1", { TYPE  => 'CHECKBOX', 
+  	                                                   STATE => ($line->[13]) ? 1 : undef   })                                                     
    );
  }
 
+
+my %ACTION = ();
+
+if ($attr->{ACTION}) {
+	$ACTION{$attr->{ACTION}} = $attr->{LNG_ACTION};
+ }
+else{
+	$ACTION{'change'}        = "$_CHANGE";
+}
+
 print $html->form_main({ CONTENT => $table->show(),
 	                 HIDDEN  => { index  => "$index", 
-	                 	            UID    => $FORM{UID}  
-	                 	            },
+	                 	            UID    => $FORM{UID},
+	                 	            step   => $FORM{step}
+	                 	           },
 	                 NAME    => 'ABON_USER_TPS',
-	                 SUBMIT  => { change => "$_CHANGE" } 
+	                 SUBMIT  => \%ACTION
 	                });
+
 }
 
 #**********************************************************

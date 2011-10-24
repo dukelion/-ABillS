@@ -28,6 +28,6 @@ samechanged('RESPOSIBLE');
 <tr><td>$_RESPOSIBLE:</td><td>%RESPOSIBLE_SEL%</td></tr>
 </TABLE>
 
-<input type=submit name='%ACTION%' value='%ACTION_LNG%'>
+<input type=submit name='%ACTION%' value='%LNG_ACTION%'>
 
 </form>

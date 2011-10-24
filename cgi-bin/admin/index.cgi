@@ -344,8 +344,8 @@ if ($conf{LANGS}) {
 
 
 $html->{METATAGS}=templates('metatags');
-
-if(($FORM{UID} && $FORM{UID} > 0) || ($FORM{LOGIN} && $FORM{LOGIN} ne ''  && $FORM{LOGIN} !~ /\*/ && ! $FORM{add})) {
+print "Content-Type: text/html\n\n";
+if(($FORM{UID} && $FORM{UID} =~ /^(\d+)$/ && $FORM{UID} > 0) || ($FORM{LOGIN} && $FORM{LOGIN} && $FORM{LOGIN} !~ /\*/ && ! $FORM{add} && !$FORM{next})) {
  	$ui = user_info($FORM{UID}, { LOGIN => ($FORM{LOGIN}) ? $FORM{LOGIN} : undef });
  	$html->{WEB_TITLE} = "$conf{WEB_TITLE} [$ui->{LOGIN}]";
  }
@@ -649,27 +649,133 @@ print $table2->show();
 sub form_wizard {
   my ($attr) = @_;
 
+# Function name:module:describe
 my %steps = (
-  1 =>  'user_form',
-  2 =>  'dv_user',
-  3 =>  'abon_user',
-  4 =>  'abon_fees_wizard',
-  5 =>  'msgs_users'
+  1 =>  'user_form::',
+  2 =>  'dv_user:Dv:',
+  3 =>  'abon_user:Abon:',
+  4 =>  'form_fees_wizard::',
+  5 =>  'msgs_admin_add:Msgs:'
 );
 
+if ($conf{REG_WIZARD}) {
+	my @arr  = split(/;/, $conf{REG_WIZARD});
+	for(my $i=1; $i<=$#arr; $i++) {
+		$steps{$i}=$arr[$i];
+	 }
+}
 
-$FORM{step}=1 if (! $FORM{step});
+START:
 
+if (! $FORM{step}) {
+  $FORM{step}= 1;
+  $FORM{UID} = mk_unique_value(16);
+ }
+else {
+ 	while(my($k, $v) = each %FORM) {
+ 		if (! in_array($k, [ '__BUFFER', 'step', 'next', 'ACTION', 'LNG_ACTION', 'UID' ]) ) {
+ 		  #print "$k -> $v<br>";
+ 		  $users->wizard_add({ 
+		    PARAM      => $k,
+		    VALUE      => $v,
+		    MODULE     => '', 
+		    STEP       => $FORM{step},
+		    SESSION_ID => $FORM{UID},
+		   });
+ 	   }
+ 	 }
+}
+
+ 	$LIST_PARAMS{UID}=$FORM{UID};
+  my %DATA_= ();
+  #Last registration step
   if (! $steps{$FORM{step}}) {
-  	print "Finish";
+  	my $session_id = $FORM{UID};
+  	$db->{AutoCommit} = 0;
+  	my $list = $users->wizard_list({ SESSION_ID => $FORM{UID} });
+  	foreach my $line ( @$list ) {
+  		#print "$line->[0] / $line->[1] / $line->[2] / $line->[3]<br>";
+  		$DATA_{$line->[1]-1}{$line->[2]}=$line->[3];
+  	 }
+
+    my @steps_arr = sort keys %steps;
+    for($i=0; $i<=$#steps_arr; $i++) {
+    	
+    	my $step=$i+1;
+    	my ($fn, $module, $describe)=split(/:/, $steps{$step}, 3);
+    	
+  		if ($module) {
+  			if (in_array($module, \@MODULES)) {
+          require "Abills/modules/$module/webinterface";  		
+         }
+        else {
+        	next;
+         } 
+       }
+
+    	#print "<br>-------------- $step / $fn<br>\n";
+    	%FORM = %{ $DATA_{$step} };
+ 	    $FORM{add}=1;
+ 	    $FORM{UID} = $LIST_PARAMS{UID} if (! $FORM{UID} && $LIST_PARAMS{UID});
+    	#while(my($k, $v)=each %FORM) {
+    	#	print "$k, $v<br>";
+    	# }
+    	my $return = $fn->({ REGISTRATION => 1 });
+    	#print "/ > $db->{AutoCommit} < / $return //<br>";
+    	$LIST_PARAMS{UID}=$FORM{UID};
+    	# Error
+    	if ($return) {
+    		$db->rollback();
+    		$html->message('err', $_ERROR, "'$FORM{LOGIN}', ". $html->button("$_REGISTRATION", "index=". get_function_index('form_wizard'). "&SESSION_ID=$session_id", { BUTTON => 1 } ));	
+    		return 0;
+    	 }
+     }
+    
+    $db->commit();
    }
   else {
-  	my $fn = $steps{$FORM{step}};
-  	$fn->();
-    print $html->button("Step $FORM{step} (". $steps{$FORM{step}}. ") ", "index=$index&step=".($FORM{step}+1), { BUTTON => 1 });
+    my ($fn, $module, $describe)=split(/:/, $steps{$FORM{step}}, 3);
+  	if ($module) {
+  		if (in_array($module, \@MODULES)) {
+        require "Abills/modules/$module/webinterface";  		
+       }
+      else {
+      	$FORM{step}++;
+      	goto START;
+       }
+  	 }
+  	
+  	if ($FORM{step}==2 && ! $FORM{LOGIN}) {
+ 		  $html->message('err', $_ERROR, "'$FORM{LOGIN}' $ERR_WRONG_NAME");	
+  		$FORM{step}=1;
+  		goto START;
+  	 }
+  	 
+    $FORM{step}++;
+ 	  $fn->({ ACTION => 'next', LNG_ACTION => "$_NEXT " });
    }
-
 }
+
+#**********************************************************
+#
+#**********************************************************
+#sub form_user_wizard {
+#  my ($attr)=@_;
+#  
+#  
+#  my $main_account = $html->tpl_show(templates('form_user'), $user_info, { OUTPUT2RETURN => 1 });
+#  $main_account =~ s/<FORM.+>//ig;
+#  $main_account =~ s/<\/FORM>//ig;
+#  $main_account =~ s/<input.+type=submit.+>//ig;
+#  $main_account =~ s/<input.+index.+>//ig;
+#  $main_account =~ s/user_form/users_pi/ig;
+#   
+#  $html->tpl_show(templates('form_pi'), { %$user_info, MAIN_USER_TPL => $main_account }); 
+#  
+#  return 0;
+#}
+
+
 
 #**********************************************************
 #
@@ -1110,11 +1216,14 @@ sub add_company {
 # user_form()
 #**********************************************************
 sub user_form {
- my ($user_info, $attr) = @_;
+ my ($attr) = @_;
 
- $index = 15;
- 
- if (! defined($user_info->{UID})) {
+	$index = 15 if (! $attr->{ACTION});
+
+ if ($FORM{add}) {
+ 	 form_users();
+  }
+ elsif (! $attr->{USER_INFO}) {
    my $user = Users->new($db, $admin, \%conf); 
    $user_info = $user->defaults();
 
@@ -1146,9 +1255,6 @@ sub user_form {
    else {
    	 $user_info->{DISABLE} = '';
     }
-  
-   $user_info->{ACTION}='add';
-   $user_info->{LNG_ACTION}=$_ADD;
 
    my $main_account = $html->tpl_show(templates('form_user'), $user_info, { OUTPUT2RETURN => 1 });
    $main_account =~ s/<FORM.+>//ig;
@@ -1157,10 +1263,11 @@ sub user_form {
    $main_account =~ s/<input.+index.+>//ig;
    $main_account =~ s/user_form/users_pi/ig;
    
-   user_pi({ MAIN_USER_TPL => $main_account });
+   user_pi({ MAIN_USER_TPL => $main_account, %$attr });
   }
- else { 	
- 	 $FORM{UID}=$user_info->{UID};
+ else {
+	 $user_info = $attr->{USER_INFO};
+ 	 $FORM{UID} = $user_info->{UID};
    $user_info->{COMPANY_NAME}=$html->color_mark("$_NOT_EXIST ID: $user_info->{COMPANY_ID}", $_COLORS[6]) if ($user_info->{COMPANY_ID} && ! $user_info->{COMPANY_NAME}) ;
 
    $user_info->{EXDATA} = $html->tpl_show(templates('form_user_exdata'), 
@@ -1445,6 +1552,7 @@ sub user_info {
   $LIST_PARAMS{UID}=$user_info->{UID};
   $pages_qs =  "&UID=$user_info->{UID}";
   $pages_qs .= "&subf=$FORM{subf}" if (defined($FORM{subf}));
+  
   return 	$user_info;
 }
 
@@ -1560,8 +1668,8 @@ sub user_pi {
   my ($attr) = @_;
 
   my $user;
-  if ($attr->{USER}) {
-    $user = $attr->{USER};
+  if ($attr->{USER_INFO}) {
+    $user = $attr->{USER_INFO};
    }
   else {
   	$user = $users->info( $FORM{UID} );
@@ -1606,8 +1714,14 @@ sub user_pi {
   my $user_pi = $user->pi();
 
   if($user_pi->{TOTAL} < 1 && $permissions{0}{1}) {
-  	$user_pi->{ACTION}='add';
-   	$user_pi->{LNG_ACTION}=$_ADD;
+    if ($attr->{ACTION}) {
+      $user_pi->{ACTION}    = $attr->{ACTION};
+      $user_pi->{LNG_ACTION}= $attr->{LNG_ACTION};
+     }
+    else {
+  	  $user_pi->{ACTION}='add';
+   	  $user_pi->{LNG_ACTION}=$_ADD;
+     }
    }
   elsif($permissions{0}{4}) {
  	  $user_pi->{ACTION}='change';
@@ -1740,7 +1854,7 @@ sub user_pi {
     $user_pi->{ADDRESS_TPL} = $html->tpl_show(templates('form_address'), $user_pi, { OUTPUT2RETURN => 1 });	
    }
 
-  $html->tpl_show(templates('form_pi'), { %$user_pi,  MAIN_USER_TPL => $attr->{MAIN_USER_TPL} });
+  $html->tpl_show(templates('form_pi'), { UID => $LIST_PARAMS{UID}, %$user_pi, MAIN_USER_TPL => $attr->{MAIN_USER_TPL}  });
 }
 
 #**********************************************************
@@ -1767,8 +1881,8 @@ sub form_users {
  	 	return 0;
  	 }
 
-if(defined($attr->{USER})) {
-  my $user_info = $attr->{USER};
+if($attr->{USER_INFO}) {
+  my $user_info = $attr->{USER_INFO};
   if ($users->{errno}) {
     $html->message('err', $_ERROR, "[$users->{errno}] $err_strs{$users->{errno}}");	
     return 0;
@@ -1836,7 +1950,7 @@ if(defined($attr->{USER})) {
       @action = ('change', $_CHANGE);
      }
 
-    user_form($user_info);
+    user_form({ USER_INFO => $user_info });
 
     #$service_func_index
     if ($functions{$service_func_index}) {
@@ -1868,7 +1982,7 @@ if(defined($attr->{USER})) {
       $functions{$service_func_index}->({ USER => $user_info });
     }
     
-    user_pi({ USER => $user_info });
+    user_pi({ USER_INFO => $user_info });
    }
 
 my $payments_menu = (defined($permissions{1})) ? '<li class=umenu_item>'. $html->button($_PAYMENTS, "UID=$user_info->{UID}&index=2").'</li>' : '';
@@ -1940,17 +2054,27 @@ elsif ( $FORM{add}) {
 
   my $user_info = $users->add({ %FORM });  
   if ($users->{errno}) {
-    $html->message('err', $_ERROR, "[$users->{errno}] $err_strs{$users->{errno}}");	
-    user_form();    
-    return 0;	
+  	if ($users->{errno} == 10) {
+  		$html->message('err', $_ERROR, "'$FORM{LOGIN}' $ERR_WRONG_NAME");	
+  	 }
+  	elsif ($users->{errno} == 7) {
+  		$html->message('err', $_ERROR, "'$FORM{LOGIN}' $_USER_EXIST");	
+  	 }
+  	else { 
+      $html->message('err', $_ERROR, "[$users->{errno}] $err_strs{$users->{errno}}");	
+     }
+
+    delete($FORM{add});
+    #user_form();    
+    return 1;	
    }
   else {
     $html->message('info', $_ADDED, "$_ADDED '$user_info->{LOGIN}' / [$user_info->{UID}]");
 
     if ($conf{external_useradd}) {
-       if (! _external($conf{external_useradd}, { %FORM }) ) {
-       	  return 0;
-        }
+      if (! _external($conf{external_useradd}, { %FORM }) ) {
+        return 0;
+       }
      }
 
     $user_info = $users->info( $user_info->{UID}, { SHOW_PASSWORD => 1 } );
@@ -1959,7 +2083,7 @@ elsif ( $FORM{add}) {
     $FORM{UID}       = $user_info->{UID};
     user_pi({ REGISTRATION => 1 });
     $index=get_function_index('form_payments');
-    form_payments({ USER => $user_info });
+    #form_payments({ USER => $user_info });
     return 0;
    }
 }
@@ -2075,14 +2199,16 @@ if ($users->{errno}) {
  }
 elsif ($users->{TOTAL} == 1) {
 	$FORM{index} = 15;
-	$FORM{UID}   = $list->[0]->[5+$users->{SEARCH_FIELDS_COUNT}];
-	if ($FORM{LOGIN}=~/\*/ || $FORM{LOGIN} eq '') {
-    delete $FORM{LOGIN}; 
-    $ui          = user_info($FORM{UID});
-    print $ui->{TABLE_SHOW};
+	if (! $FORM{UID}) {
+	  $FORM{UID}   = $list->[0]->[5+$users->{SEARCH_FIELDS_COUNT}];
+	  if ($FORM{LOGIN}=~/\*/ || $FORM{LOGIN} eq '') {
+      delete $FORM{LOGIN}; 
+      $ui          = user_info($FORM{UID});
+      print $ui->{TABLE_SHOW};
+     }
    }
 
-  form_users({ USER => $ui });
+  form_users({ USER_INFO => $ui });
 	return 0;
  }
 elsif ($users->{TOTAL} == 0) {
@@ -5541,7 +5667,6 @@ sub form_fees_types {
  $fees->{ACTION}     = 'add';
  $fees->{LNG_ACTION} = $_ADD;
 
-
 if ($FORM{add}) {
   $fees->fees_type_add( { %FORM });
   if (! $fees->{errno}) {
@@ -5607,7 +5732,8 @@ sub get_fees_types  {
  use Finance;
  my %FEES_METHODS = ();
  my $fees = Finance->fees($db, $admin, \%conf);
- foreach my $line (@{ $fees->fees_type_list({   }) }) {
+ my $list = $fees->fees_type_list({   });
+ foreach my $line (@$list) {
    if ($FORM{METHOD} && $FORM{METHOD} == $line->[0] && $line->[3] > 0) {
  		 $FORM{SUM}=$line->[3];
  		 $FORM{DESCRIBE}=$line->[2];
@@ -5625,7 +5751,6 @@ sub form_fees_wizard  {
 	my ($attr)=@_;
 	
   my $fees = Finance->fees($db, $admin, \%conf);
-
   
 
 if ($FORM{add}) {
@@ -5684,8 +5809,20 @@ for (my $i=0; $i<=6; $i++) {
    );
 }
 
+my $output = $table->show({ OUTPUT2RETURN => 1 });
 
-return $table->show({ OUTPUT2RETURN => 1 });
+if ($attr->{ACTION}) {
+	print $html->form_main({ CONTENT => $output,
+	                         HIDDEN  => { index    => "$index",
+	                         	            step     => $FORM{step},
+	                         	            UID      => "$FORM{UID}"
+                                     },
+	                         SUBMIT  =>  { $atrr->{ACTION}   => $attr->{LNG_ACTION} } 
+	                       });
+ }
+else {
+  return $output;
+ }
 }
 
 

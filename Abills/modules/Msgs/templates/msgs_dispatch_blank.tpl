@@ -1,15 +1,15 @@
 <table width=600 border=0>
-<tr><td>ООО «Онлайн-Технологии» </td><td>Форма А-2</td></tr>
-<tr><td>г.Макеевка</td><td></td></tr>
+<tr><td>РћРћРћ В«РћРЅР»Р°Р№РЅ-РўРµС…РЅРѕР»РѕРіРёРёВ» </td><td>Р¤РѕСЂРјР° Рђ-2</td></tr>
+<tr><td>Рі.РњР°РєРµРµРІРєР°</td><td></td></tr>
 
-<tr><th colspan=2>Наряд-путевка на производство работ монтажной бригадой</th></tr>
-<tr><td>в составе: </td><td>$_DATE: %PLAN_DATE% </td></tr>
+<tr><th colspan=2>РќР°СЂСЏРґ-РїСѓС‚РµРІРєР° РЅР° РїСЂРѕРёР·РІРѕРґСЃС‚РІРѕ СЂР°Р±РѕС‚ РјРѕРЅС‚Р°Р¶РЅРѕР№ Р±СЂРёРіР°РґРѕР№</th></tr>
+<tr><td>РІ СЃРѕСЃС‚Р°РІРµ: </td><td>$_DATE: %PLAN_DATE% </td></tr>
 
 
 
 <tr><td colspan=2>
 <table width=100% border=1>
-<tr><th>#</th><th>Место работ($_FIO, $_ADDRESS, $_PHONE)</th><th>Состав работ</th><th>Отметка о выполнении</th></tr>
+<tr><th>#</th><th>РњРµСЃС‚Рѕ СЂР°Р±РѕС‚($_FIO, $_ADDRESS, $_PHONE)</th><th>РЎРѕСЃС‚Р°РІ СЂР°Р±РѕС‚</th><th>РћС‚РјРµС‚РєР° Рѕ РІС‹РїРѕР»РЅРµРЅРёРё</th></tr>
 
 <tr><td>&nbsp;%ORDER_NUM_1%</td><td>&nbsp;    	%ORDER_PERSONAL_INFO_FIO_1%<br>
     	%ORDER_PERSONAL_INFO_ADDRESS_1%<br>
@@ -67,9 +67,9 @@
 
 </td></tr>
 <tr><td>
-<tr><td>Наряд составил:</td><td>%ADMIN_FIO%</td></tr>
-<tr><td>Наряд получил:</td><td>%RESPOSIBLE_FIO%</td></tr>
-<tr><td>Наряд принял:</td><td>%RESPOSIBLE_FIO%</td></tr>
+<tr><td>РќР°СЂСЏРґ СЃРѕСЃС‚Р°РІРёР»:</td><td>%ADMIN_FIO%</td></tr>
+<tr><td>РќР°СЂСЏРґ РїРѕР»СѓС‡РёР»:</td><td>%RESPOSIBLE_FIO%</td></tr>
+<tr><td>РќР°СЂСЏРґ РїСЂРёРЅСЏР»:</td><td>%RESPOSIBLE_FIO%</td></tr>
 
 
 </table>
