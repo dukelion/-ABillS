@@ -933,7 +933,7 @@ sub get_mikrotik_value {
 
  my $cmds = "$SSH $nas_admin\@$nas_host '$cmd'";
  open(CMD, "$cmds |") || die "Can't open '$cmds' $!\n";
-   my @value = <CMD>;   
+   @value = <CMD>;   
  close(CMD);
 
  return \@value; 
