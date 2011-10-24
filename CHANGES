@@ -9,6 +9,15 @@
 MYSQL:\\
   ALTER TABLE tarif_plans ADD COLUMN `neg_deposit_ippool` smallint(6) unsigned NOT NULL DEFAULT '0';
   ALTER TABLE tarif_plans ADD COLUMN `next_tp_id` smallint(6) unsigned NOT NULL DEFAULT '0';
+  
+  CREATE TABLE `reg_wizard` (
+    `param` varchar(40) NOT NULL default '',
+    `value` text NOT NULL default '',
+    `aid` smallint(6) unsigned NOT NULL default '0',
+    `module` varchar(40) NOT NULL default '',
+    `step` tinyint(2) NOT NULL default '0',
+    `session_id` varchar(30) NOT NULL default ''
+  ) COMMENT "Registration wizard temp table";
 
 15.10.2011\\
   * В визард Internet заведения пользователей добавлена форма начисления

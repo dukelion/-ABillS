@@ -344,7 +344,6 @@ if ($conf{LANGS}) {
 
 
 $html->{METATAGS}=templates('metatags');
-print "Content-Type: text/html\n\n";
 if(($FORM{UID} && $FORM{UID} =~ /^(\d+)$/ && $FORM{UID} > 0) || ($FORM{LOGIN} && $FORM{LOGIN} && $FORM{LOGIN} !~ /\*/ && ! $FORM{add} && !$FORM{next})) {
  	$ui = user_info($FORM{UID}, { LOGIN => ($FORM{LOGIN}) ? $FORM{LOGIN} : undef });
  	$html->{WEB_TITLE} = "$conf{WEB_TITLE} [$ui->{LOGIN}]";

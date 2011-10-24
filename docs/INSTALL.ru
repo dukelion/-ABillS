@@ -109,7 +109,7 @@ pageTracker._trackPageview();
     <div id="sidebartop"></div>
     <div id="sidebar_content">
       
-<h1 class="sectionedit1"><a name="documentation_index" id="documentation_index">Documentation index</a></h1>
+<h1 class="sectionedit2"><a name="documentation_index" id="documentation_index">Documentation index</a></h1>
 <div class="level1">
 <ul>
 <li class="level1"><div class="li"> <a href="/wiki/doku.php/abills:index" class="wikilink1" title="abills:index">ABillS - Описание</a></div>
@@ -305,7 +305,7 @@ pageTracker._trackPageview();
 </ul>
 
 </div>
-<!-- EDIT1 SECTION "Documentation index" [2-] -->    </div>
+<!-- EDIT2 SECTION "Documentation index" [2-] -->    </div>
   </div>
 
   <div class="clearer">&nbsp;</div>
@@ -325,7 +325,7 @@ pageTracker._trackPageview();
       <div class="bar-left" id="bar__bottomleft">
         <form class="button btn_source" method="post" action="/wiki/doku.php/abills:docs_03:install:ru"><div class="no"><input type="hidden" name="do" value="edit" /><input type="hidden" name="rev" value="" /><input type="submit" value="Показать исходный текст" class="button" accesskey="v" title="Показать исходный текст [V]" /></div></form>        <form class="button btn_revs" method="get" action="/wiki/doku.php/abills:docs_03:install:ru"><div class="no"><input type="hidden" name="do" value="revisions" /><input type="submit" value="История страницы" class="button" accesskey="o" title="История страницы [O]" /></div></form>      </div>
       <div class="bar-right" id="bar__bottomright">
-                                <form class="button btn_login" method="get" action="/wiki/doku.php/abills:docs_03:install:ru"><div class="no"><input type="hidden" name="do" value="login" /><input type="hidden" name="sectok" value="9a27d5d4696e60b0261bd07a940e55ce" /><input type="submit" value="Войти" class="button" title="Войти" /></div></form>        <form class="button btn_index" method="get" action="/wiki/doku.php/abills:docs_03:install:ru"><div class="no"><input type="hidden" name="do" value="index" /><input type="submit" value="Все страницы" class="button" accesskey="x" title="Все страницы [X]" /></div></form>        <a class="nolink" href="#dokuwiki__top"><input type="button" class="button" value="Наверх" onclick="window.scrollTo(0, 0)" title="Наверх" /></a>&nbsp;
+                                <form class="button btn_login" method="get" action="/wiki/doku.php/abills:docs_03:install:ru"><div class="no"><input type="hidden" name="do" value="login" /><input type="hidden" name="sectok" value="f6016557968ec9cf20b929679bf55a94" /><input type="submit" value="Войти" class="button" title="Войти" /></div></form>        <form class="button btn_index" method="get" action="/wiki/doku.php/abills:docs_03:install:ru"><div class="no"><input type="hidden" name="do" value="index" /><input type="submit" value="Все страницы" class="button" accesskey="x" title="Все страницы [X]" /></div></form>        <a class="nolink" href="#dokuwiki__top"><input type="button" class="button" value="Наверх" onclick="window.scrollTo(0, 0)" title="Наверх" /></a>&nbsp;
       </div>
       <div class="clearer"></div>
     </div>
