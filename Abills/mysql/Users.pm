@@ -2385,7 +2385,7 @@ sub wizard_list {
  $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
  $PG   = ($attr->{PG}) ? $attr->{PG} : 0;
  $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
-
+ @WHERE_RULES = ();
  if ($attr->{SESSION_ID}) {
 	 push @WHERE_RULES, @{ $self->search_expr($attr->{SESSION_ID}, 'INT', 'session_id') };
   }
