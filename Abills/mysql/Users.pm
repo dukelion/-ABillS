@@ -2414,7 +2414,6 @@ sub wizard_add {
  values ('$attr->{PARAM}', '$attr->{VALUE}', '$admin->{AID}', '$attr->{MODULE}', '$attr->{STEP}', 
  '$attr->{SESSION_ID}');", 'do');
 
- $admin->system_action_add("REG_WIZARD:$self->{INSERT_ID}:$attr->{NAME}", { TYPE => 1 }) if (! $self->{errno});
  return $self;
 }
 
@@ -2428,7 +2427,6 @@ sub wizard_del {
 
  $self->query($db, "DELETE FROM reg_wizard WHERE session_id='$id';", 'do');
 
- $admin->system_action_add("REG_WIZARD:$id", { TYPE => 10 }) if (! $self->{errno});
  return $self;
 }
 
