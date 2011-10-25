@@ -2409,7 +2409,7 @@ sub wizard_add {
  my $self = shift;
  my ($attr) = @_;
 
- $self->query($db, "INSERT INTO reg_wizard (param, value, aid, module,
+ $self->query($db, "REPLACE INTO reg_wizard (param, value, aid, module,
   step, session_id) 
  values ('$attr->{PARAM}', '$attr->{VALUE}', '$admin->{AID}', '$attr->{MODULE}', '$attr->{STEP}', 
  '$attr->{SESSION_ID}');", 'do');
