@@ -1315,7 +1315,7 @@ my $font_name       = 'Verdana';
 my $encode          = $self->{CHARSET} || 'windows-1251';
 my $font;
 
-if ($encode =~ /utf8/) {
+if ($encode =~ /utf-8/) {
 	$font_name  = '/usr/abills/Abills/templates/fonts/FreeSerif.ttf';
   $font       = $pdf->ttfont($font_name, -encode => "$encode");
  }
