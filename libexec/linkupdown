@@ -841,7 +841,7 @@ sub mikrotik_ext2 {
 
   my $nas_host  = $argv->{NAS_HOST} || '';
   my $nas_admin = $argv->{NAS_ADMIN}|| 'admin';
-  my $SSH       = $argv->{SSH_CMD}  || "/usr/bin/ssh -i $base_dir/Certs/id_dsa.".$nas_admin;
+  my $SSH       = $argv->{SSH_CMD}  || "/usr/bin/ssh -o StrictHostKeyChecking=no -i $base_dir/Certs/id_dsa.".$nas_admin;
 
   my $count;
 	my $speeds    = $attr->{SPEEDS};
@@ -927,7 +927,7 @@ sub get_mikrotik_value {
 
  my $nas_host  = $attr->{NAS_HOST} || '';
  my $nas_admin = $attr->{NAS_ADMIN}|| 'admin';
- my $SSH       = $attr->{SSH_CMD}  || "/usr/bin/ssh -i $base_dir/Certs/id_dsa.".$nas_admin;
+ my $SSH       = $attr->{SSH_CMD}  || "/usr/bin/ssh -o StrictHostKeyChecking=no -i $base_dir/Certs/id_dsa.".$nas_admin;
 
  my @value = ();
 
