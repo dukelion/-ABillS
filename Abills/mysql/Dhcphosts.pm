@@ -1076,7 +1076,7 @@ sub log_list {
   	 }
     @WHERE_RULES = ();
     if ($#ids > -1) {
-      $attr->{MESSAGE} ='*'. join("*,*", @ids) . '*';
+      $attr->{MESSAGE} ='* '. join(" *,* ", @ids) . ' *';
     }
    $self->{IDS}=\@ids;
   }

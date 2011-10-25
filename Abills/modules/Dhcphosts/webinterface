@@ -556,22 +556,27 @@ sub dhcphosts_hosts {
   my $nas_list =  $Nas->list();
   if (! $FORM{UID}) {
  	  $Dhcphosts->{STATUS_SEL} = $html->form_select('STATUS',
-			                                   {   SELECTED => $FORM{STATUS} || 0,
-		                                         SEL_HASH => { 0   => "Not Set",
-                                                           -1  => $_DISABLE,
-                                                           1   => "$_ENABLE" } 
+			                                   {   SELECTED => $FORM{STATUS} || '',
+		                                         SEL_HASH => { '' => "$_ALL",
+                                                           0  => "$_ENABLE",
+                                                           1  => "$_DISABLE" },
+                                             NO_ID    => 1
                                           });
 
   	
     $Dhcphosts->{NETWORKS_SEL} = dhcphosts_network_sel({ SEARCH  => 1 });
     $Dhcphosts->{SWITCH_SEL} = $html->form_select('NAS_ID',
                                           {
-                                                  SELECTED          => $Dhcphosts->{NAS_ID},
+                                                  SELECTED          => $Dhcphosts->{NAS_ID} || $FORM{NAS_ID} ,
                                                   SEL_MULTI_ARRAY   => [['', $_ALL], @$nas_list ],
                                                   MULTI_ARRAY_KEY   => 0,
                                                   MULTI_ARRAY_VALUE => 1,
                                            });
 
+    
+    if ($FORM{MAC}) {
+    	$FORM{MAC}=~s/\-/:/g;
+     }
     
     form_search({ SEARCH_FORM => $html->tpl_show(_include('dhcphosts_search', 'Dhcphosts'), 
   	                                  { %$Dhcphosts, %FORM }, 
@@ -1492,6 +1497,7 @@ my %DHCP_MESSAGE_TYPES_REV = reverse %DHCP_MESSAGE_TYPES;
  	                                           });
    
    if ($FORM{search})  {
+   	 $FORM{MESSAGE} =~ s/\-/:/g;
    	 $FORM{MESSAGE}=~s/\*//g;
    	 push @{ $Dhcphosts->{IDS} }, $FORM{MESSAGE};
     }
@@ -1535,7 +1541,7 @@ sub color_marks {
   
   foreach my $id (@{ $ids }) {
   	my $replace = $html->b($id);
-  	$message =~ s/$id/$replace/g;
+  	$message =~ s/\s+$id\s+/ $replace /g;
    }
 
   return $message;
