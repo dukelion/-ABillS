@@ -132,7 +132,7 @@ sub in_array {
 #**********************************************************
 sub convert {
 	my ($text, $attr)=@_;
-	
+
 	if(defined($attr->{text2html})) {		 
 		 $text =~ s/</&lt;/g;
      $text =~ s/>/&gt;/g;
@@ -235,10 +235,44 @@ sub win2utf8 {
 #**********************************************************
 sub utf82win {
 	my ($text)=@_;
-	
-  my @ChArray=split('',$text);
-  my $Unicode='';
-  my $Code='';
+ 
+  use Encode;
+	my $win1251 = encode ('cp1251', decode ('utf8', $text)); 
+	return $win1251;
+
+
+# Old version	
+#  my @ChArray=split('',$text);
+#  my $Unicode='';
+#  my $Code='';
+#
+#  for my $Code (unpack('U0W*', $text)){
+#    #$Code=ord($Code);
+#    print "$Code";
+#    #return $Code;
+#    if(($Code>=0xc0+0x350)&&($Code<=0xff+0x350)){$Unicode.=chr($Code-0x350);}
+#    elsif($Code==0xa8+0x350){$Unicode.=chr(0x401-0x350);}
+#    elsif($Code==0xb8+0x350){$Unicode.=chr(0x451-0x350);}
+#    elsif($Code==0xb3+0x350){$Unicode.=chr(0x456-0x350);}
+#    elsif($Code==0xaa+0x350){$Unicode.=chr(0x404-0x350);}
+#    elsif($Code==0xba+0x350){$Unicode.=chr(0x454-0x350);}
+#    elsif($Code==0xb2+0x350){$Unicode.=chr(0x406-0x350);}
+#    elsif($Code==0xaf+0x350){$Unicode.=chr(0x407-0x350);}
+#    elsif($Code==0xbf+0x350){$Unicode.=chr(0x457-0x350);}
+#    else{$Unicode.=pack('U', $Code);
+#    	print " <-";
+#    	
+#    	}
+#    
+#    print "\n";
+#   }
+#
+#
+#print "!!!!!!!!!!!!!!!!!!!";
+
+  return $Unicode;
+
+
   for(@ChArray){
     $Code=ord;
     if($Code==0x0406)       { $Unicode.=chr(0xB2); }
