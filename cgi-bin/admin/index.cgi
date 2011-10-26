@@ -199,7 +199,7 @@ if ($FORM{AWEB_OPTIONS}) {
 
 
 #===========================================================
-my @actions = ([$_INFO, $_ADD, $_LIST, $_PASSWD, $_CHANGE, $_DEL, $_ALL, $_MULTIUSER_OP, "$_SHOW $_DELETED", "$_CREDIT", "$_TARIF_PLANS"],  # Users
+my @actions = ([$_INFO, $_ADD, $_LIST, $_PASSWD, $_CHANGE, $_DEL, $_ALL, $_MULTIUSER_OP, "$_SHOW $_DELETED", "$_CREDIT", "$_TARIF_PLANS", "$_REDUCTION"],  # Users
                [$_LIST, $_ADD, $_DEL, $_ALL, $_DATE],                         # Payments
                [$_LIST, $_GET, $_DEL, $_ALL],                                 # Fees
                [$_LIST, $_DEL],                                               # reports view
@@ -1911,10 +1911,13 @@ if($attr->{USER_INFO}) {
     	print "</td></table>\n";
     	return 0;
      }
-
-    if (! $permissions{0}{9} && $user_info->{CREDIT} != $FORM{CREDIT}) {
+    elsif (! $permissions{0}{9} && $user_info->{CREDIT} != $FORM{CREDIT}) {
     	$html->message('err', $_ERROR, "$_CHANGE $_CREDIT $ERR_ACCESS_DENY");  	
       $FORM{CREDIT}=undef;
+     }
+    elsif (! $permissions{0}{11} && $user_info->{REDUCTION} != $FORM{REDUCTION}) {
+    	$html->message('err', $_ERROR, "$_REDUCTION $ERR_ACCESS_DENY");  	
+      $FORM{REDUCTION}=undef;
      }
 
     $user_info->change($user_info->{UID}, { %FORM } );
@@ -3592,6 +3595,7 @@ if ($FORM{ADMIN_TYPE}) {
    	       8 => 1, 
    	       9 => 1, 
    	       10=> 1, 
+   	       11=> 1
    	      },
    	1 => { 0 => 1,
    	       1 => 1,
@@ -3630,7 +3634,8 @@ if ($FORM{ADMIN_TYPE}) {
    	       3 => 1,
    	       4 => 1,
    	       9 => 1, 
-   	       10=> 1, 
+   	       10=> 1,
+   	       11=> 1 
    	      },
    	1 => { 0 => 1,
    	       1 => 1,
