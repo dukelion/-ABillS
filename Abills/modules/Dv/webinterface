@@ -4740,7 +4740,7 @@ sub dv_monthly_fees {
  my $debug = $attr->{DEBUG} || 0;
  my $debug_output = '';
  $debug_output .= "DV: Monthly periodic payments\n" if ($debug > 1);
- 
+
  use Users;
  
  $LIST_PARAMS{TP_ID} = $attr->{TP_ID} if ($attr->{TP_ID});
@@ -4750,15 +4750,13 @@ sub dv_monthly_fees {
 
  $START_PERIOD_DAY = ($conf{START_PERIOD_DAY}) ? $conf{START_PERIOD_DAY} : 1;
  $ADMIN_REPORT{DATE}=$DATE if (! $ADMIN_REPORT{DATE});
- 
+
  #Change TP to next TP
  $debug_output .= dv_monthly_next_tp($attr);
  $DEBUG .= $debug_output; 
- return $debug_output;
 
  my $users = Users->new($db, $admin, \%conf); 
  my $list = $tariffs->list({ %LIST_PARAMS });
-
 
  my ($y, $m, $d)=split(/-/, $ADMIN_REPORT{DATE}, 3);
  my $days_in_month=($m!=2?(($m%2)^($m>7))+30:(!($y%400)||!($y%4)&&($y%25)?29:28));
@@ -4776,7 +4774,6 @@ sub dv_monthly_fees {
 
  my $pre_month_begin = "$y-$m-01";
  my $pre_month_end = "$y-$m-$days_in_pre_month";
- 
 
  foreach my $line (@$list) {
    my %TP_INFO     = ();
@@ -4818,7 +4815,6 @@ sub dv_monthly_fees {
  	  	   $used_traffic{$l->[7]}=$l->[6];
         }
       }
-
      if ($abon_distrib) {
      	 $month_fee = $month_fee / $days_in_month;
       }    
