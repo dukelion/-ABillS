@@ -72,9 +72,9 @@ $conf{USERS_WEB_ADMIN_ID}=3;
 
 #System Langs
 $conf{LANGS}="english:English;
- russian:Русский;
- ukraine:Українська;
- bulgarian:Болгарска;
+ russian:Р СѓСЃСЃРєРёР№;
+ ukraine:РЈРєСЂР°С—РЅСЃСЊРєР°;
+ bulgarian:Р‘РѕР»РіР°СЂСЃСЊРєР°;
  french:French";
 
 #Web interface

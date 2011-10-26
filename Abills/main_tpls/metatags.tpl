@@ -720,13 +720,13 @@ div#tcal td:hover {
 
 
 #pageJumpWindow {
-	border:2px solid black;
+	border:2px solid %_COLOR_9%;
 	padding:5px 5px;;
 	width:130px;
 	height:40px;
 	display:none;
 	position:absolute;
-	background-color:#FFF;
+	background-color:%_COLOR_1%;
 	z-index:3;
 }
 
@@ -734,7 +734,6 @@ div#tcal td:hover {
 	margin:0 0 5px 0;
 	font-size:12px;
 	font-family:Tahoma, Geneva, sans-serif;
-		
 }
 
 #buttonJumpMenu {
@@ -752,7 +751,7 @@ div#tcal td:hover {
 	height:30px;
 }
 
- #topNav ul,li {
+#topNav ul,li {
 	margin-left:0px;
 	display:block;
   	text-decoration: none;

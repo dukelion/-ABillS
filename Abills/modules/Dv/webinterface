@@ -3967,7 +3967,6 @@ if ($conf{DV_ISG}) {
 
   	 
   if (! cisco_isg_cmd($user->{REMOTE_ADDR}, "account-status-query", { USER_NAME => $user->{LOGIN} })) {
-
      return 0;
    } 	
 
@@ -4063,6 +4062,7 @@ elsif ($conf{DV_IP_DISCOVERY}) {
         ($user->{DEPOSIT}+$user->{CREDIT} > 0 || 
          $Dv->{POSTPAID_ABON} || 
          $Dv->{PAYMENT_TYPE} == 1 )) {
+
     if ($user->{ACTIVATE} ne '0000-00-00') {
       my ($Y, $M, $D)=split(/-/, $user->{ACTIVATE}, 3);
       $M--;
@@ -4119,7 +4119,7 @@ elsif ($conf{DV_IP_DISCOVERY}) {
 
   #Activate Cisco ISG Account
   if ($conf{DV_ISG}) {
-    if ($user->{DISABLE} && $user->{DISABLE} =~ /ENABLE/) {
+    if ($user->{DISABLE}) {
     	$html->message('err', $_ERROR, "$_USER  $_DISABLE", { ID => 16 });
      }
     elsif ($Dv->{CID} ne $Dv->{ISG_CID_CUR} || $Dv->{CID} eq '') {

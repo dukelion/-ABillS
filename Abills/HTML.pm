@@ -1460,7 +1460,7 @@ return qq{
 </div>
 <div id="buttonJumpMenu">
     <div id='pageJumpWindow'>
-    	<h2>Перейти к странице:</h2>
+    	<h2>РџРµСЂРµР№С‚Рё Рє СЃС‚СЂР°РЅРёС†Рµ:</h2>
     	<input id='pagevalue' type='text'  size='5' maxlength=3/>
     	<button onclick="checkval('index.cgi?$argument&pg=')">OK</button>
     </div>

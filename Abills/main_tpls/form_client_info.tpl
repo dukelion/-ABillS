@@ -13,7 +13,7 @@
 <TR class='odd'><TD><b>E-mail:</b></TD><TD>%EMAIL%</TD></TR>
 <TR class='even'><TD><b>$_CONTRACT:</b></TD><TD>%CONTRACT_ID%%CONTRACT_SUFIX%</TD></TR>
 <TR class='even'><TD><b>$_CONTRACT $_DATE:</b></TD><TD>%CONTRACT_DATE%</TD></TR>
-<TR class='odd'><TD><b>$_STATUS:</b></TD><TD>%DISABLE%</TD></TR>
+<TR class='odd'><TD><b>$_STATUS:</b></TD><TD>%STATUS%</TD></TR>
 <TR class='total'><TD colspan='2'>&nbsp;</TD></TR>
 <TR class='odd'><TD><b>$_ACTIVATE:</b></TD><TD>%ACTIVATE%</TD></TR>
 <TR class='odd'><TD><b>$_EXPIRE:</b></TD><TD>%EXPIRE%</TD></TR>

@@ -399,12 +399,12 @@ print "<table width='100%' border='0' cellpadding='0' cellspacing='1'>\n";
 $admin->{DATE}=$DATE;
 $admin->{TIME}=$TIME;
 if(defined($conf{tech_works})) {
-  $admin->{TECHWORK} = "<tr><th class='red' bgcolor='#FF0000' colspan='2'>$conf{tech_works}</th></tr>\n";
+  $admin->{TECHWORK} = "<tr><th class='red' colspan='2'>$conf{tech_works}</th></tr>\n";
 }
 
 #Quick Menu
 if ($admin->{WEB_OPTIONS}{qm} && ! $FORM{xml}) {
-  $admin->{QUICK_MENU} = "<tr class='HEADER_QM'><td colspan='2' class='noprint'>\n<table  width='100%' border='0'><tr>\n";
+  $admin->{QUICK_MENU} = "<tr class='HEADER_QM'><td colspan='2' class='noprint'><table  width='100%' border='0'><tr>\n";
 	my @a = split(/,/, $admin->{WEB_OPTIONS}{qm});
   my $i = 0;
 	foreach my $line (@a) {
@@ -413,11 +413,11 @@ if ($admin->{WEB_OPTIONS}{qm} && ! $FORM{xml}) {
      }
 
     my ($qm_id, $qm_name)=split(/:/, $line, 2);
-    my $color=($qm_id eq $index) ? $_COLORS[0] : $_COLORS[2];
+    my $color=($qm_id eq $index) ? 'title_color' : 'even';
     
     $qm_name = $menu_names{$qm_id} if ($qm_name eq '');
     
-    $admin->{QUICK_MENU} .= "  <th bgcolor='$color'>";
+    $admin->{QUICK_MENU} .= "  <th class='$color'>";
     if (defined($menu_args{$qm_id})) {
     	my $args = 'LOGIN' if ($menu_args{$qm_id} eq 'UID');
       $admin->{QUICK_MENU} .= $html->button("$qm_name", '', 
@@ -442,7 +442,7 @@ print $admin->{QUICK_MENU} if ($admin->{QUICK_MENU});
 
 print "<tr  class='noprint'><td valign='top' rowspan='2' class='MENU_BACK'>
 $menu_text
-</td><td bgcolor='$_COLORS[0]' style='height: 20px;' class='noprint'>$navigat_menu</td></tr>
+</td><td style='height: 20px;' class='titelcolor, noprint'>$navigat_menu</td></tr>
 <tr class='CONTENT'><td valign='top' align='center'>";
 
 if ($functions{$index}) {

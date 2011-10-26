@@ -454,8 +454,8 @@ sub form_info {
                                              $user, { OUTPUT2RETURN => 1 });
    }
   
-  $user->{DISABLE} = ($user->{DISABLE}) ? $html->color_mark("$_DISABLE", $_COLORS[6])  : $_ENABLE;
-  my $deposit = sprintf("%.2f", $user->{DEPOSIT}); # ($user->{DISABLE}) ? $html->color_mark("$_DISABLE", $_COLORS[6])  : $_ENABLE;
+  $user->{STATUS} = ($user->{DISABLE}) ? $html->color_mark("$_DISABLE", $_COLORS[6])  : $_ENABLE;
+  my $deposit = sprintf("%.2f", $user->{DEPOSIT});
   $user->{DEPOSIT} = ($deposit < $user->{DEPOSIT}) ? $deposit + 0.01 : $deposit;
   my $sum  = ($user->{DEPOSIT} < 0) ? abs($user->{DEPOSIT}*2) : 0;
   $pages_qs = "&SUM=$sum&sid=$sid";

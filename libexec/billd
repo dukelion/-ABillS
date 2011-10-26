@@ -2274,9 +2274,11 @@ sub check_speed_mikrotik {
     $NAS{NAS_MNG_IP_PORT}  = $nas_row->[9];
     $NAS{NAS_MNG_USER}     = $nas_row->[10]; 
     $NAS{NAS_MNG_PASSWORD} = $nas_row->[11]; 
+    
     my $nas_host           = $NAS{NAS_MNG_IP_PORT} || '';
     my $nas_admin          = $NAS{NAS_MNG_USER} || 'admin';
     my $SSH                = $ARGV->{SSH_CMD}  || "/usr/bin/ssh -o StrictHostKeyChecking=no -i $base_dir/Certs/id_dsa.".$nas_admin;
+    $NAS{SSH_CMD}          = $SSH;
 
     my $count;
     # Get mikrotik speed
@@ -2291,7 +2293,7 @@ foreach my $tp_id (sort keys %TARIF_SPEEDS) {
     my $priority  = 5 - $traf_type;
       #Global Shapper
       if ($traf_type == 0) {
-      	#my $count = get_mikrotik_value(qq{ /ip firewall mangle print count-only where new-packet-mark=ALLOW_GLOBAL_$tp_id }, $argv);
+      	my $count = get_mikrotik_value(qq{ /ip firewall mangle print count-only where new-packet-mark=ALLOW_GLOBAL_$tp_id }, \%NAS);
       	
       	if (! $count->[0] || $count->[0]==0) {
           push @commands, qq{/ip firewall mangle add chain=forward action=mark-packet new-packet-mark=ALLOW_GLOBAL_$tp_id passthrough=yes src-address-list=CLIENTS_ $tp_id dst-address=0.0.0.0/0};
@@ -2302,7 +2304,7 @@ foreach my $tp_id (sort keys %TARIF_SPEEDS) {
       #Peering shapper
       else {
       	#Check TP,
-      	#$count = get_mikrotik_value("/ip firewall mangle print count-only where new-packet-mark=ALLOW_TRAFFIC_CLASS_".  $tp_id.'_'. $traf_type, $argv);
+      	$count = get_mikrotik_value("/ip firewall mangle print count-only where new-packet-mark=ALLOW_TRAFFIC_CLASS_".  $tp_id.'_'. $traf_type, \%NAS);
 
         if (! $count->[0] || $count->[0]==0) {      	
       	  push @commands, "/ip firewall mangle add chain=forward action=mark-packet new-packet-mark=ALLOW_TRAFFIC_CLASS_".  $tp_id.'_'. $traf_type ." passthrough=yes src-address-list=CLIENTS_ $tp_id dst-address-list=TRAFFIC_CLASS_$traf_type ";
@@ -2318,7 +2320,7 @@ $list = $Tariffs->traffic_class_list();
 foreach my $line (@$list) {
 	my $id   = $line->[0];
 	my $nets = $line->[2];
-  #$count = get_mikrotik_value(qq{/ip firewall address-list print count-only where list=TRAFFIC_CLASS_$id }, $argv);
+  $count = get_mikrotik_value(qq{/ip firewall address-list print count-only where list=TRAFFIC_CLASS_$id }, \%NAS);
   if (! $count->[0] || $count->[0]==0) {
     #Add traffic_class nets
     my @nets_arr = (); 
@@ -2342,6 +2344,27 @@ foreach my $line (@$list) {
 }
   
   print $result;
+}
+
+
+#*****************************************************
+#
+#*****************************************************
+sub get_mikrotik_value {
+ my ($cmd, $attr)=@_;
+
+ my $nas_host  = $attr->{NAS_MNG_IP_PORT} || '';
+ my $nas_admin = $attr->{NAS_MNG_USER}|| 'admin';
+ my $SSH       = $attr->{SSH_CMD}  || "/usr/bin/ssh -o StrictHostKeyChecking=no -i $base_dir/Certs/id_dsa.".$nas_admin;
+
+ my @value = ();
+
+ my $cmds = "$SSH $nas_admin\@$nas_host '$cmd'";
+ open(CMD, "$cmds |") || die "Can't open '$cmds' $!\n";
+   @value = <CMD>;   
+ close(CMD);
+
+ return \@value; 
 }
 
 #**************************************************
