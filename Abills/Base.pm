@@ -241,6 +241,7 @@ sub utf82win {
   my $Code='';
   for(@ChArray){
     $Code=ord;
+print "$Code\n";
     if($Code==0x0406)       { $Unicode.=chr(0xB2); }
     elsif($Code==0x0454)    { $Unicode.=chr(0xBA); } #
     elsif($Code==0x0456)    { $Unicode.=chr(0xB3); } # CYRILLIC SMALL LETTER BYELORUSSIAN-UKRAINIAN I

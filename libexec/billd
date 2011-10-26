@@ -2284,6 +2284,90 @@ sub check_speed_mikrotik {
 
     my $count;
     # Get mikrotik speed
+=comments
+
+> /queue tree print
+Flags: X - disabled, I - invalid
+ 0   name="TP_102_in_global" parent=global-in packet-mark=ALLOW_GLOBAL_102
+     limit-at=5242880 queue=default priority=5 max-limit=5242880 burst-limit=0
+     burst-threshold=0 burst-time=0s
+
+ 1   name="TP_102_out_global" parent=global-out packet-mark=ALLOW_GLOBAL_102
+     limit-at=5242880 queue=default priority=5 max-limit=5242880 burst-limit=0
+     burst-threshold=0 burst-time=0s
+
+ 2   name="TP_17_in_global" parent=global-in packet-mark=ALLOW_GLOBAL_17
+     limit-at=41943040 queue=default priority=5 max-limit=41943040 burst-limit=0
+     burst-threshold=0 burst-time=0s
+
+ 3   name="TP_17_out_global" parent=global-out packet-mark=ALLOW_GLOBAL_17
+     limit-at=41943040 queue=default priority=5 max-limit=41943040 burst-limit=0
+     burst-threshold=0 burst-time=0s
+
+ 4   name="TP_43_in_global" parent=global-in packet-mark=ALLOW_GLOBAL_43
+     limit-at=16777216 queue=default priority=5 max-limit=16777216 burst-limit=0
+     burst-threshold=0 burst-time=0s
+
+ 5   name="TP_43_out_global" parent=global-out packet-mark=ALLOW_GLOBAL_43
+     limit-at=4194304 queue=default priority=5 max-limit=4194304 burst-limit=0
+     burst-threshold=0 burst-time=0s
+
+ 6   name="TP_44_in_global" parent=global-in packet-mark=ALLOW_GLOBAL_44
+     limit-at=11534336 queue=default priority=5 max-limit=11534336 burst-limit=0
+     burst-threshold=0 burst-time=0s
+
+ 7   name="TP_44_out_global" parent=global-out packet-mark=ALLOW_GLOBAL_44
+     limit-at=4194304 queue=default priority=5 max-limit=4194304 burst-limit=0
+     burst-threshold=0 burst-time=0s
+
+ 8   name="TP_45_in_global" parent=global-in packet-mark=ALLOW_GLOBAL_45
+     limit-at=5242880 queue=default priority=5 max-limit=5242880 burst-limit=0
+     burst-threshold=0 burst-time=0s
+
+ 9   name="TP_45_out_global" parent=global-out packet-mark=ALLOW_GLOBAL_45
+     limit-at=4194304 queue=default priority=5 max-limit=4194304 burst-limit=0
+     burst-threshold=0 burst-time=0s
+
+10   name="TP_46_in_global" parent=global-in packet-mark=ALLOW_GLOBAL_46
+     limit-at=2097152 queue=default priority=5 max-limit=2097152 burst-limit=0
+     burst-threshold=0 burst-time=0s
+
+11   name="TP_46_out_global" parent=global-out packet-mark=ALLOW_GLOBAL_46
+     limit-at=3145728 queue=default priority=5 max-limit=3145728 burst-limit=0
+     burst-threshold=0 burst-time=0s
+
+12   name="TP_53_in_global" parent=global-in packet-mark=ALLOW_GLOBAL_53
+     limit-at=3145728 queue=default priority=5 max-limit=3145728 burst-limit=0
+     burst-threshold=0 burst-time=0s
+
+13   name="TP_53_out_global" parent=global-out packet-mark=ALLOW_GLOBAL_53
+     limit-at=3145728 queue=default priority=5 max-limit=3145728 burst-limit=0
+     burst-threshold=0 burst-time=0s
+
+14   name="TP_54_in_global" parent=global-in packet-mark=ALLOW_GLOBAL_54
+     limit-at=52428800 queue=default priority=5 max-limit=52428800 burst-limit=0
+     burst-threshold=0 burst-time=0s
+
+15   name="TP_54_out_global" parent=global-out packet-mark=ALLOW_GLOBAL_54
+     limit-at=52428800 queue=default priority=5 max-limit=52428800 burst-limit=0
+     burst-threshold=0 burst-time=0s
+
+16   name="TP_69_in_global" parent=global-in packet-mark=ALLOW_GLOBAL_69
+     limit-at=524288 queue=default priority=5 max-limit=524288 burst-limit=0
+     burst-threshold=0 burst-time=0s
+
+17   name="TP_69_out_global" parent=global-out packet-mark=ALLOW_GLOBAL_69
+     limit-at=524288 queue=default priority=5 max-limit=524288 burst-limit=0
+     burst-threshold=0 burst-time=0s
+
+18   name="TP_69_in_traffic_class_1" parent=global-in
+     packet-mark=ALLOW_TRAFFIC_CLASS_69_1 limit-at=395264 queue=default priority=4
+     max-limit=395264 burst-limit=0 burst-threshold=0 burst-time=0s
+
+19   name="TP_69_out_traffic_class_1" parent=global-out
+     packet-mark=ALLOW_TRAFFIC_CLASS_69_1 limit-at=395264 queue=default priority=4
+     max-limit=395264 burst-limit=0 burst-threshold=0 burst-time=0s
+=cut
 
   #Apply speed for all mikrotik NAS
 foreach my $tp_id (sort keys %TARIF_SPEEDS) {
@@ -2298,7 +2382,7 @@ foreach my $tp_id (sort keys %TARIF_SPEEDS) {
       	my $count = get_mikrotik_value(qq{ /ip firewall mangle print count-only where new-packet-mark=ALLOW_GLOBAL_$tp_id }, \%NAS);
       	
       	if (! $count->[0] || $count->[0]==0) {
-          push @commands, qq{/ip firewall mangle add chain=forward action=mark-packet new-packet-mark=ALLOW_GLOBAL_$tp_id passthrough=yes src-address-list=CLIENTS_ $tp_id dst-address=0.0.0.0/0};
+          push @commands, qq{/ip firewall mangle add chain=forward action=mark-packet new-packet-mark=ALLOW_GLOBAL_$tp_id passthrough=yes src-address-list=CLIENTS_$tp_id dst-address=0.0.0.0/0};
           push @commands, "/queue tree add name=\"". 'TP_'. $tp_id ."_in_global\" parent=global-in packet-mark=ALLOW_GLOBAL_$tp_id limit-at=$speed_in queue=default priority=$priority max-limit=$speed_in burst-limit=0 burst-threshold=0 burst-time=0s";
           push @commands, "/queue tree add name=\"". 'TP_'. $tp_id ."_out_global\" parent=global-out packet-mark=ALLOW_GLOBAL_$tp_id limit-at=$speed_out queue=default priority=$priority max-limit=$speed_out burst-limit=0 burst-threshold=0 burst-time=0s";
          }
@@ -2309,7 +2393,7 @@ foreach my $tp_id (sort keys %TARIF_SPEEDS) {
       	$count = get_mikrotik_value("/ip firewall mangle print count-only where new-packet-mark=ALLOW_TRAFFIC_CLASS_".  $tp_id.'_'. $traf_type, \%NAS);
 
         if (! $count->[0] || $count->[0]==0) {      	
-      	  push @commands, "/ip firewall mangle add chain=forward action=mark-packet new-packet-mark=ALLOW_TRAFFIC_CLASS_".  $tp_id.'_'. $traf_type ." passthrough=yes src-address-list=CLIENTS_ $tp_id dst-address-list=TRAFFIC_CLASS_$traf_type ";
+      	  push @commands, "/ip firewall mangle add chain=forward action=mark-packet new-packet-mark=ALLOW_TRAFFIC_CLASS_".  $tp_id.'_'. $traf_type ." passthrough=yes src-address-list=CLIENTS_$tp_id dst-address-list=TRAFFIC_CLASS_$traf_type ";
           push @commands, "/queue tree add name=\"". 'TP_'. $tp_id ."_in_traffic_class_". $traf_type ."\" parent=global-in packet-mark=ALLOW_TRAFFIC_CLASS_".  $tp_id .'_'. $traf_type ." limit-at=$speed_in  queue=default priority=$priority max-limit=$speed_in burst-limit=0 burst-threshold=0 burst-time=0s";
           push @commands, "/queue tree add name=\"". 'TP_'. $tp_id ."_out_traffic_class_". $traf_type ."\" parent=global-out packet-mark=ALLOW_TRAFFIC_CLASS_".  $tp_id .'_'. $traf_type ." limit-at=$speed_out  queue=default priority=$priority max-limit=$speed_out burst-limit=0 burst-threshold=0 burst-time=0s";
          }
@@ -2326,10 +2410,9 @@ foreach my $line (@$list) {
   if (! $count->[0] || $count->[0]==0) {
     #Add traffic_class nets
     my @nets_arr = (); 
-    $nets =~ s/[\r]?\n//g;
+    $nets =~ s/[\r\n]+//g;
     $nets =~ s/;/,/g;
     $nets =~ s/ //g;
-    chop($nets);
     @nets_arr = split(/,/, $nets);
     foreach my $address (@nets_arr) {
       push @commands, qq{ /ip firewall address-list add list=TRAFFIC_CLASS_$id address=$address };
@@ -2341,7 +2424,7 @@ foreach my $line (@$list) {
   $result .= `echo "===> Initialising remote commands executing:" >> /var/log/shaper` if ($debug > 0);
 	foreach my $cmd (@commands)  {
 		print "$cmd\n" if ($debug > 0);
-#    $result .= `$SSH $nas_admin\@$nas_host "$cmd"; echo "$cmd" >> /var/log/shaper`;
+    $result .= `$SSH $nas_admin\@$nas_host "$cmd"; echo "$cmd" >> /var/log/shaper`;
 	 }
 }
   
