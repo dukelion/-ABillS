@@ -179,7 +179,7 @@ else {
 }
 
 %RAD_REPLY = %$RAD_PAIRS;
-
+    
 #If Access deny
  if($r == 1){
     my $message = "$RAD_PAIRS->{'Reply-Message'} ";
@@ -359,11 +359,11 @@ sub access_deny {
   my ($user_name, $message, $nas_num, $db) = @_;
 
   $Log->log_print('LOG_WARNING', $user_name, "$message", { NAS => $nas });
+  
   #External script for error connections
   if ($conf{AUTH_ERROR_CMD}) {
   	 my @cmds = split(/;/, $conf{AUTH_ERROR_CMD});
   	 my $RAD  = get_radius_params();
-
   	 foreach my $expr_cmd (@cmds) {
   	 	 $RAD->{NAS_PORT}=0 if (! $RAD->{NAS_PORT});
   	 	 my ($expr, $cmd)=split(/:/, $expr_cmd);
@@ -372,7 +372,6 @@ sub access_deny {
   	 	 	   }
   	 	  }
   	  }
-    
   return 1;
 }
 

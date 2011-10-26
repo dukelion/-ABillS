@@ -651,5 +651,48 @@ sub periodic {
   return $self;
 }
 
+#**********************************************************
+# get tp speed
+#**********************************************************
+sub get_tp_speed {
+  my $self = shift;
+  my ($attr) = @_;
+
+ 
+  my $EXT_TABLE = '';
+
+  if ($attr->{LOGIN}) {
+    push @WHERE_RULES, "u.id='$attr->{LOGIN}'"; 
+    $EXT_TABLE .= "LEFT JOIN users u ON (dv.uid = u.uid )";
+   }
+
+  if ($attr->{TP_ID}) {
+    push @WHERE_RULES, "tp.id='$attr->{TP_ID}'"; 
+   }
+
+ $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
+ 
+ $self->query($db, "SELECT tp.tp_id, tp.id, tt.id, tt.in_speed, tt.out_speed, tt.net_id 
+FROM trafic_tarifs tt
+LEFT JOIN intervals intv ON (tt.interval_id = intv.id)
+LEFT JOIN tarif_plans tp ON (tp.tp_id = intv.tp_id)
+LEFT JOIN dv_main dv ON (dv.tp_id = tp.id )
+$EXT_TABLE
+WHERE intv.begin <= DATE_FORMAT( NOW(), '%H:%i:%S' ) 
+ AND intv.end >= DATE_FORMAT( NOW(), '%H:%i:%S' )
+ AND tp.module='Dv'
+ $WHERE
+AND intv.day IN (select if ( intv.day=8, 
+		(SELECT if ((select    count(*) from    holidays where     DATE_FORMAT( NOW(), '%c-%e' ) = day)>0, 8,
+                (select if (intv.day=0, 0, (select intv.day from intervals as intv where DATE_FORMAT( NOW() + INTERVAL 1 DAY, '%w') = intv.day ))))),
+        (select if (intv.day=0, 0,
+                (select intv.day from intervals as intv where DATE_FORMAT( NOW() + INTERVAL 1 DAY, '%w') = intv.day )))))
+GROUP BY tp.tp_id, tt.id
+ORDER by tp.tp_id, tt.id;");
+  
+  return $self->{list};
+}
+
+
 1
  
