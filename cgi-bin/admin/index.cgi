@@ -442,7 +442,7 @@ print $admin->{QUICK_MENU} if ($admin->{QUICK_MENU});
 
 print "<tr  class='noprint'><td valign='top' rowspan='2' class='MENU_BACK'>
 $menu_text
-</td><td style='height: 20px;' class='titelcolor, noprint'>$navigat_menu</td></tr>
+</td><td style='height: 20px;' class='noprint, title_color'>$navigat_menu</td></tr>
 <tr class='CONTENT'><td valign='top' align='center'>";
 
 if ($functions{$index}) {
