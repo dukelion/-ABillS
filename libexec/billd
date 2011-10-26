@@ -2275,7 +2275,7 @@ sub check_speed_mikrotik {
     $NAS{NAS_MNG_USER}     = $nas_row->[10]; 
     $NAS{NAS_MNG_PASSWORD} = $nas_row->[11]; 
     
-    my($NAS{NAS_MNG_IP_PORT}, undef)=split(/:/, $NAS{NAS_MNG_IP_PORT});
+    ($NAS{NAS_MNG_IP_PORT}, undef)=split(/:/, $NAS{NAS_MNG_IP_PORT});
     
     my $nas_host           = $NAS{NAS_MNG_IP_PORT} || '';
     my $nas_admin          = $NAS{NAS_MNG_USER} || 'admin';
