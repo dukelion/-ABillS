@@ -1280,6 +1280,7 @@ sub docs_account {
          $FORM{print} = $FORM{ACCOUNT_ID};
          $FORM{pdf}   = 1;
          delete($FORM{create});
+
          return  docs_account({ GET_EMAIL_INFO    => 1,
             	             SEND_EMAIL        => $FORM{SEND_EMAIL},
             	             EMAIL             => $FORM{EMAIL}, 
@@ -1365,7 +1366,7 @@ sub docs_account {
        $Docs->{'ORDER_COUNT_'.$i} = $count;
        $Docs->{'ORDER_PRICE_'.$i} = $line->[4];
        $Docs->{'ORDER_SUM_'.$i}   = $sum;
-       $Docs->{'ORDER_VAT_'.$i}   = ($conf{DOCS_VAT_INCLUDE}) ? (100 + $conf{DOCS_VAT_INCLUDE} ) / $conf{DOCS_VAT_INCLUDE} : 0;
+       $Docs->{'ORDER_VAT_'.$i}   = ($conf{DOCS_VAT_INCLUDE}) ?  sprintf("%.2f", $line->[4] / ((100 + $conf{DOCS_VAT_INCLUDE} ) / $conf{DOCS_VAT_INCLUDE})) : 0;
        $Docs->{'ORDER_PRICE_WITHOUT_VAT_'.$i} = sprintf("%.2f", ( $Docs->{'ORDER_VAT_'.$i} ) ? $line->[4] -  $Docs->{'ORDER_VAT_'.$i} : $line->[3]);
        $Docs->{'ORDER_SUM_WITHOUT_VAT_'.$i}   = sprintf("%.2f", ($conf{DOCS_VAT_INCLUDE}) ? $sum - ($sum) / ((100 + $conf{DOCS_VAT_INCLUDE} ) / $conf{DOCS_VAT_INCLUDE}) : $sum );
       }
@@ -1567,9 +1568,10 @@ sub docs_print {
 
 	$html = $html_old if ($html_old);
   delete $FORM{pdf};
+
   if ($attr->{SEND_EMAIL} && ! $attr->{OUTPUT2RETURN}) {
     # Email not specified
-    if (! $attr->{EMAIL}) {
+    if (! $attr->{EMAIL} && ! $users->{EMAIL}) {
     	return 0;
      }
 

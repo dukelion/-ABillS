@@ -1,10 +1,10 @@
 #Iner_ID : Main or Sub or if -1 user menu func list
 %FUNCTIONS_LIST = (
-                   "01:0:IP:dhcphosts_hosts:"                   => 11,
-		               "02:0:IP:dhcphosts_user:UID"                 => 20,
+                   "01:0:IP (DHCP):dhcphosts_hosts:"                   => 11,
+		               "02:0:IP (DHCP):dhcphosts_user:UID"                 => 20,
 		               "03:2:DHCP $_LOG:dhcphosts_log:UID"           => 15,
 		               "10:0:IP $_NETWORKS:dhcphosts_networks:"     => 5,
-		               "11:10:IP $_NETWORKS:dhcphosts_networks:"    => 5,
+		               "11:10:IP (DHCP) $_NETWORKS:dhcphosts_networks:"    => 5,
 		               "12:11:$_ROUTES:dhcphosts_routes:NET_ID" => 5,
 		               "13:10:IP guard:dhcphosts_mac_block:"          => 5,
                    "14:13:Static:dhcphosts_mac_static:"           => 5,
