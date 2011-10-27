@@ -481,8 +481,6 @@ sub msgs_admin {
   	  push @A_CHAPTER, "$line->[5]:$line->[3]";
   	  $CHAPTERS_DELIGATION{$line->[5]}=$line->[3];
   	  $A_PRIVILEGES{$line->[5]}=$line->[2];
-  	  print "/ $line->[5]:$line->[2] /";
-  	  
   	 }
    }
 

@@ -658,7 +658,6 @@ sub get_tp_speed {
   my $self = shift;
   my ($attr) = @_;
 
- 
   my $EXT_TABLE = '';
 
   if ($attr->{LOGIN}) {
@@ -672,7 +671,7 @@ sub get_tp_speed {
 
  $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
  
- $self->query($db, "SELECT tp.tp_id, tp.id, tt.id, tt.in_speed, tt.out_speed, tt.net_id 
+ $self->query($db, "SELECT tp.tp_id, tp.id, tt.id, tt.in_speed, tt.out_speed, tt.net_id, tt.expression 
 FROM trafic_tarifs tt
 LEFT JOIN intervals intv ON (tt.interval_id = intv.id)
 LEFT JOIN tarif_plans tp ON (tp.tp_id = intv.tp_id)
