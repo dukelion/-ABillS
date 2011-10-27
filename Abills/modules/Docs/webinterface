@@ -1219,6 +1219,8 @@ sub docs_account {
  $Docs->account_defaults();		
  $Docs->{DATE}=$DATE;
  $FORM{UID}=$LIST_PARAMS{UID} if (! $FORM{UID}); 
+ 
+ #$Docs->{debug}=1;
   
  if ($FORM{create}) {
    $FORM{SUM} =~ s/\,/\./g;
@@ -1332,7 +1334,7 @@ sub docs_account {
    	 $Docs->{VAT}                  = sprintf("%.2f", $conf{DOCS_VAT_INCLUDE});
     }
 
-   $Docs->{CUSTOMER}= $self->{COMPANY_NAME} || $Docs->{FIO} || '-';
+   $Docs->{CUSTOMER}= $self->{COMPANY_NAME} || $Docs->{FIO} || '-' if (! $Docs->{CUSTOMER});
 
    if ($FORM{CHECK_PEYMENT_ID} && $Docs->{PAYMENT_ID}) {
    	  return 0;
@@ -1378,7 +1380,6 @@ sub docs_account {
         $attr->{EMAIL_ATTACH_FILENAME} = 'account_'. $Docs->{ACCT_ID} .'.pdf' if (! $attr->{EMAIL_ATTACH_FILENAME});
         $attr->{EMAIL_MSG_SUBJECT}     = "ABillS - $_ACCOUNT /$Docs->{ACCT_ID}" if (! $attr->{EMAIL_MSG_SUBJECT});
       }
-
 
      if ($Docs->{COMPANY_ID}) {
        $Company->info($Docs->{COMPANY_ID});

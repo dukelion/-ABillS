@@ -534,6 +534,7 @@ sub host_change {
 
   $attr->{OPTION_82}    = ($attr->{OPTION_82}) ? 1 : 0;
   $attr->{IPN_ACTIVATE} = ($attr->{IPN_ACTIVATE}) ? 1 : 0;
+  $attr->{DISABLE}      = ($attr->{DISABLE}) ? 1 : 0;
   
 
 	$self->changes($admin, { CHANGE_PARAM => 'ID',
