@@ -181,7 +181,13 @@ sub messages_list {
  if ($attr->{CHAPTERS_DELIGATION}) {
  	 my @WHERE_RULES_pre = ();
  	 while( my ($chapter, $deligation) =  each %{ $attr->{CHAPTERS_DELIGATION} } ) {
- 	   push @WHERE_RULES_pre, "(m.chapter='$chapter' AND m.deligation<='$deligation')";
+ 	 	 my $privileges = '';
+ 	 	 if ($attr->{PRIVILEGES}) {
+ 	 	 	 if ($attr->{PRIVILEGES}->{$chapter} == 2) {
+ 	 	 	 	  $privileges = " AND (m.resposible=0 or m.aid='$admin->{AID}' or m.resposible='$admin->{AID}')"
+ 	 	 	  }
+ 	 	  }
+ 	   push @WHERE_RULES_pre, "(m.chapter='$chapter' AND m.deligation<='$deligation' $privileges)";
  	  }
    push @WHERE_RULES,  "(". join(" or ", @WHERE_RULES_pre) .")";
   }
@@ -274,6 +280,7 @@ sub messages_list {
    $self->{SEARCH_FIELDS_COUNT}++;
   }
  
+ # resposible
 
  $WHERE = ($#WHERE_RULES > -1) ? 'WHERE '. join(' and ', @WHERE_RULES)  : '';
 

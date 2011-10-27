@@ -481,6 +481,8 @@ sub msgs_admin {
   	  push @A_CHAPTER, "$line->[5]:$line->[3]";
   	  $CHAPTERS_DELIGATION{$line->[5]}=$line->[3];
   	  $A_PRIVILEGES{$line->[5]}=$line->[2];
+  	  print "/ $line->[5]:$line->[2] /";
+  	  
   	 }
    }
 
@@ -782,6 +784,7 @@ sub msgs_admin {
 
   if (scalar keys %CHAPTERS_DELIGATION > 0) {
     $LIST_PARAMS{CHAPTERS_DELIGATION} = \%CHAPTERS_DELIGATION;
+    $LIST_PARAMS{PRIVILEGES}          = \%A_PRIVILEGES;
     $LIST_PARAMS{UID}      = undef if (! $FORM{UID}); 
    }
 
@@ -790,7 +793,6 @@ sub msgs_admin {
                                           { 
  	                                          SELECTED          => $FORM{STATE},
  	                                          SEL_OPTIONS       => { '' => $_ALL },
- 	                                          #SEL_ARRAY         => [@msg_status],
  	                                          STYLE             => \@style,
  	                                          SEL_HASH          => { $msg_status[0] => { 0 => $msg_status[0],
  	                                          	                                         3 =>$msg_status[3],
@@ -840,8 +842,8 @@ sub msgs_admin {
   $LIST_PARAMS{PRIORITY}= undef if ($FORM{PRIORITY} == 5);
 
   my $status_bar = msgs_status_bar();
-  my $list = $Msgs->messages_list({ %LIST_PARAMS, 
-  	                                DESC => (! $FORM{sort}) ? 'DESC' : $FORM{desc} 
+  my $list = $Msgs->messages_list({ %LIST_PARAMS,
+  	                                DESC       => (! $FORM{sort}) ? 'DESC' : $FORM{desc} 
   	                               });
 
   my  $table = $html->table( { width      => '100%',
@@ -1000,7 +1002,7 @@ foreach my $line (@$list) {
 
   my $message = $html->tpl_show(_include('msgs_email_notify', 'Msgs'), 
            { SITE    => $site,
-     LOGIN   => $Msgs->{LOGIN} || $FORM{LOGIN} || $ui->{LOGIN},
+     LOGIN   => $Msgs->{LOGIN} || $FORM{LOGIN} || $ui->{LOGIN} || $user->{LOGIN},
      ADMIN   => ( $FORM{INNER_MSG} ) ? "$_ADMIN:  $admin->{A_LOGIN} ($admin->{A_FIO})" : '', 
      UID     => $Msgs->{UID} || $FORM{UID},
      DATE    => $DATE, 
