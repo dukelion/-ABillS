@@ -245,13 +245,25 @@ a.stats {
 
 a.change {
 	color: %_COLOR_9%;
- 	background:url(/img/button_change.png) no-repeat left;
+ 	background:url(/img/button_change.png) no-repeat center;
  	padding-left:22px;
 	padding-top:5px;
+        height: 22px;
 	margin:0;
 	display:block;
 	overflow:hidden; 
  	text-indent:-9000px;
+}
+
+a.activate {
+        background:url(/img/button_activate.png) no-repeat center;
+        padding-left:22px;
+        padding-top:5px;
+        height: 22px;
+        margin:0;
+        display:block;
+        overflow:hidden;
+        text-indent:-9000px;
 }
 
 a.add { 

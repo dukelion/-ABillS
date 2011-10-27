@@ -299,7 +299,7 @@ $table = $html->table( { width      => '100%',
 sub ashield_user {
  	my ($attr) = @_;
 
-  if ($Ashield::VERSION < 6.03) {
+  if ($Ashield::VERSION < 6.06) {
   	$html->message('info', "UPDATE", "Please update module 'Ashield' to version 6.03 or higher. http://abills.net.ua/ (Current Version: $Ashield::VERSION)");
   	return 0;
    }
@@ -413,6 +413,36 @@ sub ashield_user {
   		$Ashield->ashield_avd_change({ %FORM, AGENTUUID => $FORM{info} });
   	 }
    }
+  elsif($FORM{activate}) {
+  	$LIST_PARAMS{UUID}=$FORM{activate};
+  	my $list = $Ashield->ashield_avd_list({ %LIST_PARAMS  });
+  	
+  	if ($Ashield->{TOTAL} > 0) {
+  		my $tp_id = $list->[0]->[7];
+  		$Tariffs->info($tp_id);
+  		if (	$Tariffs->{MONTH_FEE} > 0 ) {
+  		  ashield_drweb_user({ info   => $FORM{activate},
+  		  	  		  	         change => 1, 
+  		  	                   STATUS => 2,
+  		  	                   RESET  => 1,
+		  	                    });
+
+     	  my %FEES_PARAMS = ( DESCRIBE => 'Dr.Web '. $_ACTIVATE,
+                            METHOD   => 1,
+                           );
+
+        my ($y, $m, $d)=split(/-/, $DATE, 3);
+        my $days_in_month=($m!=2?(($m%2)^($m>7))+30:(!($y%400)||!($y%4)&&($y%25)?29:28));
+ 
+        my $sum = ($Tariffs->{MONTH_FEE} / $days_in_month) * ($days_in_month-$d);
+        $fees->take($users, $sum, { %FEES_PARAMS } );  
+        if (! $fees->{error}) {
+          $html->message('info', $_INFO, "$_ACTIVATE");
+         }
+  	 	 }
+  	  
+  	 }
+   }
   elsif($FORM{stats}) {
   	ashield_drweb_user({ %FORM });
    }
@@ -458,7 +488,6 @@ sub ashield_user {
    $Ashield->{TARIF_PLAN_TABLE}=$table->show({ OUTPUT2RETURN => 1 });
    $html->tpl_show(_include('ashield_client_subcribe', 'Ashield'), {%$user,  %$Ashield, %$service });
   }
-
 
   if ($Ashield->{errno}) {
     if ($Ashield->{errno} == 15) {
@@ -571,7 +600,7 @@ sub ashield_user {
     	               $statin_state_hash{$station_info->{state}}. $html->br().
     	               $status,
     	               $graceperiod,
-    	               $html->button($_CHANGE, "index=$index&info=$station_info->{id}&UID=$LIST_PARAMS{UID}", { CLASS => 'change' }),
+    	               ($status) ? $html->button($_ACTIVATE, "index=$index&activate=$station_info->{id}&UID=$LIST_PARAMS{UID}", { CLASS => 'activate' }) :  $html->button($_CHANGE, "index=$index&info=$station_info->{id}&UID=$LIST_PARAMS{UID}", { CLASS => 'change' }),
     	               $html->button($_STATS, "index=$index&stats=$station_info->{id}&UID=$LIST_PARAMS{UID}", { CLASS => 'stats' }),
     	               (($satus_code) ? "" : $html->button("$_DOWNLOAD", '', { 
     	               	  GLOBAL_URL => "$download_url", 
@@ -1283,10 +1312,10 @@ elsif($attr->{change}) {
        }
      }
     elsif ($attr->{STATUS} == 2) {
-    	
       if ($attr->{RESET}) {
       	$CMD_PARAMS{'block-begin'}=0;
       	$CMD_PARAMS{'block-end'}=0;
+      	$CMD_PARAMS{'expires'}=0;
       	$message = "$_HOLD_UP: $_RESETED";
       	$attr->{STATUS}=0;
        }
@@ -1413,7 +1442,6 @@ elsif ($attr->{info}) {
      $station_info->{blocking}->[0]->{end}->[0]==0 &&
      $station_info->{expires}->[0] == 0) {
      $Ashield->{ACTION}     = $html->form_input('change', $_CHANGE, { TYPE => 'submit', OUTPUT2RETURN => 1});
-
    }
   $html->tpl_show(_include('ashield_user', 'Ashield'), $Ashield);   
  }
@@ -1461,17 +1489,17 @@ foreach my $k (sort @info_keys){
   	 }
    }
   elsif (ref $v eq 'ARRAY') {
-   ARRAY:
-   if (ref $v->[0] eq 'HASH')  {
+    ARRAY:
+    if (ref $v->[0] eq 'HASH')  {
    	  $v= $v->[0];
    	  goto HASH;
-    }
-   else {
-   	 foreach my $val (@$v){
-       $output .= val_parser($val) .$html->br();	 	 
-   	  }
-    }
-  }
+     }
+    else {
+   	  foreach my $val (@$v){
+        $output .= val_parser($val) .$html->br();	 	 
+   	   }
+     }
+   }
   else {
     $output .= val_parser($v);
    }
@@ -1483,7 +1511,6 @@ foreach my $k (sort @info_keys){
    }
   $output =~ s/>> /\&nbsp;/g;
   $table->addrow(($lang_hash{$k}) ? $lang_hash{$k} : $k, $output);
-
 }
 
 
@@ -1660,7 +1687,6 @@ sub ashield_drweb_report_users {
 
         if ($expire > 0 && $expire > $cur_date) {
     	  	$status = $html->color_mark("$_EXPIRE: ". val_parser($expires), $_COLORS[6]);
-    	  	print "!!!";
     	   } 
       	elsif ($expire > 0 && $expire < $cur_date) {
     	  	$status = $html->color_mark("$_EXPIRE: ". val_parser($expires), $_COLORS[6]);
@@ -2109,107 +2135,7 @@ sub ashield_monthly {
    	      $debug_output .= "Blocking subscribe\n" if ($debug > 1);
     	 }
      }
-
-
 next;
-   foreach my $agent (@{ $result_hash->{agents}->[0]->{agent} }) {
-   	 my $agent_id = $agent->{uuid}->[0];
-   	 my $tp_name  = ($drweb_version == 1) ? $agent->{tariffplancode}->[0] : $agent->{'current-tariff'}->[0];
-   	 my $sum      = $TP_INFO{$tp_name}{MONTH_FEE};
-         my $auto_prolongation = ($drweb_version == 1) ? 1 : (($agent->{'auto-prolongation'}) ? int($agent->{'auto-prolongation'}) : 0);
-   	 my $subscription_period = $agent->{'subscription-period'};
-   	 my $expire   = 0;
-   	 my $blockbeg = 0;
-   	 my $blockend = 0;
-   	 
-   	 # Free TP
-     if (! $sum) {
-       print "Error: Can't find TP: '$tp_name' UUID: $agent_id. Add it to system\n";
-       next;
-      }
-     elsif ($sum == 0) {
-       next;
-      }   	 
-
-   	 if ($drweb_info{$agent_id}{expires} && $drweb_info{$agent_id}{expires} =~ /^(\d{4})(\d{2})(\d{2})/) {
-   	 	 $expire="$1$2$3";
-   	  }
-
-   	 if ($drweb_info{$agent_id}{blockbeg} && $drweb_info{$agent_id}{blockbeg} =~ /^(\d{4})(\d{2})(\d{2})/) {
-   	 	 $blockbeg="$1$2$3";
-   	  }
-
-   	 if ($drweb_info{$agent_id}{blockend} && $drweb_info{$agent_id}{blockend} =~ /^(\d{4})(\d{2})(\d{2})/) {
-   	 	 $blockend="$1$2$3";
-   	  }
-
- 	   $debug_output .= "> $user{LOGIN} TP: $tp_name $agent_id $drweb_info{$agent_id}{activated} EXPIRE: $expire\n" if ($debug > 0);;
-     
-     
- 	   if ($expire  && $expire < $cur_date) {
- 	   	 $debug_output .= "Expire\n" if ($debug > 1);
- 	    }
- 	   elsif ($drweb_info{$agent_id}{activated} eq 'yes') {
- 	     $debug_output .= "Deposit: $line->[2] Credit: $line->[3] PAYMENT_TYPE: $TP_INFO{$tp_name}{PAYMENT_TYPE}".
-             " DAY FEES: $TP_INFO{$tp_name}{DAY_FEE} MONTH FEES: $TP_INFO{$tp_name}{MONTH_FEE}".
-             "BLOCK BEGIN: $blockbeg BLOCK END: $blockend\n" if ($debug > 1);;
-       #Get fees
-       if ($line->[2] + $line->[3] > 0 || $TP_INFO{$tp_name}{PAYMENT_TYPE}) {
-       	  my $result;
-       	  if ($blockbeg != 0 || $blockend != 0 ) {
-       	    $result = ashield_drweb_request('api/2.0/change-customer-info.ds', { 
- 	     	 	   id       => $agent_id, 
- 	     	 	   blockbeg => "$cur_date".'000000000',
- 	     	 	   blockend => "$cur_date".'000000000'
-	     	 	   #blockbeg => ($blockbeg == 0) ? undef : "$cur_date".'000000000',
- 	     	 	   #blockend => ($blockend == 0) ? undef : "$cur_date".'000000000'
- 	     	 	   }); 
- 	          }
- 	         if ( $result->{error} ) {
- 	           print "Fees: '$cur_date' $result->{error}->[0]->{code}->[0] / $result->{error}->[0]->{message}->[0]\n" if ($debug > 0);
- 	          }
- 	         else {
- 	       	   $debug_output .= "$result->{customers}->[0]->{customer}->[0]->{id}->[0] ".
- 	            "BLOCKING: $blockbeg\n" if ($debug > 4);
-
-             if ($debug > 4) {
-               $debug_output .= " UID: $user{UID} SUM: $sum REDUCTION: $user{REDUCTION}\n";
-              }
-             else {
-             	 my %FEES_PARAMS = ( DESCRIBE => 'Dr.Web '. $_MONTH_FEE,
-             	                     METHOD   => 1,
-             	                     DATE     => $ADMIN_REPORT{DATE} );
-
-               $fees->take(\%user, $sum, { %FEES_PARAMS } );  
-               if ($fees->{error}) {
-               	  print "Error: User: $user->{LOGIN} Fees error: $fees->{error}\n";
-               	}
-               $debug_output .= " $user{LOGIN}  UID: $user{UID} SUM: $sum REDUCTION: $user{REDUCTION}\n" if ($debug > 0);
-              }
- 	          }
-        }
-       #Block 
- 	     else {
- 	     	 if (($blockbeg < $cur_date && $blockend < $cur_date) || $blockbeg > $cur_date) {
- 	     	   my $result = ashield_drweb_request('api/2.0/change-customer-info.ds', { 
- 	     	 	   id       => $agent_id, 
- 	     	 	   blockbeg => $cur_date.'000000000',
- 	     	 	   blockend => '20200101'.'000000000'
- 	     	 	   }); 
-	       
- 	         if ( $result->{error} ) {
- 	           print "Block $line->[0] '$cur_date' $result->{error}->[0]->{code}->[0] / $result->{error}->[0]->{message}->[0]\n";
- 	          }
- 	         else {
- 	       	   $debug_output .= "$result->{customers}->[0]->{customer}->[0]->{id}->[0] ".
- 	            "BLOCKING: $blockbeg\n" if ($debug > 0);
- 	          }
- 	       }
- 	      }
- 	    }
- 	   #exit;
-    }
-	
   }
 }
   $DEBUG .= $debug_output;
