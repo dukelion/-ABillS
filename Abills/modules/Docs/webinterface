@@ -1364,8 +1364,9 @@ sub docs_account {
        $Docs->{'ORDER_NAME_'.$i}  = $line->[1];
        $Docs->{'ORDER_COUNT_'.$i} = $count;
        $Docs->{'ORDER_PRICE_'.$i} = $line->[4];
-       $Docs->{'ORDER_SUM_'.$i}   = $sum;       
-       $Docs->{'ORDER_PRICE_WITHOUT_VAT_'.$i} = sprintf("%.2f", ($conf{DOCS_VAT_INCLUDE}) ? $line->[4] - $line->[4] / ((100 + $conf{DOCS_VAT_INCLUDE} ) / $conf{DOCS_VAT_INCLUDE}) : $line->[3]);
+       $Docs->{'ORDER_SUM_'.$i}   = $sum;
+       $Docs->{'ORDER_VAT_'.$i}   = ($conf{DOCS_VAT_INCLUDE}) ? (100 + $conf{DOCS_VAT_INCLUDE} ) / $conf{DOCS_VAT_INCLUDE} : 0;
+       $Docs->{'ORDER_PRICE_WITHOUT_VAT_'.$i} = sprintf("%.2f", ( $Docs->{'ORDER_VAT_'.$i} ) ? $line->[4] -  $Docs->{'ORDER_VAT_'.$i} : $line->[3]);
        $Docs->{'ORDER_SUM_WITHOUT_VAT_'.$i}   = sprintf("%.2f", ($conf{DOCS_VAT_INCLUDE}) ? $sum - ($sum) / ((100 + $conf{DOCS_VAT_INCLUDE} ) / $conf{DOCS_VAT_INCLUDE}) : $sum );
       }
 
