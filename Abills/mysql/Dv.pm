@@ -660,9 +660,16 @@ sub get_tp_speed {
 
   my $EXT_TABLE = '';
 
+  $self->{SEARCH_FIELDS}      ='';
+  $self->{SEARCH_FIELDS_COUNT}=0;
+
   if ($attr->{LOGIN}) {
     push @WHERE_RULES, "u.id='$attr->{LOGIN}'"; 
-    $EXT_TABLE .= "LEFT JOIN users u ON (dv.uid = u.uid )";
+    $EXT_TABLE .= "LEFT JOIN dv_main dv ON (dv.tp_id = tp.id )
+    LEFT JOIN users u ON (dv.uid = u.uid )";
+    
+    $self->{SEARCH_FIELDS}      = ', dv.speed';
+    $self->{SEARCH_FIELDS_COUNT}++;
    }
 
   if ($attr->{TP_ID}) {
@@ -672,10 +679,10 @@ sub get_tp_speed {
  $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
  
  $self->query($db, "SELECT tp.tp_id, tp.id, tt.id, tt.in_speed, tt.out_speed, tt.net_id, tt.expression 
+  $self->{SEARCH_FIELDS} 
 FROM trafic_tarifs tt
 LEFT JOIN intervals intv ON (tt.interval_id = intv.id)
 LEFT JOIN tarif_plans tp ON (tp.tp_id = intv.tp_id)
-LEFT JOIN dv_main dv ON (dv.tp_id = tp.id )
 $EXT_TABLE
 WHERE intv.begin <= DATE_FORMAT( NOW(), '%H:%i:%S' ) 
  AND intv.end >= DATE_FORMAT( NOW(), '%H:%i:%S' )
