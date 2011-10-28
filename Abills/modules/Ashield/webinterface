@@ -589,7 +589,9 @@ sub ashield_user {
         	$download_url =~ s/http:\/\/([a-z\.\-0-9\_]+)\//$conf{ASHIELD_DRWEB_DOWNLOAD_PREFIX}/i;
          }
         
-    	  $table->addrow($html->color_mark( (($conf{dbcharset} eq 'utf8') ? convert(convert($name, { utf82win => 1 }), {win2utf8 => 1}) : convert($name, { utf82win => 1 })), 'code'),
+        my $comp_name = ($conf{dbcharset} eq 'utf8') ?  $name : convert($name, { utf82win => 1 });        
+        
+    	  $table->addrow($html->color_mark( $comp_name , 'code'),
 ##    	               $k->{agentuuid}->[0], 
     	               ($error) ? $error : $tp,
     	               ($activated eq 'no' || $error) ? $_NO: $_YES,
