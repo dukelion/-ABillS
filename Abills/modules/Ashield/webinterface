@@ -589,6 +589,8 @@ sub ashield_user {
         	$download_url =~ s/http:\/\/([a-z\.\-0-9\_]+)\//$conf{ASHIELD_DRWEB_DOWNLOAD_PREFIX}/i;
          }
         
+        use Encode;
+        Encode::_utf8_off($line->{name}->[0]); 	 
         my $comp_name = ($conf{dbcharset} eq 'utf8') ?  $name : convert($name, { utf82win => 1 });        
         
     	  $table->addrow($html->color_mark( $comp_name , 'code'),
