@@ -590,7 +590,7 @@ sub ashield_user {
          }
         
         use Encode;
-        Encode::_utf8_off($line->{name}->[0]); 	 
+        Encode::_utf8_off($name); 	 
         my $comp_name = ($conf{dbcharset} eq 'utf8') ?  $name : convert($name, { utf82win => 1 });        
         
     	  $table->addrow($html->color_mark( $comp_name , 'code'),
@@ -888,8 +888,11 @@ sub ashield_users_list {
  my %drweb_logins = ();
  
  foreach my $line  (@{ $result_hash->{customers}->[0]->{customer} } ) {
- 	 # Computer -> Hash info
- 	 $drweb_logins{(($conf{dbcharset} eq 'utf8') ? convert(convert($line->{name}->[0], { utf82win => 1 }), {win2utf8 => 1}) : convert($line->{name}->[0], { utf82win => 1 })) }=keys %{ $line->{group} };
+ 	 # Computer -> Hash info 	 
+   use Encode;
+   Encode::_utf8_off($line->{name}->[0]); 	 
+   my $comp_name = ($conf{dbcharset} eq 'utf8') ?  $line->{name}->[0] : convert($line->{name}->[0], { utf82win => 1 });
+ 	 $drweb_logins{$comp_name}=keys %{ $line->{group} };
   } 
  
 
