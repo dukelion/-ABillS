@@ -93,6 +93,10 @@ my $sql = Abills::SQL->connect($conf{dbtype}, $conf{dbhost}, $conf{dbname}, $con
 $db = $sql->{db};
 $admin = Admins->new($db, \%conf);
 $admin->info($conf{SYSTEM_ADMIN_ID}, { IP => '127.0.0.1' });
+if ($admin->{errno}) {
+  print "AID: $conf{SYSTEM_ADMIN_ID} [$admin->{errno}] $admin->{errstr}\n";
+  exit 0;
+}
 
 my $default_alive_interval = 120;
 my $exppp_hanguplimit = 3500000000;
@@ -100,12 +104,8 @@ my $error_alive_count = $conf{ERROR_ALIVE_COUNT} || 3;
 
 require Tariffs;
 Tariffs->import();
-my $Tariffs = Tariffs->new($db, $admin);
+my $Tariffs = Tariffs->new($db, \%conf, $admin);
 
-if ($admin->{errno}) {
-  print "AID: $conf{SYSTEM_ADMIN_ID} [$admin->{errno}] $admin->{errstr}\n";
-  exit 0;
-}
 
 my %LIST_PARAMS = ();
 require Dv_Sessions;

@@ -3307,7 +3307,6 @@ if ($FORM{set}) {
        ($Y, $M, $D)=split(/-/, $user->{ACTIVATE}, 3);
       }
 
-
       # Renew expired accounts
       if ($user->{EXPIRE} ne '0000-00-00' && $Dv->{TP_AGE} > 0) {
         ($Y, $M, $D)=split(/-/, $user->{EXPIRE}); 
@@ -3325,7 +3324,6 @@ if ($FORM{set}) {
         	($Y, $M, $D)=split(/-/, strftime "%Y-%m-%d", localtime( (mktime(0, 0, 0, $D, ($M), ($Y-1900), 0, 0, 0) + $tp_age * 86400) )); 
          } 
        }
-
 
      if ($Dv->{STATUS} == 5) {
      	
@@ -3353,10 +3351,10 @@ if ($FORM{set}) {
         }
       }
 
-     CHG_TP:
-     $M = sprintf("%02d", $M);
-     $D = sprintf("%02d", $D);
-     my $seltime = POSIX::mktime(0, 0, 0, $D, ($M-1), ($Y - 1900));
+    CHG_TP:
+    $M = sprintf("%02d", $M);
+    $D = sprintf("%02d", $D);
+    my $seltime = POSIX::mktime(0, 0, 0, $D, ($M-1), ($Y - 1900));
 
     if ($seltime > time()) {
       $Shedule->add( {UID     => $LIST_PARAMS{UID},
@@ -3378,8 +3376,6 @@ if ($FORM{set}) {
       	                                 UID      => $LIST_PARAMS{UID},
       	                                 %CHANGE_PARAMS
       	                               });
-
-      
 
       if ($user->{errno}) {
         $html->message('err', $_ERROR, "[$user->{errno}] $err_strs{$user->{errno}}", {ID => 19 });

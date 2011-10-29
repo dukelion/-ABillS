@@ -1160,8 +1160,8 @@ foreach my $line (@$list) {
 
 
   foreach my $line (@$list) {
-    my $deposit =  $line->[21] || 0;
-     
+    my $deposit =  $line->[22] || 0;
+
     if ( defined($conf{DHCPHOSTS_DEPOSITCHECK}) && $deposit < $conf{DHCPHOSTS_DEPOSITCHECK}) {
      	next;
      }
