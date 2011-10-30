@@ -212,15 +212,20 @@ sub msgs_admin_add {
        my @uids = ();
        foreach my $line (@$list) {
           $FORM{UID}=$line->[5+$users->{SEARCH_FIELDS_COUNT}];
-          $NUMBERS{$line->[3+$users->{SEARCH_FIELDS_COUNT}]}=$FORM{UID};
+          $NUMBERS{$line->[3+$users->{SEARCH_FIELDS_COUNT} - (($admin->{permissions}->{0}->{8}) ? 0 : 1)]}=$FORM{UID};
 
           push @uids, $FORM{UID};
+          $Msgs->{debug}=1;
           $Msgs->message_add({ %FORM,
           	                   STATE      => ((! $FORM{STATE} || $FORM{STATE} == 0) && ! $FORM{INNER_MSG}) ? 6 : $FORM{STATE}, 
           	                   ADMIN_READ => (! $FORM{INNER_MSG}) ? "$DATE $TIME" : '0000-00-00 00:00:00',  
           	                   IP         => $admin->{SESSION_IP} 
           	                 });
-
+          if ($Msgs->{errno}) {
+             $html->message('err', $_ERROR, "[$Msgs->{errno}] $err_strs{$Msgs->{errno}}");
+             return 0; 
+           }
+ 
           if ($conf{MSGS_REDIRECT_FILTER_ADD}) {
             if ($rad ne '') {
               $Dv->change({ UID => $FORM{UID}, FILTER_ID => $rad });	
@@ -253,6 +258,9 @@ sub msgs_admin_add {
        	 my $res = `$cmd`;
       	}
 
+
+
+
        #Sms Send
        if ($FORM{SEND_SMS}) {
          if (! $FORM{INNER_MSG}) {
@@ -263,8 +271,6 @@ sub msgs_admin_add {
         	          });
           }
         }      
-
-
        $message = "$_TOTAL: $users->{TOTAL}";
        $LIST_PARAMS{PAGE_ROWS}=25;
        undef $FORM{UID};
@@ -302,7 +308,7 @@ sub msgs_admin_add {
 
     if (! $Msgs->{errno}) {
       #Add attachment
-      if ($FORM{FILE_UPLOAD}) {
+      if ($FORM{FILE_UPLOAD}{filename}) {
         $Msgs->attachment_add({ 
           MSG_ID       => $Msgs->{INSERT_ID},
           CONTENT      => $FORM{FILE_UPLOAD}{Contents},
@@ -401,14 +407,8 @@ sub msgs_admin_add {
   $Msgs->{DISPATCH_PLAN_DATE}   = $html->date_fld2('DISPATCH_PLAN_DATE', { NO_DEFAULT_DATE=>1, MONTHES => \@MONTHES, FORM_NAME => 'add_message', WEEK_DAYS => \@WEEKDAYS });
 
   if (! $FORM{UID}) {
-    my $USER = $html->form_select('GID', 
-                                { 
- 	                                SELECTED          => $FORM{GID},
- 	                                SEL_MULTI_ARRAY   => $users->groups_list(),
- 	                                MULTI_ARRAY_KEY   => 0,
- 	                                MULTI_ARRAY_VALUE => 1,
- 	                                SEL_OPTIONS       => { 0 => $_ALL }
- 	                               });
+    my $USER = sel_groups();
+
     $Msgs->{GROUP_SEND} = "<tr><td>$_GROUP:</td><td>$USER</td></tr>\n".
        "<tr><td>$_SEND_MAIL:</td><td><input type=checkbox name=EMAIL value=1 checked></td></tr>\n";
    }
@@ -484,6 +484,8 @@ sub msgs_admin {
   	 }
    }
 
+  msgs_chapters_menu();
+
   if ($FORM{deligate}) {
   	$Msgs->message_change({ ID          => $FORM{deligate},
   		                      DELIGATION  => $FORM{level},
@@ -529,7 +531,7 @@ sub msgs_admin {
 
          if (! $Msgs->{errno}) {
            #Add attachment
-           if ($FORM{FILE_UPLOAD}) {
+           if ($FORM{FILE_UPLOAD}{filename}) {
              $Msgs->attachment_add({ 
                MSG_ID       => $Msgs->{INSERT_ID},
                CONTENT      => $FORM{FILE_UPLOAD}{Contents},
@@ -818,7 +820,7 @@ sub msgs_admin {
 
     $Msgs->{CHAPTER_SEL}=$html->form_select('CHAPTER', 
                                           { 
- 	                                          SELECTED          => 0, #$Msgs->{CHAPTER} || $FORM{CHAPTER} || undef,
+ 	                                          SELECTED          => $FORM{CHAPTER} || 0, #$Msgs->{CHAPTER} || $FORM{CHAPTER} || undef,
  	                                          SEL_MULTI_ARRAY   => [ [ 0, "$_ALL" ], @{ $Msgs->chapters_list({ CHAPTERS => join(',', keys %A_PRIVILEGES) }) } ],
  	                                          MULTI_ARRAY_KEY   => 0,
  	                                          MULTI_ARRAY_VALUE => 1,
@@ -1063,7 +1065,7 @@ sub msgs_user {
  
    if (! $Msgs->{errno}) {
      #Add attachment
-     if ($FORM{FILE_UPLOAD}) {
+     if ($FORM{FILE_UPLOAD}{filename}) {
         $Msgs->attachment_add({ 
           MSG_ID       => $Msgs->{INSERT_ID},
           CONTENT      => $FORM{FILE_UPLOAD}{Contents},
@@ -1098,7 +1100,7 @@ sub msgs_user {
 
        if (! $Msgs->{errno}) {
          #Add attachment
-         if ($FORM{FILE_UPLOAD}) {
+         if ($FORM{FILE_UPLOAD}{filename}) {
            $Msgs->attachment_add({ 
              MSG_ID       => $Msgs->{INSERT_ID},
              CONTENT      => $FORM{FILE_UPLOAD}{Contents},
@@ -1720,8 +1722,21 @@ sub msgs_new {
       $SHOW_PARAMS{CHAPTERS} = join(', ', @A_CHAPTER);
      }
 
-    $Msgs->messages_new({ %SHOW_PARAMS });
-
+    my $list = $Msgs->messages_new({ %SHOW_PARAMS, SHOW_CHAPTERS=>1 });
+    my $id = 11;
+    $Msgs->{UNREAD} = 0;
+    foreach my $line (@$list ) {
+    	$id++;
+    	my $count = '';
+    	if ($line->[4] > 0) {
+        $count = '('. (($line->[2] > 2) ? $html->color_mark($line->[2], $_COLORS[6], { SKIP_XML => 1 }) : 0) ."/$line->[3]/$line->[4])";
+        $Msgs->{UNREAD} += $line->[2];
+        $Msgs->{TODAY}  += $line->[3];
+        $Msgs->{OPENED} += $line->[4]; 
+       }
+    	
+    	$FUNCTIONS_LIST{"$id:10:$line->[1] $count:msgs_admin:CHAPTER=$line->[0]"}  = 8;
+     }
     if ($Msgs->{OPENED} && $Msgs->{OPENED} > 0) {
       return '('. (($Msgs->{UNREAD} > 0) ? $html->color_mark($Msgs->{UNREAD}, $_COLORS[6], { SKIP_XML => 1 }) : 0) ."/$Msgs->{TODAY}/$Msgs->{OPENED})";
      }
@@ -2861,6 +2876,46 @@ foreach my $line (@$list) {
   	                                                         },
                                                             { OUTPUT2RETURN => 1 });
    }
+}
+
+
+
+#**********************************************************
+#
+#**********************************************************
+sub msgs_chapters_menu {
+	my ($attr)=@_;
+
+  #Get admin privileges
+#  my $a_list = $Msgs->admins_list({ AID => $admin->{AID} });
+#  my %A_PRIVILEGES        = ();
+#  my %CHAPTERS_DELIGATION = ();
+#  foreach my $line (@$a_list) {
+#  	if ($line->[5] > 0) {
+#  	  push @A_CHAPTER, "$line->[5]:$line->[3]";
+#  	  $CHAPTERS_DELIGATION{$line->[5]}=$line->[3];
+#  	  $A_PRIVILEGES{$line->[5]}=$line->[2];
+#  	 }
+#   }
+#
+#  if (scalar keys %CHAPTERS_DELIGATION > 0) {
+#    $LIST_PARAMS{CHAPTERS_DELIGATION} = \%CHAPTERS_DELIGATION;
+#    $LIST_PARAMS{PRIVILEGES}          = \%A_PRIVILEGES;
+#    $LIST_PARAMS{UID}      = undef if (! $FORM{UID}); 
+#   }
+#
+#  $Msgs->{debug}=1;
+#  my $list = $Msgs->messages_list({ %LIST_PARAMS,
+#  	                                DESC       => (! $FORM{sort}) ? 'DESC' : $FORM{desc} 
+#  	                               });
+#
+# foreach my $line (@$list) {
+# 	 print "$line->[0] <br>";
+#  } 
+
+
+
+
 }
 
 1

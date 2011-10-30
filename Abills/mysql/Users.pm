@@ -973,9 +973,7 @@ if ($self->{TOTAL} > 0) {
   $self->{EXTRA_FIELDS}=$list;
  }
 
- 
 
- 
 #Show last paymenst
  if ($attr->{PAYMENTS} || $attr->{PAYMENT_DAYS}) {    
     my @HAVING_RULES = @WHERE_RULES;

@@ -611,7 +611,15 @@ if ($index > 0) {
 
   while(my ($par_key, $name) = each ( %$h )) {
 
-    my $ex_params = (defined($menu_args->{$root_index}) && defined($FORM{$menu_args->{$root_index}})) ? '&'."$menu_args->{$root_index}=$FORM{$menu_args->{$root_index}}" : '';
+    my $ex_params = '';
+    if (defined($menu_args->{$root_index})) {
+      if ($menu_args->{$root_index} =~ /=/) {
+      	$ex_params = "&$menu_args->{$root_index}";
+       }
+      elsif(defined($FORM{$menu_args->{$root_index}})) {
+    	  $ex_params = '&'."$menu_args->{$root_index}=$FORM{$menu_args->{$root_index}}";
+    	 }
+     }
 
     $menu_navigator =  " ". $self->button($name, "index=$root_index$ex_params"). '/' . $menu_navigator;
     $tree{$root_index}=1;
@@ -673,12 +681,12 @@ foreach my $ID (@s) {
    	     $active = 'active_menu';
    	    };
 
-       if(! defined($menu_args->{$ID}) || (defined($menu_args->{$ID}) && defined($FORM{$menu_args->{$ID}})) ) {
+       if(! defined($menu_args->{$ID}) || (defined($menu_args->{$ID}) && (defined($FORM{$menu_args->{$ID}})  || $menu_args->{$ID} =~ /=/ )) ) {
        	   my $ext_args = "$EX_ARGS";
        	   if (defined($menu_args->{$ID})) {
-       	     $ext_args = "&$menu_args->{$ID}=$FORM{$menu_args->{$ID}}";
-       	     $name = $self->b($name) if ($name !~ /<b>/);
-       	     $active = 'active';
+       	     $ext_args = ($menu_args->{$ID} =~ /=/) ? "&$menu_args->{$ID}" : "&$menu_args->{$ID}=$FORM{$menu_args->{$ID}}";
+       	     $name     = $self->b($name) if ($name !~ /<b>/);
+       	     $active   = 'active';
        	    }
 
        	   my $link = $self->button($name, "index=$ID$ext_args", { ex_params => ($parent == 0) ? (($fl->{$ID} ne 'null') ? " id=". $fl->{$ID} : '') : '' });

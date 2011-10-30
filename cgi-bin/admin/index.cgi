@@ -259,7 +259,9 @@ foreach my $m (@MODULES) {
     my $v = $FUNCTIONS_LIST{$line};
 
     $module_fl{"$ID"}=$maxnumber;
-    $menu_args{$maxnumber}=$ARGS if ($ARGS && $ARGS ne '');
+    if ($ARGS && $ARGS ne '') {
+      $menu_args{$maxnumber}=$ARGS ;
+     }
     if($SUB > 0) {
       $menu_items{$maxnumber}{$module_fl{$SUB}}=$NAME;
      } 
@@ -418,7 +420,7 @@ if ($admin->{WEB_OPTIONS}{qm} && ! $FORM{xml}) {
     $qm_name = $menu_names{$qm_id} if ($qm_name eq '');
     
     $admin->{QUICK_MENU} .= "  <th class='$color'>";
-    if (defined($menu_args{$qm_id})) {
+    if (defined($menu_args{$qm_id}) && $menu_args{$qm_id} !~ /=/) {
     	my $args = 'LOGIN' if ($menu_args{$qm_id} eq 'UID');
       $admin->{QUICK_MENU} .= $html->button("$qm_name", '', 
          { JAVASCRIPT => "javascript: Q=prompt('$menu_names{$qm_id}',''); ".
@@ -7320,7 +7322,8 @@ sub sel_groups {
  	                                SEL_MULTI_ARRAY   => $users->groups_list({ GIDS => ($admin->{GIDS}) ? $admin->{GIDS} : undef }),
  	                                MULTI_ARRAY_KEY   => 0,
  	                                MULTI_ARRAY_VALUE => 1,
- 	                                SEL_OPTIONS       => ($admin->{GIDS}) ?  undef : { '' => "$_ALL" }
+ 	                                SEL_OPTIONS       => ($admin->{GIDS}) ?  undef : { '' => "$_ALL" },
+ 	                                MAIN_MENU         => get_function_index('form_groups'),
  	                               });
    }
 

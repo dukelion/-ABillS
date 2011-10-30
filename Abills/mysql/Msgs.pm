@@ -53,7 +53,7 @@ sub messages_new {
  	  sum(if(plan_date=curdate(), 1, 0)),
  	  sum(if(state = 0, 1, 0)), 1,1,1,1
  	   ";
-   push @WHERE_RULES, "m.state=0";
+   #push @WHERE_RULES, "m.state=0";
   }
 
  if ($attr->{UID}) {
@@ -61,19 +61,32 @@ sub messages_new {
  }
 
  if ($attr->{CHAPTERS}) {
-   push @WHERE_RULES, "m.chapter IN ($attr->{CHAPTERS})"; 
+   push @WHERE_RULES, "c.id IN ($attr->{CHAPTERS})"; 
   }
 
  if ($attr->{GIDS}) {
    push @WHERE_RULES, "u.gid IN ($attr->{GIDS})"; 
  }
 
+
  $WHERE = ($#WHERE_RULES > -1) ? 'WHERE '. join(' and ', @WHERE_RULES)  : '';
+
+ if ($attr->{SHOW_CHAPTERS}) {
+   $self->query($db,   "SELECT c.id, c.name, sum(if(admin_read='0000-00-00 00:00:00', 1, 0)), 
+ 	  sum(if(plan_date=curdate(), 1, 0)),
+ 	  sum(if(state = 0, 1, 0)), 1,1,1,1
+    FROM msgs_chapters c
+    LEFT JOIN msgs_messages m ON (m.chapter= c.id AND m.state=0)
+   $WHERE 
+   GROUP BY c.id;");
+   return $self->{list};
+  }
+
 
  if ($attr->{GIDS}) {
    $self->query($db,   "SELECT $fields 
     FROM (msgs_messages m, users u)
-   $WHERE and u.uid=m.uid GROUP BY 7;");
+   $WHERE and u.uid=m.uid GROUP BY 7Y;");
   }
  else {
    $self->query($db,   "SELECT $fields 
@@ -605,15 +618,7 @@ sub chapters_list {
 
  my $list = $self->{list};
 
-# if ($self->{TOTAL} > 0 ) {
-#   $self->query($db, "SELECT count(*)
-#     FROM msgs_chapters mc
-#     $WHERE");
-#
-#   ($self->{TOTAL}) = @{ $self->{list}->[0] };
-#  }
- 
- 
+
 	return $list;
 }
 
