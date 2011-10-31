@@ -1,0 +1,1483 @@
+
+use Storage;
+my $Storage = Storage->new($db, $admin, \%conf);
+
+
+#***********************************************************
+#  	Storage articles
+#***********************************************************
+sub storage_articles {
+
+	if ($FORM{message}) {				
+		$html->message('info', $_INFO, "$FORM{message}");	
+	}
+	$Storage->{ACTION}='add';
+	$Storage->{ACTION_LNG}=$_ADD;
+	$Storage->{ADD_DATE} = '0000-00-00';
+	$Storage->{ARTICLE_TYPES}=$html->form_select("ARTICLE_TYPE", 
+							{	SELECTED          => $FORM{ARTICLE_TYPE},
+								SEL_MULTI_ARRAY   => [['', ''], @{ $Storage->storage_types_list() } ], 
+								MULTI_ARRAY_KEY   => 0,
+								MULTI_ARRAY_VALUE => 1,
+								NO_ID             => 1
+							});		
+	
+	if ($FORM{add}) {
+		
+		if ($FORM{NAME} ne '' and $FORM{ARTICLE_TYPE} != '' and $FORM{MEASURE} ne '') {
+		
+			$Storage->storage_articles_add({ %FORM });
+			if (! $Storage->{errno}) {
+				$html->tpl_show(_include('storage_redirect', 'Storage'), { 
+						SECTION => '',
+						MESSAGE => "$_ADDED",
+					
+					});		
+			}
+		}
+		else {
+			
+			$html->message('info', $_INFO, "$_FIELDS_FOR_NAME_ARTICLETYPE_MEASURE_ARE_REQUIRED");
+			
+			$html->tpl_show(_include('storage_articles', 'Storage'), {%$Storage, %FORM});
+		
+		}
+	}
+	elsif ($FORM{del}) {
+		#$Storage->{debug}=1;
+		$list = $Storage->storage_incoming_articles_list( { ARTICLE_ID =>$FORM{del}} );
+		if (defined($list->[0]->[0]) ){
+
+			$html->message('info', $_INFO, "$_CANT_DELETE_ERROR1 ");
+		}
+		else {
+			$Storage->storage_articles_del( {ID =>$FORM{del}} );
+			if (! $Storage->{errno}){
+				$html->message('info', $_INFO, "$_DELETED");
+			}
+		}	
+	}
+	elsif ($FORM{change}) {
+		if ($FORM{NAME} ne '' and $FORM{ARTICLE_TYPE} != '' and $FORM{MEASURE} ne '') {
+			#$Storage->{debug}=1;
+			$Storage->storage_articles_change({ %FORM });
+			if (! $Storage->{errno}) {
+				$html->tpl_show(_include('storage_redirect', 'Storage'), { 
+						SECTION => '',
+						MESSAGE => "$_CHANGED",
+					
+					});	
+			}
+		}
+		else {
+			$html->message('info', $_INFO, "$_FIELDS_FOR_NAME_ARTICLETYPE_MEASURE_ARE_REQUIRED");
+			$html->tpl_show(_include('storage_articles', 'Storage'), {%$Storage, %FORM});
+		}
+	}
+	elsif ($FORM{chg}) {
+		#$Storage->{debug}=1;
+		$Storage->{ACTION}='change';
+		$Storage->{ACTION_LNG}=$_CHANGE;
+		$Storage->storage_articles_info({ ID => $FORM{chg},});
+		if (! $Storage->{errno}) {
+			$html->message('info', $_INFO, "$_CHANGING");	
+		}
+	}	
+	$Storage->{ARTICLE_TYPES}=$html->form_select("ARTICLE_TYPE", 
+								{	SELECTED          => $Storage->{ARTICLE_TYPE},
+									SEL_MULTI_ARRAY   => [['', ''], @{ $Storage->storage_types_list() } ], 
+									MULTI_ARRAY_KEY   => 0,
+									MULTI_ARRAY_VALUE => 1,
+									NO_ID             => 1
+								});	
+	
+	if (!$FORM{add} and !$FORM{change}) {
+		
+		
+		$html->tpl_show(_include('storage_articles', 'Storage'), $Storage);
+	}	
+	
+	my $table = $html->table(	{ 	width      => '100%',
+									caption    => $_STORAGE,
+									border     => 1,
+									title      => [$_NAME, $_TYPE, $_MEASURE, $_DATE, $_COMMENTS, '-', '-'],
+									cols_align => ['left', 'right', 'right', 'right', 'center', 'center'],
+									pages      => $Storage->{TOTAL},
+									ID         => 'STORAGE_ID'
+								}
+	);
+
+	#$Storage->{debug}=1;	
+	$list = $Storage->storage_articles_list( {});
+	
+	if ($Storage->{errno}) {
+    $html->message('err', $_ERROR, "[$Storage->{errno}] $err_strs{$Storage->{errno}}");
+	}
+	
+	foreach my $line ( @$list ) {
+		$table->addrow(	$line->[1],  
+						$line->[6], 
+						$line->[3], 
+						$line->[4],  
+						$line->[5],
+						$html->button($_INFO, "index=$index&chg=$line->[0]", { BUTTON => 1 }), 
+						(defined($permissions{0}{5})) ? $html->button($_DEL, "index=$index&del=$line->[0]", { MESSAGE => "$_DEL $_ARTICLE $line->[1]?", BUTTON => 1 }) : ''
+		);
+	}	
+	print $table->show();							
+}
+
+#***********************************************************
+#  	Storage articles types
+#***********************************************************
+sub storage_articles_types {
+	if ($FORM{message}) {				
+		$html->message('info', $_INFO, "$FORM{message}");	
+	}
+	$Storage->{ACTION}='add';
+	$Storage->{ACTION_LNG}=$_ADD;		
+	
+	if ($FORM{add}) {
+		if ($FORM{NAME} ne '') {
+			$Storage->storage_types_add({ %FORM });
+			if (! $Storage->{errno}) {
+				#$html->message('info', $_INFO, "$_ADDED");
+				$html->tpl_show(_include('storage_redirect', 'Storage'), { 
+					SECTION => '',
+					MESSAGE => "$_ADDED",
+				});		
+			}
+		}
+		else {
+			$html->message('info', $_INFO, "$_FIELDS_FOR_TYPE_ARE_REQUIRED");
+			$html->tpl_show(_include('storage_articles_types', 'Storage'), {%$Storage, %FORM} );
+		}	
+	}
+	elsif ($FORM{del}) {
+		$list = $Storage->storage_articles_list( { ARTICLE_ID =>$FORM{del}} );
+		
+		if ($Storage->{errno}) {
+    	$html->message('err', $_ERROR, "[$Storage->{errno}] $err_strs{$Storage->{errno}}");
+		}
+		
+		if (defined($list->[0]->[0]) ){
+	
+			$html->message('info', $_INFO, "$_CANT_DELETE_ERROR2 ");
+		}
+		else {	
+		
+			#$Storage->{debug}=1;
+			$Storage->storage_types_del( {ID =>$FORM{del}} );
+	    	if (! $Storage->{errno}){
+	    	 	$html->message('info', $_INFO, "$_DELETED");
+	     	}
+	    }	
+	}
+	elsif ($FORM{change}) {
+		if ($FORM{NAME} ne '') {
+			#$Storage->{debug}=1;
+			$Storage->storage_types_change({ %FORM });
+			if (! $Storage->{errno}) {
+	        	$html->tpl_show(_include('storage_redirect', 'Storage'), { 
+					SECTION => '',
+					MESSAGE => "$_CHANGED",
+				});			
+	    	}
+		}
+		else {
+			$Storage->{ACTION}='change';
+			$Storage->{ACTION_LNG}=$_CHANGE;
+			$html->message('info', $_INFO, "$_FIELDS_FOR_TYPE_ARE_REQUIRED");
+			$html->tpl_show(_include('storage_articles_types', 'Storage'), {%$Storage, %FORM} );
+		}
+	}	
+	elsif ($FORM{chg}) {
+		$Storage->{ACTION}='change';
+		$Storage->{ACTION_LNG}=$_CHANGE;		
+		#$Storage->{debug}=1;
+		$Storage->storage_articles_types_info({ ID => $FORM{chg},});
+	} 
+	if (!$FORM{add} and !$FORM{change}) {
+		$html->tpl_show(_include('storage_articles_types', 'Storage'), $Storage);  		
+	}
+	my $table = $html->table(	{	width      => '100%',
+															caption    => $_TYPE,
+															border     => 1,
+															title      => [$_NAME, $_COMMENTS, '-', '-'],
+															cols_align => ['left', 'right', 'center', 'center'],
+															pages      => $Storage->{TOTAL},
+															ID         => 'STORAGE_TYPES'
+								}
+	);
+	#$Storage->{debug}=1;	
+	$list = $Storage->storage_types_list( {});
+	
+	if ($Storage->{errno}) {
+    $html->message('err', $_ERROR, "[$Storage->{errno}] $err_strs{$Storage->{errno}}");
+	}
+	
+	foreach my $line ( @$list ) {
+		$table->addrow(	$line->[1],  
+						$line->[2], 
+						$html->button($_INFO, "index=$index&chg=$line->[0]", { BUTTON => 1 }), 
+						(defined($permissions{0}{5})) ? $html->button($_DEL, "index=$index&del=$line->[0]", { MESSAGE => "$_DEL $_TYPE $line->[1]?", BUTTON => 1 }) : ''
+    				  );
+	}			
+	print $table->show();  
+	
+}
+
+#***********************************************************
+# 	Suppliers
+#***********************************************************
+sub suppliers_main {
+	
+	if ($FORM{message}) {				
+		$html->message('info', $_INFO, "$FORM{message}");	
+	}		
+	$Storage->{ACTION}='add';
+	$Storage->{ACTION_LNG}=$_ADD;
+	$Storage->{DATE}='0000-00-00';
+
+	if ($FORM{del}) {
+		$list = $Storage->storage_incoming_articles_list( { SUPPLIER_ID =>$FORM{del}} );
+		
+		if ($Storage->{errno}) {
+    	$html->message('err', $_ERROR, "[$Storage->{errno}] $err_strs{$Storage->{errno}}");
+		}
+	
+	
+		if (defined($list->[0]->[0]) ){
+
+			$html->message('info', $_INFO, "$_CANT_DELETE_ERROR3");
+		}	
+		else {
+			#$Storage->{debug}=1;
+			$Storage->suppliers_del( {ID =>$FORM{del}} );
+			if (! $Storage->{errno}){
+				$html->message('info', $_INFO, "$_DELETED");
+			}	
+		}
+	}	
+	elsif ($FORM{change}) {
+		if ($FORM{NAME} ne '') {
+			#$Storage->{debug}=1;
+			$Storage->suppliers_change({ %FORM });
+			if (! $Storage->{errno}) {
+				#$html->message('info', $_INFO, "$_CHANGED");
+					$html->tpl_show(_include('storage_redirect', 'Storage'), { 
+					SECTION => '',
+					MESSAGE => "$_CHANGED",
+				});		
+			}
+		}
+		else {
+			$Storage->{ACTION}='change';
+			$Storage->{ACTION_LNG}=$_CHANGE;
+			$html->message('info', $_INFO, "$_FIELDS_FOR_NAME_ARE_REQUIRED");
+			$html->tpl_show(_include('storage_suppliers_form', 'Storage'), {%$Storage, %FORM});
+		}	
+	}	
+	elsif ($FORM{add}) {
+		if ($FORM{NAME} ne '') {
+		
+			$Storage->suppliers_add({ %FORM });
+			if (! $Storage->{errno}) {
+				#$html->message('info', $_INFO, "$_ADDED");
+				$html->tpl_show(_include('storage_redirect', 'Storage'), { 
+					SECTION => '',
+					MESSAGE => "$_ADDED",
+				});		
+			}
+		} 
+		else {
+			$html->message('info', $_INFO, "$_FIELDS_FOR_NAME_ARE_REQUIRED");
+			$html->tpl_show(_include('storage_suppliers_form', 'Storage'), {%$Storage, %FORM});
+		}
+	}	
+	elsif ($FORM{chg}) {		
+		$Storage->{ACTION}='change';
+		$Storage->{ACTION_LNG}=$_CHANGE;
+		$Storage->suppliers_info({ ID => $FORM{chg} });
+		if (! $Storage->{errno}) {
+			$html->message('info', $_INFO, "$_CHANGING");	
+		}
+
+	}
+	if (!$FORM{add} and !$FORM{change}) { 
+		$html->tpl_show(_include('storage_suppliers_form', 'Storage'), $Storage);
+	}
+	my $table = $html->table(	{	width      => '100%',
+									caption    => $_SUPPLIERS,
+									border     => 1,
+									title      => [$_NAME, $_PHONE, email, icq, $_SITE, $_DIRECTOR, $_BILL,'-', '-'],
+									cols_align => ['left', 'right', 'right', 'right', 'center', 'center'],
+									pages      => $Storage->{TOTAL},
+									ID         => 'STORAGE_ID'
+	});			
+	#$Storage->{debug}=1;	
+	$list = $Storage->suppliers_list({});
+	if ($Storage->{errno}) {
+    	$html->message('err', $_ERROR, "[$Storage->{errno}] $err_strs{$Storage->{errno}}");
+	}
+
+	foreach my $line ( @$list ) {
+		$table->addrow(	$line->[1],  
+						$line->[9], 
+						$line->[13], 
+						$line->[14],
+						$line->[12],  
+						$line->[16],
+						$line->[8],
+						#$line->[2], DATE
+						$html->button($_INFO, "index=$index&chg=$line->[0]", { BUTTON => 1 }), 
+						(defined($permissions{0}{5})) ? $html->button($_DEL, "index=$index&del=$line->[0]", { MESSAGE => "$_DEL $_SUPPLIER $line->[1]?", BUTTON => 1 }) : ''
+		);
+	}
+	print $table->show();
+}
+
+#***********************************************************
+# 	Storage incoming
+#***********************************************************
+sub storage_main {
+
+	if($FORM{''}) {
+		
+		$FORM{storage_status} = 1;
+	}
+
+		$Storage->{ACTION}='add';
+		$Storage->{ACTION_LNG}=$_ADD;
+		$Storage->{DATE}='0000-00-00 00:00:00';	
+
+	if ($FORM{message}) {				
+		$html->message('info', $_INFO, "$FORM{message}");	
+	}
+
+	
+	if ($FORM{del}) {
+		#$Storage->{debug}=1;
+		$list = $Storage->storage_incoming_articles_list( { ID => $FORM{del} });	
+		
+		if ($Storage->{errno}) {
+    	$html->message('err', $_ERROR, "[$Storage->{errno}] $err_strs{$Storage->{errno}}");
+		}
+		
+		if ($list->[0]->[25] == '' and $list->[0]->[26] == ''  and $list->[0]->[27] == '' and $list->[0]->[28]  =='' ) {
+			$Storage->storage_incoming_articles_del( {ID =>$FORM{del}} );
+			if (! $Storage->{errno}){
+				#$html->message('info', $_INFO, "$_DELETED");
+				$html->tpl_show(_include('storage_redirect', 'Storage'), { 
+					SECTION => '&storage_status=1',
+					MESSAGE => "$_DELETED",
+				});	
+			}
+			
+		}
+		else {
+			$html->tpl_show(_include('storage_redirect', 'Storage'), { 
+				SECTION => '&storage_status=1',
+				MESSAGE => "$_CANT_DELETE",
+			});	
+		}
+	}
+	elsif ($FORM{change}) {
+		
+	if ($FORM{COUNT} != '' and $FORM{SUM} != '' and $FORM{ARTICLE_TYPE_ID} != '' and $FORM{ARTICLE_ID} != '' and $FORM{STORAGE_ID} != '') {
+		#$Storage->{debug}=1;
+		$Storage->storage_incoming_articles_change({ %FORM });
+		if (! $Storage->{errno}) {
+			#$html->message('info', $_INFO, "$_CHANGED");
+			$html->tpl_show(_include('storage_redirect', 'Storage'), { 
+					SECTION => '&storage_status=1',
+					MESSAGE => "$_CHANGED",
+				
+				});		
+		}	
+	
+		
+	} else {
+		$Storage->{ACTION}='change';
+		$Storage->{ACTION_LNG}=$_CHANGE;
+		$Storage->{DISABLED}='readonly';
+			
+			my  $ARTICLE_TYPES = $Storage->{ARTICLE_TYPES}=$html->form_select("ARTICLE_TYPE_ID", 
+									{	SELECTED          => $FORM{ARTICLE_TYPE_ID},
+										SEL_MULTI_ARRAY   => [['', ''], @{ $Storage->storage_types_list() } ], 
+										MULTI_ARRAY_KEY   => 0,
+										MULTI_ARRAY_VALUE => 1,
+										NO_ID             => 1,
+										EX_PARAMS		  => 'onchange="autoReload();"'
+									});
+			
+			
+			
+			my $ARTICLE_ID = $Storage->{ARTICLE_ID}=$html->form_select("ARTICLE_ID", 
+									{	SELECTED          => $FORM{ARTICLE_ID},
+										SEL_MULTI_ARRAY   => [['', ''], @{ $Storage->storage_articles_list({ ARTICLE_TYPE => $FORM{ARTICLE_TYPE_ID} }) } ], 
+										MULTI_ARRAY_KEY   => 0,
+										MULTI_ARRAY_VALUE => 1,
+										NO_ID             => 1
+									});		
+		
+			my $SUPPLIER_ID = $Storage->{SUPPLIER_ID}=$html->form_select("SUPPLIER_ID", 
+											{	SELECTED          => $FORM{SUPPLIER_ID},
+												SEL_MULTI_ARRAY   => [['', ''], @{ $Storage->suppliers_list() } ], 
+												MULTI_ARRAY_KEY   => 0,
+												MULTI_ARRAY_VALUE => 1,
+												NO_ID             => 1
+											});
+			
+			my $STORAGE_STORAGES = $Storage->{STORAGE_STORAGES} = $html->form_select('STORAGE_ID',
+											{	SELECTED		=> $FORM{STORAGE_ID},
+												SEL_ARRAY		=> ['',split(/, /, $conf{STORAGE_STORAGES})   ],
+												ARRAY_NUM_ID	=> 1,
+												OUTPUT2RETURN	=> 1					
+											});		
+						
+				
+				$html->message('info', $_INFO, "$_FIELDS_FOR_ARTICLE_TYPE_SUM_COUNT_ARE_REQUIRED");
+				$html->tpl_show(_include('storage_main_form', 'Storage'),	{	%$Storage, 
+																				%FORM, 
+																				ARTICLE_ID		=> $ARTICLE_ID, 
+																				ARTICLE_TYPES 	=> $ARTICLE_TYPES, 
+																				SUPPLIER_ID 	=> $SUPPLIER_ID,
+																				STORAGE_ID		=> $STORAGE_STORAGES,
+
+																			});
+			} 
+		
+	}
+	elsif($FORM{add_article}==1 and $FORM{chg}) {
+		#$Storage->{debug}=1;
+		$Storage->{ACTION}='change';
+		$Storage->{ACTION_LNG}=$_CHANGE;
+		$Storage->{DISABLED}='readonly';
+		$Storage->storage_incoming_articles_info({ ID => $FORM{chg},});
+
+		if (! $Storage->{errno}) {
+			$html->message('info', $_INFO, "$_CHANGING");	
+		}
+	}
+	elsif($FORM{divide}) {
+		#$Storage->{debug}=1;	
+		$list = $Storage->storage_incoming_articles_list( { ID => $FORM{divide} });
+		
+		if ($Storage->{errno}) {
+    	$html->message('err', $_ERROR, "[$Storage->{errno}] $err_strs{$Storage->{errno}}");
+		}
+		
+		foreach my $line ( @$list ) {
+			if ($line->[2] > 1 and $line->[3] != 0) {
+				$Storage->storage_incoming_articles_divide ({
+					ARTICLE_ID			=>	$line->[1],
+					COUNT				=>	$line->[2],
+					SUM					=>	$line->[3]/$line->[2],
+					SN					=>	$line->[4],
+					MAIN_ARTICLE_ID		=>	$line->[0],
+					STORAGE_INCOMING_ID	=>	$line->[5],
+					SUM_TOTAL			=>	$line->[3],
+				});
+				if (! $Storage->{errno}) {
+					#$html->message('info', $_INFO, "$_DIVIDED");
+					$html->tpl_show(_include('storage_redirect', 'Storage'), { 
+										SECTION => '&storage_status=1',
+										MESSAGE => "$_DIVIDED",
+									
+									});		
+				}
+
+			} else {
+				$html->message('info', $_INFO, "$_CANT_DIVIDE");
+			}			
+		}
+	}
+	elsif($FORM{accountability}) {
+		$Storage->{ACTION}='add_accountability';
+		$Storage->{ACTION_LNG}=$_ADD;
+		$Storage->{ID}=$FORM{accountability}; 
+		$Storage->{AID}=$html->form_select("AID", 
+							{	SELECTED          => 1,
+								SEL_MULTI_ARRAY   => [['', ''], @{ $Storage->storage_admins_list({ }) } ], 
+								MULTI_ARRAY_KEY   => 0,
+								MULTI_ARRAY_VALUE => 1,
+								NO_ID             => 1
+							});	
+	
+		$html->tpl_show(_include('storage_accountability', 'Storage'), $Storage );
+	
+	}
+	elsif($FORM{discard}) {
+			$Storage->{ID}=$FORM{discard};
+			$Storage->{ACTION}='add_discard';
+			$Storage->{ACTION_LNG}=$_DISCARD;
+			$html->tpl_show(_include('storage_discard', 'Storage'), $Storage );
+		
+	}
+	elsif($FORM{add_discard}) {
+		#$Storage->{debug}=1;		
+		if ($FORM{COMMENTS} ne '') {
+			
+			$list = $Storage->storage_incoming_articles_list( { ID => $FORM{ID} });
+			
+			if ($Storage->{errno}) {
+	    	$html->message('err', $_ERROR, "[$Storage->{errno}] $err_strs{$Storage->{errno}}");
+			}
+			
+			$leftover = $list->[0]->[21];
+			if (($leftover - $FORM{COUNT}) > -1 and $FORM{COUNT} ne '' and $FORM{COUNT} != 0 ) {	
+					$Storage->storage_discard ({
+						ARTICLE_ID					=>	$list->[0]->[1],
+						COUNT_INCOMING			=>	$list->[0]->[2],
+						SUM_INCOMING				=>	$list->[0]->[3],
+						SN									=>	$list->[0]->[4],
+						MAIN_ARTICLE_ID			=>	$list->[0]->[0],
+						STORAGE_INCOMING_ID	=>	$list->[0]->[5],
+						SUM_TOTAL						=>	$list->[0]->[23], #$list->[0]->[23],
+						%FORM,
+								
+					});
+
+					if (! $Storage->{errno}) {
+						$html->tpl_show(_include('storage_redirect', 'Storage'), { 
+										SECTION => '&storage_status=1',
+										MESSAGE => "$_DISCARDED",
+									
+									});		
+					}
+					
+			} else {
+				$html->message('info', $_INFO, "$_CANT_DISCARD_MAX_VALUE $leftover ");
+				$Storage->{ID}=$FORM{discard};
+				$Storage->{ACTION}='add_discard';
+				$Storage->{ACTION_LNG}=$_DISCARD;
+				$html->tpl_show(_include('storage_discard', 'Storage'), {%$Storage, %FORM} );
+			}
+						
+		} else {
+			#$Storage->{ACTION}='add_discard';
+			#$Storage->{ACTION_LNG}=$_DISCARD;
+			$html->message('info', $_INFO, "$_FIELDS_FOR_COMMENTS_ARE_REQUIRED");
+			$html->tpl_show(_include('storage_discard', 'Storage'), {	%FORM, 
+																		ACTION => 'add_discard',
+																		ACTION_LNG => $_DISCARD,
+																		ID => $FORM{ID},
+																	
+																	});
+		}
+	}
+	
+	if ($FORM{add_accountability}) {
+		#$Storage->{debug}=1;
+		$list = $Storage->storage_incoming_articles_list ({ ID => $FORM{ID}});
+		
+		if ($Storage->{errno}) {
+    	$html->message('err', $_ERROR, "[$Storage->{errno}] $err_strs{$Storage->{errno}}");
+		}
+		
+		$leftover = $list->[0]->[21];
+		# $Storage->{list}->[0]->[21];
+		if (($leftover - $FORM{COUNT}) > -1 and $FORM{COUNT} ne '' and $FORM{COUNT} != 0) {
+		
+			#$Storage->{debug}=1;
+			$Storage->storage_accountability_add({ %FORM });
+				if (! $Storage->{errno}) {
+					#$html->message('info', $_INFO, "$_ADDED");
+					$html->tpl_show(_include('storage_redirect', 'Storage'), { 
+															SECTION => '&storage_status=1',
+															MESSAGE => "$_ADDED_TO_ACOUNTABILITY",
+														
+														});	
+				}
+		
+		} else {
+		$Storage->{ACTION}='add_accountability';
+		$Storage->{ACTION_LNG}=$_ADD;
+		$Storage->{ID}=$FORM{accountability};
+		$Storage->{AID}=$html->form_select("AID", 
+							{	SELECTED          => $FORM{AID},
+								SEL_MULTI_ARRAY   => [['', ''], @{ $Storage->storage_admins_list({ }) } ], 
+								MULTI_ARRAY_KEY   => 0,
+								MULTI_ARRAY_VALUE => 1,
+								NO_ID             => 1
+							});	 
+			$html->message('info', $_INFO, "$_CANT_ACCOUNTABILITY_ADD_MAX_VALUE $leftover ");
+			$html->tpl_show(_include('storage_accountability', 'Storage'), {%$Storage, %FORM, AID => $Storage->{AID} }, );
+		}
+	
+	}
+	elsif ($FORM{add_reserve}) {
+		#$Storage->{debug}=1;
+		$list = $Storage->storage_incoming_articles_list ({ ID => $FORM{ID}});
+		if ($Storage->{errno}) {
+    	$html->message('err', $_ERROR, "[$Storage->{errno}] $err_strs{$Storage->{errno}}");
+		}
+		
+		$leftover = $list->[0]->[21];
+		if (($leftover - $FORM{COUNT}) > -1 and $FORM{COUNT} ne '' and $FORM{COUNT} != 0) {
+		
+			#$Storage->{debug}=1;
+			$Storage->storage_reserve_add({ %FORM });
+				if (! $Storage->{errno}){
+					$html->tpl_show(_include('storage_redirect', 'Storage'), { 
+												SECTION => '&storage_status=1',
+												MESSAGE => "$_RESERVED",
+											
+											});	
+				}
+		} else {
+		$Storage->{ACTION}='add_reserve';
+		$Storage->{ACTION_LNG}=$_RESERVE;
+		$Storage->{ID}=$FORM{reserve}; 
+		$Storage->{AID}=$html->form_select("AID", 
+							{	SELECTED          => $FORM{AID},
+								SEL_MULTI_ARRAY   => [['', ""], @{ $Storage->storage_admins_list({ }) } ], 
+								MULTI_ARRAY_KEY   => 0,
+								MULTI_ARRAY_VALUE => 1,
+								NO_ID             => 1
+							});
+		$html->message('info', $_INFO, "$_CANT_RESERVE_MAX_VALUE $leftover ");
+		$html->tpl_show(_include('storage_reserve', 'Storage'), {%$Storage, 
+																	%FORM, 
+																	AID => $Storage->{AID}, });
+			
+		}
+
+	}
+
+
+
+	$Storage->{SUPPLIER_ID}=$html->form_select("SUPPLIER_ID", 
+									{	SELECTED          => $Storage->{SUPPLIER_ID},
+										SEL_MULTI_ARRAY   => [['', ''], @{ $Storage->suppliers_list() } ], 
+										MULTI_ARRAY_KEY   => 0,
+										MULTI_ARRAY_VALUE => 1,
+										NO_ID             => 1
+									});
+	
+
+	if ($FORM{ARTICLE_TYPE_ID}) {	
+		$Storage->{ARTICLE_ID}=$html->form_select("ARTICLE_ID", 
+										{	SELECTED          => $Storage->{ARTICLE_ID},
+											SEL_MULTI_ARRAY   => [['', ''], @{ $Storage->storage_articles_list({ ARTICLE_TYPE => $FORM{ARTICLE_TYPE_ID}, }) } ], 
+											MULTI_ARRAY_KEY   => 0,
+											MULTI_ARRAY_VALUE => 1,
+											NO_ID             => 1
+										});
+		
+		$Storage->{ARTICLE_TYPES}=$html->form_select("ARTICLE_TYPE_ID", 
+										{	SELECTED          => $FORM{ARTICLE_TYPE_ID},
+											SEL_MULTI_ARRAY   => [['', ''], @{ $Storage->storage_types_list() } ], 
+											MULTI_ARRAY_KEY   => 0,
+											MULTI_ARRAY_VALUE => 1,
+											NO_ID             => 1,
+											EX_PARAMS			=> 'onchange="autoReload();"'
+										});
+	
+	} else {
+		$Storage->{ARTICLE_ID}=$html->form_select("ARTICLE_ID", 
+							{	SELECTED          => $Storage->{ARTICLE_ID},
+								SEL_MULTI_ARRAY   => [['', ''], @{ $Storage->storage_articles_list({ ARTICLE_TYPE =>$Storage->{ARTICLE_TYPE_ID} }) } ], 
+								MULTI_ARRAY_KEY   => 0,
+								MULTI_ARRAY_VALUE => 1,
+								NO_ID             => 1
+							});		
+
+
+		$Storage->{ARTICLE_TYPES}=$html->form_select("ARTICLE_TYPE_ID", 
+										{	SELECTED          => $Storage->{ARTICLE_TYPE_ID},
+											SEL_MULTI_ARRAY   => [['', ''], @{ $Storage->storage_types_list() } ], 
+											MULTI_ARRAY_KEY   => 0,
+											MULTI_ARRAY_VALUE => 1,
+											NO_ID             => 1,
+											EX_PARAMS			=> 'onchange="autoReload();"'
+										});													
+	}
+
+	if ($conf{STORAGE_STORAGES}) {		  		
+		$Storage->{STORAGE_STORAGES} = $html->form_select('STORAGE_ID',
+									{	SELECTED		=> $Storage->{STORAGE_ID},
+										SEL_ARRAY		=> ['',split(/, /, $conf{STORAGE_STORAGES})   ],
+										ARRAY_NUM_ID	=> 1,
+										OUTPUT2RETURN	=> 1					
+									});		 		
+	}	
+	my @storage_storages = ('', split(/,/, $conf{STORAGE_STORAGES})); 		
+	
+	if($FORM{sn} == 1) {
+		$Storage->{INPUT_TYPE} ='text';
+	} else {
+		$Storage->{INPUT_TYPE} ='hidden';
+	}
+	
+
+	
+	
+	print $html->br() .  
+	
+		$html->button(($FORM{storage_status}==1) ? $html->b($_STORAGE)  : $_STORAGE, "index=$index&storage_status=1", { BUTTON => 1 }) . ' ' .
+		$html->button(($FORM{show_accountability}==1) ? $html->b($_ACCOUNTABILITY)  : $_ACCOUNTABILITY, "index=$index&show_accountability=1", { BUTTON => 1 }) . ' ' . 
+		$html->button(($FORM{show_reserve}==1) ? $html->b($_RESERVE)  : $_RESERVE, "index=$index&show_reserve=1", { BUTTON => 1 }) . ' ' .
+		$html->button(($FORM{show_installation}==1) ? $html->b($_INSTALLED)  : $_INSTALLED, "index=$index&show_installation=1", { BUTTON => 1 }) . ' ' .
+		$html->button(($FORM{storage_status}==5) ? $html->b($_DISCARDED)  : $_DISCARDED, "index=$index&storage_status=5", { BUTTON => 1 }) . ' ' .
+		$html->br(). $html->br(); 
+	
+
+	if($FORM{add_article} == 1 and !$FORM{add} and !$FORM{change})  {
+		$html->tpl_show(_include('storage_main_form', 'Storage'), $Storage );
+	}
+
+	if ($FORM{add_article} == 1 and $FORM{add}) {
+		#$Storage->{debug}=1;
+		$Storage->{ACTION}='add';
+		$Storage->{ACTION_LNG}=$_ADD;
+			if ($FORM{COUNT} != '' and $FORM{SUM} != '' and $FORM{ARTICLE_TYPE_ID} != '' and $FORM{ARTICLE_ID} != '' and $FORM{STORAGE_ID} != '') {
+			
+			 	$Storage->storage_incoming_articles_add({ %FORM });
+				if (! $Storage->{errno}) {
+					#$html->message('info', $_INFO, "$_ADDED");
+					$html->tpl_show(_include('storage_redirect', 'Storage'), { 
+										SECTION => '&storage_status=1',
+										MESSAGE => "$_ADDED",		
+									});	 	
+					
+				}		
+			} else {
+			
+			my  $ARTICLE_TYPES = $Storage->{ARTICLE_TYPES}=$html->form_select("ARTICLE_TYPE_ID", 
+									{	SELECTED          => $FORM{ARTICLE_TYPE_ID},
+										SEL_MULTI_ARRAY   => [['', ''], @{ $Storage->storage_types_list() } ], 
+										MULTI_ARRAY_KEY   => 0,
+										MULTI_ARRAY_VALUE => 1,
+										NO_ID             => 1,
+										EX_PARAMS		  => 'onchange="autoReload();"'
+									});
+			
+			
+			
+			my $ARTICLE_ID = $Storage->{ARTICLE_ID}=$html->form_select("ARTICLE_ID", 
+									{	SELECTED          => $FORM{ARTICLE_ID},
+										SEL_MULTI_ARRAY   => [['', ''], @{ $Storage->storage_articles_list({ ARTICLE_TYPE => $FORM{ARTICLE_TYPE_ID} }) } ], 
+										MULTI_ARRAY_KEY   => 0,
+										MULTI_ARRAY_VALUE => 1,
+										NO_ID             => 1
+									});		
+		
+			my $SUPPLIER_ID = $Storage->{SUPPLIER_ID}=$html->form_select("SUPPLIER_ID", 
+											{	SELECTED          => $FORM{SUPPLIER_ID},
+												SEL_MULTI_ARRAY   => [['', ''], @{ $Storage->suppliers_list() } ], 
+												MULTI_ARRAY_KEY   => 0,
+												MULTI_ARRAY_VALUE => 1,
+												NO_ID             => 1
+											});
+			
+			my $STORAGE_STORAGES = $Storage->{STORAGE_STORAGES} = $html->form_select('STORAGE_ID',
+											{	SELECTED		=> $FORM{STORAGE_ID},
+												SEL_ARRAY		=> ['',split(/, /, $conf{STORAGE_STORAGES})   ],
+												ARRAY_NUM_ID	=> 1,
+												OUTPUT2RETURN	=> 1					
+											});		
+						
+				
+				$html->message('info', $_INFO, "$_FIELDS_FOR_ARTICLE_TYPE_SUM_COUNT_ARE_REQUIRED");
+				$html->tpl_show(_include('storage_main_form', 'Storage'),	{	%$Storage, 
+																				%FORM, 
+																				ARTICLE_ID		=> $ARTICLE_ID, 
+																				ARTICLE_TYPES 	=> $ARTICLE_TYPES, 
+																				SUPPLIER_ID 	=> $SUPPLIER_ID,
+																				STORAGE_ID		=> $STORAGE_STORAGES,
+																			});
+			} 
+	}
+	
+	
+	if ($FORM{storage_status} == 1) {
+		
+	    $Storage->{ARTICLE_TYPES}=$html->form_select("ARTICLE_TYPE_ID", 
+								{	SELECTED          => $FORM{ARTICLE_TYPE_ID},
+									SEL_MULTI_ARRAY   => [['', "$_ALL"], @{ $Storage->storage_types_list() } ], 
+									MULTI_ARRAY_KEY   => 0,
+									MULTI_ARRAY_VALUE => 1,
+									NO_ID             => 1,
+									EX_PARAMS		  => 'onchange="autoReload();"'
+								});
+			
+			
+			
+		 $Storage->{ARTICLE_ID}=$html->form_select("ARTICLE_ID", 
+									{	SELECTED          => $FORM{ARTICLE_ID},
+										SEL_MULTI_ARRAY   => [['', "$_ALL"], @{ $Storage->storage_articles_list({ ARTICLE_TYPE => $FORM{ARTICLE_TYPE_ID} }) } ], 
+										MULTI_ARRAY_KEY   => 0,
+										MULTI_ARRAY_VALUE => 1,
+										NO_ID             => 1
+									});		
+		
+	 	 $Storage->{SUPPLIER_ID}=$html->form_select("SUPPLIER_ID", 
+											{	SELECTED          => $FORM{SUPPLIER_ID},
+												SEL_MULTI_ARRAY   => [['', "$_ALL"], @{ $Storage->suppliers_list() } ], 
+												MULTI_ARRAY_KEY   => 0,
+												MULTI_ARRAY_VALUE => 1,
+												NO_ID             => 1
+											});
+			
+		$Storage->{STORAGE_STORAGES} = $html->form_select('STORAGE_ID',
+											{	SELECTED		=> $FORM{STORAGE_ID},
+												SEL_ARRAY		=> [ "$_ALL", split(/, /, $conf{STORAGE_STORAGES})   ],
+												ARRAY_NUM_ID	=> 1,
+												OUTPUT2RETURN	=> 1					
+											});	
+		$html->tpl_show(_include('storage_main_filter', 'Storage'), $Storage, );	
+		
+		my $table = $html->table(	{	width		=> '100%',
+										caption		=> $_STORAGE,
+										border		=> 1,
+										title		=> [$_TYPE, $_NAME, $_COUNT, $_SUM,$_ADDED, $_SUPPLIERS,$_STORAGE , '-'],
+										cols_align	=> ['left', 'right', 'right', 'right', 'center', 'center'],
+										pages		=> $Storage->{TOTAL},
+										ID			=> 'STORAGE_ID',
+										EXPORT		=> "$_EXPORT XML:&xml=1",
+										header		=> $html->button("$_ADD_ITEM", "index=$index&add_article=1", { BUTTON => 1 }),
+									}	
+		);
+		#$Storage->{debug}=1;	
+		$list = $Storage->storage_incoming_articles_list( { ARTICLE_ID => $FORM{ARTICLE_ID}, 
+															ARTICLE_TYPES => $FORM{ARTICLE_TYPE_ID},
+															STORAGE_ID => $FORM{STORAGE_ID},
+															SUPPLIER_ID => $FORM{SUPPLIER_ID},
+														});	
+		
+		if ($Storage->{errno}) {
+    	$html->message('err', $_ERROR, "[$Storage->{errno}] $err_strs{$Storage->{errno}}");
+		}
+
+		foreach my $line ( @$list ) {
+			if ($line->[2] != 0 ) {				
+							
+							if ($line->[2] < 2) {
+								$info = '';
+								$info_divide = $html->button($_INFO, "index=$index&add_article=1&chg=$line->[0]&sn=1", { BUTTON => 0, ex_params => 'style = text-decoration:none'  });
+							} else {
+								$info = $html->button($_DIVIDE, "index=$index&divide=$line->[0]", { BUTTON => 0, ex_params => 'style = text-decoration:none'  });
+								$info_divide = $html->button($_INFO, "index=$index&add_article=1&chg=$line->[0]", { BUTTON => 0, ex_params => 'style = text-decoration:none'  });	
+							}
+								$del = (defined($permissions{0}{5})) ? $html->button($_DEL, "index=$index&del=$line->[0]", { MESSAGE => "$_DEL $line->[14] $line->[21] $line->[15]?", BUTTON => 0, ex_params => 'style = text-decoration:none'  }) : '';
+	
+			$table->addrow(	$line->[17],  
+							$line->[14],
+							"$_INSTALLED: "				. $line->[28] * 1 . ' '. $line->[15] . $html->br() .
+							"$_ACCOUNTABILITY: " 	. $line->[25] * 1 . ' '. $line->[15] . $html->br() .
+							"$_RESERVE: " 				. $line->[26] * 1 . ' '. $line->[15] . $html->br() .
+							"$_DISCARDED: "  			. $line->[27] * 1 . ' '. $line->[15] . $html->br() .  
+							$html->b("$_LEFTOVER: ". $line->[21] * 1 . ' '. $line->[15]) . $html->br() . '-' . $html->br() .
+							"$_TOTAL: " 			. ($line->[2] + $line->[28] + $line->[27]). ' '. $line->[15],  
+							"$_INSTALLED: " 	. $line->[28] * $line->[22]  . $html->br() .
+							"$_ACCOUNTABILITY: " 	. $line->[25] * $line->[22]. $html->br() .
+							"$_RESERVE: " 			. $line->[26] * $line->[22]. $html->br() .
+							"$_DISCARDED: " 		. $line->[27] * $line->[22]. $html->br() .  
+							$html->b("$_LEFTOVER: ". $line->[21] * $line->[22]) . $html->br() . '-' . $html->br() .							
+							"$_TOTAL: " 			. ($line->[2] + $line->[28] + $line->[27]) * $line->[22],
+							$line->[7],
+							$line->[18],   #Поставщики (sm.supplier_id)
+							$storage_storages[$line->[12]],  #Cклад (sm.depot_id)
+							#$line->[19],
+							#$line->[9],
+							$info .$html->br(). 
+									$info_divide .$html->br(). 
+									$del .$html->br(). 
+									$html->button("$_TO_ACCOUNTABILITY", "index=$index&accountability=$line->[0]", { BUTTON => 0, ex_params => 'style = text-decoration:none' }).$html->br(). 
+									$html->button("$_TO_RESERVE", "index=$index&reserve=$line->[0]", { BUTTON => 0, ex_params => 'style = text-decoration:none'  }).$html->br().
+									$html->button("$_TO_DISCARD", "index=$index&discard=$line->[0]", { BUTTON => 0, ex_params => 'style = text-decoration:none'  }),
+											 
+							
+					);
+		
+			}
+		}
+		print $table->show();
+	}
+	elsif($FORM{install_accountability}) {
+			$Storage->{NAS}=$html->form_select("NAS", 
+								{	SELECTED          => 0,
+									SEL_MULTI_ARRAY   => [['0', '-'], @{ $Storage->storage_installation_nas_list({ }) } ], 
+									MULTI_ARRAY_KEY   => 0,
+									MULTI_ARRAY_VALUE => 1,
+									NO_ID             => 1
+								});
+	
+		$Storage->{ADDRESS_TPL} = $html->tpl_show(templates('form_address_sel'), $Storage, { OUTPUT2RETURN => 1 }); 
+		$Storage->{ID} = $FORM{install_accountability};
+		$html->tpl_show(_include('storage_installation_add', 'Storage'), $Storage);	
+	}
+	elsif($FORM{install}) {
+		#$Storage->{debug}=1;	
+			my $NAS =	$Storage->{NAS}=$html->form_select("NAS", 
+				{	SELECTED          => $FORM{NAS},
+					SEL_MULTI_ARRAY   => [['0', '-'], @{ $Storage->storage_installation_nas_list({ }) } ], 
+					MULTI_ARRAY_KEY   => 0,
+					MULTI_ARRAY_VALUE => 1,
+					NO_ID             => 1
+				});
+		
+			$list2 = $Storage->storage_accountability_list( { ID => $FORM{ID} });
+			
+			if ($Storage->{errno}) {
+    		$html->message('err', $_ERROR, "[$Storage->{errno}] $err_strs{$Storage->{errno}}");
+			}
+			
+			$list = $Storage->storage_incoming_articles_list( { ID => $list2->[0]->[2] });
+			
+			if ($Storage->{errno}) {
+    		$html->message('err', $_ERROR, "[$Storage->{errno}] $err_strs{$Storage->{errno}}");
+			}
+			
+			$leftover = $list2->[0]->[3];
+			if ($leftover == '') {
+				$leftover = 0;
+			} 
+		
+		if ($FORM{ADDRESS_DISTRICT} ne '' and $FORM{ADDRESS_STREET} ne '' and $FORM{ADDRESS_BUILD} != ''){
+		
+		
+			if (($leftover - $FORM{COUNT}) > -1 and $FORM{COUNT} ne '' and $FORM{COUNT} != 0) {
+				$Storage->storage_installation_add({ %FORM,
+													COUNT_INCOMING	=> $list->[0]->[2],
+													SUM_TOTAL		=> $list->[0]->[23],
+													MAIN_ARTICLE_ID		=>	$list->[0]->[0],
+													STORAGE_INCOMING_ARTICLES_ID => $list2->[0]->[2],
+													
+												});
+				$Storage->storage_accountability_del({ID =>$FORM{ID}});
+					if (! $Storage->{errno}) {
+						#$html->message('info', $_INFO, "$_INSTALLED");
+						$html->tpl_show(_include('storage_redirect', 'Storage'), { 
+												SECTION => '&show_accountability=1',
+												MESSAGE => "$_INSTALLED",
+											
+											});		
+					}	
+			}
+			else {
+					$Storage->{ID}=$FORM{ID}; 
+					$html->message('info', $_INFO, "$_CANT_INSTALL_MAX_VALUE $leftover ");
+					$html->tpl_show(_include('storage_installation_add', 'Storage'), { %$Storage, 
+																						%FORM,
+																						NAS	=> $NAS, 						
+																					 });			
+			}
+		}
+		else {
+
+			
+			$html->message('info', $_INFO, "$_FIELDS_FOR_STREET_DISTRICT_HOUSE_ARE_REQUIRED");
+			$html->tpl_show(_include('storage_installation_add', 'Storage'), { %$Storage, 
+																				%FORM,
+																				NAS	=> $NAS,						
+																			});	
+				
+		}
+
+
+
+	}
+	elsif ($FORM{show_accountability}) {
+		
+			$Storage->{AID}=$html->form_select("AID", 
+								{	SELECTED          => 0,
+									SEL_MULTI_ARRAY   => [['0', 'All'], @{ $Storage->storage_admins_list({ }) } ], 
+									MULTI_ARRAY_KEY   => 0,
+									MULTI_ARRAY_VALUE => 1,
+									NO_ID             => 1
+								});
+					
+			print $html->br() . 
+				  $html->br() .
+				  $html->form_main({	CONTENT => "$_ADMIN: ".  $Storage->{AID},
+										HIDDEN  => { index  => "$index" },
+										SUBMIT  => { show_accountability  => "$_SHOW" },
+										NAME    => 'admin_select'
+								});
+##			
+			my $table = $html->table(	{	width	=> '100%',
+											caption    => $_ACCOUNTABILITY,
+											border     => 1,
+											title      => [$_ADMIN, $_TYPE, $_NAME, $_COUNT, $_SUM, $_DATE,$_COMMENTS, '-'],
+											cols_align => ['center', 'right', 'right', 'right', 'center', 'center'],
+											pages      => $Storage->{TOTAL},
+											ID         => 'STORAGE_ID'
+										}	
+			); 
+			#Storage->{debug}=1;	
+			$list = $Storage->storage_accountability_list({ AID => $FORM{AID} });
+			
+			if ($Storage->{errno}) {
+    		$html->message('err', $_ERROR, "[$Storage->{errno}] $err_strs{$Storage->{errno}}");
+			}
+			
+			foreach my $line ( @$list ) {
+				$del = (defined($permissions{0}{5})) ? $html->button("$_RETURN_STORAGE", "index=$index&del_accountability=$line->[0]", { MESSAGE => "$_RETURN_STORAGE $line->[7] $line->[3] $line->[10]?", BUTTON => 0, ex_params => 'style = text-decoration:none'}) : '';
+				$table->addrow(	$line->[6],  
+								$line->[8],
+								$line->[7],
+								$line->[3] . ' ' . $line->[10] ,
+								$line->[9],  
+								$line->[4],
+								$line->[5],
+								$html->button($_INSTALL, "index=$index&install_accountability=$line->[0]", { BUTTON => 0, ex_params => 'style = text-decoration:none' }) . $html->br() .  $del);
+			}
+			print $table->show();
+		
+	} 
+	elsif ($FORM{del_accountability}) {
+		#$Storage->{debug}=1;
+		$Storage->storage_accountability_del( {ID =>$FORM{del_accountability}} );
+		if (! $Storage->{errno}){
+			$html->tpl_show(_include('storage_redirect', 'Storage'), { 
+						SECTION => '&show_accountability=1',
+						MESSAGE => "$_RETURNED_STORAGE",
+			});
+		}	
+	}
+	elsif ($FORM{show_reserve}) {
+		
+					$Storage->{AID}=$html->form_select("AID", 
+								{	SELECTED          => 0,
+									SEL_MULTI_ARRAY   => [['0', 'All'], @{ $Storage->storage_admins_list({ }) } ], 
+									MULTI_ARRAY_KEY   => 0,
+									MULTI_ARRAY_VALUE => 1,
+									NO_ID             => 1
+								});
+					
+			print $html->br() . 
+				  $html->br() .
+				  $html->form_main({	CONTENT => "$_RESERVE: ".  $Storage->{AID},
+										HIDDEN  => { index  => "$index" },
+										SUBMIT  => { show_reserve  => "$_SHOW" },
+										NAME    => 'admin_select'
+								});
+##			
+			my $table = $html->table(	{	width	=> '100%',
+											caption    => $_RESERVE,
+											border     => 1,
+											title      => [$_ADMIN, $_TYPE, $_NAME, $_COUNT, $_SUM, $_DATE,$_COMMENTS, '-'],
+											cols_align => ['center', 'right', 'right', 'right', 'center', 'center'],
+											pages      => $Storage->{TOTAL},
+											ID         => 'STORAGE_ID'
+										}	
+			); 
+			#Storage->{debug}=1;	
+			$list = $Storage->storage_reserve_list({ AID => $FORM{AID} });
+			
+			if ($Storage->{errno}) {
+    		$html->message('err', $_ERROR, "[$Storage->{errno}] $err_strs{$Storage->{errno}}");
+			}
+			
+			foreach my $line ( @$list ) {
+				$del = (defined($permissions{0}{5})) ? $html->button($_DELETE_FROM_RESERVE, "index=$index&del_reserve=$line->[0]", { MESSAGE => "$_DELETE_FROM_RESERVE $line->[7] $line->[3] $line->[10]?", BUTTON => 0, ex_params => 'style = text-decoration:none'}) : '';
+				$table->addrow(	$line->[6],  
+								$line->[8],
+								$line->[7],
+								$line->[3] . ' ' . $line->[10] ,
+								$line->[9],  
+								$line->[4],
+								$line->[5],
+								$del
+								
+			 					
+							);
+			}
+			print $table->show();
+		
+	}
+	elsif ($FORM{reserve}) {
+		$Storage->{ACTION}='add_reserve';
+		$Storage->{ACTION_LNG}=$_RESERVE;
+		$Storage->{ID}=$FORM{reserve}; 
+		$Storage->{AID}=$html->form_select("AID", 
+							{	SELECTED          => 1,
+								SEL_MULTI_ARRAY   => [['', ""], @{ $Storage->storage_admins_list({ }) } ], 
+								MULTI_ARRAY_KEY   => 0,
+								MULTI_ARRAY_VALUE => 1,
+								NO_ID             => 1
+							});
+		$html->tpl_show(_include('storage_reserve', 'Storage'), $Storage );
+	}
+	elsif ($FORM{del_reserve}) {
+		#$Storage->{debug}=1;
+		$Storage->storage_reserve_del( {ID =>$FORM{del_reserve}} );
+		if (! $Storage->{errno}){
+			$html->tpl_show(_include('storage_redirect', 'Storage'), { 
+				SECTION => '&show_reserve=1',
+				MESSAGE => "$_DELETED_FROM_RESERVE",
+			});
+		}	
+	}
+	
+	#elsif ($FORM{storage_status} == 4) 
+	elsif ($FORM{show_installation}) {
+		$Storage->{AID}=$html->form_select("AID", 
+							{	SELECTED          => $FORM{AID},
+								SEL_MULTI_ARRAY   => [['0', "$_ALL"], @{ $Storage->storage_admins_list({ }) } ], 
+								MULTI_ARRAY_KEY   => 0,
+								MULTI_ARRAY_VALUE => 1,
+								NO_ID             => 1
+							});
+		$Storage->{DISTRICTS}=$html->form_select("DISTRICTS", 
+							{	SELECTED          => $FORM{DISTRICTS},
+								SEL_MULTI_ARRAY   => [['0', "$_ALL"], @{ $Storage->storage_districts_list({ }) } ], 
+								MULTI_ARRAY_KEY   => 0,
+								MULTI_ARRAY_VALUE => 1,
+								NO_ID             => 1
+							});
+		$Storage->{STREETS}=$html->form_select("STREETS", 
+							{	SELECTED          => $FORM{STREETS},
+								SEL_MULTI_ARRAY   => [['0', "$_ALL"], @{ $Storage->storage_streets_list({ }) } ], 
+								MULTI_ARRAY_KEY   => 0,
+								MULTI_ARRAY_VALUE => 1,
+								NO_ID             => 1
+							});
+				
+
+
+		$html->tpl_show(_include('storage_installation_filter', 'Storage'), $Storage);	
+
+				my $table = $html->table(	{	width	=> '100%',
+												caption    => $_INSTALLED,
+												border     => 1,
+												title      => [$_TYPE,$_NAME, $_COUNT, $_INSTALLED, $_ADMIN, $_NAS,  $_COMMENTS, '-'],
+												cols_align => ['left', 'right', 'right', 'right', 'center', 'center'],
+												pages      => $Storage->{TOTAL},
+												ID         => 'INSTALLED_ID'
+											}	
+		);
+		
+		
+		#$Storage->{debug}=1;
+		$list = $Storage->storage_installation_list({	AID 		=> $FORM{AID}, 
+													 	DISTRICTS 	=> $FORM{DISTRICTS}, 
+													 	STREETS 	=> $FORM{STREETS},
+													});
+		
+		if ($Storage->{errno}) {
+  		$html->message('err', $_ERROR, "[$Storage->{errno}] $err_strs{$Storage->{errno}}");
+		}
+
+		foreach my $line ( @$list ) {
+			$table->addrow(	$line->[10],  
+							$line->[9],
+							$line->[6] .' ' . $line->[12],
+							$line->[15].' ' . $line->[14],
+							$line->[8],  
+							$line->[13],
+							$line->[7],
+							(defined($permissions{0}{5})) ? $html->button($_RETURN_STORAGE, "index=$index&return_storage=$line->[0]", { MESSAGE => "$_RETURN_STORAGE $line->[9] $line->[6] $line->[12]?", BUTTON => 0, ex_params => 'style = text-decoration:none' }) : ''
+							
+			);
+		}
+		
+		
+		print $table->show();
+		
+	}
+	elsif ($FORM{return_storage}) {
+		
+	#$Storage->{debug}=1;
+	$list = $Storage->storage_installation_list({ ID => $FORM{return_storage}});		
+	
+	if ($Storage->{errno}) {
+		$html->message('err', $_ERROR, "[$Storage->{errno}] $err_strs{$Storage->{errno}}");
+	}	
+	
+	$list2 = $Storage->storage_incoming_articles_list( { ID => $list->[0]->[1] });	
+	
+	if ($Storage->{errno}) {
+    		$html->message('err', $_ERROR, "[$Storage->{errno}] $err_strs{$Storage->{errno}}");
+	}
+	
+		$Storage->storage_installation_return ({
+											COUNT_INCOMING	=> $list2->[0]->[2],
+											SUM_TOTAL		=> $list2->[0]->[23],
+											MAIN_ARTICLE_ID	=> $list2->[0]->[0],
+											COUNT 			=> $list->[0]->[6],
+											ID_INSTALLATION	=> $FORM{return_storage},
+											SUM 			=> $list->[0]->[19]	
+										 });
+										 
+		if (! $Storage->{errno}){
+			
+				$html->tpl_show(_include('storage_redirect', 'Storage'), { 
+					SECTION => '&show_installation=1',
+					MESSAGE => "$_RETURNED $list->[0]->[9] $list->[0]->[6] $list2->[0]->[15] $_AT_STORAGE  - $storage_storages[$list2->[0]->[24]]",
+				});
+		}	
+	}
+	# Discard **********************************************
+	elsif ($FORM{storage_status} == 5) {
+		my $table = $html->table(	{	width	=> '100%',
+										caption    => $_DISCARDED,
+										border     => 1,
+										title      => [$_ADMIN, $_TYPE, $_NAME, $_COUNT, $_SUM, $_DATE,$_COMMENTS],
+										cols_align => ['left', 'right', 'right', 'right', 'center', 'center'],
+										pages      => $Storage->{TOTAL},
+										ID         => 'DISCARD_ID'
+									}	
+		);
+
+		#$Storage->{debug}=1;
+		$list = $Storage->storage_discard_list({ });
+		
+		if ($Storage->{errno}) {
+    		$html->message('err', $_ERROR, "[$Storage->{errno}] $err_strs{$Storage->{errno}}");
+		}
+		
+		foreach my $line ( @$list ) {
+			$table->addrow(	$line->[6],  
+							$line->[8],
+							$line->[7],
+							$line->[2] .' ' . $line->[10],
+							$line->[11],  
+							$line->[4],
+							$line->[5]);
+		}
+
+		print $table->show();
+	}
+	else {
+		$FORM{storage_status} = 1;
+	}
+}
+
+#***********************************************************
+#  	Storage log
+#***********************************************************
+sub storage_log {
+
+	my $table = $html->table(	{	width	=> '100%',
+									caption    => $_LOG,
+									border     => 1,
+									title      => [$_DATE, $_NAME, $_COUNT, $_STORAGE, $_ACTION, $_ADMIN, IP],
+									cols_align => ['left', 'right', 'right', 'right', 'center', 'center'],
+									pages      => $Storage->{TOTAL},
+									ID         => 'STORAGE_ID'
+								}	
+	);
+	my @storage_id = split(/,/, $conf{STORAGE_STORAGES}); 
+	my @action = ("$_ARRIVAL_OF_THE_GOODS", "$_INSTALLATION", "$_DISCARDED", "$_NARRATED_TO_ACCOUNTABILITY", "$_RETURN_TO_THE_MANUFACTURER", "$_RESERVE", "$_RETURNED_STORAGE");
+	#$Storage->{debug}=1;	
+	$list = $Storage->storage_log_list({});
+	if ($Storage->{errno}) {
+  	$html->message('err', $_ERROR, "[$Storage->{errno}] $err_strs{$Storage->{errno}}");
+	}
+	
+	foreach my $line ( @$list ) {
+		$table->addrow(	$line->[1],  
+						$line->[10], 
+						$line->[11] . ' ' . $line->[12] , 
+						$storage_id[$line->[4]],
+						#$line->[5], comments
+						$action[$line->[6]],
+						$line->[8], 
+						$line->[7]);
+	}
+	print $table->show();
+}
+
+#***********************************************************
+#  	Storage orders 
+#***********************************************************
+
+sub storage_orders {
+	
+	if ($FORM{message}) {				
+		$html->message('info', $_INFO, "$FORM{message}");	
+	}
+	
+	$Storage->{ACTION}='add';
+	$Storage->{ACTION_LNG}=$_ADD;
+	
+	if($FORM{add_order}==1 and $FORM{chg}) {
+		#$Storage->{debug}=1;
+		$Storage->{ACTION}='change';
+		$Storage->{ACTION_LNG}=$_CHANGE;
+		$Storage->{CHG}='<input type=hidden name=chg value=1>';
+		$Storage->storage_orders_info({ ID => $FORM{chg},});
+		if (! $Storage->{errno}) {
+			$html->message('info', $_INFO, "$_CHANGING");	
+		}
+	}
+	if ($FORM{change}) {
+			
+		if ($FORM{ARTICLE_TYPE_ID} != '' and $FORM{ARTICLE_ID} != '') {
+			#$Storage->{debug}=1;
+			$Storage->storage_orders_change({ %FORM });
+			if (! $Storage->{errno}) {
+				#$html->message('info', $_INFO, "$_CHANGED");
+				$html->tpl_show(_include('storage_redirect', 'Storage'), { 
+						SECTION => '',
+						MESSAGE => "$_CHANGED",
+					
+					});		
+			}	
+		
+			
+		} else {
+			$Storage->{ACTION}='change';
+			$Storage->{ACTION_LNG}=$_CHANGE;
+				
+				my  $ARTICLE_TYPES = $Storage->{ARTICLE_TYPES}=$html->form_select("ARTICLE_TYPE_ID", 
+										{	SELECTED          => $FORM{ARTICLE_TYPE_ID},
+											SEL_MULTI_ARRAY   => [['', ''], @{ $Storage->storage_types_list() } ], 
+											MULTI_ARRAY_KEY   => 0,
+											MULTI_ARRAY_VALUE => 1,
+											NO_ID             => 1,
+											EX_PARAMS		  => 'onchange="autoReload();"'
+										});
+				
+				
+				
+				my $ARTICLE_ID = $Storage->{ARTICLE_ID}=$html->form_select("ARTICLE_ID", 
+										{	SELECTED          => $FORM{ARTICLE_ID},
+											SEL_MULTI_ARRAY   => [['', ''], @{ $Storage->storage_articles_list({ ARTICLE_TYPE => $FORM{ARTICLE_TYPE_ID} }) } ], 
+											MULTI_ARRAY_KEY   => 0,
+											MULTI_ARRAY_VALUE => 1,
+											NO_ID             => 1
+										});		
+			
+						
+					$html->message('info', $_INFO, "$_FIELDS_FOR_NAME_TYPE_ARE_REQUIRED");
+					$html->tpl_show(_include('storage_orders', 'Storage'),	{	%$Storage, 
+																					%FORM, 
+																					ARTICLE_ID		=> $ARTICLE_ID, 
+																					ARTICLE_TYPES 	=> $ARTICLE_TYPES, 
+																				});
+		} 
+			
+	}
+	
+	
+	if ($FORM{ARTICLE_TYPE_ID}) {	
+		$Storage->{ARTICLE_ID}=$html->form_select("ARTICLE_ID", 
+										{	SELECTED          => $Storage->{ARTICLE_ID},
+											SEL_MULTI_ARRAY   => [['', ''], @{ $Storage->storage_articles_list({ ARTICLE_TYPE => $FORM{ARTICLE_TYPE_ID}, }) } ], 
+											MULTI_ARRAY_KEY   => 0,
+											MULTI_ARRAY_VALUE => 1,
+											NO_ID             => 1
+										});
+		
+		$Storage->{ARTICLE_TYPES}=$html->form_select("ARTICLE_TYPE_ID", 
+										{	SELECTED          => $FORM{ARTICLE_TYPE_ID},
+											SEL_MULTI_ARRAY   => [['', ''], @{ $Storage->storage_types_list() } ], 
+											MULTI_ARRAY_KEY   => 0,
+											MULTI_ARRAY_VALUE => 1,
+											NO_ID             => 1,
+											EX_PARAMS			=> 'onchange="autoReload();"'
+										});
+	
+	} else {
+		$Storage->{ARTICLE_ID}=$html->form_select("ARTICLE_ID", 
+							{	SELECTED          => $Storage->{ARTICLE_ID},
+								SEL_MULTI_ARRAY   => [['', ''], @{ $Storage->storage_articles_list({ ARTICLE_TYPE =>$Storage->{ARTICLE_TYPE_ID} }) } ], 
+								MULTI_ARRAY_KEY   => 0,
+								MULTI_ARRAY_VALUE => 1,
+								NO_ID             => 1
+							});		
+
+
+		$Storage->{ARTICLE_TYPES}=$html->form_select("ARTICLE_TYPE_ID", 
+										{	SELECTED          => $Storage->{ARTICLE_TYPE_ID},
+											SEL_MULTI_ARRAY   => [['', ''], @{ $Storage->storage_types_list() } ], 
+											MULTI_ARRAY_KEY   => 0,
+											MULTI_ARRAY_VALUE => 1,
+											NO_ID             => 1,
+											EX_PARAMS			=> 'onchange="autoReload();"'
+										});													
+	}
+
+
+	if($FORM{add_order} == 1 and !$FORM{add} and !$FORM{change})  {
+		$html->tpl_show(_include('storage_orders', 'Storage'), $Storage );
+	}
+
+	if ($FORM{add_order} == 1 and $FORM{add}) {
+			#$Storage->{debug}=1;
+			$Storage->{ACTION}='add';
+			$Storage->{ACTION_LNG}=$_ADD;
+				if ($FORM{ARTICLE_TYPE_ID} != '' and $FORM{ARTICLE_ID} != '') {
+				
+				 	$Storage->storage_orders_add({ %FORM });
+					if (! $Storage->{errno}) {
+						#$html->message('info', $_INFO, "$_ADDED");
+						$html->tpl_show(_include('storage_redirect', 'Storage'), { 
+											SECTION => '',
+											MESSAGE => "$_ADDED",		
+										});	 	
+						
+					}		
+				} else {
+				my  $ARTICLE_TYPES = $Storage->{ARTICLE_TYPES}=$html->form_select("ARTICLE_TYPE_ID", 
+										{	SELECTED          => $FORM{ARTICLE_TYPE_ID},
+											SEL_MULTI_ARRAY   => [['', ''], @{ $Storage->storage_types_list() } ], 
+											MULTI_ARRAY_KEY   => 0,
+											MULTI_ARRAY_VALUE => 1,
+											NO_ID             => 1,
+											EX_PARAMS		  => 'onchange="autoReload();"'
+										});
+				
+				
+				
+				my $ARTICLE_ID = $Storage->{ARTICLE_ID}=$html->form_select("ARTICLE_ID", 
+										{	SELECTED          => $FORM{ARTICLE_ID},
+											SEL_MULTI_ARRAY   => [['', ''], @{ $Storage->storage_articles_list({ ARTICLE_TYPE => $FORM{ARTICLE_TYPE_ID} }) } ], 
+											MULTI_ARRAY_KEY   => 0,
+											MULTI_ARRAY_VALUE => 1,
+											NO_ID             => 1
+										});								
+					
+					$html->message('info', $_INFO, "$_FIELDS_FOR_NAME_TYPE_ARE_REQUIRED");
+					$html->tpl_show(_include('storage_orders', 'Storage'),	{	%$Storage, 
+																					%FORM,
+																				ARTICLE_ID		=> $ARTICLE_ID, 
+																				ARTICLE_TYPES 	=> $ARTICLE_TYPES, 
+																				});
+				} 
+	}
+	elsif($FORM{del}) {
+			$Storage->storage_orders_del( {ID =>$FORM{del}} );
+			if (! $Storage->{errno}){
+				$html->message('info', $_INFO, "$_DELETED");
+			}	
+	}
+
+	my $table = $html->table(	{	width		=> '100%',
+									caption		=> ORDERS,
+									border		=> 1,
+									title		=> [$_TYPE, $_NAME, $_COUNT, $_COMMENTS, '-', '-'],
+									cols_align	=> ['right', 'center', 'center','center','center'],
+									pages		=> $Storage->{TOTAL},
+									ID			=> 'STORAGE_ID',
+									header	=> $html->button($_ADD_ORDER, "index=$index&add_order=1", { BUTTON => 1 }),
+								}	
+	);
+	#$Storage->{debug}=1;
+	$list = $Storage->storage_orders_list({});
+	
+	if ($Storage->{errno}) {
+  	$html->message('err', $_ERROR, "[$Storage->{errno}] $err_strs{$Storage->{errno}}");
+	}
+	
+	foreach my $line ( @$list ) {
+		$table->addrow(	$line->[5],  
+						$line->[3], 
+						$line->[1]. ' ' . $line->[4], 
+ 						$line->[2],
+ 						$html->button($_INFO, "index=$index&add_order=1&chg=$line->[0]", { BUTTON => 1 }),
+ 						(defined($permissions{0}{5})) ? $html->button($_ORDERED, "index=$index&del=$line->[0]", { MESSAGE => "$_DEL $_ORDER_FOR $line->[3]?", BUTTON => 1 }) : '',
+					);
+	}
+	
+
+	print $table->show();
+
+
+
+}
