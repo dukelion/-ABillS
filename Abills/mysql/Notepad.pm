@@ -95,7 +95,8 @@ sub notepad_note_info {
 	$WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
  
 	$self->query($db, "SELECT 	n.id, 
-								n.notified, 
+								DATE(n.notified),
+								TIME(n.notified), 
 								n.create_date,
 								n.status,
 								n.subject,
@@ -108,6 +109,7 @@ sub notepad_note_info {
 								ORDER BY $SORT $DESC;");
 
 	(	$self->{ID},
+		$self->{DATE},
  		$self->{NOTIFIED},
  		$self->{CREATE_DATE},
  		$self->{STATUS},
@@ -132,9 +134,9 @@ sub notepad_note_info {
 sub notepad_add_note {
 	my $self = shift;
 	my ($attr) = @_;
- 
+ 	
 	%DATA = $self->get_data($attr); 
-
+	my $DATE = $DATA{DATE} . ' ' . $DATA{NOTIFIED}; 
  	$self->query($db, "INSERT INTO notepad (	notified, 
 												create_date, 
 												status, 
@@ -144,10 +146,10 @@ sub notepad_add_note {
 													)
 												VALUES 
 													(
-														'$DATA{NOTIFIED}', 
+														'$DATE', 
 														NOW(), 
 														'$DATA{STATUS}', 
-														'$DATA{SUBJECT}', 
+														'$DATA{SUBJECT}',  
 														'$DATA{TEXT}', 
 														'$admin->{AID}'
 													);", 'do'
@@ -163,16 +165,25 @@ sub notepad_add_note {
 sub notepad_note_change {
 	my $self = shift;
 	my ($attr) = @_; 
- 
-	my %FIELDS = (	ID	=> 'id',
-					NOTIFIED	  => 'notified', 
-					CREATE_DATE	=> 'create_date',
-					STATUS		  => 'status', 
-					SUBJECT		  => 'subject',
-					TEXT		    => 'text',
-					AID			    => 'aid'
-	);
+	
+#	$attr->{SUBJECT} =~ s/\'/\'/g;
+#	$attr->{SUBJECT} =~ s/\"/\"/g;
+#	$attr->{TEXT} =~ s/\'/.../g;
+#	$attr->{TEXT} =~ s/\"/..."/g;	
+	
 
+ 	
+	my %FIELDS = (	ID		=> 'id',
+					NOTIFIED	  	=> 'notified', 
+					CREATE_DATE		=> 'create_date',
+					STATUS		  	=> 'status', 
+					SUBJECT		  	=> 'subject',
+					TEXT		    	=> 'text',
+					AID			    	=> 'aid'
+	);
+	
+	$attr->{NOTIFIED} = $attr->{DATE} . ' ' . $attr->{NOTIFIED};
+  #$admin->{debug} = 1;
 	$self->changes($admin,	{	CHANGE_PARAM => 'ID',
 								TABLE        => 'notepad',
 								FIELDS       => \%FIELDS,
@@ -238,6 +249,46 @@ if ($self->{TOTAL}){
 
   return $self;	
 }
+
+
+#**********************************************************
+# Notepad notice popupWindow
+#**********************************************************
+sub notepad_notice {
+	my $self = shift;
+	my ($attr) = @_;
+
+	my @WHERE_RULES  = ();	
+	my $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
+	my $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
+	
+	my $ext_fields = '';
+
+	if(defined($attr->{ID})) {
+		push @WHERE_RULES, "id='$attr->{ID}'";
+	} 
+
+	$WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
+ 
+	$self->query($db, "SELECT 	n.id, 
+								UNIX_TIMESTAMP(n.notified), 
+								n.create_date,
+								n.status,
+								n.subject,
+								n.text,
+								n.aid,
+								adm.name,
+								DATE_FORMAT(n.notified, '%d.%m.%Y %T')
+								FROM notepad AS n
+							LEFT JOIN admins adm ON ( adm.aid = n.aid )
+								WHERE n.notified LIKE CONCAT(CURDATE(), '%')
+								ORDER BY $SORT $DESC;");
+
+	return $self->{list};
+}
+
+
+
 
 
 1
