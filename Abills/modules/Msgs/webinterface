@@ -215,7 +215,6 @@ sub msgs_admin_add {
           $NUMBERS{$line->[3+$users->{SEARCH_FIELDS_COUNT} - (($admin->{permissions}->{0}->{8}) ? 0 : 1)]}=$FORM{UID};
 
           push @uids, $FORM{UID};
-          $Msgs->{debug}=1;
           $Msgs->message_add({ %FORM,
           	                   STATE      => ((! $FORM{STATE} || $FORM{STATE} == 0) && ! $FORM{INNER_MSG}) ? 6 : $FORM{STATE}, 
           	                   ADMIN_READ => (! $FORM{INNER_MSG}) ? "$DATE $TIME" : '0000-00-00 00:00:00',  
@@ -239,6 +238,8 @@ sub msgs_admin_add {
            	 TIME    => $TIME, 
            	 ID      => $Msgs->{INSERT_ID}, 
            	 SUBJECT => $FORM{SUBJECT}.' / '.$FORM{REPLY_SUBJECT},
+           	 LOGIN   => $line->[0],
+           	 UID     => $FORM{UID},
            	 STATUS  => $msg_status[$FORM{STATE}],
            	 MESSAGE => $FORM{MESSAGE},
            	 ATTACHMENT => $FORM{FILE_UPLOAD}{filename}
