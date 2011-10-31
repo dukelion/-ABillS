@@ -148,7 +148,7 @@ function initialize(x, y, zoom ) {
           if (overlay instanceof GMarker) {
           	if (overlay.getTitle() != 'NAS') {
             	// insert the marker HTML, apply the position to the ovelay context menu, and make it visible 
-            	contextmenu.innerHTML = '<a class=\"context\" href=\"index.cgi?index=$index&dcoordx=' + overlay.getLatLng().x + '&dcoordy='+ overlay.getLatLng().y + '\"><div >&nbsp;&nbsp;РЈРґР°Р»РёС‚СЊ РјР°СЂРєРµСЂ&nbsp;&nbsp;<\/div><\/a>';
+            	contextmenu.innerHTML = '<a class=\"context\" href=\"index.cgi?index=$index&dcoordx=' + overlay.getLatLng().x + '&dcoordy='+ overlay.getLatLng().y + '\"><div >&nbsp;&nbsp;Удалить маркер&nbsp;&nbsp;<\/div><\/a>';
             	pos.apply(contextmenu);
             	contextmenu.style.visibility = \"visible\";
             	clickedOverlay = overlay;

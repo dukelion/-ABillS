@@ -659,75 +659,96 @@ TABLE.border {
 
 
 /* calendar icon */
-img.tcalIcon {
-    cursor: pointer;
-    margin-left: 1px;
-    vertical-align: middle;
+/* input box in default state */ 
+.tcalInput {
+	background: url(/img/cal.gif) 100% 50% no-repeat;
+	padding-right: 20px;
+	cursor: pointer;
 }
-/* calendar container element */
-div#tcal {
-    position: absolute;
-    visibility: hidden;
-    z-index: 100;
-    width: 158px;
-    padding: 2px 0 0 0;
+
+/* additional properties for input boxe in activated state, above still applies unless in conflict */
+.tcalActive {
+	background-image: url(/img/no_cal.gif);
 }
-/* all tables in calendar */
-div#tcal table {
-    width: 100%;
-    border: 1px solid silver;
-    border-collapse: collapse;
-    background-color: white;
+/* container of calendar's pop-up */
+#tcal {
+	position: absolute;
+	visibility: hidden;
+	z-index: 100;
+	width: 170px;
+	background-color: #FFF;
+	margin-top: 2px;
+	padding: 0 2px 2px 2px;
+	border: 1px solid silver;
+
+	-moz-box-shadow: 3px 3px 4px silver;
+	-webkit-box-shadow: 3px 3px 4px silver;
+	box-shadow: 3px 3px 4px silver;
+	-ms-filter: \"progid:DXImageTransform.Microsoft.Shadow(Strength=4, Direction=135, Color='silver')\";
+	filter: progid:DXImageTransform.Microsoft.Shadow(Strength=4, Direction=135, Color='silver');
 }
-/* navigation table */
-div#tcal table.ctrl {
-    border-bottom: 0;
+
+/* table containing navigation and current month */
+#tcalControls {
+	border-collapse: collapse;
+	border: 0;
+	width: 100%;
 }
-/* navigation buttons */
-div#tcal table.ctrl td {
-    width: 15px;
-    height: 20px;
+#tcalControls td {
+	border-collapse: collapse;
+	border: 0;
+	padding: 0;
+	width: 16px;
+	background-position: 50% 50%;
+	background-repeat: no-repeat;
+	cursor: pointer;
 }
-/* month year header */
-div#tcal table.ctrl th {
-    background-color: %_COLOR_2%;
-    color: black;
-    border: 0;
+#tcalControls th {
+	border-collapse: collapse;
+	border: 0;
+	padding: 0;
+	line-height: 25px;
+	font-size: 10px;
+	text-align: center;
+	font-family: Tahoma, Geneva, sans-serif;
+	font-weight: bold;
+	white-space: nowrap;
 }
-/* week days header */
-div#tcal th {
-    border: 1px solid silver;
-    border-collapse: collapse;
-    text-align: center;
-    padding: 3px 0;
-    font-family: Verdana, Tahoma, Arial;
-    font-size: 10px;
-    background-color: gray;
-    color: white;
+#tcalPrevYear { background-image: url(/img/prev_year.gif); }
+#tcalPrevMonth { background-image: url(/img/prev_mon.gif); }
+#tcalNextMonth { background-image: url(/img/next_mon.gif); }
+#tcalNextYear { background-image: url(/img/next_year.gif); }
+
+/* table containing week days header and calendar grid */
+#tcalGrid {
+	border-collapse: collapse;
+	border: 1px solid silver;
+	width: 100%;
 }
-/* date cells */
-div#tcal td {
-    border: 0;
-    background-color: %_COLOR_2%;
-    border-collapse: collapse;
-    text-align: center;
-    padding: 2px 0;
-    font-family: Verdana, Tahoma, Arial;
-    font-size: 11px;
-    width: 22px;
-    cursor: pointer;
+#tcalGrid th {
+	border: 1px solid silver;
+	border-collapse: collapse;
+	padding: 3px 0;
+	text-align: center;
+	font-family: Tahoma, Geneva, sans-serif;
+	font-size: 10px;
+	background-color: gray;
+	color: white;
 }
-div#tcal td:hover {
-    border: 0;
-    background-color: #7CC234;
-    border-collapse: collapse;
-    text-align: center;
-    padding: 2px 0;
-    font-family: Verdana, Tahoma, Arial;
-    font-size: 11px;
-    width: 22px;
-    cursor: pointer;
-}
+#tcalGrid td {
+	border: 0;
+	border-collapse: collapse;
+	padding: 2px 0;
+	text-align: center;
+	font-family: Tahoma, Geneva, sans-serif;
+	width: 14%;
+	font-size: 11px;
+	cursor: pointer;
+}		
+#tcalGrid td.tcalOtherMonth { color: silver; }
+#tcalGrid td.tcalWeekend { background-color: #ACD6F5; }
+#tcalGrid td.tcalToday { border: 1px solid red; }
+#tcalGrid td.tcalSelected { background-color: #FFB3BE; }		
 
 
 #pageJumpWindow {

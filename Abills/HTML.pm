@@ -1588,9 +1588,6 @@ sub date_fld2  {
      $date = sprintf("%d-%.2d-%.2d", $year, $month, $day);
     }
 
-
-
-
 my $monthes = "'January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'";
 if ($attr->{MONTHES}) {
 	$monthes   = "'".join("', '", @{ $attr->{MONTHES} })."'";
@@ -1608,20 +1605,27 @@ if ( $attr->{WEEK_DAYS} ){
 my $tabindex = ($attr->{TABINDEX}) ? "tabindex=$attr->{TABINDEX}": '';
 
 my $result = qq{
-<input type=text name='$base_name' value='$date' size=12 ID='$base_name' $tabindex> 
 <script language="JavaScript">
-	var o_cal = new tcal ({	'formname': '$form_name',	'controlname': '$base_name'	});
-	
-	// individual template parameters can be modified via the calendar variable
-	o_cal.a_tpl.yearscroll = false;
-	o_cal.a_tpl.weekstart  = 1;
- 	o_cal.a_tpl.months     = [$monthes];
-	o_cal.a_tpl.weekdays   = [$week_days];
+ A_TCALCONF = {
+	'cssprefix'  : 'tcal',
+	'months'     : [$monthes],
+	'weekdays'   : [$week_days],
+	'longwdays'  : ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thirsday', 'Friday', 'Saturday'],
+	'yearscroll' : false, // show year scroller
+	'weekstart'  : 1, // first day of week: 0-Su or 1-Mo
+	'prevyear'   : 'Previous Year',
+	'nextyear'   : 'Next Year',
+	'prevmonth'  : 'Previous Month',
+	'nextmonth'  : 'Next Month',
+	'format'     : 'Y-m-d'
+};
 </script>
+<input type=text name='$base_name' value='$date' size=12 rel='tcal' ID='$base_name' $tabindex> 
  };
 
 return $result ;
 }
+
 
 #**********************************************************
 # log_print()

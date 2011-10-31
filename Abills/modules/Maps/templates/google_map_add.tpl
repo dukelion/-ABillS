@@ -125,7 +125,7 @@ function startShape() {
   select(\"shape_b\");
   var color = getColor(false);
   var polygon = new GPolygon([], color, 2, 0.7, color, 0.2);
-  startDrawing(polygon, \"Р¤РёРіСѓСЂР° \" + (++shapeCounter_), function() {
+  startDrawing(polygon, \"Фигура \" + (++shapeCounter_), function() {
     var cell = this;
     var area = polygon.getArea();
     cell.innerHTML = (Math.round(area / 10000) / 100) + \"km<sup>2</sup>\";
@@ -136,7 +136,7 @@ function startLine() {
   select(\"line_b\");
   var color = getColor(false);
   var line = new GPolyline([], color);
-  startDrawing(line, \"Р›РёРЅРёСЏ \" + (++lineCounter_), function() {
+  startDrawing(line, \"Линия \" + (++lineCounter_), function() {
     var cell = this;
     
     var len = line.getLength();

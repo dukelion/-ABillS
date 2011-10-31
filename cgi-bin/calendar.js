@@ -1,274 +1,290 @@
-// Tigra Calendar v4.0.2 (2009-01-12) Database (yyyy-mm-dd)
+// Tigra Calendar v5.0 (09/09/2011)
 // http://www.softcomplex.com/products/tigra_calendar/
-// Public Domain Software... You're welcome.
+// License: Public Domain... You're welcome.
 
-// default settins
-var A_TCALDEF = {
-	'months' : ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
-	'weekdays' : ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'],
-	'yearscroll': true, // show year scroller
-	'weekstart': 0, // first day of week: 0-Su or 1-Mo
-	'centyear'  : 70, // 2 digit years less than 'centyear' are in 20xx, othewise in 19xx.
-	'imgpath' : '/img/' // directory with calendar images
+// default settins - this structure can be moved in separate file in multilangual applications
+var A_TCALCONF = {
+	'cssprefix'  : 'tcal',
+	'months'     : ['123', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
+	'weekdays'   : ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'],
+	'longwdays'  : ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thirsday', 'Friday', 'Saturday'],
+	'yearscroll' : true, // show year scroller
+	'weekstart'  : 0, // first day of week: 0-Su or 1-Mo
+	'prevyear'   : 'Previous Year',
+	'nextyear'   : 'Next Year',
+	'prevmonth'  : 'Previous Month',
+	'nextmonth'  : 'Next Month',
+	'format'     : 'Y-m-d' // 'd-m-Y', Y-m-d', 'l, F jS Y'
+};
+
+var A_TCALTOKENS = [
+	 // A full numeric representation of a year, 4 digits
+	{'t': 'Y', 'r': '19\\d{2}|20\\d{2}', 'p': function (d_date, n_value) { d_date.setFullYear(Number(n_value)); return d_date; }, 'g': function (d_date) { var n_year = d_date.getFullYear(); return n_year; }},
+	 // Numeric representation of a month, with leading zeros
+	{'t': 'm', 'r': '0?[1-9]|1[0-2]', 'p': function (d_date, n_value) { d_date.setMonth(Number(n_value) - 1); return d_date; }, 'g': function (d_date) { var n_month = d_date.getMonth() + 1; return (n_month < 10 ? '0' : '') + n_month }},
+	 // A full textual representation of a month, such as January or March
+	{'t': 'F', 'r': A_TCALCONF.months.join('|'), 'p': function (d_date, s_value) { for (var m = 0; m < 12; m++) if (A_TCALCONF.months[m] == s_value) { d_date.setMonth(m); return d_date; }}, 'g': function (d_date) { return A_TCALCONF.months[d_date.getMonth()]; }},
+	 // Day of the month, 2 digits with leading zeros
+	{'t': 'd', 'r': '0?[1-9]|[12][0-9]|3[01]', 'p': function (d_date, n_value) { d_date.setDate(Number(n_value)); if (d_date.getDate() != n_value) d_date.setDate(0); return d_date }, 'g': function (d_date) { var n_date = d_date.getDate(); return (n_date < 10 ? '0' : '') + n_date; }},
+	// Day of the month without leading zeros
+	{'t': 'j', 'r': '0?[1-9]|[12][0-9]|3[01]', 'p': function (d_date, n_value) { d_date.setDate(Number(n_value)); if (d_date.getDate() != n_value) d_date.setDate(0); return d_date }, 'g': function (d_date) { var n_date = d_date.getDate(); return n_date; }},
+	 // A full textual representation of the day of the week
+	{'t': 'l', 'r': A_TCALCONF.longwdays.join('|'), 'p': function (d_date, s_value) { return d_date }, 'g': function (d_date) { return A_TCALCONF.longwdays[d_date.getDay()]; }},
+	// English ordinal suffix for the day of the month, 2 characters
+	{'t': 'S', 'r': 'st|nd|rd|th', 'p': function (d_date, s_value) { return d_date }, 'g': function (d_date) { n_date = d_date.getDate(); if (n_date % 10 == 1 && n_date != 11) return 'st'; if (n_date % 10 == 2 && n_date != 12) return 'nd'; if (n_date % 10 == 3 && n_date != 13) return 'rd'; return 'th'; }}
+	
+];
+
+function f_tcalGetHTML (d_date) {
+
+	var e_input = f_tcalGetInputs(true);
+	if (!e_input) return;
+
+	var s_pfx = A_TCALCONF.cssprefix,
+		s_format = A_TCALCONF.format;
+
+	// today from config or client date
+	var d_today = f_tcalParseDate(A_TCALCONF.today, A_TCALCONF.format);
+	if (!d_today)
+		d_today = f_tcalResetTime(new Date());
+
+	// selected date from input or config or today 
+	var d_selected = f_tcalParseDate(e_input.value, s_format);
+	if (!d_selected)
+		d_selected = f_tcalParseDate(A_TCALCONF.selected, A_TCALCONF.format);
+	if (!d_selected)
+		d_selected = new Date(d_today);
+	
+	// show calendar for passed or selected date
+	d_date = d_date ? f_tcalResetTime(d_date) : new Date(d_selected);
+
+	var d_firstDay = new Date(d_date);
+    d_firstDay.setDate(1);
+ 	d_firstDay.setDate(1 - (7 + d_firstDay.getDay() - A_TCALCONF.weekstart) % 7);
+    
+    var a_class, s_html = '<table id="' + s_pfx + 'Controls"><tbody><tr>'
+        + (A_TCALCONF.yearscroll ? '<td id="' + s_pfx + 'PrevYear" ' + f_tcalRelDate(d_date, -1, 'y') + ' title="' + A_TCALCONF.prevyear + '">&nbsp;</td>' : '')
+        + '<td id="' + s_pfx + 'PrevMonth"' + f_tcalRelDate(d_date, -1) + ' title="' + A_TCALCONF.prevmonth + '">&nbsp;</td><th>'
+        + A_TCALCONF.months[d_date.getMonth()] + ' ' + d_date.getFullYear()
+            + '</th><td id="' + s_pfx + 'NextMonth"' + f_tcalRelDate(d_date, 1) + ' title="' + A_TCALCONF.nextmonth + '">&nbsp;</td>'
+        + (A_TCALCONF.yearscroll ? '<td id="' + s_pfx + 'NextYear"' + f_tcalRelDate(d_date, 1, 'y') + ' title="' + A_TCALCONF.nextyear + '">&nbsp;</td></td>' : '')
+        + '</tr></tbody></table><table id="' + s_pfx + 'Grid"><tbody><tr>';
+
+    // print weekdays titles
+    for (var i = 0; i < 7; i++)
+        s_html += '<th>' + A_TCALCONF.weekdays[(A_TCALCONF.weekstart + i) % 7] + '</th>';
+    s_html += '</tr>' ;
+
+    // print calendar table
+    var n_date, n_month, d_current = new Date(d_firstDay);
+    while (d_current.getMonth() == d_date.getMonth() ||
+        d_current.getMonth() == d_firstDay.getMonth()) {
+    
+        s_html +='<tr>';
+        for (var n_wday = 0; n_wday < 7; n_wday++) {
+
+            a_class = [];
+            n_date  = d_current.getDate();
+            n_month = d_current.getMonth();
+
+            if (d_current.getMonth() != d_date.getMonth())
+                a_class[a_class.length] = s_pfx + 'OtherMonth';
+            if (d_current.getDay() == 0 || d_current.getDay() == 6)
+                a_class[a_class.length] = s_pfx + 'Weekend';
+            if (d_current.valueOf() == d_today.valueOf())
+                a_class[a_class.length] = s_pfx + 'Today';
+            if (d_current.valueOf() == d_selected.valueOf())
+                a_class[a_class.length] =  s_pfx + 'Selected';
+
+            s_html += '<td' + f_tcalRelDate(d_current) + (a_class.length ? ' class="' + a_class.join(' ') + '">' : '>') + n_date + '</td>';
+            d_current.setDate(++n_date);
+        }
+        s_html +='</tr>';
+    }
+    s_html +='</tbody></table>';
+    
+    return s_html;
 }
 
-// date parsing function
-function f_tcalParseDate (s_date) {
+function f_tcalRelDate (d_date, d_diff, s_units) {
 
-	var re_date = /^\s*(\d{2,4})\-(\d{1,2})\-(\d{1,2})\s*$/;
-	if (!re_date.exec(s_date)) {
-		return alert ("Invalid date: '" + s_date + "'.\nAccepted format is yyyy-mm-dd.");
-          }
-	var n_day = Number(RegExp.$3),
-		n_month = Number(RegExp.$2),
-		n_year = Number(RegExp.$1);
-	
-	if (n_year < 100)
-		n_year += (n_year < this.a_tpl.centyear ? 2000 : 1900);
-	if (n_month < 1 || n_month > 12)
-		return alert ("Invalid month value: '" + n_month + "'.\nAllowed range is 01-12.");
-
-	var d_numdays = new Date(n_year, n_month, 0);
-	if (n_day > d_numdays.getDate())
-		return alert("Invalid day of month value: '" + n_day + "'.\nAllowed range for selected month is 01 - " + d_numdays.getDate() + ".");
-
-	return new Date (n_year, n_month - 1, n_day);
-}
-// date generating function
-function f_tcalGenerDate (d_date) {
-	return (
-		d_date.getFullYear() + "-"
-		+ (d_date.getMonth() < 9 ? '0' : '') + (d_date.getMonth() + 1) + "-"
-		+ (d_date.getDate() < 10 ? '0' : '') + d_date.getDate()
-	);
-}
-
-// implementation
-function tcal (a_cfg, a_tpl) {
-
-	// apply default template if not specified
-	if (!a_tpl)
-		a_tpl = A_TCALDEF;
-
-	// register in global collections
-	if (!window.A_TCALS)
-		window.A_TCALS = [];
-	if (!window.A_TCALSIDX)
-		window.A_TCALSIDX = [];
-	
-	this.s_id = a_cfg.id ? a_cfg.id : A_TCALS.length;
-	window.A_TCALS[this.s_id] = this;
-	window.A_TCALSIDX[window.A_TCALSIDX.length] = this;
-	
-	// assign methods
-	this.f_show = f_tcalShow;
-	this.f_hide = f_tcalHide;
-	this.f_toggle = f_tcalToggle;
-	this.f_update = f_tcalUpdate;
-	this.f_relDate = f_tcalRelDate;
-	this.f_parseDate = f_tcalParseDate;
-
-	this.f_generDate = f_tcalGenerDate;
-	
-	// create calendar icon
-	this.s_iconId = 'tcalico_' + this.s_id;
-	this.e_icon = f_getElement(this.s_iconId);
-	if (!this.e_icon) {
-		document.write('<img src="' + a_tpl.imgpath + 'cal.gif" id="' + this.s_iconId + '" onclick="A_TCALS[\'' + this.s_id + '\'].f_toggle()" class="tcalIcon" alt="Open Calendar" HSPACE="3" HEIGHT="16" WIDTH="16" />');
-		this.e_icon = f_getElement(this.s_iconId);
+	var s_units = (s_units == 'y' ? 'FullYear' : 'Month');
+	var d_result = new Date(d_date);
+	if (d_diff) {
+		d_result['set' + s_units](d_date['get' + s_units]() + d_diff);
+		if (d_result.getDate() != d_date.getDate())
+			d_result.setDate(0);
 	}
-	// save received parameters
-	this.a_cfg = a_cfg;
-	this.a_tpl = a_tpl;
+    return ' onclick="f_tcalUpdate(' + d_result.valueOf() + (d_diff ? ',1' : '') + ')" onselectstart="return false"';
 }
 
-function f_tcalShow (d_date) {
-
-	// find input field
-	if (!this.a_cfg.controlname)
-		throw("TC: control name is not specified");
-	if (this.a_cfg.formname) {
-		var e_form = document.forms[this.a_cfg.formname];
-		if (!e_form)
-			throw("TC: form '" + this.a_cfg.formname + "' can not be found");
-		this.e_input = e_form.elements[this.a_cfg.controlname];
-	}
-	else
-		this.e_input = f_getElement(this.a_cfg.controlname);
-
-	if (!this.e_input || !this.e_input.tagName || this.e_input.tagName != 'INPUT')
-		throw("TC: element '" + this.a_cfg.controlname + "' does not exist in "
-			+ (this.a_cfg.formname ? "form '" + this.a_cfg.controlname + "'" : 'this document'));
-
-	// dynamically create HTML elements if needed
-	this.e_div = f_getElement('tcal');
-	if (!this.e_div) {
-		this.e_div = document.createElement("DIV");
-		this.e_div.id = 'tcal';
-		document.body.appendChild(this.e_div);
-	}
-	this.e_shade = f_getElement('tcalShade');
-	if (!this.e_shade) {
-		this.e_shade = document.createElement("DIV");
-		this.e_shade.id = 'tcalShade';
-		document.body.appendChild(this.e_shade);
-	}
-	this.e_iframe =  f_getElement('tcalIF')
-	if (b_ieFix && !this.e_iframe) {
-		this.e_iframe = document.createElement("IFRAME");
-		this.e_iframe.style.filter = 'alpha(opacity=0)';
-		this.e_iframe.id = 'tcalIF';
-		this.e_iframe.src = this.a_tpl.imgpath + 'pixel.gif';
-		document.body.appendChild(this.e_iframe);
-	}
-	
-	// hide all calendars
-	f_tcalHideAll();
-
-	// generate HTML and show calendar
-	this.e_icon = f_getElement(this.s_iconId);
-	if (!this.f_update())
-		return;
-
-	this.e_div.style.visibility = 'visible';
-	this.e_shade.style.visibility = 'visible';
-	if (this.e_iframe)
-		this.e_iframe.style.visibility = 'visible';
-
-	// change icon and status
-	this.e_icon.src = this.a_tpl.imgpath + 'no_cal.gif';
-	this.e_icon.title = 'Close Calendar';
-	this.b_visible = true;
+function f_tcalResetTime (d_date) {
+    d_date.setMilliseconds(0);
+    d_date.setSeconds(0);
+    d_date.setMinutes(0);
+    d_date.setHours(12);
+    return d_date;
 }
 
-function f_tcalHide (n_date) {
-	if (n_date)
-		this.e_input.value = this.f_generDate(new Date(n_date));
-
-	// no action if not visible
-	if (!this.b_visible)
-		return;
-
-	// hide elements
-	if (this.e_iframe)
-		this.e_iframe.style.visibility = 'hidden';
-	if (this.e_shade)
-		this.e_shade.style.visibility = 'hidden';
-	this.e_div.style.visibility = 'hidden';
+// closes calendar and returns all inputs to default state
+function f_tcalCancel () {
 	
-	// change icon and status
-	this.e_icon = f_getElement(this.s_iconId);
-	this.e_icon.src = this.a_tpl.imgpath + 'cal.gif';
-	this.e_icon.title = 'Open Calendar';
-	this.b_visible = false;
+	var s_pfx = A_TCALCONF.cssprefix;
+	var e_cal = document.getElementById(s_pfx);
+	if (e_cal)
+		e_cal.style.visibility = '';
+	var a_inputs = f_tcalGetInputs();
+	for (var n = 0; n < a_inputs.length; n++)
+		f_tcalRemoveClass(a_inputs[n], s_pfx + 'Active');
 }
 
-function f_tcalToggle () {
-	return this.b_visible ? this.f_hide() : this.f_show();
+function f_tcalUpdate (n_date, b_keepOpen) {
+
+	var e_input = f_tcalGetInputs(true);
+	if (!e_input) return;
+	
+	d_date = new Date(n_date);
+	var s_pfx = A_TCALCONF.cssprefix;
+
+	if (b_keepOpen) {
+		var e_cal = document.getElementById(s_pfx);
+		if (!e_cal || e_cal.style.visibility != 'visible') return;
+		e_cal.innerHTML = f_tcalGetHTML(d_date, e_input);
+	}
+	else {
+		e_input.value = f_tcalGenerateDate(d_date, A_TCALCONF.format);
+		f_tcalCancel();
+	}
 }
 
-function f_tcalUpdate (d_date) {
+function f_tcalOnClick () {
+
+	// see if already opened
+	var s_pfx = A_TCALCONF.cssprefix;
+	var s_activeClass = s_pfx + 'Active';
+	var b_close = f_tcalHasClass(this, s_activeClass);
+
+	// close all clalendars
+	f_tcalCancel();
+	if (b_close) return;
+
+	// get position of input
+	f_tcalAddClass(this, s_activeClass);
 	
-	var d_today = this.a_cfg.today ? this.f_parseDate(this.a_cfg.today) : f_tcalResetTime(new Date());
-	var d_selected = this.e_input.value == '' || this.e_input.value == '0000-00-00'
-		? (this.a_cfg.selected ? this.f_parseDate(this.a_cfg.selected) : d_today)
-		: this.f_parseDate(this.e_input.value);
+	var n_left = f_getPosition (this, 'Left'),
+		n_top  = f_getPosition (this, 'Top') + this.offsetHeight;
 
-	// figure out date to display
-	if (!d_date)
-		// selected by default
-		d_date = d_selected;
-	else if (typeof(d_date) == 'number')
-		// get from number
-		d_date = f_tcalResetTime(new Date(d_date));
-	else if (typeof(d_date) == 'string')
-		// parse from string
-		this.f_parseDate(d_date);
-		
-	if (!d_date) return false;
+	var e_cal = document.getElementById(s_pfx);
+	if (!e_cal) {
+		e_cal = document.createElement('div');
+		e_cal.id = s_pfx;
+		document.getElementsByTagName("body").item(0).appendChild(e_cal);
+	}
+	e_cal.innerHTML = f_tcalGetHTML(null);
+	e_cal.style.top = n_top + 'px';
+	e_cal.style.left = (n_left + this.offsetWidth - e_cal.offsetWidth) + 'px';
+	e_cal.style.visibility = 'visible';
+}
 
-	// first date to display
-	var d_firstday = new Date(d_date);
-	d_firstday.setDate(1);
-	d_firstday.setDate(1 - (7 + d_firstday.getDay() - this.a_tpl.weekstart) % 7);
-	
-	var a_class, s_html = '<table class="ctrl"><tbody><tr>'
-		+ (this.a_tpl.yearscroll ? '<td' + this.f_relDate(d_date, -1, 'y') + ' title="Previous Year"><img src="' + this.a_tpl.imgpath + 'prev_year.gif" /></td>' : '')
-		+ '<td' + this.f_relDate(d_date, -1) + ' title="Previous Month"><img src="' + this.a_tpl.imgpath + 'prev_mon.gif" /></td><th>'
-		+ this.a_tpl.months[d_date.getMonth()] + ' ' + d_date.getFullYear()
-			+ '</th><td' + this.f_relDate(d_date, 1) + ' title="Next Month"><img src="' + this.a_tpl.imgpath + 'next_mon.gif" /></td>'
-		+ (this.a_tpl.yearscroll ? '<td' + this.f_relDate(d_date, 1, 'y') + ' title="Next Year"><img src="' + this.a_tpl.imgpath + 'next_year.gif" /></td></td>' : '')
-		+ '</tr></tbody></table><table><tbody><tr class="wd">';
+function f_tcalParseDate (s_date, s_format) {
 
-	// print weekdays titles
-	for (var i = 0; i < 7; i++)
-		s_html += '<th>' + this.a_tpl.weekdays[(this.a_tpl.weekstart + i) % 7] + '</th>';
-	s_html += '</tr>' ;
+	if (!s_date) return;
 
-	// print calendar table
-	var n_date, n_month, d_current = new Date(d_firstday);
-	while (d_current.getMonth() == d_date.getMonth() ||
-		d_current.getMonth() == d_firstday.getMonth()) {
-	
-		// print row heder
-		s_html +='<tr>';
-		for (var n_wday = 0; n_wday < 7; n_wday++) {
-
-			a_class = [];
-			n_date = d_current.getDate();
-			n_month = d_current.getMonth();
-
-			// other month
-			if (d_current.getMonth() != d_date.getMonth())
-				a_class[a_class.length] = 'othermonth';
-			// weekend
-			if (d_current.getDay() == 0 || d_current.getDay() == 6)
-				a_class[a_class.length] = 'weekend';
-			// today
-			if (d_current.valueOf() == d_today.valueOf())
-				a_class[a_class.length] = 'today';
-			// selected
-			if (d_current.valueOf() == d_selected.valueOf())
-				a_class[a_class.length] = 'selected';
-
-			s_html += '<td onclick="A_TCALS[\'' + this.s_id + '\'].f_hide(' + d_current.valueOf() + ')"' + (a_class.length ? ' class="' + a_class.join(' ') + '">' : '>') + n_date + '</td>'
-
-			d_current.setDate(++n_date);
-			while (d_current.getDate() != n_date && d_current.getMonth() == n_month) {
-				d_current.setHours(d_current.getHours + 1);
-				d_current = f_tcalResetTime(d_current);
-			}
+	var s_char, s_regexp = '^', a_tokens = {}, a_options, n_token = 0;
+	for (var n = 0; n < s_format.length; n++) {
+		s_char = s_format.charAt(n);
+		if (A_TCALTOKENS_IDX[s_char]) {
+			a_tokens[s_char] = ++n_token;
+			s_regexp += '(' + A_TCALTOKENS_IDX[s_char]['r'] + ')';
 		}
-		// print row footer
-		s_html +='</tr>';
+		else if (s_char == ' ')
+			s_regexp += '\\s';
+		else
+			s_regexp += (s_char.match(/[\w\d]/) ? '' : '\\') + s_char;
 	}
-	s_html +='</tbody></table>';
+	var r_date = new RegExp(s_regexp + '$');
+	if (!s_date.match(r_date)) return;
 	
-	// update HTML, positions and sizes
-	this.e_div.innerHTML = s_html;
+	var s_val, d_date = f_tcalResetTime(new Date());
+	d_date.setDate(1);
 
-	var n_width  = this.e_div.offsetWidth;
-	var n_height = this.e_div.offsetHeight;
-	var n_top  = f_getPosition (this.e_icon, 'Top') + this.e_icon.offsetHeight;
-	var n_left = f_getPosition (this.e_icon, 'Left') - n_width + this.e_icon.offsetWidth;
-	if (n_left < 0) n_left = 0;
-	
-	this.e_div.style.left = n_left + 'px';
-	this.e_div.style.top  = n_top + 'px';
-
-	this.e_shade.style.width = (n_width + 8) + 'px';
-	this.e_shade.style.left = (n_left - 1) + 'px';
-	this.e_shade.style.top = (n_top - 1) + 'px';
-	//this.e_shade.innerHTML = b_ieFix
-	//	? ''
-	//	: '<table><tbody><tr><td rowspan="2" width="6"><img src="' + this.a_tpl.imgpath + 'pixel.gif"></td><td rowspan="2"><img src="' + this.a_tpl.imgpath + 'pixel.gif"></td><td width="7" height="7"><img src="' + this.a_tpl.imgpath + 'shade_tr.png"></td></tr><tr><td background="' + this.a_tpl.imgpath + 'shade_mr.png" height="' + (n_height - 7) + '"><img src="' + this.a_tpl.imgpath + 'pixel.gif"></td></tr><tr><td><img src="' + this.a_tpl.imgpath + 'shade_bl.png"></td><td background="' + this.a_tpl.imgpath + 'shade_bm.png" height="7" align="left"><img src="' + this.a_tpl.imgpath + 'pixel.gif"></td><td><img src="' + this.a_tpl.imgpath + 'shade_br.png"></td></tr><tbody></table>';
-	
-	if (this.e_iframe) {
-		this.e_iframe.style.left = n_left + 'px';
-		this.e_iframe.style.top  = n_top + 'px';
-		this.e_iframe.style.width = (n_width + 6) + 'px';
-		this.e_iframe.style.height = (n_height + 6) +'px';
+	for (n = 0; n < A_TCALTOKENS.length; n++) {
+		s_char = A_TCALTOKENS[n]['t'];
+		if (!a_tokens[s_char])
+			continue;
+		s_val = eval('RegExp.$' + a_tokens[s_char]);
+		d_date = A_TCALTOKENS[n]['p'](d_date, s_val);
 	}
+	
+	return d_date;
+}
+
+function f_tcalGenerateDate (d_date, s_format) {
+	
+	var s_char, s_date = '';
+	for (var n = 0; n < s_format.length; n++) {
+		s_char = s_format.charAt(n);
+		s_date += A_TCALTOKENS_IDX[s_char] ? A_TCALTOKENS_IDX[s_char]['g'](d_date) : s_char;
+	}
+	return s_date;
+}
+
+function f_tcalGetInputs (b_active) {
+
+	var a_inputs = document.getElementsByTagName('input'),
+		e_input, s_rel, a_result = [];
+
+	for (n = 0; n < a_inputs.length; n++) {
+
+		e_input = a_inputs[n];
+		if (!e_input.type || e_input.type != 'text')
+			continue;
+
+		s_rel = e_input.getAttribute('rel');
+		if (!s_rel || s_rel.indexOf('tcal') != 0)
+			continue;
+
+		if (b_active && f_tcalHasClass(e_input, A_TCALCONF.cssprefix + 'Active'))
+			return e_input;
+
+		a_result[a_result.length] = e_input;
+	}
+	return b_active ? null : a_result;
+}
+
+function f_tcalHasClass (e_elem, s_class) {
+	var s_classes = e_elem.className;
+	if (!s_classes)
+		return false;
+	var a_classes = s_classes.split(' ');
+	for (var n = 0; n < a_classes.length; n++)
+		if (a_classes[n] == s_class)
+			return true;
+	return false;
+}
+
+function f_tcalAddClass (e_elem, s_class) {
+	if (f_tcalHasClass (e_elem, s_class))
+		return;
+
+	var s_classes = e_elem.className;
+	e_elem.className = (s_classes ? s_classes + ' ' : '') + s_class;
+}
+
+function f_tcalRemoveClass (e_elem, s_class) {
+	var s_classes = e_elem.className;
+	if (!s_classes || s_classes.indexOf(s_class) == -1)
+		return false;
+
+	var a_classes = s_classes.split(' '),
+		a_newClasses = [];
+
+	for (var n = 0; n < a_classes.length; n++) {
+		if (a_classes[n] == s_class)
+			continue;
+		a_newClasses[a_newClasses.length] = a_classes[n];
+	}
+	e_elem.className = a_newClasses.join(' ');
 	return true;
 }
 
@@ -281,12 +297,7 @@ function f_getPosition (e_elemRef, s_coord) {
 		n_pos += n_offset;
 		e_elem = e_elem.offsetParent;
 	}
-	// margin correction in some browsers
-	if (b_ieMac)
-		n_pos += parseInt(document.body[s_coord.toLowerCase() + 'Margin']);
-	else if (b_safari)
-		n_pos -= n_offset;
-	
+
 	e_elem = e_elemRef;
 	while (e_elem != document.body) {
 		n_offset = e_elem["scroll" + s_coord];
@@ -297,43 +308,42 @@ function f_getPosition (e_elemRef, s_coord) {
 	return n_pos;
 }
 
-function f_tcalRelDate (d_date, d_diff, s_units) {
-	var s_units = (s_units == 'y' ? 'FullYear' : 'Month');
-	var d_result = new Date(d_date);
-	d_result['set' + s_units](d_date['get' + s_units]() + d_diff);
-	if (d_result.getDate() != d_date.getDate())
-		d_result.setDate(0);
-	return ' onclick="A_TCALS[\'' + this.s_id + '\'].f_update(' + d_result.valueOf() + ')"';
-}
-
-function f_tcalHideAll () {
-	for (var i = 0; i < window.A_TCALSIDX.length; i++)
-		window.A_TCALSIDX[i].f_hide();
-}	
-
-function f_tcalResetTime (d_date) {
-	d_date.setHours(0);
-	d_date.setMinutes(0);
-	d_date.setSeconds(0);
-	d_date.setMilliseconds(0);
-	return d_date;
-}
-
-f_getElement = document.all ?
-	function (s_id) { return document.all[s_id] } :
-	function (s_id) { return document.getElementById(s_id) };
-
-if (document.addEventListener)
-	window.addEventListener('scroll', f_tcalHideAll, false);
-if (window.attachEvent)
-	window.attachEvent('onscroll', f_tcalHideAll);
+function f_tcalInit () {
 	
-// global variables
-var s_userAgent = navigator.userAgent.toLowerCase(),
-	re_webkit = /WebKit\/(\d+)/i;
-var b_mac = s_userAgent.indexOf('mac') != -1,
-	b_ie5 = s_userAgent.indexOf('msie 5') != -1,
-	b_ie6 = s_userAgent.indexOf('msie 6') != -1 && s_userAgent.indexOf('opera') == -1;
-var b_ieFix = b_ie5 || b_ie6,
-	b_ieMac  = b_mac && b_ie5,
-	b_safari = b_mac && re_webkit.exec(s_userAgent) && Number(RegExp.$1) < 500;
+	if (!document.getElementsByTagName)
+		return;
+
+	var e_input, a_inputs = f_tcalGetInputs();
+	for (var n = 0; n < a_inputs.length; n++) {
+		e_input = a_inputs[n];
+		e_input.onclick = f_tcalOnClick;
+		f_tcalAddClass(e_input, A_TCALCONF.cssprefix + 'Input');
+	}
+	
+	window.A_TCALTOKENS_IDX = {};
+	for (n = 0; n < A_TCALTOKENS.length; n++)
+		A_TCALTOKENS_IDX[A_TCALTOKENS[n]['t']] = A_TCALTOKENS[n];
+}
+
+function f_tcalAddOnload (f_func) {
+	if (document.addEventListener) {
+		window.addEventListener('load', f_func, false);
+	}
+	else if (window.attachEvent) {
+		window.attachEvent('onload', f_func);
+	}
+	else {
+		var f_onLoad = window.onload;
+		if (typeof window.onload != 'function') {
+			window.onload = f_func;
+		}
+		else {
+			window.onload = function() {
+				f_onLoad();
+				f_func();
+			}
+		}
+	}
+}
+
+f_tcalAddOnload (f_tcalInit);
