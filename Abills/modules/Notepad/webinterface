@@ -22,6 +22,8 @@ sub notepad_new {
   return '';	
 }
 
+
+
 #************************************************************
 #
 #************************************************************	
@@ -35,8 +37,27 @@ sub notepad_main {
 
 my $status_bar = msgs_status_bar();
 	print $html->br();
+# TESTING 
+$list_of_notice = $Notepad->notepad_notice({});
+
+foreach my $line ( @$list_of_notice ) {
+	my $popup_title_new = $line->[4]; 
+	$popup_title_new =~ s/\'/\\\'/g;
+	$popup_title_new =~ s/\"/\\\"/g;
+	my $popup_text = $line->[5]; 
+	$popup_text =~ s/\'/\\\'/g;
+	$popup_text =~ s/\"/\\\"/g;
+	$notice .= 'setNotepadNotice(' . $line->[1] . ', \'' . $popup_text . '\', \'' . $popup_title_new . '\', \''. $line->[8]. '\');' . "\n"; 
+}
+	
+$html->tpl_show(_include('notepad_popupwindow', 'Notepad'), { 	 
+														NOTICE => $notice, 
+														 
+														 });
 	
 	
+
+# /TESTING 	
 	if(!defined($FORM{NOTE_STATUS})) {
 		
 		$FORM{NOTE_STATUS} = 'ALL';
@@ -156,6 +177,7 @@ my $date .=	$html->date_fld2('DATE', { FORM_NAME => 'notepad_form', WEEK_DAYS =>
 	}
 
 	elsif ($FORM{change}) {
+		#$Notepad->{debug} = 1;
 		if ($FORM{TEXT} ne '') {
 			if (! $FORM{SUBJECT}) {
 	            $FORM{SUBJECT}=substr($FORM{TEXT}, 0,20).'...';
@@ -163,10 +185,10 @@ my $date .=	$html->date_fld2('DATE', { FORM_NAME => 'notepad_form', WEEK_DAYS =>
 	     	
 			$Notepad->notepad_note_change({ %FORM });
 			if (! $Notepad->{errno}) {
-	        	$html->tpl_show(_include('notepad_redirect', 'Notepad'), { 
-					SECTION => '&chg=' . $FORM{ID},
-					MESSAGE => "$_CHANGED",
-				});			
+	        $html->tpl_show(_include('notepad_redirect', 'Notepad'), { 
+						SECTION => '&chg=' . $FORM{ID},
+						MESSAGE => "$_CHANGED",
+					});			
 	    	}
 		}
 		else {
