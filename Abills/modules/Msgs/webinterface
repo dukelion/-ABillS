@@ -458,7 +458,6 @@ if (in_array('Sms', \@MODULES) ) {
 #
 #*******************************************************************
 sub msgs_admin {
-
   my @msg_status_all = ("$_OPEN",
                   "$_CLOSED_UNSUCCESSFUL",
                   "$_CLOSED_SUCCESSFUL",

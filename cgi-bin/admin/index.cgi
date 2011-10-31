@@ -429,7 +429,8 @@ if ($admin->{WEB_OPTIONS}{qm} && ! $FORM{xml}) {
          	           });
      }
     else {
-      $admin->{QUICK_MENU} .= $html->button($qm_name, "index=$qm_id");
+    	my $args = ($menu_args{$qm_id} =~ /=/) ? "&$menu_args{$qm_id}" : '';
+      $admin->{QUICK_MENU} .= $html->button($qm_name, "index=$qm_id$args");
      } 
      
     $admin->{QUICK_MENU} .= "  </th>\n";
