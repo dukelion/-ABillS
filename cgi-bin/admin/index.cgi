@@ -2142,7 +2142,7 @@ if (! $permissions{0}{2}) {
 	return 0;
 }
 
-if ($FORM{COMPANY_ID}) {
+if ($FORM{COMPANY_ID} && ! $FORM{change}) {
   print $html->br($html->b("$_COMPANY:") .  $FORM{COMPANY_ID});
   $pages_qs .= "&COMPANY_ID=$FORM{COMPANY_ID}";
   $LIST_PARAMS{COMPANY_ID} = $FORM{COMPANY_ID};
@@ -2216,7 +2216,7 @@ elsif ($users->{TOTAL} == 1) {
 	return 0;
  }
 elsif ($users->{TOTAL} == 0) {
-  $html->message('err', $_ERROR, "$_NOT_EXIST");	
+  $html->message('err', $_ERROR, "$_USER $_NOT_EXIST");	
 	return 0;
 }
 
@@ -2486,7 +2486,7 @@ my $table = $html->table( { width      => '100%',
 
   $table->addrow($_DEFAULT,
     '',
-    $html->button("$_DEL", "index=11&change=1&UID=$FORM{UID}&COMPANY_ID=0", { CLASS => 'del'  }), 
+    $html->button("$_DEL", "index=". get_function_index('form_users') ."&change=1&UID=$FORM{UID}&COMPANY_ID=0", { CLASS => 'del'  }), 
     );
 
 
@@ -2494,10 +2494,9 @@ foreach my $line (@$list) {
 	$table->{rowcolor} = ($user_info->{COMPANY_ID} == $line->[5]) ? $_COLORS[0] : undef;
   $table->addrow(($user_info->{COMPANY_ID} == $line->[5]) ? $html->b($line->[0]) : $line->[0],
     $line->[1],
-    ($user_info->{COMPANY_ID} == $line->[5]) ? ''  : $html->button("$_CHANGE", "index=11&change=1&UID=$FORM{UID}&COMPANY_ID=$line->[5]", { CLASS => 'add' }), 
+    ($user_info->{COMPANY_ID} == $line->[5]) ? ''  : $html->button("$_CHANGE", "index=". get_function_index('form_users') ."&change=1&UID=$FORM{UID}&COMPANY_ID=$line->[5]", { CLASS => 'add' }), 
     );
 }
-
 
 print $table->show();
 }

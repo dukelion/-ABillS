@@ -16,7 +16,7 @@
 <TR><TD>$_INN:</TD><TD><input type=text name=INN value='%INN%'></TD></TR>
 <TR><TD>$_BIRTHDAY:</TD><TD><input type=text name=BIRTHDAY value='%BIRTHDAY%'></TD></TR>
 <tr><TD colspan=2 class=small></TD></TR>
-<tr><TD>$_GROUPS:</TD><TD>%GROUP_SEL%</TD></TR>
+<tr><TD>$_USERS $_GROUPS:</TD><TD>%GROUP_SEL%</TD></TR>
 <tr><TD>Domain:</TD><TD>%DOMAIN_SEL%</TD></TR>
 <tr><TH colspan=2 class='title_color'>$_COMMENTS</TH></tr>
 <tr><TH colspan=2><textarea name=A_COMMENTS cols=40 rows=4>%A_COMMENTS%</textarea></TH></tr>

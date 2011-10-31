@@ -990,7 +990,7 @@ sub snmputils_dlink_pb {
               PORT_ID        => ($user_ports ne '') ? $user_ports : $ports,
               MAC            => $mac,
         	    SWITCH_INFO    => $SWITCH_INFO,
-        	    ACL_IP_MAC     => 1
+        	    ACL_IP_MAC     => $conf{SNMPUTILS_DLINK_ACL_TYPE}
          	   });
             $debug_output .= "! $message\n";
            }
@@ -1347,7 +1347,7 @@ if($sw_info->{version} !~ /DES-32/) {
 
   #Шаг 4. Задать режим связки IP MAC Port Binding (ARP / ACL):
   if ($oid_sufix{MODE}) {
-    my $mode = ($attr->{ACL_IP_MAC}) ? 1 : 0;
+    my $mode = (defined($attr->{ACL_IP_MAC})) ? int($attr->{ACL_IP_MAC}) : 1;
     if ($sw_info->{version} =~ /DES-3526/) { $mode = 0; }
     $message .= $oid_prefix.$oid_sufix{MODE}.".$ip => $mode\n";
   
