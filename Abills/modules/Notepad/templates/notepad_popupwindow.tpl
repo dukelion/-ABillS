@@ -124,7 +124,7 @@ window.onload = function() {
 						onClick=\"closePopupWindow()\" 
 						title=\"Закрыть окно\" 
 						id=\"close_popup_window\">
-						Закрыть <img  id=\"close_popup_window_img\" src=\"/img/popupWindow/close.png\" title=\"Закрыть окно\"  /> 
+						Закрыть <img  id=\"close_popup_window_img\" src=\"/img/popup_window/close.png\" title=\"Закрыть окно\"  /> 
 					</a>
 				<!-- текст -->
 				

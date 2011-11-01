@@ -48,8 +48,9 @@ if [ -f /var/run/radattr.$1 ]
 
 ##### speed client->server
    if [ "$DOWNSPEED" != "0" ] ; then
+     burst=`echo $DOWNSPEED/16 | bc`
      ${TC} qdisc add dev $1 handle ffff: ingress
-     ${TC} filter add dev $1 parent ffff: protocol ip prio 50 u32 match ip src 0.0.0.0/0 police rate ${DOWNSPEED}kbit burst 12k drop flowid :1
+     ${TC} filter add dev $1 parent ffff: protocol ip prio 50 u32 match ip src 0.0.0.0/0 police rate ${DOWNSPEED}kbit burst ${burst}k drop flowid :1
    fi;
 
 #### Filters

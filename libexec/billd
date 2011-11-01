@@ -211,8 +211,8 @@ sub check_lines {
   my %POSTPAIDS  = ();
 
   foreach my $line (@$list) {
-  	$TP_CREDITS{$line->[0]}=$line->[15] if (! $conf{user_credit_change});
-  	$POSTPAIDS{$line->[0]}=$line->[4];
+  	$TP_CREDITS{$line->[0]}= (! $conf{user_credit_change}) ? $line->[15] : 0;
+  	$POSTPAIDS{$line->[0]} = $line->[4];
    }
 
 	my $online   = $sessions->{nas_sorted};
