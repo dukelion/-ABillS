@@ -122,6 +122,7 @@ $Log->{PRINT}=1;
 
 
 $LIST_PARAMS{NAS_IDS}   = $ARGV->{NAS_IDS} || undef;
+$LIST_PARAMS{USER_NAME} = $ARGV->{LOGINS};
 $LIST_PARAMS{PAGE_ROWS} = 100000;
 $LIST_PARAMS{DISABLE}   = 0;
 my %NAS                 = ();
@@ -175,7 +176,7 @@ sub check_lines {
 
   $sessions->online_del({ SESSIONS_LIST => [ 'IP' ] });
 	$sessions->online( { 
-		                   #%LIST_PARAMS, 
+		                   %LIST_PARAMS, 
 		                   ALL    => 1, 
 		                   FIELDS_NAMES => [ 'USER_NAME', 'FIO', 
                              'NAS_PORT_ID', 
@@ -210,7 +211,7 @@ sub check_lines {
   my %POSTPAIDS  = ();
 
   foreach my $line (@$list) {
-  	$TP_CREDITS{$line->[0]}=$line->[15];
+  	$TP_CREDITS{$line->[0]}=$line->[15] if (! $conf{user_credit_change});
   	$POSTPAIDS{$line->[0]}=$line->[4];
    }
 
@@ -224,7 +225,7 @@ sub check_lines {
 
   my %JOIN_SERVICE_STATS = ();
   my @time = localtime();
-  my $now = $time[0]+$time[1]*60+$time[2]*3600;
+  my $now  = $time[0]+$time[1]*60+$time[2]*3600;
 
   foreach my $nas_row (@$nas_list) {
     #if don't have online users skip it

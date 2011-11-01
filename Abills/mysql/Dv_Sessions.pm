@@ -307,10 +307,10 @@ sub online {
   } 
  
  if (defined($attr->{USER_NAME})) {
- 	 push @WHERE_RULES, "c.user_name LIKE '$attr->{USER_NAME}'";
+ 	 push @WHERE_RULES, @{ $self->search_expr("$attr->{USER_NAME}", 'STR', 'c.user_name') }
   }
  elsif ($attr->{UID}) {
-   push @WHERE_RULES, "c.uid='$attr->{UID}'";
+   push @WHERE_RULES, @{ $self->search_expr("$attr->{UID}", 'INT', 'c.uid') }
   }
 
  if (defined($attr->{SESSION_ID})) {
