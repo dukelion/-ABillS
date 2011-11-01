@@ -203,6 +203,7 @@ sub msgs_admin_add {
     #Multi send
     if  (! $FORM{INNER_MSG} && (defined($FORM{GID}) || ($FORM{GID} == 0 && $FORM{UID} == 0 ) ) ) {
     	 my %NUMBERS = ();
+    	 $users->{debug}=1;
        my $list = $users->list({ GID       => $FORM{GID}, 
        	                         PAGE_ROWS => 1000000, 
        	                         DISABLE   => 0,
@@ -212,6 +213,7 @@ sub msgs_admin_add {
        my @uids = ();
        foreach my $line (@$list) {
           $FORM{UID}=$line->[5+$users->{SEARCH_FIELDS_COUNT}];
+          my $email =$line->[7+$users->{SEARCH_FIELDS_COUNT}];
           $NUMBERS{$line->[3+$users->{SEARCH_FIELDS_COUNT} - (($admin->{permissions}->{0}->{8}) ? 0 : 1)]}=$FORM{UID};
 
           push @uids, $FORM{UID};
@@ -232,26 +234,28 @@ sub msgs_admin_add {
            }
 
           #Sendmail
-          my $message = $html->tpl_show(_include('msgs_email_notify', 'Msgs'), 
-           { SITE    => $site, 
-           	 DATE    => $DATE, 
-           	 TIME    => $TIME, 
-           	 ID      => $Msgs->{INSERT_ID}, 
-           	 SUBJECT => $FORM{SUBJECT}.' / '.$FORM{REPLY_SUBJECT},
-           	 LOGIN   => $line->[0],
-           	 UID     => $FORM{UID},
-           	 STATUS  => $msg_status[$FORM{STATE}],
-           	 MESSAGE => $FORM{MESSAGE},
-           	 ATTACHMENT => $FORM{FILE_UPLOAD}{filename}
-           	 }, { OUTPUT2RETURN => 1 } );
+          if ($email) {
+            my $message = $html->tpl_show(_include('msgs_email_notify', 'Msgs'), 
+              { SITE    => $site, 
+           	  DATE    => $DATE, 
+           	  TIME    => $TIME, 
+           	  ID      => $Msgs->{INSERT_ID}, 
+           	  SUBJECT => $FORM{SUBJECT}.' / '.$FORM{REPLY_SUBJECT},
+           	  LOGIN   => $line->[0],
+           	  UID     => $FORM{UID},
+           	  STATUS  => $msg_status[$FORM{STATE}],
+           	  MESSAGE => $FORM{MESSAGE},
+           	  ATTACHMENT => $FORM{FILE_UPLOAD}{filename}
+           	  }, { OUTPUT2RETURN => 1 } );
 
-          sendmail("$conf{ADMIN_MAIL}",
-            "$users->{EMAIL}",
-            "$conf{WEB_TITLE} - $_NEW_MESSAGE",
-            "$message",
-            "$conf{MAIL_CHARSET}",
-            undef,
-            { MAIL_HEADER => [ "X-ABillS-Msg-ID: $Msgs->{INSERT_ID}" ] });
+            sendmail("$conf{ADMIN_MAIL}",
+              "$email",
+              "$conf{WEB_TITLE} - $_NEW_MESSAGE",
+              "$message",
+              "$conf{MAIL_CHARSET}",
+              undef,
+              { MAIL_HEADER => [ "X-ABillS-Msg-ID: $Msgs->{INSERT_ID}" ] });
+           }
         }
 
        if ( $cmd ne '') {
@@ -333,7 +337,9 @@ sub msgs_admin_add {
            	 DATE    => $DATE, 
            	 TIME    => $TIME, 
            	 ID      => $Msgs->{INSERT_ID}, 
-           	 SUBJECT => $FORM{SUBJECT},
+           	 LOGIN   => $FORM{LOGIN},
+           	 UID     => $FORM{UID},
+           	 SUBJECT => $FORM{SUBJECT}."//",
            	 STATUS  => $msg_status[$FORM{STATE}],
            	 MESSAGE => $FORM{MESSAGE},
            	 ATTACHMENT => $FORM{FILE_UPLOAD}{filename}
