@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/perl 
 # ABillS User Web interface
 #
 
@@ -57,49 +57,49 @@ require "../Abills/modules/Portal/lng_russian.pl";
 
 $html->{CHARSET}=$CHARSET if ($CHARSET);
 
-my %OUTPUT; # РћС‚РІРµС‡Р°РµС‚ Р·Р° РіРµРЅРµСЂР°С†РёСЋ С€Р°Р±Р»РѕРЅР°
+my %OUTPUT; # Отвечает за генерацию шаблона
 
 
 	#$Portal->{debug}=1;
-	# Р’С‹РІРѕРґ РјРµРЅСЋ РґР»СЏ РїРѕСЂС‚Р°Р»Р°
+	# Вывод меню для портала
 	$list = $Portal->portal_menu_list({ MENU_SHOW => 1});
 	if($list->[0]->[0])
 	{	
 		foreach my $line ( @$list ) 
 		{
-			# Р•СЃР»Рё РїРѕР»Рµ url РїСѓСЃС‚РѕРµ, С„РѕСЂРјРёСЂСѓРµРј РјРµРЅСЋ
+			# Если поле url пустое, формируем меню
 			if($line->[2] eq '')
 			{
 				$url = 'portal.cgi?menu_category=' . $line->[0];
 			}
-			# Р•СЃР»Рё РїРѕР»Рµ url РЅРµ РїСѓСЃС‚РѕРµ С„РѕСЂРјРёСЂСѓРµРј РІРЅРµС€РЅСЋСЋ СЃСЃС‹Р»РєСѓ 
+			# Если поле url не пустое формируем внешнюю ссылку 
 			else
 			{
 				
-				# Р•СЃР»Рё СЃС‚СЂРѕРєР° СЃРѕРґРµСЂР¶РёС‚ http:// РІС‹РІРѕРґРёРј РєР°Рє РµСЃС‚СЊ
+				# Если строка содержит http:// выводим как есть
 				if ($line->[2] =~ m|http://*|)
 				{
 					$url = $line->[2];					
 				}
-				# Р•СЃР»Рё СЃС‚СЂРѕРєР° РЅРµ СЃРѕРґРµСЂР¶РёС‚ http://  - РґРѕР±Р°РІР»СЏРµРј 
+				# Если строка не содержит http://  - добавляем 
 				else
 				{
 					$url = 'http://' . $line->[2];
 				}
 			}
 			
-			# Р•СЃР»Рё РЅР°Р¶Р°С‚РѕРµ РјРµРЅСЋ РЅРµ СЃРѕРІРїР°РґР°РµС‚ СЃ Р°РєС‚РёРІРЅС‹Рј РјРµРЅСЋ С‚Рѕ РІС‹РІРѕРґРёРј РјРµРЅСЋ Р±РµР· РІС‹РґРµР»РµРЅРёСЏ
+			# Если нажатое меню не совпадает с активным меню то выводим меню без выделения
 			if($FORM{menu_category} != $line->[0])
-			{ 
-				$OUTPUT{MENU} .= $html->tpl_show(templates('portal_menu'), {
+			{   
+				$OUTPUT{MENU} .= $html->tpl_show(_include('portal_menu', 'Portal'), {
 													HREF => $url,  
 													MENU_NAME => $line->[1],},
 													{ OUTPUT2RETURN => 1 });
 			} 
 			else
 			{
-				#  Р’РёРґРµР»РµРЅРёРµ Р°РєС‚РёРІРЅРѕРіРѕ РјРµРЅСЋ
-				$OUTPUT{MENU} .= $html->tpl_show(templates('portal_menu_hovered'), { 
+				#  Виделение активного меню 
+				$OUTPUT{MENU} .= $html->tpl_show(_include('portal_menu_hovered', 'Portal'), { 
 													MENU_NAME => $line->[1],},
 													{ OUTPUT2RETURN => 1 });
 			}							
@@ -107,23 +107,23 @@ my %OUTPUT; # РћС‚РІРµС‡Р°РµС‚ Р·Р° РіРµРЅРµСЂР°С†РёСЋ С€Р°Р±Р»РѕРЅР°
 	} 
 	else
 	{
-		# Р’С‹РІРѕРґРёС‚  СЃРѕРѕР±С€РµРЅРёРµ "Р’ СЃРёСЃС‚РµРјРµ РЅРµ СЃРѕР·РґР°РЅС‹ СЂР°Р·РґРµР»С‹"
+		# Выводит  сообшение "В системе не созданы разделы"
 		$OUTPUT{MENU} = $_NO_MENU;
 	}
 
 	if($FORM{menu_category})
 	{
-		# Р•СЃР»Рё РЅР°Р¶Р°С‚Р° РєРЅРѕРїРєР° РјРµРЅСЋ, С„РѕСЂРјРёСЂСѓРµРј СЃРїРёСЃРѕРє СЃС‚Р°С‚РµР№
+		# Если нажата кнопка меню, формируем список статей
 		$list = $Portal->portal_articles_list({ARTICLE_ID=>$FORM{menu_category}});
 		if($list->[0]->[0])
 		{
 			my $total_articles = 0;
 			foreach my $line ( @$list ) 
 			{
-				# Р•СЃР»Рё РґР°С‚Р° СЃС‚Р°С‚СЊРё РјРµРЅСЊС€Рµ РёР»Рё С‚Р°РєР°СЏ Р¶Рµ РєР°Рє С‚РµРєСѓС‰Р°СЏ РґР°С‚Р° - РІС‹РІРѕРґРёРј СЃС‚Р°С‚СЊСЋ
+				# Если дата статьи меньше или такая же как текущая дата - выводим статью
 				if ($line->[6] <= time()) 
-				{	
-					 $OUTPUT{CONTENT} .= $html->tpl_show(templates('portal_content'), {
+				{	 
+					 $OUTPUT{CONTENT} .= $html->tpl_show(_include('portal_content', 'Portal'), {
 															HREF				=> 'portal.cgi?article=' . $line->[0],  
 															TITLE				=> $line->[1],
 															SHORT_DESCRIPTION	=> $line->[2]},
@@ -132,11 +132,11 @@ my %OUTPUT; # РћС‚РІРµС‡Р°РµС‚ Р·Р° РіРµРЅРµСЂР°С†РёСЋ С€Р°Р±Р»РѕРЅР°
 					
 				}
 			}
-			# Р•СЃР»Рё РІ РєР°С‚РµРіРѕСЂРёРё РєСЂРѕРјРµ СЃРєСЂС‹С‚С‹С… РЅРµС‚ Р±РѕР»СЊС€Рµ СЃС‚Р°С‚С‚РµР№ РІС‹РІРѕРґРёРј - "Р’ СЌС‚РѕР№ РєР°С‚РµРіРѕСЂРёРё РїРѕРєР° РЅРµС‚ РґР°РЅРЅС‹С…"
+			# Если в категории кроме скрытых нет больше статтей выводим - "В этой категории пока нет данных"
 			if($total_articles <= 0) 
 			{
 				
-				$OUTPUT{CONTENT} .= $html->tpl_show(templates('portal_article'), {
+				$OUTPUT{CONTENT} .= $html->tpl_show(_include('portal_article', 'Portal'), {
 														TITLE 	=> '',
 														ARTICLE => $_NO_DATA},
 														{ OUTPUT2RETURN => 1 });
@@ -149,8 +149,8 @@ my %OUTPUT; # РћС‚РІРµС‡Р°РµС‚ Р·Р° РіРµРЅРµСЂР°С†РёСЋ С€Р°Р±Р»РѕРЅР°
 		}
 		else 
 		{
-			# Р•СЃР»Рё РІ РґР°РЅРЅРѕР№ РєР°С‚РµРіРѕСЂРёРё РјРµРЅСЋ РЅРµС‚ СЃС‚Р°С‚С‚РµР№ РІС‹РІРѕРґРёРј СЃРѕРѕР±С‰РµРЅРёРµ - "Р’ СЌС‚РѕР№ РєР°С‚РµРіРѕСЂРёРё РїРѕРєР° РЅРµС‚ РґР°РЅРЅС‹С…"
-			 $OUTPUT{CONTENT} .= $html->tpl_show(templates('portal_article'), {
+			# Если в данной категории меню нет статтей выводим сообщение - "В этой категории пока нет данных"
+			 $OUTPUT{CONTENT} .= $html->tpl_show(_include('portal_article', 'Portal'), {
 													TITLE 	=> '',
 													ARTICLE => $_NO_DATA},
 													{ OUTPUT2RETURN => 1 });
@@ -158,16 +158,16 @@ my %OUTPUT; # РћС‚РІРµС‡Р°РµС‚ Р·Р° РіРµРЅРµСЂР°С†РёСЋ С€Р°Р±Р»РѕРЅР°
 	}
 	else 
 	{
-		# РћС‚РѕР±СЂР°Р¶Р°РµС‚ СЃС‚Р°С‚СЊРё РЅР° РіР»Р°РІРЅРѕР№
+		# Отображает статьи на главной
 		$list = $Portal->portal_articles_list({MAIN_PAGE=>1});
 		if($list->[0]->[0])
 		{
-			# Р•СЃР»Рё РґР°С‚Р° СЃС‚Р°С‚СЊРё РјРµРЅСЊС€Рµ РёР»Рё С‚Р°РєР°СЏ Р¶Рµ РєР°Рє С‚РµРєСѓС‰Р°СЏ РґР°С‚С‹ - РІС‹РІРѕРґРёРј СЃС‚Р°С‚СЊСЋ
+			# Если дата статьи меньше или такая же как текущая даты - выводим статью
 			foreach my $line ( @$list ) 
 			{
 				if ($line->[6] <= time()) 
 				{
-				 $OUTPUT{CONTENT} .= $html->tpl_show(templates('portal_content'), {
+				 $OUTPUT{CONTENT} .= $html->tpl_show(_include('portal_content', 'Portal'), {
 														HREF => 'portal.cgi?article=' . $line->[0],  
 														TITLE => $line->[1],
 														SHORT_DESCRIPTION => $line->[2]},
@@ -177,8 +177,8 @@ my %OUTPUT; # РћС‚РІРµС‡Р°РµС‚ Р·Р° РіРµРЅРµСЂР°С†РёСЋ С€Р°Р±Р»РѕРЅР°
 		}
 		else
 		{
-			 # Р’С‹РІРѕРґРёС‚ СЃРѕРѕР±С‰РµРЅРёРµ - "Р’ СЌС‚РѕР№ РєР°С‚РµРіРѕСЂРёРё РїРѕРєР° РЅРµС‚ РґР°РЅРЅС‹С…"
-			 $OUTPUT{CONTENT} .= $html->tpl_show(templates('portal_article'), {		
+			 # Выводит сообщение - "В этой категории пока нет данных"
+			 $OUTPUT{CONTENT} .= $html->tpl_show(_include('portal_article', 'Portal'), {		
 													TITLE => '',
 													ARTICLE => $_NO_DATA},
 													{ OUTPUT2RETURN => 1 });		
@@ -188,11 +188,11 @@ my %OUTPUT; # РћС‚РІРµС‡Р°РµС‚ Р·Р° РіРµРЅРµСЂР°С†РёСЋ С€Р°Р±Р»РѕРЅР°
 	
 			
 	if($FORM{article}) {
-			# РћС‚РѕР±СЂР°Р¶РµРЅРёРµ СЃС‚Р°С‚СЊРё РїРѕР»СЊРЅРѕСЃС‚СЋ
+			# Отображение статьи польностю
 			$list = $Portal->portal_articles_list({ID =>$FORM{article}});
 			if($list->[0]->[0])
 			{
-				$OUTPUT{CONTENT} = $html->tpl_show(templates('portal_article'), {
+				$OUTPUT{CONTENT} = $html->tpl_show(_include('portal_article', 'Portal'), {
 														TITLE 	=> $list->[0]->[1],
 														ARTICLE => $list->[0]->[3]},
 														{ OUTPUT2RETURN => 1 });	
@@ -206,7 +206,7 @@ my %OUTPUT; # РћС‚РІРµС‡Р°РµС‚ Р·Р° РіРµРЅРµСЂР°С†РёСЋ С€Р°Р±Р»РѕРЅР°
 
 	
 
-print $html->tpl_show(templates('portal_body'), {%OUTPUT}) ;
+print $html->tpl_show(_include('portal_body', 'Portal'), {%OUTPUT}) ;
 
 
 
