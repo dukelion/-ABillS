@@ -42,6 +42,7 @@ sub messages_new {
   my ($attr) = @_;
 
  my @WHERE_RULES = ();
+ my $EXT_TABLE   = '';
  my $fields = '';
  
  if ($attr->{USER_READ}) {
@@ -66,6 +67,7 @@ sub messages_new {
 
  if ($attr->{GIDS}) {
    push @WHERE_RULES, "u.gid IN ($attr->{GIDS})"; 
+   $EXT_TABLE =  "LEFT JOIN users u  ON (m.uid = u.uid)";
  }
 
 
@@ -77,6 +79,7 @@ sub messages_new {
  	  sum(if(state = 0, 1, 0)), 1,1,1,1
     FROM msgs_chapters c
     LEFT JOIN msgs_messages m ON (m.chapter= c.id AND m.state=0)
+    $EXT_TABLE
    $WHERE 
    GROUP BY c.id;");
    return $self->{list};

@@ -10,16 +10,23 @@
 <TR class='odd'><TD>$_BILL:</TD><TD>%BILL_ID%</TD></TR>
 <TR class='odd'><TD>$_DEPOSIT:</TD><TD>%DEPOSIT%</TD></TR>
 %EXDATA%
-<TR class='odd'><TD>$_CREDIT:</TD><TD><input type=text name=CREDIT value='%CREDIT%'> $_DATE: <input type=text name=CREDIT_DATE value='%CREDIT_DATE%' ID='CREDIT_DATE' size='10'> 
+<TR class='odd'><TD>$_CREDIT:</TD><TD><input type=text name=CREDIT value='%CREDIT%'> $_DATE: <input type=text name=CREDIT_DATE value='%CREDIT_DATE%' ID='CREDIT_DATE' size='10' rel='tcal'> 
 <script language=\"JavaScript\">
-	var o_cal = new tcal ({	'formname': 'company',	'controlname': 'CREDIT_DATE'	});
-	
-	// individual template parameters can be modified via the calendar variable
-	o_cal.a_tpl.yearscroll = false;
-	o_cal.a_tpl.weekstart  = 1;
- 	o_cal.a_tpl.months     = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-	o_cal.a_tpl.weekdays   = ['Sun', 'Mon', 'Tue', 'Wen', 'Thu', 'Fri', 'Sat'];
-</script></TD></TR>
+A_TCALCONF = {
+	'cssprefix'  : 'tcal',
+	'months'     : ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
+	'weekdays'   : ['Sun', 'Mon', 'Tue', 'Wen', 'Thu', 'Fri', 'Sat'],
+	'longwdays'  : ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thirsday', 'Friday', 'Saturday'],
+	'yearscroll' : false, // show year scroller
+	'weekstart'  : 1, // first day of week: 0-Su or 1-Mo
+	'prevyear'   : 'Previous Year',
+	'nextyear'   : 'Next Year',
+	'prevmonth'  : 'Previous Month',
+	'nextmonth'  : 'Next Month',
+	'format'     : 'Y-m-d'
+};
+</script>
+</TD></TR>
 <TR class='odd'><TD>$_VAT (%):</TD><TD><input type=text name=VAT value='%VAT%'></TD></TR>
 <TR class='odd'><TD>$_REGISTRATION:</TD><TD>%REGISTRATION%</TD></TR>
 <TR><TH class='title_color' colspan=2>$_BANK_INFO</th></tr>
