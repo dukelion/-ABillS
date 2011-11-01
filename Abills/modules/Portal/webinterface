@@ -1,0 +1,293 @@
+
+use Portal;
+my $Portal = Portal->new($db, $admin, \%conf);
+
+
+#***********************************************************
+#  Portal manage menu
+#***********************************************************
+sub portal_manage_menu {
+	if ($FORM{message}) {				
+		$html->message('info', $_INFO, "$FORM{message}");	
+	}
+	
+	$Portal->{ACTION}='add';
+	$Portal->{ACTION_LNG}=$_ADD;		
+	$Portal->{TITLE_NAME}=$_ADD_MENU;
+	#$Portal->{debug}=1;
+	if (!$FORM{STATUS} or $FORM{STATUS} == 0) {
+
+			$Portal->{SHOWED}='';
+			$Portal->{HIDDEN}='checked=\'checked\'';				
+	} 
+	else {
+		$Portal->{SHOWED}='checked=\'checked\'';
+		$Portal->{HIDDEN}='';
+	}
+	
+	if ($FORM{add}) {
+		if ($FORM{NAME} ne '') {
+			$Portal->portal_menu_add({ %FORM });
+			if (! $Portal->{errno}) {
+				#$html->message('info', $_INFO, "$_ADDED");
+				$html->tpl_show(_include('portal_redirect', 'Portal'), { 
+					SECTION => '',
+					MESSAGE => "$_ADDED",
+				});		
+			}
+		}
+		else {
+			$html->message('info', $_INFO, "$_FIELDS_FOR_NAME_ARE_REQUIRED");
+			$html->tpl_show(_include('portal_menu_add', 'Portal'), {%$Portal, %FORM} );
+		}	
+	}
+	elsif ($FORM{del}) {
+		
+		$list = $Portal->portal_articles_list( { ARTICLE_ID => $FORM{del}} );
+		
+		if (defined($list->[0]->[0]) ){
+	
+			$html->message('info', $_INFO, "$_CANT_DELETE_ERROR");
+		}
+		else {	
+		
+			#$Portal->{debug}=1;
+			$Portal->portal_menu_del( {ID =>$FORM{del}} );
+	    	if (! $Portal->{errno}){
+	    	 	$html->message('info', $_INFO, "$_DELETED");
+	     	}
+	    }	
+	}
+	elsif ($FORM{change}) {
+		if ($FORM{NAME} ne '') {
+			$Portal->portal_menu_change({ %FORM });
+			if (! $Portal->{errno}) {
+	        	$html->tpl_show(_include('portal_redirect', 'Portal'), { 
+					SECTION => '',
+					MESSAGE => "$_CHANGED",
+				});			
+	    	}
+		}
+		else {
+			$Portal->{ACTION}='change';
+			$Portal->{ACTION_LNG}=$_CHANGE;
+			$Portal->{TITLE_NAME}=$_CHANGE_MENU;
+			$html->message('info', $_INFO, "$_FIELDS_FOR_NAME_ARE_REQUIRED");
+			$html->tpl_show(_include('portal_menu_add', 'Portal'), {%$Portal, %FORM} );
+		}
+	}	
+	elsif ($FORM{chg}) {
+		$Portal->{ACTION}='change';
+		$Portal->{ACTION_LNG}=$_CHANGE;
+		$Portal->{TITLE_NAME}=$_CHANGE_MENU;
+
+		
+				
+		$Portal->portal_menu_info({ ID => $FORM{chg},});
+		
+		if ($Portal->{STATUS} == 0) {
+			$Portal->{SHOWED}='';
+			$Portal->{HIDDEN}='checked=\'checked\'';				
+		} 
+		else {
+			$Portal->{SHOWED}='checked=\'checked\'';
+			$Portal->{HIDDEN}='';
+		}	
+		
+	} 
+	
+	if (!$FORM{add} and !$FORM{change}) {
+		$html->tpl_show(_include('portal_menu_add', 'Portal'), $Portal);  		
+	}
+	
+	my $table = $html->table(	{	width      => '100%',
+									caption    => $_MENU,
+									border     => 1,
+									title      => [$_NAME, URL, $_ADDED, $_STATUS, '-', '-'],
+									cols_align => ['left', 'right', 'center', 'center'],
+									pages      => $Portal->{TOTAL},
+									ID         => 'PORTAL_TYPES'
+								}
+	);
+	
+	@STATUS = ('<strong style=\'color:red\'>' . $_HIDDEN. '</strong>', '<strong style=\'color:#090\'>'. $_SHOWED . '</strong>');
+	
+	#$Portal->{debug}=1;	
+	$list = $Portal->portal_menu_list({});
+	foreach my $line ( @$list ) {
+		$table->addrow(	$line->[1],  
+						$line->[2],
+						$line->[3],
+						@STATUS[$line->[4]], 
+						$html->button($_INFO, "index=$index&chg=$line->[0]", { CLASS => 'change' }), 
+						(defined($permissions{0}{5})) ? $html->button($_DEL, "index=$index&del=$line->[0]", { MESSAGE => "$_DEL $line->[1]?", CLASS => 'del' }) : ''
+    				  );
+	}			
+	print $table->show();  
+	
+}
+
+#***********************************************************
+#  Portal articles
+#***********************************************************
+sub portal_articles {
+	if ($FORM{message}) {				
+		$html->message('info', $_INFO, "$FORM{message}");	
+	}
+	
+	$Portal->{ACTION}='add';
+	$Portal->{ACTION_LNG}=$_ADD;		
+	$Portal->{TITLE_NAME}=$_ADD_ARTICLE;
+	my $date .=	$html->date_fld2('DATE', { FORM_NAME => 'portal_form', WEEK_DAYS => \@WEEKDAYS, MONTHES => \@MONTHES, DATE => $FORM{DATE}});
+	my $PORTAL_MENU_ID = $Portal->{PORTAL_MENU_ID}=$html->form_select("PORTAL_MENU_ID", 
+							{	SELECTED          => $FORM{PORTAL_MENU_ID},
+								SEL_MULTI_ARRAY   => [['', $_CHOOSE_MENU], @{ $Portal->portal_menu_list({ NOT_URL => 1}) } ], 
+								MULTI_ARRAY_KEY   => 0,
+								MULTI_ARRAY_VALUE => 1,
+								NO_ID             => 1
+							});	
+	
+	#$Portal->{debug}=1;
+	if (!$FORM{STATUS} or $FORM{STATUS} == 0) {
+
+			$Portal->{SHOWED}='';
+			$Portal->{HIDDEN}='checked=\'checked\'';				
+	} 
+	else {
+		$Portal->{SHOWED}='checked=\'checked\'';
+		$Portal->{HIDDEN}='';
+	}
+	
+	if ($FORM{ON_MAIN_PAGE}) {
+		$Portal->{ON_MAIN_PAGE_CHECKED}='checked=\'checked\'';
+	}
+	
+	
+	if ($FORM{add}) {
+		if ($FORM{TITLE} ne '' and $FORM{CONTENT} ne '' and $FORM{PORTAL_MENU_ID} ne '') {
+			$Portal->portal_article_add({ %FORM });
+			if (! $Portal->{errno}) {
+				#$html->message('info', $_INFO, "$_ADDED");
+				$html->tpl_show(_include('portal_redirect', 'Portal'), { 
+					SECTION => '',
+					MESSAGE => "$_ADDED",
+				});		
+			}
+		}
+		else {
+			$html->message('info', $_INFO, "$_FIELDS_FOR_TITLE_TEXT_MENU_ARE_REQUIRED");
+			$html->tpl_show(_include('portal_article_add', 'Portal'), {%$Portal, 
+																	   %FORM,
+																		DATE => $date,
+																  		ALIGN => 'right',
+																  		PORTAL_MENU_ID => $PORTAL_MENU_ID,
+																	   
+																	   } );
+		}	
+	}
+	elsif ($FORM{del}) {
+			$Portal->portal_article_del( {ID =>$FORM{del}} );
+	    	if (! $Portal->{errno}){
+	    	 	$html->message('info', $_INFO, "$_DELETED");
+	     	}
+	
+	}
+	elsif ($FORM{change}) {
+		if ($FORM{TITLE} ne '' and $FORM{CONTENT} ne '' and $FORM{PORTAL_MENU_ID} ne '') {
+			$Portal->portal_article_change({ %FORM });
+			if (! $Portal->{errno}) {
+	        	$html->tpl_show(_include('portal_redirect', 'Portal'), { 
+					SECTION => '',
+					MESSAGE => "$_CHANGED",
+				});			
+	    	}
+		}
+		else {
+			
+			$Portal->{ACTION}='change';
+			$Portal->{ACTION_LNG}=$_CHANGE;
+			$Portal->{TITLE_NAME}=$_CHANGE_MENU;
+			$html->message('info', $_INFO, "$_FIELDS_FOR_TITLE_TEXT_MENU_ARE_REQUIRED");
+			$html->tpl_show(_include('portal_article_add', 'Portal'), {%$Portal, 
+																	   %FORM,
+																	   DATE => $date,
+																  	   ALIGN => 'right',
+																  	   PORTAL_MENU_ID => $PORTAL_MENU_ID,
+																	   
+																	   });
+		}
+	}	
+	elsif ($FORM{chg}) {
+		$Portal->{ACTION}='change';
+		$Portal->{ACTION_LNG}=$_CHANGE;
+		$Portal->{TITLE_NAME}=$_CHANGE_MENU;
+
+		
+				
+		$Portal->portal_article_info({ ID => $FORM{chg},});
+	
+		$date =	$html->date_fld2('DATE', { FORM_NAME => 'portal_form', WEEK_DAYS => \@WEEKDAYS, MONTHES => \@MONTHES, DATE => $Portal->{DATE}});
+		$PORTAL_MENU_ID = $Portal->{PORTAL_MENU_ID}=$html->form_select("PORTAL_MENU_ID", 
+						{	SELECTED          => $Portal->{PORTAL_MENU_ID},
+							SEL_MULTI_ARRAY   => [['', $_CHOOSE_MENU], @{ $Portal->portal_menu_list({ NOT_URL => 1}) } ], 
+							MULTI_ARRAY_KEY   => 0,
+							MULTI_ARRAY_VALUE => 1,
+							NO_ID             => 1
+						});	
+		
+		if ($Portal->{STATUS} == 0) {
+			$Portal->{SHOWED}='';
+			$Portal->{HIDDEN}='checked=\'checked\'';				
+		} 
+		else {
+			$Portal->{SHOWED}='checked=\'checked\'';
+			$Portal->{HIDDEN}='';
+		}
+		
+		if ($Portal->{ON_MAIN_PAGE}) {
+			$Portal->{ON_MAIN_PAGE_CHECKED}='checked=\'checked\'';
+		}
+			
+		
+	} 
+	
+
+	
+	
+	if (!$FORM{add} and !$FORM{change}) {
+		
+	
+		$html->tpl_show(_include('portal_article_add', 'Portal'), {%$Portal, 
+																  DATE => $date,
+																  ALIGN => 'right',
+																  PORTAL_MENU_ID => $PORTAL_MENU_ID,
+																  });  		
+	}
+	
+	my $table = $html->table(	{	width      => '100%',
+									caption    => $_MENU,
+									border     => 1,
+									title      => [$_MENU, $_TITLE, $_DATE_PUBLICATE, $_STATUS, $_ON_MAIN_PAGE, '-', '-'],
+									cols_align => ['left', 'left', 'left',  'left', 'right', 'center', 'center'],
+									pages      => $Portal->{TOTAL},
+									ID         => 'PORTAL_TYPES'
+								}
+	);
+	
+	@STATUS = ('<strong style=\'color:red\'>' . $_HIDDEN. '</strong>', '<strong style=\'color:#090\'>'. $_SHOWED . '</strong>');
+	
+	#$Portal->{debug}=1;	
+	$list = $Portal->portal_articles_list({});
+	foreach my $line ( @$list ) {
+		$table->addrow(	$line->[7],  
+						$line->[1],  # (length($line->[1]) > 30 ) ? substr ($line->[1], 0, 21) . '...' : $line->[1],
+						$line->[9],
+						@STATUS[$line->[4]],
+						($line->[5] == 1 ) ? $_YES : $_NO , 
+						$html->button($_INFO, "index=$index&chg=$line->[0]", { CLASS => 'change' }), 
+						(defined($permissions{0}{5})) ? $html->button($_DEL, "index=$index&del=$line->[0]", { MESSAGE => "$_DEL $line->[1]?", CLASS => 'del' }) : ''
+    				  );
+	}			
+	print $table->show();  
+	
+}

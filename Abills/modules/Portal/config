@@ -1,0 +1,7 @@
+#Iner_ID : Main or Sub or if -1 user menu func list
+%FUNCTIONS_LIST = ("01:0:Portal:portal_manage_menu:"			=> 5,
+				   "02:1:Portal menu:portal_manage_menu:"		=> 5,
+				   "03:1:Portal articles:portal_articles:"		=> 5,			
+				                      
+                 );
+1
