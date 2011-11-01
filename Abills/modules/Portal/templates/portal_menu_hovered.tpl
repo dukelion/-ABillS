@@ -1,0 +1,1 @@
+<li class=\"home\">%MENU_NAME%</li>
