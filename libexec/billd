@@ -114,6 +114,9 @@ require Dv;
 my $Dv = Dv->new($db, $admin, \%conf);
 require Nas;
 my $nas = Nas->new($db, \%conf);
+require Billing;
+Billing->import();
+
 
 require Log;
 Log->import('log_add');
@@ -169,9 +172,6 @@ sub deamon {
 # check_lines
 #***********************************************************
 sub check_lines {
-	require Billing;
-	Billing->import();
-
   $sessions->{debug}=1 if ($debug > 4);
 
   $sessions->online_del({ SESSIONS_LIST => [ 'IP' ] });
@@ -753,7 +753,7 @@ sub check_speed_linux {
             	my %ex = ();
             	$tp_exprasions{$tp}{$traf_type}=$expresion;
               while(my($id, $expresion_text) = each %{ $tp_exprasions{$tp} } ) {
-  	            $expresion_text =~ s/\n|[\r]//g;
+  	            $expresion_text =~ s/[\n\r]+//g;
   	            my @expresions_array = split(/;/, $expresion_text);
  	  
   	            foreach my $expresion (@expresions_array) {
@@ -920,11 +920,11 @@ sub check_speed_linux {
   	                                                                     } );
 
                   if ($RESULT->{SPEED_IN}) {
-                    $tp_speed_in=$RESULT->{SPEED_IN};
-                    $tp_speed_out=$RESULT->{SPEED_OUT};
+                    $tp_speed_in = $RESULT->{SPEED_IN};
+                    $tp_speed_out= $RESULT->{SPEED_OUT};
                    }
                   elsif($RESULT->{SPEED}) {
-                  	$tp_speed_in=$RESULT->{SPEED};
+                  	$tp_speed_in =$RESULT->{SPEED};
                   	$tp_speed_out=$RESULT->{SPEED};
                    }
                  }
@@ -1131,11 +1131,9 @@ else {
 	  foreach my $line (@rules) {
       #Parce ipfw pipe rules
       if ($line =~ /^(\d+):\s+(\S+)\s+(\w+)/) {
-        my $num = int($1);
-        
+        my $num = int($1);        
         # if num higher then 40000 (Join service) skip it
-        next if($num > 40000);
-        
+        next if($num > 40000);        
         my $fw_speed = $2;
         my $speed    = ($fw_speed eq 'unlimited') ? 0 : $fw_speed * $speeds_rotations{$3};
      	  $pipe_rules{$num}=$speed;
@@ -2253,7 +2251,7 @@ sub check_speed_mikrotik {
   my $result = '';
   #Get TP speed
   my %TARIF_SPEEDS = ();
-  my $list = $Dv->get_tp_speed({ CHECK_NETS => 1 });
+  my $list = $Dv->get_speed({ CHECK_NETS => 1 });
   foreach my $line ( @$list ) {
   	print "TP ID: $line->[0] $line->[1] $line->[2] $line->[3] $line->[4]\n" if ($debug > 1);
   	# TP:TRAFIC_CLASS:[IN,OUT] -> SPEED

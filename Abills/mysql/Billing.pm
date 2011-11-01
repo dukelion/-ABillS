@@ -1379,7 +1379,6 @@ sub expression {
           #$CONF->{KBYTE_SIZE} = 1;
   	      print "ARGUMENT: $ex{ARGUMENT} EXP: '$ex{EXPR}' PARAMETER: $ex{PARAMETER}\n" if ($debug > 0); 
   	      if ($ex{ARGUMENT} =~ /TRAFFIC/) {
-            
             # for alive session expr price 0
             if ($ex{ARGUMENT} =~ /SESSION/) {
             	if ($attr->{RAD_ALIVE}) {

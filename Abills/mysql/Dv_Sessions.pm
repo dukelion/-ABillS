@@ -1304,10 +1304,7 @@ sub reports {
  elsif ($attr->{INTERVAL}) {
    my ($from, $to)=split(/\//, $attr->{INTERVAL}, 2);
    push @WHERE_RULES, "date_format(l.start, '%Y-%m-%d')>='$from' and date_format(l.start, '%Y-%m-%d')<='$to'";
-
    $attr->{TYPE}='-' if (! $attr->{TYPE});
-
-
    if ($attr->{TYPE} eq 'HOURS' ) {
      $date = "date_format(l.start, '\%H')";
     }
@@ -1331,7 +1328,7 @@ sub reports {
      $date = "u.id";   	
     }  
   }
- elsif (defined($attr->{MONTH})) {
+ elsif ($attr->{MONTH}) {
  	 push @WHERE_RULES, "date_format(l.start, '%Y-%m')='$attr->{MONTH}'";
    $date = "date_format(l.start, '%Y-%m-%d')";
   } 

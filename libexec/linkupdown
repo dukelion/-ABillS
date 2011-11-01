@@ -178,6 +178,8 @@ my $wan_if    = $argv->{WAN_IF};
 
 $conf{SHAPER_CLASSES}=2 if (! defined($conf{SHAPER_CLASSES}));
 $conf{FW_TABLE_USERS}=10 if (! $conf{FW_TABLE_USERS});
+$conf{JOIN_SERVICE_FW_FIRST_RULE} = 40000 if (! $conf{JOIN_SERVICE_FW_FIRST_RULE});
+
 
 require Admins;
 Admins->import();
@@ -192,33 +194,27 @@ my $Dv = Dv->new($db, $admin, \%conf);
 my %LIST_PARAMS = ();
 my @FW_ACTIONS  = ();
 my $users_table_number = $conf{FW_TABLE_USERS} || 10;
-
 # Flush rules
 my($fw_num, $pipe_num, $fw_nums, $pipe_nums);
 
 if ($ARGV[0] eq 'pppd' && $USER eq 'username') {
-	$LIST_PARAMS{IP}=$CLIENT_IP;
+	$LIST_PARAMS{IP}    = $CLIENT_IP;
  } 
 else {
   $LIST_PARAMS{LOGIN} = "$USER";
 }
 
-  my $user = $Dv->info(0, { LOGIN => $USER });	  
-  if($Dv->{errno}) {
-    print "Error: User not exist '$USER' IP: $CLIENT_IP ([$Dv->{errno}] $Dv->{errstr})\n";
-    my $a = `echo "$DATE $TIME / $USER - $Dv->{errno}" >> /tmp/linkupdown`;    
-    exit 1;
-   }
-  elsif($Dv->{TOTAL} < 1) {
-    print "$USER - Not exist\n";
-    my $a = `echo "$DATE $TIME / $USER - Not exist" >> /tmp/linkupdown`;    
-    exit 1;
-   }
+  my %speeds = ();
+  my %nets   = ();
+  my %nets_id= ();
+  my %expr   = ();
+
+  my $user   = user_info({ LOGIN => $USER });
 
 # Mask
 my $BIT_MASK = 32;
 if ($user->{NETMASK} ne '255.255.255.255') {
-  my $ips   = 4294967296 - ip2int($user->{NETMASK});
+  my $ips   = 4294967296 - $user->{NETMASK};
   $BIT_MASK = 32 - length(sprintf("%b", $ips)) + 1 ;
   $BIT_MASK = 32 if ($BIT_MASK == 0);
  }
@@ -226,17 +222,10 @@ if ($user->{NETMASK} ne '255.255.255.255') {
 
 # Up fw shaper rules
 if ($ACTION eq 'up' || $OS eq 'Linux') {
-  my %speeds = ();
-  my %nets   = ();
-  my %nets_id= ();
-  my %expr   = ();
-  #JOIN Service
-  $conf{JOIN_SERVICE_FW_FIRST_RULE} = 40000 if (! $conf{JOIN_SERVICE_FW_FIRST_RULE});
-
   my %IPFW_NUMS = ();
   if ($user->{JOIN_SERVICE}) {
  	  if ($user->{JOIN_SERVICE} > 1) {
-  	  $user = $Dv->info($user->{JOIN_SERVICE});
+  	  $user = user_info({ UID => $user->{JOIN_SERVICE} });
      }   
     $user->{JOIN_SERVICE}=$user->{UID}	
    }
@@ -256,67 +245,18 @@ if ($ACTION eq 'up' || $OS eq 'Linux') {
 		  elsif($user->{SPEED} >= 10000) {
   	    $table_class = $user->{SPEED};
   	   }
-
       push @FW_ACTIONS, "$IPFW table $users_table_number add $CLIENT_IP/$BIT_MASK $table_class";   	
       push @FW_ACTIONS, "$IPFW table ". ($users_table_number+1)." add $CLIENT_IP/$BIT_MASK $table_class";   	
       goto FW_ACTION;
      }
    }
-  else {
-    ($user->{TIME_INTERVALS},
-     $user->{INTERVAL_TIME_TARIF}, 
-     $user->{INTERVAL_TRAF_TARIF}) = $Billing->time_intervals($user->{TP_NUM});
-
-    my ($remaining_time, $ret_attr) = $Billing->remaining_time($user->{DEPOSIT}, {
-    	    TIME_INTERVALS      => $user->{TIME_INTERVALS},
-          INTERVAL_TIME_TARIF => $user->{INTERVAL_TIME_TARIF},
-          INTERVAL_TRAF_TARIF => $user->{INTERVAL_TRAF_TARIF},
-          SESSION_START       => $user->{SESSION_START},
-          DAY_BEGIN           => $user->{DAY_BEGIN},
-          DAY_OF_WEEK         => $user->{DAY_OF_WEEK},
-          DAY_OF_YEAR         => $user->{DAY_OF_YEAR},
-          REDUCTION           => $user->{REDUCTION},
-          POSTPAID            => 1,
-          GET_INTERVAL        => 1,
-          debug               => ($debug > 0) ? 1 : undef
-         });
-
-#    print "RT: $remaining_time\n"  if ($debug == 1);
-    my %TT_IDS = %$ret_attr;
-
-    if (keys %TT_IDS > 0) {
-      require Tariffs;
-      Tariffs->import();
-      my $tariffs = Tariffs->new($db, \%conf, $admin);
-
-      #Get intervals
-      while(my($k, $v)=each( %TT_IDS)) {
-        print "$k, $v\n" if ($debug > 0);
-        next if ($k ne 'FIRST_INTERVAL');
-        $user->{TI_ID}=$v;
- 	      my $list = $tariffs->tt_list({ TI_ID => $v, SHOW_NETS => 1 });
-
- 	      foreach my $line (@$list) {
- 	    	  $speeds{$line->[0]}{IN} = "$line->[4]";
- 	    	  $speeds{$line->[0]}{OUT}= "$line->[5]";
- 	    	  $nets_id{$line->[0]}    = "$line->[9]";
- 	    	  $nets{$line->[0]}       = $line->[10];
- 	    	  $expr{$line->[0]}       = "$line->[8]" if (length($line->[8]) > 5);
- 	      }
-       }
-    }
-   else {
-   	 my $a = `echo "$DATE $TIME / $USER - Not intervals" >> /tmp/linkupdown`;
-    }
-   }
 
   # speed apply
   my $fw_num_in    =0;
   my $fw_num_out   =0;
-
   print "Expresion:================================\n" if ($debug > 0);
-  my $RESULT = $Billing->expression($Dv->{UID}, \%expr, { START_PERIOD => $Dv->{ACCOUNT_ACTIVATE},
-  	                                                      debug        => $debug } );
+  my $RESULT = $Billing->expression($user->{UID}, \%expr, { START_PERIOD => $user->{ACCOUNT_ACTIVATE},
+  	                                                        debug        => $debug } );
   print "\nEND: =====================================\n" if ($debug > 0);
 
   if (! $Billing->{RESULT}{0}->{SPEED}) {
@@ -653,60 +593,6 @@ msg %s_%s: setconf { upstream={ cbs=%d ebs=%d cir=%d greenAction=1 yellowAction=
             int($cbs_out),int($ebs_out),$speed_out);
 }
 
-
-#**********************************************************
-# Manage mikrotik bandwidth
-# 3 type of actions
-#  up
-#  down 
-#  check
-#**********************************************************
-sub mikrotik {
-	my ($attr)=@_;
-
-  
-  
-my $cmd   = '';
-my $proto = 'pptp';
-my $nets  = '';
-my $nas_host  = '';
-my $nas_admin = '';
-my $SSH       = '/usr/bin/ssh';
-
-
-foreach my $id (keys %{ $attr->{SPEEDS} }) {  
-  my $interface = "<$proto-$USER>";
-  my $name = "ads-$proto-$USER";
-  my $speed_in  = $attr->{SPEEDS}->{$id}->{IN};
-  my $speed_out = $attr->{SPEEDS}->{$id}->{OUT};
-  
-  $cmd = '';
-  
-  if ($id == 0) {
-    $nets = '0.0.0.0/0';
-   }
-  else {
-    $nets =  $attr->{NETS}->[0];
-   }
-
-  if ($nets ne '' || $id == 0) {
-    if ($ACTION eq 'up') {
-      $cmd = "/queue tree add name name=\"$name\" dst-address=0.0.0.0/0 interface=$interface
-        parent=none direction=both priority=8 queue=default-small/default-small
-        limit-at=$speed_in/$speed_out max-limit=$speed_in/$speed_out
-        total-queue=default-small;";
-     }
-    elsif($ACTION eq 'down') {
-      $cmd = "/queue tree add name remove [ find name=$name ];";
-     }
-   }
-
- }
-
-
-  my $result = `$SSH $nas_admin\@$nas_host "$cmd"`;
-}
-
 #**********************************************************
 # Manage mikrotik bandwidth
 # 3 type of actions
@@ -932,6 +818,44 @@ sub get_mikrotik_value {
  close(CMD);
 
  return \@value; 
+}
+
+
+#************************************************
+#
+#************************************************
+sub user_info {
+	my ($attr) = @_;
+
+	my $list = $Dv->get_speed( $attr );	  
+  if($Dv->{errno}) {
+    print "Error: User not exist '$USER' IP: $CLIENT_IP ([$Dv->{errno}] $Dv->{errstr})\n";
+    my $a = `echo "$DATE $TIME / $USER - $Dv->{errno}" >> /tmp/linkupdown`;    
+    exit 1;
+   }
+  elsif($Dv->{TOTAL} < 1) {
+    print "$USER - Not exist\n";
+    my $a = `echo "$DATE $TIME / $USER - Not exist" >> /tmp/linkupdown`;    
+    exit 1;
+   }
+  else {
+  	$user->{SPEED}           =$list->[0]->[7];
+  	$user->{ACCOUNT_ACTIVATE}=$list->[0]->[8];
+  	$user->{NETMASK}         =$list->[0]->[9];
+  	$user->{JOIN_SERVICE}    =$list->[0]->[10];
+  	$user->{UID}             =$list->[0]->[11];
+    
+    if ($user->{SPEED} == 0) {
+	    foreach my $line (@$list) {  
+	      $speeds{$line->[2]}{IN} = "$line->[3]";
+        $speeds{$line->[2]}{OUT}= "$line->[4]";
+ 	      $nets_id{$line->[2]}    = "$line->[5]";
+ 	      $expr{$line->[2]}       = "$line->[6]";
+ 	     }
+     }
+   }
+
+	return $user;
 }
 
 #*****************************************************

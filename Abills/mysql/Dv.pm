@@ -654,7 +654,7 @@ sub periodic {
 #**********************************************************
 # get tp speed
 #**********************************************************
-sub get_tp_speed {
+sub get_speed {
   my $self = shift;
   my ($attr) = @_;
 
@@ -664,19 +664,28 @@ sub get_tp_speed {
   $self->{SEARCH_FIELDS_COUNT}=0;
 
   if ($attr->{LOGIN}) {
-    push @WHERE_RULES, "u.id='$attr->{LOGIN}'"; 
+    push @WHERE_RULES, @{ $self->search_expr($attr->{LOGIN}, 'STR', 'u.id') };
     $EXT_TABLE .= "LEFT JOIN dv_main dv ON (dv.tp_id = tp.id )
     LEFT JOIN users u ON (dv.uid = u.uid )";
     
-    $self->{SEARCH_FIELDS}      = ', dv.speed';
-    $self->{SEARCH_FIELDS_COUNT}++;
+    $self->{SEARCH_FIELDS}      = ', dv.speed, u.activate, dv.netmask, dv.join_service, dv.uid';
+    $self->{SEARCH_FIELDS_COUNT}+=3;
    }
+  elsif ($attr->{UID}) {
+    push @WHERE_RULES, @{ $self->search_expr($attr->{UID}, 'STR', 'u.uid') };
+    $EXT_TABLE .= "LEFT JOIN dv_main dv ON (dv.tp_id = tp.id )
+    LEFT JOIN users u ON (dv.uid = u.uid )";
+    
+    $self->{SEARCH_FIELDS}      = ', dv.speed, u.activate, dv.netmask, dv.join_service, dv.uid';
+    $self->{SEARCH_FIELDS_COUNT}+=3;
+   }
+
 
   if ($attr->{TP_ID}) {
     push @WHERE_RULES, "tp.id='$attr->{TP_ID}'"; 
    }
 
- $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
+ $WHERE = ($#WHERE_RULES > -1) ? "AND " . join(' and ', @WHERE_RULES)  : '';
  
  $self->query($db, "SELECT tp.tp_id, tp.id, tt.id, tt.in_speed, tt.out_speed, tt.net_id, tt.expression 
   $self->{SEARCH_FIELDS} 

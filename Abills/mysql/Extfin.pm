@@ -249,7 +249,6 @@ sub payment_deed {
  my @WHERE_RULES_DV = ();
  @WHERE_RULES = ();
  my %NAMES=();
-
  my $LIMIT = '';
 
  if ($attr->{PAGE_ROWS}) {
