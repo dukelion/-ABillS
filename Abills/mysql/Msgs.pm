@@ -199,7 +199,7 @@ sub messages_list {
  	 while( my ($chapter, $deligation) =  each %{ $attr->{CHAPTERS_DELIGATION} } ) {
  	 	 my $privileges = '';
  	 	 if ($attr->{PRIVILEGES}) {
- 	 	 	 if ($attr->{PRIVILEGES}->{$chapter} == 2) {
+ 	 	 	 if ($attr->{PRIVILEGES}->{$chapter} <= 2) {
  	 	 	 	  $privileges = " AND (m.resposible=0 or m.aid='$admin->{AID}' or m.resposible='$admin->{AID}')"
  	 	 	  }
  	 	  }

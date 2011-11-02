@@ -791,7 +791,7 @@ sub msgs_admin {
   if (scalar keys %CHAPTERS_DELIGATION > 0) {
     $LIST_PARAMS{CHAPTERS_DELIGATION} = \%CHAPTERS_DELIGATION;
     $LIST_PARAMS{PRIVILEGES}          = \%A_PRIVILEGES;
-    $LIST_PARAMS{UID}      = undef if (! $FORM{UID}); 
+    $LIST_PARAMS{UID}                 = undef if (! $FORM{UID}); 
    }
 
   if (! $FORM{UID}) {
@@ -957,6 +957,7 @@ my $i = 0;
 my $status_bar = ''; 
 $pages_qs =~ s/\&ALL_OPENED=1|\&ALL_MSGS=1//;
 $pages_qs =~ s/STATE=\d+//;
+$pages_qs .= "&CHAPTER=$FORM{CHAPTER}" if ($FORM{CHAPTER});
 
 foreach my $name ( @msg_status) {
 	if (defined($FORM{STATE}) && $FORM{STATE} == $i && $FORM{STATE} ne '') {
@@ -1001,19 +1002,23 @@ sub msgs_notify_admins {
   my $list = $Msgs->admins_list({ EMAIL_NOTIFY=> 1,
   	                              CHAPTER_ID     => $FORM{CHAPTER}
      	                         });     
+     	                         
 foreach my $line (@$list) {
   next if (! $line->[7]);
 	$ENV{HTTP_REFERER} =~ m/(https:\/\/[a-zA-Z0-9:\.\-]+)\//g;
   my $site =  $1 || '';
-
+  
+  $RESPOSIBLE = ($FORM{RESPOSIBLE} && $FORM{RESPOSIBLE} eq $line->[4]) ? $_YES  : $_NO;
+  
   my $message = $html->tpl_show(_include('msgs_email_notify', 'Msgs'), 
            { SITE    => $site,
      LOGIN   => $Msgs->{LOGIN} || $FORM{LOGIN} || $ui->{LOGIN} || $user->{LOGIN},
      ADMIN   => ( $FORM{INNER_MSG} ) ? "$_ADMIN:  $admin->{A_LOGIN} ($admin->{A_FIO})" : '', 
-     UID     => $Msgs->{UID} || $FORM{UID},
+     UID     => $Msgs->{UID} || $FORM{UID} || $LIST_PARAMS{UID},
      DATE    => $DATE, 
      TIME    => $TIME,
-     ID      => "$Msgs->{INSERT_ID}/$Msgs->{REPLY_ID}", 
+     ID      => "$Msgs->{INSERT_ID}/$Msgs->{REPLY_ID}",
+     RESPOSIBLE => $RESPOSIBLE,
      SUBJECT => $FORM{SUBJECT}.' / '.$FORM{REPLY_SUBJECT},
      STATUS  => $msg_status[$FORM{STATE}],
      MESSAGE => $FORM{MESSAGE} || $FORM{REPLY_TEXT} || $Msgs->{MESSAGE},

@@ -4,6 +4,7 @@ ID: %ID%
 $_SUBJECT: %SUBJECT%
 $_STATUS: %STATUS%
 $_LOGIN: %LOGIN% (UID: %UID%)
+$_RESPOSIBLE: %RESPOSIBLE%
 %ADMIN%
 ---------------------------------------
 

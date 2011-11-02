@@ -274,7 +274,7 @@ sub change {
      my $user = Users->new($db, $admin, $CONF);
 
      $user->info($attr->{UID});
-     if($CONF->{FEES_PRIORITY}=~/bonus/  && $user->{EXT_BILL_DEPOSIT}) {
+     if($CONF->{FEES_PRIORITY} && $CONF->{FEES_PRIORITY}=~/bonus/  && $user->{EXT_BILL_DEPOSIT}) {
        $user->{DEPOSIT}+=$user->{EXT_BILL_DEPOSIT};
       }
 

@@ -698,10 +698,8 @@ sub check_speed_linux {
 	 close(PROCS);
 
 # Table shaper
-  require Billing;
-  Billing->import();
   my $Billing = Billing->new($db, \%conf);
-  my $user = $Billing->get_timeinfo();
+  my $user    = $Billing->get_timeinfo();
   my %speeds  = ();
   my %TP_HASH = ();  
   my $tp_list = $Tariffs->list({ MODULE => 'Dv',  
@@ -853,7 +851,7 @@ sub check_speed_linux {
       }
      #No shaper definition
      elsif (! $PORTS_SPEEDS{$IFACE} &&  $SPEED > 0 || 
-      ($SPEED > 0 && ($SPEED != $PORTS_SPEEDS{$IFACE}{0}{IN} || $SPEED != $PORTS_SPEEDS{$IFACE}{0}{OUT}))) {
+       ($SPEED > 0 && ($SPEED != $PORTS_SPEEDS{$IFACE}{0}{IN} || $SPEED != $PORTS_SPEEDS{$IFACE}{0}{OUT}))) {
         $debug_outputs .= "  ! Speed not defined. Set speed\n";	
         $changed = 1;
         $debug_outputs .= check_speed_change($user, $IFACE, $IP, { 
@@ -1275,6 +1273,7 @@ else {
             my $expresion  = $line->[8];
             $nets_hash{$line->[0]} = $line->[10];
 
+            #make static Speed 
             if ($expresion) {
             	my %ex = ();
             	$tp_exprasions{$tp}{$traf_type}=$expresion;
