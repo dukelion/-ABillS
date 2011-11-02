@@ -133,14 +133,14 @@ elsif ($ARGV[0] eq 'openvpn') {
   $ACTION    = $ARGV[1];
   $INTERFACE = $ARGV[2];
   $USER      = $ARGV[6];
-  $CLIENT_IP   = $ARGV[5];
+  $CLIENT_IP = $ARGV[5];
   $inum      = (! ($INTERFACE =~ s/tap//)) ? 100+8 : $INTERFACE+100;
 } 
 elsif ($ARGV[0] eq 'ipn') {
   $ACTION    = $ARGV[1];
   $INTERFACE = $ARGV[2];
   $USER      = $ARGV[3];
-  $CLIENT_IP   = $ARGV[4];
+  $CLIENT_IP = $ARGV[4];
 	my ($n1, $n2, $n3, $n4) = split(/\./, $CLIENT_IP, 4);
   $inum  = $argv->{PORT} || $n4;
 

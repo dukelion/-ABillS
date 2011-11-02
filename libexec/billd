@@ -1593,8 +1593,14 @@ elsif ($conf{ng_car}) {
                   $changed = 1;
                   $debug_outputs .= " [Changed] ". $info ." lost ip $IP\n";
   	 	           }
+                elsif ($tp_speed_out + $tp_speed_in  == 0) {
+                  $debug_outputs .= check_speed_change($user, $IFACE, $IP, {
+                  	 NAS_TYPE => $NAS_TYPE,
+                  	 debug    => ( $debug > 1) ? ' debug' : undef });
+                 }
               }
- 	  }
+ 	   }
+    
 
    print $debug_outputs if ($changed || $debug > 0);
    delete $LOGINS_SPEEDS{$user};
@@ -1627,7 +1633,8 @@ else {
   my $list = $Dv->list({ SPEED     => '>0', 
   	                     PAGE_ROWS => 100000,
   	                     SORT      => 7,
-  	                     GROUP_BY  => 'dv.speed' });
+  	                     GROUP_BY  => 'dv.speed' 
+  	                    });
   
   #my $static_speed_fw_num = $START_FW[0]+5000;
   foreach my $line (@$list) {
@@ -1691,7 +1698,6 @@ else {
    	   
    	   $debug_outputs = "$user -> IFACE: $IFACE TP: $TP IP: $IP SPEED: $SPEED JOIN SERVICE: $JOIN_SERVICE\n";
    	  }
-
   	 print $debug_outputs if ($debug == 2); 
    }
 

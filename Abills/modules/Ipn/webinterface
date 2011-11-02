@@ -1196,6 +1196,7 @@ sub ipn_user_activate {
     $ip = $attr->{IP} || $ENV{REMOTE_ADDR};
    }
 
+  $ip =~ s/\s+//g;
 
   my $nas_id = 0; 
   if (! $user->{UID} && $FORM{NAS_ID})  {
