@@ -1077,4 +1077,255 @@ ORDER BY f.date DESC;");
   return $list;
 }
 
+
+
+
+
+
+
+#**********************************************************
+# report
+#**********************************************************
+sub report_payments_fees {
+  my $self = shift;
+  my ($attr) = @_;
+
+ $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
+ $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
+ my $date = '';
+ undef @WHERE_RULES;
+ my @FEES_WHERE_RULES     = ();
+ my @PAYMENTS_WHERE_RULES = ();
+
+ if ($attr->{GIDS}) {
+   push @WHERE_RULES, "u.gid IN ( $attr->{GIDS} )";
+  }
+ elsif ($attr->{GID}) {
+   push @WHERE_RULES, "u.gid='$attr->{GID}'";
+  }
+ 
+ if ($attr->{BILL_ID}) {
+   push @WHERE_RULES, "f.BILL_ID IN ( $attr->{BILL_ID} )";
+  }
+ 
+ if($attr->{DATE}) {
+   push @FEES_WHERE_RULES, "date_format(f.date, '%Y-%m-%d')='$attr->{DATE}'";
+   push @PAYMENTS_WHERE_RULES, "date_format(f.date, '%Y-%m-%d')='$attr->{DATE}'";
+  }
+ elsif ($attr->{INTERVAL}) {
+ 	 my ($from, $to)=split(/\//, $attr->{INTERVAL}, 2);
+   push @FEES_WHERE_RULES, @{ $self->search_expr(">=$from", 'DATE', 'date_format(f.date, \'%Y-%m-%d\')') },
+   @{ $self->search_expr("<=$to", 'DATE', 'date_format(f.date, \'%Y-%m-%d\')') };
+   
+   push @PAYMENTS_WHERE_RULES, @{ $self->search_expr(">=$from", 'DATE', 'date_format(p.date, \'%Y-%m-%d\')') },
+   @{ $self->search_expr("<=$to", 'DATE', 'date_format(p.date, \'%Y-%m-%d\')') };
+  }
+ elsif (defined($attr->{MONTH})) {
+ 	 push @FEES_WHERE_RULES, "date_format(f.date, '%Y-%m')='$attr->{MONTH}'";
+ 	 push @PAYMENTS_WHERE_RULES, "date_format(p.date, '%Y-%m')='$attr->{MONTH}'";
+   $date = "date_format(f.date, '%Y-%m-%d')";
+  } 
+ else {
+ 	 $date = "date_format(f.date, '%Y-%m')";
+  }
+
+   my $GROUP = 1;
+   $attr->{TYPE}='' if (! $attr->{TYPE});
+   my $ext_tables = '';
+
+   if ($attr->{TYPE} eq 'HOURS') {
+     $date = "date_format(f.date, '%H')";
+    }
+   elsif ($attr->{TYPE} eq 'DAYS') {
+     $date = "date_format(f.date, '%Y-%m-%d')";
+    }
+   elsif($attr->{TYPE} eq 'METHOD') {
+   	 $date = "f.method";   	
+    }
+   elsif($attr->{TYPE} eq 'ADMINS') {
+   	 $date = "a.id";   	
+    }
+   elsif($attr->{TYPE} eq 'FIO') {
+   	 $ext_tables = 'LEFT JOIN users_pi pi ON (u.uid=pi.uid)';
+   	 $date  = "pi.fio";  
+   	 $GROUP = 5; 	
+    }
+   elsif($attr->{TYPE} eq 'COMPANIES') {
+   	 $ext_tables = 'LEFT JOIN companies c ON (u.company_id=c.id)';
+   	 $date  = "c.name";  
+    }
+   elsif($date eq '') {
+     $date = "u.id";   	
+    }  
+ 
+
+  if (defined($attr->{METHODS}) and $attr->{METHODS} ne '') {
+    push @WHERE_RULES, "f.method IN ($attr->{METHODS}) ";
+   }
+
+  my $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' AND ', @WHERE_RULES)  : '';
+  my $FEES_WHERE = ($#FEES_WHERE_RULES > -1) ? "AND " . join(' AND ', @FEES_WHERE_RULES)  : '';
+  my $PAYMENTS_WHERE = ($#PAYMENTS_WHERE_RULES > -1) ? "AND " . join(' AND ', @PAYMENTS_WHERE_RULES)  : '';
+
+  $GROUP = 'u.uid';
+  $self->query($db, "SELECT '', u.id, sum(p.sum), sum(f.sum), u.uid
+      FROM users u      
+      LEFT JOIN fees f  ON (u.uid=f.uid $FEES_WHERE)
+      LEFT JOIN payments p  ON (u.uid=p.uid $PAYMENTS_WHERE)
+      $ext_tables
+      $WHERE 
+      GROUP BY $GROUP
+      ORDER BY $SORT $DESC;");
+
+ my $list = $self->{list}; 
+
+ $self->{USERS_TOTAL}   = '0.00';
+ $self->{PAYMENTS_TOTAL}= '0.00'; 
+ $self->{FEES_TOTAL}    = '0.00'; 
+if ($self->{TOTAL} > 0 || $PG > 0 ) {	
+  $self->query($db, "SELECT count(DISTINCT u.uid), sum(p.sum), sum(f.sum) 
+      FROM users u
+      LEFT JOIN fees f ON (u.uid=f.uid $FEES_WHERE)
+      LEFT JOIN payments p ON (u.uid=p.uid $PAYMENTS_WHERE)
+      $WHERE;");
+
+  ($self->{USERS_TOTAL}, 
+   $self->{PAYMENTS_TOTAL}, 
+   $self->{FEES_SUM}) = @{ $self->{list}->[0] };
+}
+	
+	return $list;
+}
+
+
+
+#**********************************************************
+# report
+#**********************************************************
+sub report_users_balance {
+  my $self = shift;
+  my ($attr) = @_;
+
+ $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
+ $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
+ my $date = '';
+ undef @WHERE_RULES;
+ my @FEES_WHERE_RULES     = ();
+ my @PAYMENTS_WHERE_RULES = ();
+
+ if ($attr->{GIDS}) {
+   push @WHERE_RULES, "u.gid IN ( $attr->{GIDS} )";
+  }
+ elsif ($attr->{GID}) {
+   push @WHERE_RULES, "u.gid='$attr->{GID}'";
+  }
+ 
+ if ($attr->{BILL_ID}) {
+   push @WHERE_RULES, "f.BILL_ID IN ( $attr->{BILL_ID} )";
+  }
+ 
+ if($attr->{DATE}) {
+   push @FEES_WHERE_RULES, "date_format(f.date, '%Y-%m-%d')='$attr->{DATE}'";
+   push @PAYMENTS_WHERE_RULES, "date_format(f.date, '%Y-%m-%d')='$attr->{DATE}'";
+  }
+ elsif ($attr->{INTERVAL}) {
+ 	 my ($from, $to)=split(/\//, $attr->{INTERVAL}, 2);
+   push @FEES_WHERE_RULES, @{ $self->search_expr(">=$from", 'DATE', 'date_format(f.date, \'%Y-%m-%d\')') },
+   @{ $self->search_expr("<=$to", 'DATE', 'date_format(f.date, \'%Y-%m-%d\')') };
+   
+   push @PAYMENTS_WHERE_RULES, @{ $self->search_expr(">=$from", 'DATE', 'date_format(p.date, \'%Y-%m-%d\')') },
+   @{ $self->search_expr("<=$to", 'DATE', 'date_format(p.date, \'%Y-%m-%d\')') };
+  }
+ elsif (defined($attr->{MONTH})) {
+ 	 push @FEES_WHERE_RULES, "date_format(f.date, '%Y-%m')='$attr->{MONTH}'";
+ 	 push @PAYMENTS_WHERE_RULES, "date_format(p.date, '%Y-%m')='$attr->{MONTH}'";
+   $date = "date_format(f.date, '%Y-%m-%d')";
+  } 
+ else {
+ 	 $date = "date_format(f.date, '%Y-%m')";
+  }
+
+   my $GROUP = 1;
+   $attr->{TYPE}='' if (! $attr->{TYPE});
+   my $ext_tables = '';
+
+   if ($attr->{TYPE} eq 'HOURS') {
+     $date = "date_format(f.date, '%H')";
+    }
+   elsif ($attr->{TYPE} eq 'DAYS') {
+     $date = "date_format(f.date, '%Y-%m-%d')";
+    }
+   elsif($attr->{TYPE} eq 'METHOD') {
+   	 $date = "f.method";   	
+    }
+   elsif($attr->{TYPE} eq 'ADMINS') {
+   	 $date = "a.id";   	
+    }
+   elsif($attr->{TYPE} eq 'FIO') {
+   	 $ext_tables = 'LEFT JOIN users_pi pi ON (u.uid=pi.uid)';
+   	 $date  = "pi.fio";  
+   	 $GROUP = 5; 	
+    }
+   elsif($attr->{TYPE} eq 'COMPANIES') {
+   	 $ext_tables = 'LEFT JOIN companies c ON (u.company_id=c.id)';
+   	 $date  = "c.name";  
+    }
+   elsif($date eq '') {
+     $date = "u.id";   	
+    }  
+ 
+
+  if (defined($attr->{METHODS}) and $attr->{METHODS} ne '') {
+    push @WHERE_RULES, "f.method IN ($attr->{METHODS}) ";
+   }
+
+  my $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' AND ', @WHERE_RULES)  : '';
+  my $FEES_WHERE = ($#FEES_WHERE_RULES > -1) ? "AND " . join(' AND ', @FEES_WHERE_RULES)  : '';
+  my $PAYMENTS_WHERE = ($#PAYMENTS_WHERE_RULES > -1) ? "AND " . join(' AND ', @PAYMENTS_WHERE_RULES)  : '';
+
+  $GROUP = 'u.uid';
+  $self->query($db, "SELECT u.id, pi.fio,   if(company.id IS NULL, b.deposit, cb.deposit), 
+       if(u.company_id=0, u.credit, 
+          if (u.credit=0, company.credit, u.credit)), u.disable,  u.uid
+      FROM users u 
+     LEFT JOIN users_pi pi ON (u.uid = pi.uid)
+     LEFT JOIN bills b ON (u.bill_id = b.id)
+     LEFT JOIN companies company ON  (u.company_id=company.id) 
+     LEFT JOIN bills cb ON  (company.bill_id=cb.id)
+
+      $ext_tables
+      $WHERE 
+      GROUP BY $GROUP
+      ORDER BY $SORT $DESC;");
+
+ my $list = $self->{list}; 
+
+ $self->{USERS_TOTAL}   = '0.00';
+ $self->{PAYMENTS_TOTAL}= '0.00'; 
+ $self->{FEES_TOTAL}    = '0.00'; 
+if ($self->{TOTAL} > 0 || $PG > 0 ) {	
+  $self->query($db, "SELECT count(DISTINCT u.uid), sum(if(company.id IS NULL, b.deposit, cb.deposit)), 
+       sum(if(u.company_id=0, u.credit, 
+          if (u.credit=0, company.credit, u.credit)))
+     FROM users u
+     LEFT JOIN bills b ON (u.bill_id = b.id)
+     LEFT JOIN companies company ON  (u.company_id=company.id) 
+     LEFT JOIN bills cb ON  (company.bill_id=cb.id)
+    $WHERE;");
+
+  ($self->{USERS_TOTAL}, 
+   $self->{PAYMENTS_TOTAL}, 
+   $self->{FEES_SUM}) = @{ $self->{list}->[0] };
+}
+	
+	return $list;
+}
+
+
+
+
+
+
+
+
 1

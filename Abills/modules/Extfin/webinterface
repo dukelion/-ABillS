@@ -1397,6 +1397,166 @@ print $table->show();
 
 
 
+#**********************************************************
+#
+#**********************************************************
+sub extfin_payments_fees {
+
+  if (! $permissions{2} || ! $permissions{2}{0}) {
+  	$html->message('err', $_ERROR, "$ERR_ACCESS_DENY");  	
+  	return 0;
+  }
+
+  reports({ DATE        => $FORM{DATE}, 
+  	        REPORT      => '',
+            PERIOD_FORM => 1,
+#  	        EXT_TYPE    => { METHOD => $_TYPE,
+#  	        	               ADMINS => $_ADMINS,
+#  	        	               FIO    => $_FIO,
+#  	        	               COMPANIES => "$_COMPANIES"
+#  	        	              }
+         });
+
+
+  $LIST_PARAMS{PAGE_ROWS}=1000000;
+
+  my $graph_type= 'month_stats';
+  my %DATA_HASH = ();
+  my %AVG       = ();
+  my %CHART     = ();
+  my $num       = 1;
+  my @CHART_TYPE= ('area', 'line', 'column');
+
+  my $list = $Extfin->report_payments_fees( { %LIST_PARAMS } );
+  my $table_fees = $html->table( { width      => '100%',
+                            caption    => "$_PAYMENTS /  $_FEES",
+                            border     => 1,
+                            title      => ['#', $_LOGIN, $_PAYMENTS, $_FEES, '-'],
+                            cols_align => ['right', 'left', 'right', 'right', 'left', 'left', 'right', 'right', 'left', 'center:noprint'],
+                            qs         => $pages_qs,
+                            pages      => $fees->{TOTAL},
+                            ID         => 'REPORTS_PAYMENTS_FEES',
+                            EXPORT     => $_EXPORT .' XML:&xml=1',
+                        } );
+
+  $pages_qs .= "&subf=2" if (! $FORM{subf});
+  foreach my $line (@$list) {
+    $table_fees->addrow($num,
+      $html->button($line->[1], "index=15&UID=".$line->[4]), 
+      $line->[2] || '0.00', 
+      $line->[3] || '0.00', 
+     );
+    $num++;
+  }
+
+
+  print $table_fees->show();	
+  $table = $html->table( { width      => '100%',
+                           cols_align => ['right', 'right', 'right'],
+                           rows       => [ [ 
+                              "$_USERS: ". $html->b($Extfin->{USERS_TOTAL}), 
+                              "$_TOTAL: ". $html->b($Extfin->{PAYMENTS_TOTAL}), 
+                              "$_SUM: ". $html->b($Extfin->{FEES_SUM}) ] ],
+                           rowcolor   => 'even'
+                          });
+  print $table->show();
+  
+  if ($graph_type ne '') {
+    print $html->make_charts({  
+	        PERIOD     => $graph_type,
+	        DATA       => \%DATA_HASH,
+	        AVG        => \%AVG,
+	        TYPE       => \@CHART_TYPE,
+	        TRANSITION => 1,
+          OUTPUT2RETURN => 1,
+          %CHART 
+       });
+   }
+
+}
+
+
+
+
+
+#**********************************************************
+#
+#**********************************************************
+sub extfin_users_balance {
+
+  if (! $permissions{2} || ! $permissions{2}{0}) {
+  	$html->message('err', $_ERROR, "$ERR_ACCESS_DENY");  	
+  	return 0;
+  }
+
+#  reports({ DATE        => $FORM{DATE}, 
+#  	        REPORT      => '',
+#            PERIOD_FORM => 1,
+##  	        EXT_TYPE    => { METHOD => $_TYPE,
+##  	        	               ADMINS => $_ADMINS,
+##  	        	               FIO    => $_FIO,
+##  	        	               COMPANIES => "$_COMPANIES"
+##  	        	              }
+#         });
+#
+
+  $LIST_PARAMS{PAGE_ROWS}=1000000;
+
+  my $graph_type= 'month_stats';
+  my %DATA_HASH = ();
+  my %AVG       = ();
+  my %CHART     = ();
+  my $num       = 1;
+  my @CHART_TYPE= ('area', 'line', 'column');
+
+  my $list = $Extfin->report_users_balance( { %LIST_PARAMS } );
+  my $table_fees = $html->table( { width      => '100%',
+                            caption    => "$_USERS $_BALANCE",
+                            border     => 1,
+                            title      => [$_LOGIN, $_FIO, $_DEPOSIT, $_CREDIT, 'SALDO'],
+                            cols_align => ['left', 'right', 'right', 'left' ],
+                            qs         => $pages_qs,
+                            pages      => $fees->{TOTAL},
+                            ID         => 'REPORTS_USERS_BALANCE',
+                            EXPORT     => $_EXPORT .' XML:&xml=1',
+                        } );
+
+  $pages_qs .= "&subf=2" if (! $FORM{subf});
+  foreach my $line (@$list) {
+    $table_fees->addrow($html->button($line->[0], "index=15&UID=".$line->[5]), 
+      $line->[1], 
+      $line->[2] || '0.00', 
+      $line->[3] || '0.00', 
+      $line->[2],
+     );
+    $num++;
+  }
+
+
+  print $table_fees->show();	
+  $table = $html->table( { width      => '100%',
+                           cols_align => ['right', 'right', 'right'],
+                           rows       => [ [ 
+                              "$_USERS: ". $html->b($Extfin->{USERS_TOTAL}), 
+                              "$_DEPOSIT: ". $html->b($Extfin->{PAYMENTS_TOTAL}), 
+                              "$_CREDIT: ". $html->b($Extfin->{FEES_SUM}) ] ],
+                           rowcolor   => 'even'
+                          });
+  print $table->show();
+  
+  if ($graph_type ne '') {
+    print $html->make_charts({  
+	        PERIOD     => $graph_type,
+	        DATA       => \%DATA_HASH,
+	        AVG        => \%AVG,
+	        TYPE       => \@CHART_TYPE,
+	        TRANSITION => 1,
+          OUTPUT2RETURN => 1,
+          %CHART 
+       });
+   }
+
+}
 
 1
 

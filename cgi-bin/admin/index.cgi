@@ -4672,8 +4672,9 @@ sub report_fees {
   }
 
   %FEES_METHODS = %{ get_fees_types() };
+  
   while(my($k, $v)=each %FEES_METHODS ) {
-  	$METHODS_HASH{"$i:$i"}="$FEES_METHODS[$i]";
+  	$METHODS_HASH{"$k:$k"}="$v";
    }
 
   reports({ DATE        => $FORM{DATE}, 
@@ -4726,7 +4727,7 @@ if (defined($FORM{DATE})) {
       $line->[3]. ( ($line->[11] ) ? $html->br(). $html->b($line->[11]) : '' ), 
       $line->[4], 
       "$line->[5]",
-      $FEES_METHODS[$line->[6]], 
+      $FEES_METHODS{$line->[6]}, 
       ($BILL_ACCOUNTS{$line->[7]}) ? $BILL_ACCOUNTS{$line->[7]} : "$line->[7]",
       "$line->[8]", 
       "$line->[9]",
@@ -4785,7 +4786,7 @@ else{
   foreach my $line (@$list) {
     my $main_column = '';
     if ($type eq 'METHOD') {
-    	$main_column = $FEES_METHODS[$line->[0]];
+    	$main_column = $FEES_METHODS{$line->[0]};
      }
     elsif($type eq 'FIO' || $type eq 'USER' || $FORM{ADMINS}) {
       if (! $line->[0] || $line->[0] eq '') {

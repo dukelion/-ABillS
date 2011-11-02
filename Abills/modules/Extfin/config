@@ -8,6 +8,8 @@
                    "10:9:$_PAYMENT_DEED:extfin_report_deeds"  => 4, 
                    "11:9:$_FEES:extfin_report_paids"          => 4,
                    "12:9:$_DEBETORS:extfin_debetors"          => 4,
+                   "13:9:$_PAYMENTS / $_FEES:extfin_payments_fees" => 4,
+                   "14:9:$_USERS $_BALANCE:extfin_users_balance"   => 4,
                    );
 
 

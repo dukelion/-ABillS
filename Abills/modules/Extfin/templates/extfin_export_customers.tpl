@@ -10,11 +10,11 @@
 </td></tr>
 <tr><td>$_REPORT $_TYPE:</td><td>%TYPE_SEL%</td></tr>
 
-<tr bgcolor=$_COLORS[2]><td>$_USER $_TYPE:</td><td>%USER_TYPE_SEL%</td></tr>
-<tr bgcolor=$_COLORS[2]><td>$_TOTAL:</td><td><input type=checkbox name=TOTAL_ONLY value=1></td></tr>
+<tr class=even><td>$_USER $_TYPE:</td><td>%USER_TYPE_SEL%</td></tr>
+<tr class=even><td>$_TOTAL:</td><td><input type=checkbox name=TOTAL_ONLY value=1></td></tr>
 
 <tr><td>$_INFO_FIELDS <br>($_USERS):</td><td>%INFO_FIELDS%</td></tr>
-<tr bgcolor=$_COLORS[2]><td>$_INFO_FIELDS <br>($_COMPANIES):</td><td>%INFO_FIELDS_COMPANIES%</td></tr>
+<tr class=even><td>$_INFO_FIELDS <br>($_COMPANIES):</td><td>%INFO_FIELDS_COMPANIES%</td></tr>
 
 <tr><td>XML:</td><td><input type=checkbox name=xml value=1></td></tr>
 <tr><td>$_ROWS:</td><td><input type=text name=PAGE_ROWS value='$PAGE_ROWS'></td></tr>
