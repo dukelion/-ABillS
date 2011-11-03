@@ -1163,7 +1163,7 @@ sub report_payments_fees {
     push @WHERE_RULES, "f.method IN ($attr->{METHODS}) ";
    }
 
-  my $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' AND ', @WHERE_RULES)  : '';
+  my $WHERE = ($#WHERE_RULES > -1) ? "AND " . join(' AND ', @WHERE_RULES)  : '';
   my $FEES_WHERE = ($#FEES_WHERE_RULES > -1) ? "AND " . join(' AND ', @FEES_WHERE_RULES)  : '';
   my $PAYMENTS_WHERE = ($#PAYMENTS_WHERE_RULES > -1) ? "AND " . join(' AND ', @PAYMENTS_WHERE_RULES)  : '';
 
@@ -1173,7 +1173,7 @@ sub report_payments_fees {
       LEFT JOIN fees f  ON (u.uid=f.uid $FEES_WHERE)
       LEFT JOIN payments p  ON (u.uid=p.uid $PAYMENTS_WHERE)
       $ext_tables
-      $WHERE 
+      WHERE u.deleted=0 $WHERE
       GROUP BY $GROUP
       ORDER BY $SORT $DESC;");
 
@@ -1187,7 +1187,7 @@ if ($self->{TOTAL} > 0 || $PG > 0 ) {
       FROM users u
       LEFT JOIN fees f ON (u.uid=f.uid $FEES_WHERE)
       LEFT JOIN payments p ON (u.uid=p.uid $PAYMENTS_WHERE)
-      $WHERE;");
+      WHERE u.deleted=0 $WHERE;");
 
   ($self->{USERS_TOTAL}, 
    $self->{PAYMENTS_TOTAL}, 
@@ -1279,7 +1279,7 @@ sub report_users_balance {
     push @WHERE_RULES, "f.method IN ($attr->{METHODS}) ";
    }
 
-  my $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' AND ', @WHERE_RULES)  : '';
+  my $WHERE = ($#WHERE_RULES > -1) ? "AND " . join(' AND ', @WHERE_RULES)  : '';
   my $FEES_WHERE = ($#FEES_WHERE_RULES > -1) ? "AND " . join(' AND ', @FEES_WHERE_RULES)  : '';
   my $PAYMENTS_WHERE = ($#PAYMENTS_WHERE_RULES > -1) ? "AND " . join(' AND ', @PAYMENTS_WHERE_RULES)  : '';
 
@@ -1294,7 +1294,7 @@ sub report_users_balance {
      LEFT JOIN bills cb ON  (company.bill_id=cb.id)
 
       $ext_tables
-      $WHERE 
+      WHERE u.deleted=0 $WHERE 
       GROUP BY $GROUP
       ORDER BY $SORT $DESC;");
 
@@ -1311,7 +1311,7 @@ if ($self->{TOTAL} > 0 || $PG > 0 ) {
      LEFT JOIN bills b ON (u.bill_id = b.id)
      LEFT JOIN companies company ON  (u.company_id=company.id) 
      LEFT JOIN bills cb ON  (company.bill_id=cb.id)
-    $WHERE;");
+    WHERE u.deleted=0 $WHERE;");
 
   ($self->{USERS_TOTAL}, 
    $self->{PAYMENTS_TOTAL}, 
