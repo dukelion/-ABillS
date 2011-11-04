@@ -1455,9 +1455,9 @@ sub extfin_payments_fees {
   $table = $html->table( { width      => '100%',
                            cols_align => ['right', 'right', 'right'],
                            rows       => [ [ 
-                              "$_USERS: ". $html->b($Extfin->{USERS_TOTAL}), 
-                              "$_TOTAL: ". $html->b($Extfin->{PAYMENTS_TOTAL}), 
-                              "$_SUM: ". $html->b($Extfin->{FEES_SUM}) ] ],
+                              "$_TOTAL $_USERS: ". $html->b($Extfin->{USERS_TOTAL}), 
+                              "$_TOTAL $_PAYMENTS: ". $html->b($Extfin->{PAYMENTS_TOTAL}), 
+                              "$_TOTAL $_FEES: ". $html->b($Extfin->{FEES_SUM}) ] ],
                            rowcolor   => 'even'
                           });
   print $table->show();
@@ -1528,21 +1528,22 @@ sub extfin_users_balance {
       $line->[1], 
       $line->[2] || '0.00', 
       $line->[3] || '0.00', 
-      $line->[4],
+      sprintf('%.2f', $line->[2]-$line->[3])
      );
     $num++;
-  }
+   }
 
 
   print $table_fees->show();	
-  $table = $html->table( { width      => '100%',
-                           cols_align => ['right', 'right', 'right'],
-                           rows       => [ [ 
+  $table = $html->table({ width      => '100%',
+                          cols_align => ['right', 'right', 'right'],
+                          rows       => [[ 
                               "$_USERS: ". $html->b($Extfin->{USERS_TOTAL}), 
                               "$_DEPOSIT: ". $html->b($Extfin->{PAYMENTS_TOTAL}), 
-                              "$_CREDIT: ". $html->b($Extfin->{FEES_SUM}) ] ],
+                              "$_CREDIT: ". $html->b($Extfin->{FEES_SUM}) 
+                            ]],
                            rowcolor   => 'even'
-                          });
+                        });
   print $table->show();
   
   if ($graph_type ne '') {

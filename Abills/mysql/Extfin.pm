@@ -1185,7 +1185,7 @@ sub report_payments_fees {
  $self->{PAYMENTS_TOTAL}= '0.00'; 
  $self->{FEES_TOTAL}    = '0.00'; 
 if ($self->{TOTAL} > 0 || $PG > 0 ) {	
-  $self->query($db, "SELECT count(DISTINCT u.uid), sum(p.sum), sum(f.sum) 
+  $self->query($db, "SELECT count(DISTINCT u.uid), sum((select sum(p.sum) FROM payments p WHERE u.uid=p.uid $PAYMENTS_WHERE)), sum(f.sum) 
       FROM users u
       LEFT JOIN fees f ON (u.uid=f.uid $FEES_WHERE)
       LEFT JOIN payments p ON (u.uid=p.uid $PAYMENTS_WHERE)
@@ -1286,16 +1286,16 @@ sub report_users_balance {
   my $PAYMENTS_WHERE = ($#PAYMENTS_WHERE_RULES > -1) ? "AND " . join(' AND ', @PAYMENTS_WHERE_RULES)  : '';
 
   $GROUP = 'u.uid';
-  $self->query($db, "SELECT u.id, pi.fio, if(company.id IS NULL, b.deposit, cb.deposit), 
+  $self->query($db, "SELECT u.id, pi.fio, \@payments := (select sum(p.sum) FROM payments p WHERE u.uid=p.uid $PAYMENTS_WHERE), 
        \@fees := sum(f.sum), 
-       if(company.id IS NULL, b.deposit, cb.deposit) - sum(f.sum), u.uid
+       (select sum(p.sum) FROM payments p WHERE u.uid=p.uid $PAYMENTS_WHERE) - sum(f.sum), 
+       u.uid
       FROM users u 
      LEFT JOIN users_pi pi ON (u.uid = pi.uid)
      LEFT JOIN bills b ON (u.bill_id = b.id)
      LEFT JOIN companies company ON  (u.company_id=company.id) 
      LEFT JOIN bills cb ON  (company.bill_id=cb.id)
      LEFT JOIN fees f ON  (f.uid=u.uid)
-
       $ext_tables
       WHERE u.deleted=0 $WHERE 
       GROUP BY $GROUP
