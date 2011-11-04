@@ -155,6 +155,7 @@ elsif ($ARGV[0] eq 'ipn') {
   if ($INTERFACE eq 'getif') {
     if ($OS eq 'Linux') {
       $INTERFACE = `/sbin/ip route get $CLIENT_IP | head -1 | awk '{print $5 }'`;
+      chop($INTERFACE);
      }
     else {
       $INTERFACE = `/sbin/route -n get $CLIENT_IP | /usr/bin/grep interface: | /usr/bin/awk '{print \$2}'`;
