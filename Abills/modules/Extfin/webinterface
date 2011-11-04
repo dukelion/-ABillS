@@ -1431,7 +1431,7 @@ sub extfin_payments_fees {
   my $table_fees = $html->table( { width      => '100%',
                             caption    => "$_PAYMENTS /  $_FEES",
                             border     => 1,
-                            title      => ['#', $_LOGIN, $_PAYMENTS, $_FEES, '-'],
+                            title      => ['#', $_LOGIN, $_FIO, $_PAYMENTS, $_FEES, '-'],
                             cols_align => ['right', 'left', 'right', 'right', 'left', 'left', 'right', 'right', 'left', 'center:noprint'],
                             qs         => $pages_qs,
                             pages      => $fees->{TOTAL},
@@ -1442,9 +1442,10 @@ sub extfin_payments_fees {
   $pages_qs .= "&subf=2" if (! $FORM{subf});
   foreach my $line (@$list) {
     $table_fees->addrow($num,
-      $html->button($line->[1], "index=15&UID=".$line->[4]), 
-      $line->[2] || '0.00', 
+      $html->button($line->[1], "index=15&UID=".$line->[5]), 
+      $line->[2],
       $line->[3] || '0.00', 
+      $line->[4] || '0.00', 
      );
     $num++;
   }
@@ -1527,7 +1528,7 @@ sub extfin_users_balance {
       $line->[1], 
       $line->[2] || '0.00', 
       $line->[3] || '0.00', 
-      $line->[2],
+      $line->[4],
      );
     $num++;
   }
