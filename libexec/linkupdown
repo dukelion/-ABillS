@@ -154,7 +154,7 @@ elsif ($ARGV[0] eq 'ipn') {
 
   if ($INTERFACE eq 'getif') {
     if ($OS eq 'Linux') {
-      $INTERFACE = `/sbin/ip route get $CLIENT_IP | head -1 | awk '{ print \$5 }'`;
+      $INTERFACE = `/sbin/ip route get $CLIENT_IP | head -1 | sed s/.*dev // |awk '{ print \$5 }'`;
       chop($INTERFACE);
      }
     else {
