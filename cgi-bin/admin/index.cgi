@@ -6299,11 +6299,36 @@ elsif($search_form{$FORM{type}}) {
 
 
     $info{CREDIT_DATE}  = $html->date_fld2('CREDIT_DATE', { NO_DEFAULT_DATE => 1, MONTHES => \@MONTHES, FORM_NAME => 'form_search', WEEK_DAYS => \@WEEKDAYS, TABINDEX => 12 });
+    $info{CONTRACT_DATE}= $html->date_fld2('CONTRACT_DATE', { NO_DEFAULT_DATE => 1, MONTHES => \@MONTHES, FORM_NAME => 'form_search', WEEK_DAYS => \@WEEKDAYS, TABINDEX => 12 });
     $info{PAYMENTS}     = $html->date_fld2('PAYMENTS', { NO_DEFAULT_DATE => 1, MONTHES => \@MONTHES, FORM_NAME => 'form_search', WEEK_DAYS => \@WEEKDAYS, TABINDEX => 14 });
     $info{REGISTRATION} = $html->date_fld2('REGISTRATION', { NO_DEFAULT_DATE => 1, MONTHES => \@MONTHES, FORM_NAME => 'form_search', WEEK_DAYS => \@WEEKDAYS, TABINDEX => 16 });
     $info{ACTIVATE}     = $html->date_fld2('ACTIVATE', { NO_DEFAULT_DATE => 1, MONTHES => \@MONTHES, FORM_NAME => 'form_search', WEEK_DAYS => \@WEEKDAYS, TABINDEX => 17 });
     $info{EXPIRE}       = $html->date_fld2('EXPIRE', { NO_DEFAULT_DATE => 1, MONTHES => \@MONTHES, FORM_NAME => 'form_search', WEEK_DAYS => \@WEEKDAYS, TABINDEX => 18 });
     $info{PASPORT_DATE} = $html->date_fld2('PASPORT_DATE', { NO_DEFAULT_DATE => 1, MONTHES => \@MONTHES, FORM_NAME => 'form_search', WEEK_DAYS => \@WEEKDAYS, TABINDEX => 27 });
+
+    if (in_array('Docs', \@MODULES) ) {
+      if ($conf{DOCS_CONTRACT_TYPES}) {
+    	  $conf{DOCS_CONTRACT_TYPES} =~ s/\n//g;
+        my (@contract_types_list)=split(/;/, $conf{DOCS_CONTRACT_TYPES});
+
+        my %CONTRACTS_LIST_HASH = ();
+        foreach my $line (@contract_types_list) {
+      	  my ($prefix, $sufix, $name, $tpl_name)=split(/:/, $line);
+      	  
+      	  #print "P $prefix, $sufix, $name, $tpl_name<br>";
+      	  
+      	  $prefix =~ s/ //g;
+      	  $CONTRACTS_LIST_HASH{"$prefix|$sufix"}=$name;
+         }
+
+        $info{CONTRACT_SUFIX}=$html->form_select('CONTRACT_SUFIX', 
+                                { SELECTED   => $FORM{CONTRACT_SUFIX},
+ 	                                SEL_HASH   => {'' => '', %CONTRACTS_LIST_HASH },
+ 	                                NO_ID      => 1
+ 	                               });
+       
+       }
+     }
 
     if ($conf{ADDRESS_REGISTER}) {
      	$info{ADDRESS_FORM} = $html->tpl_show(templates('form_address_sel'), $user_pi, { OUTPUT2RETURN => 1 });

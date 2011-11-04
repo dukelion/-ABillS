@@ -3,7 +3,7 @@
 # Add, del filters
 
 version=0.1
-DEBUG=1;
+DEBUG=0;
 IP=$1;
 MYSQL_USER=root;
 MYSQL_DB=abills;

@@ -836,6 +836,7 @@ sub list {
   }
 
  if ($attr->{CONTRACT_SUFIX}) {
+ 	 $attr->{CONTRACT_SUFIX}=~s/\|//g;
    push @WHERE_RULES, @{ $self->search_expr($attr->{CONTRACT_SUFIX}, 'STR', 'pi.contract_sufix', { EXT_FIELD => 1 }) }; 
   }
 

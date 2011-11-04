@@ -4,6 +4,8 @@
 <table border=0>
 <tr><td colspan='2'>$_FIO (*):</td><td><input tabindex='3' type='text' name='FIO' value='%FIO%'/></td><td>UID (>, <):</td><td><input tabindex='10' type='text' name='UID' value='%UID%'/></td></tr>
 <tr><td colspan='2'>$_CONTRACT_ID (*):</td><td><input tabindex='4' type='text' name='CONTRACT_ID' value='%CONTRACT_ID%'/></td><td>BILL ID (>, <):</td><td><input tabindex='9' type='text' name='BILL_ID' value='%BILL_ID%'/></td></tr>
+<tr><td colspan='2'>$_CONTRACT $_TYPE:</td><td>%CONTRACT_SUFIX%</td>
+<tr><td colspan='2'>$_CONTRACT $_DATE:</td><td>%CONTRACT_DATE%</td>
 <tr><td colspan='2'>$_PHONE (>, <, *):</td><td><input tabindex='5' type='text' name='PHONE' value='%PHONE%'/></td><td>$_REGISTRATION (<>):</td><td>%REGISTRATION%</td></tr>
 <tr><td colspan='2'>$_COMMENTS (*):</td><td><input tabindex='6' type='text' name='COMMENTS' value='%COMMENTS%'/></td><td>$_ACTIVATE (<>):</td><td>%ACTIVATE%</td></tr>
 <tr><td colspan='2'>$_GROUP:</td><td>%GROUPS_SEL%</td><td class='even'>$_EXPIRE (<>):</td><td>%EXPIRE%</td></tr>

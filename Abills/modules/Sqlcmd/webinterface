@@ -107,7 +107,6 @@ if ($FORM{WIZARD}) {
 		$line->[1], 
 		$html->button('QUERY', "index=$index&QUERY_ID=$line->[2]", { CLASS => 'sql' }),
 		$html->button("$_DEL", "index=$index&del=$line->[2]", { MESSAGE => "$_DEL $line->[2]?", CLASS => 'del' }),
-		
 		 );
 	 }
 
@@ -115,10 +114,10 @@ if ($FORM{WIZARD}) {
  
 
 if (! $FORM{FIELD}) {
-	$FORM{QUERY} =~ s/\\'/\'/g;
+	$FORM{QUERY} =~ s/\\\'/\'/g;
+	$FORM{QUERY} =~ s/\\\"/\"/g;
   $html->tpl_show(_include('sqlcmd', 'Sqlcmd'), { %$Sqlcmd, %FORM }) ;
   my $list = $Sqlcmd->list( { %FORM2 } ) if (defined($FORM2{QUERY}) && length($FORM2{QUERY}) > 10);
-
 
 if ($FORM{QUERY} && ! $FORM{xml}) {
 	$FORM{SQL_QUERY} = $FORM{QUERY};
