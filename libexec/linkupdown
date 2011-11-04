@@ -107,6 +107,10 @@ my $argv = parse_arguments(\@ARGV);
 if  ($argv->{OS}){
   $OS=$argv->{OS};
 }
+else {
+  $OS=`uname`;
+  chop($OS);
+}
 
 require Billing;
 Billing->import();
@@ -144,12 +148,17 @@ elsif ($ARGV[0] eq 'ipn') {
 	my ($n1, $n2, $n3, $n4) = split(/\./, $CLIENT_IP, 4);
   $inum  = $argv->{PORT} || $n4;
 
-  if ($INTERFACE eq 'getif') {
-    $INTERFACE = `/sbin/route -n get $CLIENT_IP | /usr/bin/grep interface: | /usr/bin/awk '{print \$2}'`;
-   }
-
   if ($INTERFACE =~ /eth/) {
   	$OS = 'Linux';
+   }
+
+  if ($INTERFACE eq 'getif') {
+    if ($OS eq 'Linux') {
+      $INTERFACE = `/sbin/ip route get $CLIENT_IP | head -1 | awk '{print $5 }'`;
+     }
+    else {
+      $INTERFACE = `/sbin/route -n get $CLIENT_IP | /usr/bin/grep interface: | /usr/bin/awk '{print \$2}'`;
+     }
    }
 }
 elsif($ARGV[0] eq 'pppd' || $ARGV[0] eq 'mikrotik') {
