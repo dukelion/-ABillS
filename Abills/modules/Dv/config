@@ -21,9 +21,15 @@
                    "25:24:$_MONTH:dv_use_allmonthes:"         => 4,
 
                    "36:0:Internet:dv_online:"                 => 6,
-                   "37:0:$_DV $_STATS:dv_use:COMPANY_ID"      => 13
+                   "38:0:$_DV $_STATS:dv_use:COMPANY_ID"      => 13
                    );
 
+
+
+if ($conf{DV_TURBO_MODE}) {
+  $FUNCTIONS_LIST{"37:0:Turbo:dv_turbo_mode:"}=6;
+  $FUNCTIONS_LIST{"26:19:Turbo:dv_turbo_mode_report:"}=4;
+ }
 
 
 if ($permissions{0} && $permissions{0}{1}) {

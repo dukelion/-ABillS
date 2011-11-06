@@ -1689,10 +1689,7 @@ my $table = $html->table( { width       => '100%',
 #**********************************************************
 sub dv_sessions {
   my ($list, $sessions, $attr) = @_;
-  
-  
 
-  
   my %ACCT_TERMINATE_CAUSES = (                      '' => '',
                       0  => 'Unknown',
                       1  => 'User-Request',
@@ -3925,13 +3922,87 @@ elsif ($command eq 'account-logoff') {
 #  	     }
 #  	 }
 #=cut
-
-
- 
    return 1;
+}
+
+#**********************************************************
+# dv_turbo_mode
+#**********************************************************
+sub dv_turbo_mode_report {
+  dv_turbo_mode({ REPORT => 1 })
 
 }
 
+#**********************************************************
+# dv_turbo_mode
+#**********************************************************
+sub dv_turbo_mode {
+  my ($attr)=@_;
+
+
+require "Turbo.pm";
+Turbo->import();
+my $Turbo    = Turbo->new($db, $admin, \%conf);
+my $sessions = Turbo->new($db, $admin, \%conf);
+
+if (! defined($FORM{sort})) {
+  $LIST_PARAMS{SORT} = 4;
+  $LIST_PARAMS{DESC} = 'DESC';
+}
+
+$LIST_PARAMS{ACTIVE}=1 if (! $attr->{REPORT});
+
+$Turbo->{debug}=1;
+my $list     = $Turbo->list({ %LIST_PARAMS });	
+
+if ($Turbo->{TOTAL} < 1) {
+	$html->message('info', $_INFO, "$_NO_RECORD");
+	return 0;
+}
+
+
+my @caption = ("$_USER", "$_TARIF_PLAN", "$_REMAIN $_TIME", "$_START", "$_DURATION", "$_SPEED");
+
+if ($sessions->{SEARCH_FIELDS_COUNT}) {
+	push @caption, 'TC';
+}
+
+
+my $table = $html->table( { width      => '100%',
+                            caption    => "TURBO $_SESSIONS",
+                            border     => 1,
+                            title      => [ @caption, "-"],
+                            cols_align => ['left', 'right', 'right', 'RIGHT', 'right', 'right', 'right', 'right', 'right', 'right', 'center:noprint', 'center:noprint'],
+                            qs         => $pages_qs,
+                            pages      => $Turbo->{TOTAL},
+                            recs_on_page => $LIST_PARAMS{PAGE_ROWS},
+                            ID         => 'DV_TURBO_SESSIONS'
+                         } );
+
+my $delete = '';
+use Billing;
+my $Billing = Billing->new($db, \%conf);	
+
+foreach my $line (@$list) {
+  if ($permissions{3}{1}) {
+    $delete = $html->button($_DEL, "index=". $index ."$pages_qs&del=$line->[8]", 
+       { MESSAGE => "$_DEL $_SESSION $line->[8] ", CLASS => 'del' }
+      );
+   }
+
+  $table->addrow(
+     $html->button("$line->[0]", "index=11&UID=$line->[7]"),
+     $line->[1], 
+     $line->[2],  
+     $line->[3],  
+     $line->[4],
+     $line->[5], 
+     $delete);
+}
+
+
+ print $table->show();
+}
 
 #**********************************************************
 # dv_user_info
@@ -4152,14 +4223,53 @@ elsif ($conf{DV_IP_DISCOVERY}) {
   #Turbo mode Enable function
   if ($conf{DV_TURBO_MODE} && ! $Dv->{TURBO_MODE}) {
     my (@turbo_mods) = split(/;/, $conf{DV_TURBO_MODE});
-    if($Dv->{TURBO_MODE_RUN}) {
-       $html->message('info', $_INFO, "TURBO $_ENABLE $Dv->{TURBO_MODE_RUN} sec.");
+   	my @turbo_mods_full = ();
+    	
+    my $i=1;
+  	foreach my $line (@turbo_mods) {
+   		my ($speed, $time, $price, $name)=split(/:/, $line, 4);
+   		push @turbo_mods_full, sprintf("$name\n $_SPEED: $speed\n $_TIME: %s\n $_PRICE: %.2f", sec2time($time, { format => 1 }), $price);
+   		if ($FORM{SPEED} && $FORM{SPEED} == $i){
+   			$FORM{MODE_ID}= $i-1;
+   			$FORM{SPEED}  = $speed;
+   			$FORM{TIME}   = $time;
+   			last;
+   		 }
+   		$i++;
+   	 }
+   
+    
+    require "Turbo.pm";
+    Turbo->import();
+    my $Turbo = Turbo->new($db, $admin, \%conf);
+    my $list  = $Turbo->list({ UID    => $LIST_PARAMS{UID},
+    	                        ACTIVE => 1,    	             
+    	                      });
+    
+    if($Turbo->{TOTAL} > 0 || $Dv->{TURBO_MODE_RUN}) {
+    	my $last = $list->[0]->[2] || $Dv->{TURBO_MODE_RUN};
+      $html->message('info', $_INFO, $html->b("$turbo_mods_full[$list->[0]->[1]]"). "\n$_REMAIN $_TIME: $last sec.");
      } 
+    elsif ($FORM{change} && $FORM{SPEED}) {
+      $Turbo->add({
+      	UID       => $LIST_PARAMS{UID},
+      	MODE_ID   => $FORM{MODE_ID},
+      	SPEED     => int($FORM{SPEED}),
+      	SPEED_TYPE=> 0, 
+      	TIME      => $FORM{TIME},
+      	   });	
+      
+      if ($conf{DV_TURBO_CMD}) {
+        my $result = `$conf{DV_TURBO_CMD}`;
+       }
+      
+      $html->message('info', $_INFO, $html->b("$turbo_mods_full[$FORM{MODE_ID}]"). "\n$_REMAIN $_TIME: $FORM{TIME} sec.");
+     }
     else {
       $Dv->{SPEED_SEL} = $html->form_select('SPEED', 
                                           { 
  	                                          SELECTED     => $FORM{SPEED},
- 	                                          SEL_ARRAY    => ['', @turbo_mods],
+ 	                                          SEL_ARRAY    => ['', @turbo_mods_full],
  	                                          ARRAY_NUM_ID => 1
  	                                        });
       

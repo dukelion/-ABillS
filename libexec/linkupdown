@@ -229,6 +229,19 @@ if ($user->{NETMASK} ne '255.255.255.255') {
   $BIT_MASK = 32 if ($BIT_MASK == 0);
  }
 
+# Check turbo mode
+if ($conf{DV_TURBO_MODE}) {
+  require "Turbo.pm";
+  Turbo->import();
+  my $Turbo       = Turbo->new($db, $admin, \%conf);
+  my $list = $Turbo->list({ UID    => $user->{UID},
+              	            ACTIVE => 1,    	             
+    	                    });
+
+  if($Turbo->{TOTAL} > 0) {
+  	$user->{SPEED} = $list->[0]->[5];
+   } 
+}
 
 # Up fw shaper rules
 if ($ACTION eq 'up' || $OS eq 'Linux') {
@@ -239,7 +252,7 @@ if ($ACTION eq 'up' || $OS eq 'Linux') {
      }   
     $user->{JOIN_SERVICE}=$user->{UID}	
    }
-
+  my $RESULT;
   #If set individual user speed
   if ($user->{SPEED} > 0) {
     $speeds{0}{IN} = int($user->{SPEED});
@@ -260,24 +273,26 @@ if ($ACTION eq 'up' || $OS eq 'Linux') {
       goto FW_ACTION;
      }
    }
+  else {
+  	print "Expresion:================================\n" if ($debug > 0);
+    my $RESULT = $Billing->expression($user->{UID}, \%expr, { START_PERIOD => $user->{ACCOUNT_ACTIVATE},
+  	                                                        debug        => $debug } );
+    print "\nEND: =====================================\n" if ($debug > 0);
+
+    if (! $Billing->{RESULT}{0}->{SPEED}) {
+      $speeds{0}{IN}  = $Billing->{RESULT}{0}->{SPEED_IN} if($Billing->{RESULT}{0}->{SPEED_IN});
+      $speeds{0}{OUT} = $Billing->{RESULT}{0}->{SPEED_OUT} if($Billing->{RESULT}{0}->{SPEED_OUT});
+     }
+    else {
+  	  $user->{SPEED}  = $Billing->{RESULT}{0}->{SPEED};
+  	  $speeds{0}{IN}  = $Billing->{RESULT}{0}->{SPEED};
+  	  $speeds{0}{OUT} = $Billing->{RESULT}{0}->{SPEED};
+     }
+   }
 
   # speed apply
   my $fw_num_in    =0;
   my $fw_num_out   =0;
-  print "Expresion:================================\n" if ($debug > 0);
-  my $RESULT = $Billing->expression($user->{UID}, \%expr, { START_PERIOD => $user->{ACCOUNT_ACTIVATE},
-  	                                                        debug        => $debug } );
-  print "\nEND: =====================================\n" if ($debug > 0);
-
-  if (! $Billing->{RESULT}{0}->{SPEED}) {
-    $speeds{0}{IN}  = $Billing->{RESULT}{0}->{SPEED_IN} if($Billing->{RESULT}{0}->{SPEED_IN});
-    $speeds{0}{OUT} = $Billing->{RESULT}{0}->{SPEED_OUT} if($Billing->{RESULT}{0}->{SPEED_OUT});
-   }
-  else {
-  	$user->{SPEED}  = $Billing->{RESULT}{0}->{SPEED};
-  	$speeds{0}{IN}  = $Billing->{RESULT}{0}->{SPEED};
-  	$speeds{0}{OUT} = $Billing->{RESULT}{0}->{SPEED};
-   }
   
   # Expration for dummynet shapper
   if($OS eq 'FreeBSD' && ! $conf{ng_car}) {

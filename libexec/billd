@@ -17,6 +17,8 @@ use vars  qw(%RAD %conf @MODULES $db $DATE $TIME $GZIP $MYSQLDUMP %ADMIN_REPORT 
  $admin
  $debug
  $Log
+ $ARGV
+ $OS
  );
 
 use strict;
@@ -33,7 +35,7 @@ my $begin_time = check_time();
 
 $debug           = 0;
 my $debug_output = '';
-my $ARGV         = parse_arguments(\@ARGV);
+$ARGV         = parse_arguments(\@ARGV);
 my $log_dir      = $var_dir.'/log';
 
 
@@ -66,7 +68,8 @@ CHECK speed
      SHOW_SPEED=1  - Only show current speed
   checkspeed_mikro - check cure speed for user on Mikrotik. Arguments NAS_IDS=xx
   speed_expr       - Speed Expration
-  SHOW_CUR_SPEED - Show current users speed
+  SHOW_CUR_SPEED   - Show current users speed
+  OS               - Local OS (Linux|FreeBSD). Optional params
  PLUGINS
 $plugins
  CHECK connection Alive
@@ -102,10 +105,18 @@ my $default_alive_interval = 120;
 my $exppp_hanguplimit = 3500000000;
 my $error_alive_count = $conf{ERROR_ALIVE_COUNT} || 3;
 
+if ($ARGV->{OS}) {
+  $OS = $ARGV->{OS};
+ }
+else {
+  $OS         = `uname`;
+  chop($OS);
+ }
+
+
 require Tariffs;
 Tariffs->import();
 my $Tariffs = Tariffs->new($db, \%conf, $admin);
-
 
 my %LIST_PARAMS = ();
 require Dv_Sessions;
@@ -1037,11 +1048,9 @@ sub check_speed {
   my %rule_speed = ();
   my %pipe_rules = ();
   my %fw_ips     = ();
-  my $OS         = `uname`;
   my @FW_ACTIONS = ();
   my $fw_step    = 0;
 
-  chop($OS);
   # Check linux shapper
   if ($OS eq 'Linux') {
     print "> Linux nas\n"  if ($debug > 1);
@@ -1183,6 +1192,24 @@ else {
 		                   	                  ]
 		               } );	
 
+
+  # Check turbo mode
+  my %TURBO_SPEEDS = ();
+  if ($conf{DV_TURBO_MODE}) {
+    require "Turbo.pm";
+    Turbo->import();
+    my $Turbo       = Turbo->new($db, $admin, \%conf);
+    $Turbo->{debug}=1;
+    my $list = $Turbo->list({ 
+                   	          ACTIVE => 1,    	             
+    	                      });
+
+    foreach my $line (@$list) {
+      $TURBO_SPEEDS{$line->[0]}=$line->[5];
+     } 
+   }
+
+
 	my $online     = $sessions->{nas_sorted};
   my $nas_list   = $nas->list({ %LIST_PARAMS });
   my %USER_IFACES= ();
@@ -1195,13 +1222,14 @@ else {
     
     my $l = $online->{$nas_row->[0]};
     foreach my $line (@$l) {
-       my $duration = time2sec($line->[7]);
-       my $uid      = $line->[4];
-       my $started  = $line->[8];
-       my $tp       = $line->[2];
+       my $duration  = time2sec($line->[7]);
+       my $uid       = $line->[4];
+       my $started   = $line->[8];
+       my $tp        = $line->[2];
+       my $user_speed= ($TURBO_SPEEDS{$line->[0]}) ? $TURBO_SPEEDS{$line->[0]} : $line->[3];
        my $connect_info = $line->[9];
-       print "$line->[0] IF:$line->[1] TP:$tp SPEED:$line->[3] JOIN: $line->[5] IP:$line->[6] UID:$uid DURATION:$duration STARTED:$started \n" if ($debug > 1);
-       $USER_IFACES{$line->[0]}="$line->[1]:$tp:$line->[3]:$line->[5]:$line->[6]:$uid:$duration:$connect_info:$started";
+       print "$line->[0] IF:$line->[1] TP:$tp SPEED:$user_speed JOIN: $line->[5] IP:$line->[6] UID:$uid DURATION:$duration STARTED:$started \n" if ($debug > 1);
+       $USER_IFACES{$line->[0]}="$line->[1]:$tp:$user_speed:$line->[5]:$line->[6]:$uid:$duration:$connect_info:$started";
      }
    }
 
@@ -1223,8 +1251,6 @@ else {
    }
 
 # Table shaper
-  require Billing;
-  Billing->import();
   my $Billing = Billing->new($db, \%conf);
   my $user    = $Billing->get_timeinfo();
 
@@ -1403,6 +1429,14 @@ if ($ARGV->{MPD_FILTER}) {
 
 	   if ($SPEED > 0 && $in_speed != $SPEED) {
 	   	 $debug_outputs .= "CHANGE STATIC SPEED $in_speed -> $SPEED\n";
+       $debug_outputs .= check_speed_change($user, $CONNECT_INFO, $IP, { 
+                  	 NAS_TYPE   => $NAS_TYPE,
+                  	 debug      => ( $debug > 1) ? ' debug' : undef,
+                  	 SPEED_IN   => $SPEED,
+                  	 SPEED_OUT  => $SPEED,
+                  	 });
+       $changed = 1;
+       $debug_outputs .= " [Changed] Static speed";
 	    }
      #TP SPEED
    	 elsif(defined($speeds{$TP})) {
@@ -2542,7 +2576,6 @@ sub get_result {
 
   return \%RESULT;
 }
-
 
 
 
