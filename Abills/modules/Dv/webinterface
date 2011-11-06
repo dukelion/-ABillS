@@ -3952,7 +3952,6 @@ if (! defined($FORM{sort})) {
 
 $LIST_PARAMS{ACTIVE}=1 if (! $attr->{REPORT});
 
-$Turbo->{debug}=1;
 my $list     = $Turbo->list({ %LIST_PARAMS });	
 
 if ($Turbo->{TOTAL} < 1) {
