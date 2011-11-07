@@ -270,7 +270,6 @@ sub inc_postauth {
   if ($RAD_REQUEST{'DHCP-Message-Type'}) {
 #    &radiusd::radlog(L_ERR, " --- START --- ". $RAD_REQUEST{'DHCP-Server-IP-Address'});
 
-
     if ($RAD_REQUEST{'DHCP-Gateway-IP-Address'}) {
     	$RAD_REQUEST{'Nas-IP-Address'}=$RAD_REQUEST{'DHCP-Gateway-IP-Address'};
      }
@@ -356,8 +355,9 @@ sub inc_postauth {
 # access_deny($user, $message);
 #*******************************************************************
 sub access_deny { 
-  my ($user_name, $message, $nas_num, $db) = @_;
+  my ($user_name, $message, $nas_num, $db, $attr) = @_;
 
+  my $Log = Log->new($db, \%conf);
   $Log->log_print('LOG_WARNING', $user_name, "$message", { NAS => $nas });
   
   #External script for error connections
