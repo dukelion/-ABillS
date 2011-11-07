@@ -5168,6 +5168,7 @@ sub dv_monthly_fees {
                 	                        ACTIVATE => $ADMIN_REPORT{DATE} } 
                  	             );
                      }
+                    next;
                    }
                  }
                 elsif ($abon_distrib) {

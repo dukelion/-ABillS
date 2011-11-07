@@ -228,8 +228,7 @@ if ($uid > 0) {
 
   if (defined($functions{$index})) {
     if (! $FORM{index} && $user->{DEPOSIT} + $user->{CREDIT} < 0) {
-      form_neg_deposit($user);
-      form_info();
+      form_info({ NEG_DEPOSIT => 1 });
      }
     else {
       $functions{$index}->();
@@ -332,13 +331,14 @@ sub mk_menu {
 #**********************************************************
 sub form_info {
   my ($attr) = @_;
+
   use POSIX qw(strftime);
   
   $admin->{SESSION_IP}=$ENV{REMOTE_ADDR}; 
   my $Payments = Finance->payments($db, $admin, \%conf);
   
   #Credit functions
-  if ( $conf{user_credit_change}) {
+  if ( $conf{user_credit_change} ) {
     my ($sum, $days, $price, $month_changes, $payments_expr) = split(/:/, $conf{user_credit_change}) ;
     $month_changes = 0 if (!$month_changes);
     my $credit_date = strftime "%Y-%m-%d", localtime(time + int($days) * 86400);
@@ -423,6 +423,9 @@ sub form_info {
         }
      }
    }
+  
+  
+  form_neg_deposit($user) if ($attr->{NEG_DEPOSIT});
   
   if ($conf{user_chg_pi}) {
   	if ($FORM{chg}) {
@@ -1280,7 +1283,7 @@ sub get_function_index  {
 #**********************************************************
 sub form_neg_deposit {
   my ($user, $attr)=@_;
-	
+
   if (in_array('Docs', \@MODULES) ) {
    	my $fn_index = get_function_index('docs_accounts_list');
     $user->{DOCS_BUTTON} = $html->button("$_INVOICE_CREATE", "index=$fn_index$pages_qs", { BUTTON => 1} );
@@ -1291,8 +1294,7 @@ sub form_neg_deposit {
     $user->{PAYMENT_BUTTON} = $html->button("$_BALANCE_RECHARCHE", "index=$fn_index$pages_qs", { BUTTON => 1} );
    }
 
- 	$html->tpl_show(templates('form_neg_deposit'), $user);
-	
+ 	$html->tpl_show(templates('form_neg_deposit'), $user);	
 }
 
 1
