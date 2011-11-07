@@ -2415,28 +2415,35 @@ foreach my $tp_id (sort keys %TARIF_SPEEDS) {
     my $speed_in  = (defined($speed->{IN}))  ? $speed->{IN} * 1024 : 0;
     my $speed_out = (defined($speed->{OUT})) ? $speed->{OUT}* 1024 : 0;                                          
     my $priority  = 5 - $traf_type;
-      #Global Shapper
-      if ($traf_type == 0) {
-      	my $count = get_mikrotik_value(qq{ /ip firewall mangle print count-only where new-packet-mark=ALLOW_GLOBAL_$tp_id }, \%NAS);
-      	
-      	if (! $count->[0] || $count->[0]==0) {
-          push @commands, qq{/ip firewall mangle add chain=forward action=mark-packet new-packet-mark=ALLOW_GLOBAL_$tp_id passthrough=yes src-address-list=CLIENTS_$tp_id dst-address=0.0.0.0/0};
-          push @commands, "/queue tree add name=\"". 'TP_'. $tp_id ."_in_global\" parent=global-in packet-mark=ALLOW_GLOBAL_$tp_id limit-at=$speed_in queue=default priority=$priority max-limit=$speed_in burst-limit=0 burst-threshold=0 burst-time=0s";
-          push @commands, "/queue tree add name=\"". 'TP_'. $tp_id ."_out_global\" parent=global-out packet-mark=ALLOW_GLOBAL_$tp_id limit-at=$speed_out queue=default priority=$priority max-limit=$speed_out burst-limit=0 burst-threshold=0 burst-time=0s";
+
+    #Global Shapper
+    if ($traf_type == 0) {
+     	my $count = get_mikrotik_value(qq{ /ip firewall mangle print count-only where new-packet-mark=ALLOW_GLOBAL_$tp_id }, \%NAS);
+
+     	if (! $count->[0] || $count->[0]==0) {
+          push @commands, "/ip firewall mangle add chain=forward action=mark-packet new-packet-mark=ALLOW_TRAFFIC_CLASS_".  $tp_id .'_in' ." passthrough=yes src-address-list=CLIENTS_$tp_id dst-address=0.0.0.0/0";
+          push @commands, "/ip firewall mangle add chain=forward action=mark-packet new-packet-mark=ALLOW_TRAFFIC_CLASS_".  $tp_id .'_out' ." passthrough=yes src-address=0.0.0.0/0 dst-address-list=CLIENTS_$tp_id";
+          push @commands, "/queue type add name=\"". 'TP_'. $tp_id ."_in_global_speed\" kind=pcq pcq-rate=$speed_in pcq-classifier=dst-address ";
+          push @commands, "/queue type add name=\"". 'TP_'. $tp_id ."_out_global_speed\" kind=pcq pcq-rate=$speed_out pcq-classifier=src-address ";
+          push @commands, "/queue tree add name=\"". 'TP_'. $tp_id ."_in_global\" parent=global-out queue=\"". 'TP_'. $tp_id ."_in_global_speed\" packet-mark=ALLOW_TRAFFIC_CLASS_".  $tp_id .'_in' ." priority=$priority burst-limit=0 burst-threshold=0 burst-time=0s";
+          push @commands, "/queue tree add name=\"". 'TP_'. $tp_id ."_out_global\" parent=global-out queue=\"". 'TP_'. $tp_id ."_out_global_speed\" packet-mark=ALLOW_TRAFFIC_CLASS_".  $tp_id .'_out' ." priority=$priority burst-limit=0 burst-threshold=0 burst-time=0s";
          }
        }
-      #Peering shapper
-      else {
-      	#Check TP,
-      	$count = get_mikrotik_value("/ip firewall mangle print count-only where new-packet-mark=ALLOW_TRAFFIC_CLASS_".  $tp_id.'_'. $traf_type, \%NAS);
+    #Peering shapper
+    else {
+      #Check TP,
+      $count = get_mikrotik_value("/ip firewall mangle print count-only where new-packet-mark=ALLOW_TRAFFIC_CLASS_".  $tp_id.'_'. $traf_type, \%NAS);
 
-        if (! $count->[0] || $count->[0]==0) {      	
-      	  push @commands, "/ip firewall mangle add chain=forward action=mark-packet new-packet-mark=ALLOW_TRAFFIC_CLASS_".  $tp_id.'_'. $traf_type ." passthrough=yes src-address-list=CLIENTS_$tp_id dst-address-list=TRAFFIC_CLASS_$traf_type ";
-          push @commands, "/queue tree add name=\"". 'TP_'. $tp_id ."_in_traffic_class_". $traf_type ."\" parent=global-in packet-mark=ALLOW_TRAFFIC_CLASS_".  $tp_id .'_'. $traf_type ." limit-at=$speed_in  queue=default priority=$priority max-limit=$speed_in burst-limit=0 burst-threshold=0 burst-time=0s";
-          push @commands, "/queue tree add name=\"". 'TP_'. $tp_id ."_out_traffic_class_". $traf_type ."\" parent=global-out packet-mark=ALLOW_TRAFFIC_CLASS_".  $tp_id .'_'. $traf_type ." limit-at=$speed_out  queue=default priority=$priority max-limit=$speed_out burst-limit=0 burst-threshold=0 burst-time=0s";
+      if (! $count->[0] || $count->[0]==0) {
+      	  push @commands, "/ip firewall mangle add chain=forward action=mark-packet new-packet-mark=ALLOW_TRAFFIC_CLASS_".  $tp_id.'_'. $traf_type.'_out' ." passthrough=yes src-address-list=CLIENTS_$tp_id dst-address-list=TRAFFIC_CLASS_$traf_type ";
+          push @commands, "/ip firewall mangle add chain=forward action=mark-packet new-packet-mark=ALLOW_TRAFFIC_CLASS_".  $tp_id.'_'. $traf_type.'_in' ." passthrough=yes src-address-list=TRAFFIC_CLASS_$traf_type dst-address-list=CLIENTS_$tp_id ";
+          push @commands, "/queue type add name=\"". 'TP_'. $tp_id ."_in_traffic_class_". $traf_type ."\" kind=pcq pcq-rate=$speed_in pcq-classifier=dst-address ";
+          push @commands, "/queue type add name=\"". 'TP_'. $tp_id ."_out_traffic_class_". $traf_type ."\" kind=pcq pcq-rate=$speed_out pcq-classifier=src-address ";
+          push @commands, "/queue tree add name=\"". 'TP_'. $tp_id ."_in_traffic_class_". $traf_type ."\" parent=global-out queue=\"". 'TP_'. $tp_id ."_in_traffic_class_". $traf_type ."\" packet-mark=ALLOW_TRAFFIC_CLASS_".  $tp_id .'_'. $traf_type.'_in' ." priority=$priority burst-limit=0 burst-threshold=0 burst-time=0s";
+		      push @commands, "/queue tree add name=\"". 'TP_'. $tp_id ."_out_traffic_class_". $traf_type ."\" parent=global-out queue=\"". 'TP_'. $tp_id ."_out_traffic_class_". $traf_type ."\" packet-mark=ALLOW_TRAFFIC_CLASS_".  $tp_id .'_'. $traf_type.'_out' ." priority=$priority burst-limit=0 burst-threshold=0 burst-time=0s";
          }
-   } 
- }
+     } 
+  }
 }
 
 #Add/Check Nets
