@@ -343,7 +343,7 @@ sub reports {
  if (defined($attr->{METHODS}) and $attr->{METHODS} ne '') {
     push @WHERE_RULES, "p.method IN ($attr->{METHODS}) ";
   }
- 
+
  if(defined($attr->{DATE})) {
    push @WHERE_RULES, "date_format(p.date, '%Y-%m-%d')='$attr->{DATE}'";
   }
@@ -388,6 +388,12 @@ sub reports {
  else {
  	 $date = "date_format(p.date, '%Y-%m')";
   }
+
+ if ($attr->{ADMINS}) {
+ 	 push @WHERE_RULES,  @{ $self->search_expr($attr->{ADMINS}, 'STR', 'a.id') };
+ 	 $date = 'u.id';
+  }
+
 
   my $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
  

@@ -4990,12 +4990,13 @@ else {
   	$CAPTION[0]=$_FIO;
   	$graph_type='';
    }
-  elsif ($type eq 'ADMINS')  {
-    $CAPTION[0]=$_ADMINS;
-    $graph_type='';
-   }
   elsif ($FORM{ADMINS})  {
     $CAPTION[0]=$_USERS;
+    $LIST_PARAMS{ADMINS}=$FORM{ADMINS};
+    $graph_type='';
+   }
+  elsif ($type eq 'ADMINS')  {
+    $CAPTION[0]=$_ADMINS;
     $graph_type='';
    }
   elsif ($type eq 'HOURS')  {
