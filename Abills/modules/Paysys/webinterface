@@ -45,7 +45,12 @@ my %PAY_SYSTEMS = (41 => "Webmoney",
                    65 => 'Privat - Terminal',
                    66 => 'Paypal',
                    67 => 'Sberbank',
-                   68 => 'Gigs'
+                   68 => 'Gigs',
+                   70 => 'CyberPlat',
+                   71 => 'Telcell',
+                   72 => 'Ipay',
+                   73 => 'Yandex',
+                   74 => 'Alpha-pay'
                   );
 
 my %CONF_OPTIONS = (PAYSYS_WEBMONEY_ACCOUNTS => 41,
@@ -76,6 +81,12 @@ my %CONF_OPTIONS = (PAYSYS_WEBMONEY_ACCOUNTS => 41,
                    PAYSYS_PAYPAL_RECIEVER_EMAIL => 66,
                    PAYSYS_SBERBANK_PASSWORD     => 67,
                    PAYSYS_GIGS_IPS              => 68,
+                   
+                   PAYSYS_CYBERPLAT_ACCOUNT_KEY => 70,
+                   PAYSYS_TELLCELL_ACCOUNT_KEY  => 71,
+                   PAYSYS_IPAY_ID               => 72,
+                   PAYSYS_YANDEX_ID             => 73,
+                   ALFA_PAY_ACCOUNT_KEY         => 74,
                   );
 
 

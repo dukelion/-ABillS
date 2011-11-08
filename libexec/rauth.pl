@@ -264,6 +264,7 @@ sub inc_postauth {
   use constant    L_ERR=>         4;
   use constant    L_PROXY=>       5;
   use constant    L_CONS=>        128;
+  $Log->{ACTION} = 'AUTH';
   my $reject_info = '';
 # DHCP Section  
   if ($RAD_REQUEST{'DHCP-Message-Type'}) {
@@ -283,6 +284,7 @@ sub inc_postauth {
     	return 1;
      }
 
+    my $Log = Log->new($db, \%conf); 
     if (! defined($auth_mod{"$nas->{NAS_TYPE}"})) {
       require $AUTH{$nas->{NAS_TYPE}} . ".pm";
       $AUTH{$nas->{NAS_TYPE}}->import();
@@ -357,7 +359,6 @@ sub access_deny {
   my ($user_name, $message, $nas_num, $db, $attr) = @_;
 
   my $Log = Log->new($db, \%conf);
-  $Log->{ACTION} = 'AUTH';
   $Log->log_print('LOG_WARNING', $user_name, "$message", { NAS => $nas });
   
   #External script for error connections
