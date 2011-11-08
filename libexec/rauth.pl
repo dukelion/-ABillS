@@ -285,6 +285,7 @@ sub inc_postauth {
      }
 
     my $Log = Log->new($db, \%conf); 
+    $Log->{ACTION} = 'AUTH';
     if (! defined($auth_mod{"$nas->{NAS_TYPE}"})) {
       require $AUTH{$nas->{NAS_TYPE}} . ".pm";
       $AUTH{$nas->{NAS_TYPE}}->import();
@@ -359,6 +360,7 @@ sub access_deny {
   my ($user_name, $message, $nas_num, $db, $attr) = @_;
 
   my $Log = Log->new($db, \%conf);
+  $Log->{ACTION} = 'AUTH';
   $Log->log_print('LOG_WARNING', $user_name, "$message", { NAS => $nas });
   
   #External script for error connections

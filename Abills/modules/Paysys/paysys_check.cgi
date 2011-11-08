@@ -173,6 +173,14 @@ elsif( $FORM{sberbank} ) {
   require "Sberbank.pm";
   exit;
  }
+elsif( $FORM{action} && $conf{PAYSYS_TELCELL_ACCOUNT_KEY} ) {
+  require "Telcell.pm";
+  exit;
+ }
+elsif( $FORM{action} ) {
+  require "Cyberplat.pm";
+  exit;
+ }
 elsif( $FORM{txn_id} || $FORM{prv_txn} || defined($FORM{prv_id}) || ( $FORM{command} && $FORM{account}  ) ) {
 	osmp_payments();
  }
