@@ -90,7 +90,7 @@ my %CONF_OPTIONS = (PAYSYS_WEBMONEY_ACCOUNTS => 41,
                   );
 
 
-my @status = ('UNKNOWN', 'IN PROCCESS', 'COMLETE', 'CENCELE', 'EXPIRED', 
+my @status = ('UNKNOWN', 'IN PROCCESS', 'COMLETE', 'CANCELED', 'EXPIRED', 
    'INCORRECT_CHECKSUM', 
    'PAYMENT_ERROR', 
    'DUBLICATE', 

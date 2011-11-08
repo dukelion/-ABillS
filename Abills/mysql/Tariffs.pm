@@ -64,7 +64,8 @@ my %FIELDS = ( ID               => 'id',
                BILLS_PRIORITY  => 'bills_priority',
                FINE            => 'fine',
                NEG_DEPOSIT_IPPOOL => 'neg_deposit_ippool',
-               NEXT_TARIF_PLAN => 'next_tp_id'
+               NEXT_TARIF_PLAN => 'next_tp_id',
+               FEES_METHOD     => 'fees_method'
               );
 
 #**********************************************************
@@ -403,7 +404,8 @@ sub defaults {
             BILLS_PRIORITY   => 0,
             ACTIVE_DAY_FEE   => 0,
             NEG_DEPOSIT_IPPOOL => 0,
-            NEXT_TARIF_PLAN => 0
+            NEXT_TARIF_PLAN  => 0,
+            FEES_METHOD      => 0,
          );   
  
   $self = \%DATA;
@@ -448,7 +450,8 @@ sub add {
      bills_priority,
      fine,
      neg_deposit_ippool,
-     next_tp_id
+     next_tp_id,
+     fees_method
      )
     values ('$DATA{ID}', '$DATA{ALERT}', \"$DATA{NAME}\", 
      '$DATA{MONTH_FEE}', '$DATA{DAY_FEE}', '$DATA{ACTIVE_DAY_FEE}', '$DATA{REDUCTION_FEE}', 
@@ -476,7 +479,8 @@ sub add {
      '$DATA{BILLS_PRIORITY}',
      '$DATA{FINE}',
      '$DATA{NEG_DEPOSIT_IPPOOL}',
-     '$DATA{NEXT_TARIF_PLAN}'
+     '$DATA{NEXT_TARIF_PLAN}',
+     '$DATA{FEES_METHOD}'
      );", 'do' );
      
   $self->{TP_ID}=$self->{INSERT_ID};
@@ -594,7 +598,8 @@ sub info {
       bills_priority,
       fine,
       neg_deposit_ippool,
-      next_tp_id
+      next_tp_id,
+      fees_method
     FROM tarif_plans
     WHERE $WHERE;");
 
@@ -651,7 +656,8 @@ sub info {
    $self->{BILLS_PRIORITY},
    $self->{FINE},
    $self->{NEG_DEPOSIT_IPPOOL},
-   $self->{NEXT_TARIF_PLAN}
+   $self->{NEXT_TARIF_PLAN},
+   $self->{FEES_METHOD},
   ) = @{ $self->{list}->[0] };
 
   return $self;
@@ -751,7 +757,8 @@ sub list {
     tp.small_deposit_action,
     tp.active_day_fee,
     tp.fine,
-    tp.next_tp_id
+    tp.next_tp_id,
+    tp.fees_method
     FROM (tarif_plans tp)
     LEFT JOIN intervals i ON (i.tp_id=tp.tp_id)
     LEFT JOIN trafic_tarifs tt ON (tt.interval_id=i.id)

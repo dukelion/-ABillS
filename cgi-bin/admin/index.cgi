@@ -5852,7 +5852,6 @@ sub form_fees  {
 
  %FEES_METHODS = %{ get_fees_types() };
 
-
 if ($attr->{USER}) {
   my $user = $attr->{USER};
 
@@ -5998,7 +5997,8 @@ if ($attr->{USER}) {
                                 { SELECTED     => (defined($FORM{METHOD}) && $FORM{METHOD} ne '') ? $FORM{METHOD} : '',
  	                                SEL_HASH     => \%FEES_METHODS,
  	                                NO_ID        => 1,
- 	                                SORT_KEY     => 1
+ 	                                SORT_KEY     => 1,
+                                  MAIN_MENU    => get_function_index('form_fees_types'),
  	                               });
 
 

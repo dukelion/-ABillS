@@ -922,6 +922,19 @@ $tarif_info->{PERIOD_ALIGNMENT}  = ($tarif_info->{PERIOD_ALIGNMENT})  ? 'checked
 $tarif_info->{ABON_DISTRIBUTION} = ($tarif_info->{ABON_DISTRIBUTION}) ? 'checked' : ''; 
 $tarif_info->{ACTIVE_DAY_FEE}    = ($tarif_info->{ACTIVE_DAY_FEE})    ? 'checked' : ''; 
 
+%FEES_METHODS = %{ get_fees_types() };
+$FEES_METHODS{0}='';
+
+$tarif_info->{SEL_METHOD} = $html->form_select('FEES_METHOD', 
+                                { SELECTED     => $tarif_info->{FEES_METHOD} || 1,
+ 	                                SEL_HASH     => \%FEES_METHODS,
+ 	                                NO_ID        => 1,
+ 	                                SORT_KEY     => 1,
+                                  MAIN_MENU    => get_function_index('form_fees_types'),
+ 	                               });
+
+
+
 my $tp_list = $tariffs->list({ MODULE => 'Dv', DOMAIN_ID => $admin->{DOMAIN_ID} });
 
 $tarif_info->{SMALL_DEPOSIT_ACTION_SEL} = $html->form_select('SMALL_DEPOSIT_ACTION', 
@@ -4463,6 +4476,7 @@ sub dv_daily_fees {
      my %TP_INFO = ();
      $TP_INFO{POSTPAID_DAILY} = $line->[12];
      $TP_INFO{REDUCTION}      = $line->[11];
+     $TP_INFO{FEES_METHOD}    = $line->[23];
  	   $debug_output .= "TP ID: $TP_ID DF: $line->[5] MF: $line->[6] POSTPAID: $TP_INFO{POSTPAID_DAILY} REDUCTION: $TP_INFO{REDUCTION} EXT_BILL: $line->[13] CREDIT: $line->[14]\n" if ($debug > 1);
 
      #Get active yesterdays logins
@@ -4524,7 +4538,8 @@ sub dv_daily_fees {
              my %PARAMS = ( 
                DESCRIBE => "$_DAY_FEE ($TP_ID)",
                DATE     => "$ADMIN_REPORT{DATE} $TIME",
-               METHOD   => 1 );
+               METHOD   => ($TP_INFO{FEES_METHOD}) ? $TP_INFO{FEES_METHOD} : 1 
+               );
 
              if ($debug > 4) {
                 $debug_output .= " UID: $user{UID} SUM: $sum REDUCTION: $user{REDUCTION}\n";
@@ -4895,6 +4910,7 @@ sub dv_monthly_fees {
 
    $TP_INFO{POSTPAID_MONTHLY} = $line->[13];
    $TP_INFO{REDUCTION}        = $line->[11];
+   $TP_INFO{FEES_METHOD}      = $line->[23];
 
    my %used_traffic = ();
    #Monthfee & min use
@@ -4968,7 +4984,8 @@ sub dv_monthly_fees {
        if (($user{BILL_ID} && $user{BILL_ID} > 0) && defined($user{DEPOSIT})) {
          my %FEES_PARAMS = (
                             DATE     => $ADMIN_REPORT{DATE},
-                            METHOD   => 1 );  
+                            METHOD   => ($TP_INFO{FEES_METHOD}) ? $TP_INFO{FEES_METHOD} : 1  
+                            );  
          my $sum = 0;
          #***************************************************************
          #Min use Makes only 1 of month
@@ -6564,7 +6581,7 @@ sub dv_get_month_fee {
           	if ($user->{EXT_BILL_DEPOSIT} < $sum && $user->{MAIN_BILL_ID}) {
           		$sum = $sum - $user->{EXT_BILL_DEPOSIT};
               $fees->take($users, $user->{EXT_BILL_DEPOSIT}, { DESCRIBE  => $message, 
-        	                            METHOD    => 1, 
+        	                            METHOD    => ($Dv->{TP_INFO}->{FEES_METHOD}) ? $Dv->{TP_INFO}->{FEES_METHOD} :1, 
         	                            DATE      => "$DATE $TIME"
         	                           });
         	    $user->{BILL_ID}=$user->{MAIN_BILL_ID};
@@ -6573,7 +6590,7 @@ sub dv_get_month_fee {
            }
 
           $fees->take($users, $sum, { DESCRIBE  => $message, 
-        	                            METHOD    => 1, 
+        	                            METHOD    => ($Dv->{TP_INFO}->{FEES_METHOD}) ? $Dv->{TP_INFO}->{FEES_METHOD} : 1, 
         	                            DATE      => "$DATE $TIME"
         	                           });  
         

@@ -22,6 +22,7 @@
   <tr class='even'><td>$_ABON_DISTRIBUTION:</td><td><input type=checkbox name='ABON_DISTRIBUTION' value='1' %ABON_DISTRIBUTION%></td></tr>
   <tr class='even'><td>$_SMALL_DEPOSIT_ACTION:</td><td>%SMALL_DEPOSIT_ACTION_SEL%</td></tr>
   <tr><td>$_REDUCTION:</td><td><input type=checkbox name=REDUCTION_FEE value=1 %REDUCTION_FEE%></td></tr>
+  <tr><td>$_FEES $_METHOD:</td><td>%SEL_METHOD%</td></tr>
   
   
   %EXT_BILL_ACCOUNT%

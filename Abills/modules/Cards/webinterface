@@ -59,7 +59,7 @@ sub cards_card_info {
 #
 #**********************************************************
 sub cards_main {
-  if ($Cards::VERSION < 5.40) {
+  if ($Cards::VERSION < 5.41) {
   	$html->message('info', "UPDATE", "Please update module 'Cards' to version 5.40 or higher. http://abills.net.ua/");
   	return 0;
    }
@@ -2243,6 +2243,9 @@ elsif (scalar keys %page_print_hash > 0) {
 #
 #**********************************************************
 sub cards_report_payments {
+  
+  $self->{debug}=1;
+  
   my $table = $html->table( { width       => '100%',
 	                       rowcolor    => $_COLORS[0],
                          rows        => [[ "$_FROM: ",  $html->date_fld2('FROM_DATE', { MONTHES => \@MONTHES, FORM_NAME => 'cards_list', WEEK_DAYS => \@WEEKDAYS } ),

@@ -345,7 +345,7 @@ sub sendmail {
 Content-Type: multipart/mixed;\n boundary=\"$boundary\"\n";
 
 $message = qq{--$boundary
-Content-Type: text/plain; charset=windows-1251
+Content-Type: text/plain; charset=$charset
 Content-Transfer-Encoding: quoted-printable
 
 $message};

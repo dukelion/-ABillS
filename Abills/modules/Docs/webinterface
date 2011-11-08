@@ -1555,7 +1555,8 @@ sub docs_print {
     require Abills::PDF;
     my $pdf = Abills::PDF->new({ IMG_PATH  => $IMG_PATH,
                                  NO_PRINT  => defined($attr->{'NO_PRINT'}) ? $attr->{'NO_PRINT'} : 1,
-                                 CONF      => $CONF
+                                 CONF      => $CONF,
+                                 CHARSET   => $conf{default_charset}
                                  });
   	$html = $pdf;
    }

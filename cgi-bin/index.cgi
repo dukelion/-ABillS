@@ -411,6 +411,11 @@ sub form_info {
               $Fees->take($user, $price, { DESCRIBE => "$_CREDIT $_ENABLE" } );              
              }
             cross_modules_call('_payments_maked', { USER => $user, QUITE => 1 }); 
+            if ($conf{external_userchange}) {
+              if (! _external($conf{external_userchange}, { %FORM }) ) {
+     	          return 0;
+               }
+             }
           }
 
          $user->{CREDIT}     = $sum;
