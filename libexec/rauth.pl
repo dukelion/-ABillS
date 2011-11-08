@@ -193,7 +193,7 @@ else {
      }
 
     my $CID = ($RAD->{CALLING_STATION_ID}) ? " CID: $RAD->{CALLING_STATION_ID} " : '';
-    access_deny("$RAD->{USER_NAME}", "$message$CID", $nas->{NAS_ID});
+    access_deny("$RAD->{USER_NAME}", "$message$CID", $nas->{NAS_ID}, $db);
     $RAD_CHECK{'Auth-Type'} = 'Reject';
     return $r;
   }
@@ -303,7 +303,7 @@ sub inc_postauth {
      }
     else {
     	$RAD_REPLY{'DHCP-DHCP-Error-Message'} = "$message";
-    	access_deny($RAD_PAIRS->{'User-Name'}, "$message$GT", $nas->{NAS_ID});
+    	access_deny($RAD_PAIRS->{'User-Name'}, "$message$GT", $nas->{NAS_ID}, $db);
     	$r=1 if (! $r);
      }
  
