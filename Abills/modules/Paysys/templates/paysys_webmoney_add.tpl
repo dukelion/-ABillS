@@ -23,5 +23,5 @@
 <input type='hidden' name='LMI_PAYMENT_DESC' value='%LMI_PAYMENT_DESC%'></td></tr>
 <tr><td>$_ACCOUNT:</td><td>%ACCOUNTS_SEL%</td></tr>
 </table>
-<input type='submit' value='$_ADD'>
+<input type='submit' value='$_PAY'>
 </form>

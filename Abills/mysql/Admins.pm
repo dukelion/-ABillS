@@ -481,7 +481,8 @@ sub action_list {
  if ($attr->{GID} || $attr->{GIDS}) {
  	 $attr->{GIDS} = $attr->{GID} if (! $attr->{GIDS});
  	 my @system_admins=();
- 	 push @system_admins, $CONF->{USERS_WEB_ADMIN_ID}, $CONF->{SYSTEM_ADMIN_ID};
+ 	 push @system_admins, $CONF->{USERS_WEB_ADMIN_ID} if ($CONF->{USERS_WEB_ADMIN_ID});
+ 	 push @system_admins, $CONF->{SYSTEM_ADMIN_ID} if ($CONF->{SYSTEM_ADMIN_ID});
  	 my $system_admins = ''; 
  	 my $users_gid     = ''; 
  	 if (! $attr->{ADMIN} && ! $attr->{AID}) {

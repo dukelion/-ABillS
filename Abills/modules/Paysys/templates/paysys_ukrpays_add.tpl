@@ -12,7 +12,7 @@
 
 <TABLE width='500'cellspacing='0' cellpadding='0' border='0'><TR><TD bgcolor='#E1E1E1'>
 <TABLE width='100%' cellspacing='1' cellpadding='0' border='0'>
-<tr><td class='title_color'>
+<tr><td class=odd>
 
 <table width=100%>
 
@@ -20,7 +20,7 @@
 <tr><th class='form_title' colspan=2>Visa / Mastercard (Ukrpays)</th></tr>
 <tr><th colspan=2><img src='https://ukrpays.com/img/logo.gif'></th></tr>
 <tr><td>$_SUM:</td><td>%AMOUNT%<input type='hidden' name='amount' value='%AMOUNT%'></td></tr>
-<tr><th colspan=2><input type='submit' name='pay' value='$_ADD'>
+<tr><th colspan=2><input type='submit' name='pay' value='$_PAY'>
 <!--  <input type='submit' name='pay' value='$_CANCEL'> -->
 
 <tr><th colspan=2 align=center>
