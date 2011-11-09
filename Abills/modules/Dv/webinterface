@@ -4272,6 +4272,7 @@ elsif ($conf{DV_IP_DISCOVERY}) {
       	   });	
       
       if ($conf{DV_TURBO_CMD}) {
+      	$conf{DV_TURBO_CMD} = tpl_parse($conf{DV_TURBO_CMD}, { %$user, IP => $ENV{REMOTE_ADDR} });
         my $result = `$conf{DV_TURBO_CMD}`;
        }
       
