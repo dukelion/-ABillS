@@ -392,6 +392,85 @@ sub summary_add {
 
 
 #**********************************************************
+# make
+#**********************************************************
+sub balances_add {
+  my $self = shift;
+  my ($attr) = @_;
+
+  my %DATA = $self->get_data($attr); 
+
+  $self->query($db, "INSERT INTO extfin_balance_reports (period, bill_id, sum, date, aid)
+   SELECT '$DATA{PERIOD}', id, deposit, now(), $admin->{AID} FROM bills;", 'do');
+
+  return $self;
+}
+
+
+#**********************************************************
+# Show full reports
+#**********************************************************
+sub extfin_report_balances {
+  my $self = shift;
+  my ($attr) = @_;
+
+ @WHERE_RULES = ();
+ my %NAMES=();
+
+ if ($attr->{MONTH}) {
+   push @WHERE_RULES, "report.period='$attr->{MONTH}'";
+  }
+ elsif ($attr->{FROM_DATE}) {
+ 	 push @WHERE_RULES, "report.period>='$attr->{FROM_DATE}' AND report.period<='$attr->{TO_DATE}'";
+  }
+
+ if ($attr->{GID}) {
+   push @WHERE_RULES, @{ $self->search_expr($attr->{GID}, 'INT', 'u.gid') }; 
+  }
+
+ if (defined($attr->{USER_TYPE}) && $attr->{USER_TYPE} ne '') {
+ 	 push @WHERE_RULES, ($attr->{USER_TYPE} == 1) ? "company.name is not null" : "u.company_id='0'"; 
+  }
+
+ my $GROUP = 1;
+ my $report_sum  = 'report.sum';
+ if ($attr->{TOTAL_ONLY}) {
+ 	 $GROUP = 5;
+ 	 $report_sum  = 'sum(report.sum)';
+  }
+
+
+ push @WHERE_RULES, '(u.id is not null)';
+ 
+ my $WHERE = ($#WHERE_RULES > -1) ? join(' and ', @WHERE_RULES)  : '';
+
+ $self->query($db, "SELECT report.id,
+   report.period,
+   u.id,
+   IF(company.name is not null, company.name,
+    IF(pi.fio<>'', pi.fio, u.id)),
+   IF(company.name is not null, 1, 0),
+   $report_sum,
+   IF(company.name is not null, company.vat, 0),
+   report.date,
+   report.aid, 
+   u.uid
+  FROM extfin_balance_reports report
+  INNER JOIN bills b ON (report.bill_id = b.id)
+  LEFT JOIN users u ON (b.id = u.bill_id)
+  LEFT JOIN users_pi pi ON (u.uid = pi.uid)
+  LEFT JOIN companies company ON (b.id=company.bill_id)
+  WHERE $WHERE
+   GROUP BY $GROUP
+  ORDER BY $SORT $DESC 
+   ;");
+
+
+
+  return $self->{list};
+}
+
+#**********************************************************
 # del
 #**********************************************************
 sub summary_del {

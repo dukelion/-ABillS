@@ -283,7 +283,7 @@ sub inc_postauth {
     if (! $db ) {
     	return 1;
      }
-
+    $nas->{NAS_TYPE}='dhcp';
     my $Log = Log->new($db, \%conf); 
     $Log->{ACTION} = 'AUTH';
     if (! defined($auth_mod{"$nas->{NAS_TYPE}"})) {

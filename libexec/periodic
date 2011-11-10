@@ -103,6 +103,10 @@ if ($args->{DEBUG}) {
 
 
 
+  if (in_array('Extfin', \@SKIP_MODULES)) {
+  	@MODULES = ('Extfin', @MODULES);
+   }
+
   foreach my $m (@MODULES) {
     next if(in_array($m, \@SKIP_MODULES));
   	require "Abills/modules/$m/config";
@@ -147,6 +151,7 @@ if ($args->{DEBUG}) {
  	   require "Abills/modules/$m/webinterface";
     }
    undef %PERIODIC;
+   push @SKIP_MODULES, $m;
   }
 
 push  @daily_functions, 'sheduler' if ($args->{SHEDULE} || ! $args->{MODULES});

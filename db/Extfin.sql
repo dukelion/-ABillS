@@ -48,3 +48,16 @@ CREATE TABLE `extfin_reports` (
   UNIQUE KEY `id` (`id`),
   UNIQUE KEY `period` (`period`,`bill_id`)
 ) COMMENT='Extfin reports';
+
+
+CREATE TABLE `extfin_balance_reports` (
+  `id` int(11) unsigned NOT NULL auto_increment,
+  `period` varchar(7) NOT NULL default '0000-00',
+  `sum` double(14,2)  NOT NULL default '0.00',
+  `bill_id` int(11) unsigned NOT NULL default '0',
+  `aid` smallint(6) unsigned NOT NULL default '0',
+  `date` date NOT NULL default '0000-00-00',
+  PRIMARY KEY  (`id`),
+  UNIQUE KEY `id` (`id`),
+  UNIQUE KEY `period` (`period`,`bill_id`)
+) COMMENT='Extfin  users balanse reports';

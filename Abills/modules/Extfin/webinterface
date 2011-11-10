@@ -277,13 +277,13 @@ sub extfin_export_customers {
 
 
 #**********************************************************
-#
+# Monthly summary
 #**********************************************************
 sub extfin_monthly_summary {
  my ($attr) = @_;
 
  my $debug = $attr->{DEBUG} || 0;
- my $debug_output = '';
+ my $debug_output = "Extfin summary\n";
  
  $ADMIN_REPORT{DATE}=$DATE if (! $ADMIN_REPORT{DATE});
  my ($y, $m, $d)=split(/-/, $ADMIN_REPORT{DATE}, 3);
@@ -325,6 +325,12 @@ sub extfin_monthly_summary {
       }
   }
 
+
+  ($y, $m, $d)=split(/-/, $ADMIN_REPORT{DATE}, 3);
+  $period = sprintf("%d-%.2d",  $y, $m);  
+
+  $Extfin->balances_add({ PERIOD => "$period" });
+
   $DEBUG .= $debug_output;
   return $debug_output;
 }
@@ -336,7 +342,7 @@ sub  extfin_periodic_paids {
   my ($attr) = @_;
 
   my $debug = $attr->{DEBUG} || 0;
-  my $debug_output = '';
+  my $debug_output = "Extfin periodic paids\n";
   
   my ($Y, $M, $D) = split(/-/, $ADMIN_REPORT{DATE}, 3);
  
@@ -352,9 +358,7 @@ sub  extfin_periodic_paids {
   my $list = $Extfin->paid_periodic_list({ SUM => '>0' });	
   
   foreach my $line (@$list) {
-    
     $debug_output .= "UID: $line->[7] SUM: $line->[2] TYPE: $line->[1] ($line->[0])\n" if ($debug > 2);
-    
     $Extfin->paid_add({ TYPE        => $line->[0],
     	                  SUM         => $line->[2],
     	                  DESCRIB     => "$_PERIOD: $line->[3] ",
@@ -655,7 +659,6 @@ print $table->show();
 # 
 #**********************************************************
 sub extfin_report_deeds {
-
 
 my ($Y, $M, $D)=split(/-/, $DATE, 3);
 
@@ -1484,79 +1487,180 @@ sub extfin_payments_fees {
 #
 #**********************************************************
 sub extfin_users_balance {
+my ($Y, $M, $D)=split(/-/, $DATE, 3);
 
-  if (! $permissions{2} || ! $permissions{2}{0}) {
-  	$html->message('err', $_ERROR, "$ERR_ACCESS_DENY");  	
-  	return 0;
-  }
+$LIST_PARAMS{USER_TYPE}  = $FORM{USER_TYPE};
+$LIST_PARAMS{TOTAL_ONLY} = $FORM{TOTAL_ONLY};
 
-#  reports({ DATE        => $FORM{DATE}, 
-#  	        REPORT      => '',
-#            PERIOD_FORM => 1,
-##  	        EXT_TYPE    => { METHOD => $_TYPE,
-##  	        	               ADMINS => $_ADMINS,
-##  	        	               FIO    => $_FIO,
-##  	        	               COMPANIES => "$_COMPANIES"
-##  	        	              }
-#         });
-#
-
-  $LIST_PARAMS{PAGE_ROWS}=1000000;
-
-  my $graph_type= 'month_stats';
-  my %DATA_HASH = ();
-  my %AVG       = ();
-  my %CHART     = ();
-  my $num       = 1;
-  my @CHART_TYPE= ('area', 'line', 'column');
-
-  my $list = $Extfin->report_users_balance( { %LIST_PARAMS } );
-  my $table_fees = $html->table( { width      => '100%',
-                            caption    => "$_USERS $_BALANCE",
-                            border     => 1,
-                            title      => [$_LOGIN, $_FIO, $_DEPOSIT, $_CREDIT, 'SALDO'],
-                            cols_align => ['left', 'right', 'right', 'left' ],
-                            qs         => $pages_qs,
-                            pages      => $fees->{TOTAL},
-                            ID         => 'REPORTS_USERS_BALANCE',
-                            EXPORT     => $_EXPORT .' XML:&xml=1',
-                        } );
-
-  $pages_qs .= "&subf=2" if (! $FORM{subf});
-  foreach my $line (@$list) {
-    $table_fees->addrow($html->button($line->[0], "index=15&UID=".$line->[5]), 
-      $line->[1], 
-      $line->[2] || '0.00', 
-      $line->[3] || '0.00', 
-      sprintf('%.2f', $line->[2]-$line->[3])
-     );
-    $num++;
+if ($FORM{show} || $FORM{qindex}) {
+  if ($FORM{MONTH}) {
+  	$LIST_PARAMS{MONTH}=$FORM{MONTH};
+   }
+  elsif($FORM{PERIOD} && $FORM{PERIOD} =~ /(\d{2})\.(\d{2})\.(\d{4})-(\d{2})\.(\d{2})\.(\d{4})/) {
+    $LIST_PARAMS{FROM_DATE}= "$3-$2";
+    $LIST_PARAMS{TO_DATE}  = "$6-$5";
+   }
+  elsif ($FORM{FROM_M}) {
+    $LIST_PARAMS{FROM_DATE}="$FORM{FROM_Y}-". sprintf("%.2d", $FORM{FROM_M}+1);
+    $LIST_PARAMS{TO_DATE}="$FORM{TO_Y}-". sprintf("%.2d", $FORM{TO_M}+1);
    }
 
+  if ($FORM{xml}) {
+    print "Content-Type: text/xml\n\n";
+    print "<?xml version=\"1.0\"  encoding=\"windows-1251\" ?>\n";
+   }
+  elsif($FORM{qindex}) {
+    print $html->header();
+   }
+ }
+else {
+	$LIST_PARAMS{MONTH}="$Y-$M";
+}
 
-  print $table_fees->show();	
-  $table = $html->table({ width      => '100%',
-                          cols_align => ['right', 'right', 'right'],
-                          rows       => [[ 
-                              "$_USERS: ". $html->b($Extfin->{USERS_TOTAL}), 
-                              "$_DEPOSIT: ". $html->b($Extfin->{PAYMENTS_TOTAL}), 
-                              "$_CREDIT: ". $html->b($Extfin->{FEES_SUM}) 
-                            ]],
-                           rowcolor   => 'even'
-                        });
-  print $table->show();
+my @MONTH_ARR = ('');
+for(my $i=1; $i<13; $i++) {
+	my $m = sprintf("%02.d", $i);
+	push @MONTH_ARR, sprintf("%d-%.2d", $Y, $m);
+}
+
+
+if (! $FORM{xml}) {
+  my $table = $html->table( { width       => '100%',
+	                       rowcolor    => $_COLORS[0],
+                         rows        => [[ "$_FROM: ",   $html->date_fld('FROM_', { MONTHES => \@MONTHES} ),
+                                           "$_TO: ",     $html->date_fld('TO_', { MONTHES => \@MONTHES } ),
+                                           "$_PERIOD: ", $html->form_select('MONTH', { SELECTED   => $FORM{MONTH},
+ 	                                                           SEL_ARRAY  => \@MONTH_ARR,
+ 	                                                           NO_ID      => 1
+                                                          } ),
+                                           "$_USERS $_TYPE: " .  $html->form_select('USER_TYPE', 
+                                    { 
+ 	                                   SELECTED    => $FORM{USER_TYPE},
+ 	                                   SEL_HASH    => { '' => $_ALL,
+ 	                                   	                0  => $_USERS,
+ 	                                   	                1  => $_COMPANIES
+ 	                                   	               },
+                                     NO_ID       => 1
+ 	                                  }),
+                                    "$_TOTAL: ". $html->form_input('TOTAL_ONLY', 1, { TYPE => 'checkbox', STATE => ($FORM{TOTAL_ONLY}) ? 1 : undef } ),
+
+                                          "XML: ",  $html->form_input('xml', 1, { TYPE => 'checkbox' } ),
+                                          $html->form_input('show', $_SHOW, { TYPE => 'submit' })
+                                         ]],                                   
+                      });
+
+  print $html->form_main({ CONTENT => $table->show({ OUTPUT2RETURN => 1 }),
+	                         HIDDEN  => { 
+	                                      qindex => "$index"
+	                                     }
+	                       });
+
+
+}
+
+
+my $list = $Extfin->extfin_report_balances({ %LIST_PARAMS  });
+
+if ($Extfin->{errno}) {
   
-  if ($graph_type ne '') {
-    print $html->make_charts({  
-	        PERIOD     => $graph_type,
-	        DATA       => \%DATA_HASH,
-	        AVG        => \%AVG,
-	        TYPE       => \@CHART_TYPE,
-	        TRANSITION => 1,
-          OUTPUT2RETURN => 1,
-          %CHART 
-       });
+}
+
+$table = $html->table( { width      => '100%',
+                         caption    => "$_DEPOSIT $_DATE: $period",
+                         border     => 1,
+                         title      => ['#', $_PERIOD,  $_LOGIN, "$_FIO/$_NAME", $_TYPE, "$_DEPOSIT" ],
+                         cols_align => ['right', 'right', 'right', 'left', 'left', 'right', 'right', 'center',  'center', 'center:noprint', 'center:noprint'],
+                         ID         => 'EXTFIN_PAYMENT_DEED',
+                         } );
+
+foreach my $line (@$list) {
+  my $date = $line->[1];
+  
+  if ($line->[1] =~ /\d{2}(\d{2})\-(\d{2})/ ) {
+  	$date = "01.$2.$1";
    }
+  
+  my $name = $line->[3];
+  
+  if ($FORM{TOTAL_ONLY}) {
+ 	  $name = ($line->[4] == 1) ? "$_TOTAL: $_COMPANIES" : "$_TOTAL: $_USERS"; 
+   }
+  
+  $table->addrow($line->[0], 
+   $date,
+   $html->button($line->[2], "index=11&UID=$line->[9]"), 
+   $name,
+   $line->[4], 
+   $line->[5],
+   );
+}
+
+print $table->show();
+
+	
+#
+#
+#  if (! $permissions{2} || ! $permissions{2}{0}) {
+#  	$html->message('err', $_ERROR, "$ERR_ACCESS_DENY");  	
+#  	return 0;
+#  }
+#
+#  $LIST_PARAMS{PAGE_ROWS}=1000000;
+#
+#  my $graph_type= 'month_stats';
+#  my %DATA_HASH = ();
+#  my %AVG       = ();
+#  my %CHART     = ();
+#  my $num       = 1;
+#  my @CHART_TYPE= ('area', 'line', 'column');
+#
+#  my $list = $Extfin->report_users_balance( { %LIST_PARAMS } );
+#  my $table_fees = $html->table( { width      => '100%',
+#                            caption    => "$_USERS $_BALANCE",
+#                            border     => 1,
+#                            title      => [$_LOGIN, $_FIO, $_DEPOSIT, $_CREDIT, 'SALDO'],
+#                            cols_align => ['left', 'right', 'right', 'left' ],
+#                            qs         => $pages_qs,
+#                            pages      => $fees->{TOTAL},
+#                            ID         => 'REPORTS_USERS_BALANCE',
+#                            EXPORT     => $_EXPORT .' XML:&xml=1',
+#                        } );
+#
+#  $pages_qs .= "&subf=2" if (! $FORM{subf});
+#  foreach my $line (@$list) {
+#    $table_fees->addrow($html->button($line->[0], "index=15&UID=".$line->[5]), 
+#      $line->[1], 
+#      $line->[2] || '0.00', 
+#      $line->[3] || '0.00', 
+#      sprintf('%.2f', $line->[2]-$line->[3])
+#     );
+#    $num++;
+#   }
+#
+#
+#  print $table_fees->show();	
+#  $table = $html->table({ width      => '100%',
+#                          cols_align => ['right', 'right', 'right'],
+#                          rows       => [[ 
+#                              "$_USERS: ". $html->b($Extfin->{USERS_TOTAL}), 
+#                              "$_DEPOSIT: ". $html->b($Extfin->{PAYMENTS_TOTAL}), 
+#                              "$_CREDIT: ". $html->b($Extfin->{FEES_SUM}) 
+#                            ]],
+#                           rowcolor   => 'even'
+#                        });
+#  print $table->show();
+#  
+#  if ($graph_type ne '') {
+#    print $html->make_charts({  
+#	        PERIOD     => $graph_type,
+#	        DATA       => \%DATA_HASH,
+#	        AVG        => \%AVG,
+#	        TYPE       => \@CHART_TYPE,
+#	        TRANSITION => 1,
+#          OUTPUT2RETURN => 1,
+#          %CHART 
+#       });
+#   }
 
 }
 

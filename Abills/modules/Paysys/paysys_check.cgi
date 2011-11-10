@@ -199,7 +199,7 @@ elsif ($FORM{'<OPERATION id'} || $FORM{'%3COPERATION%20id'}) {
 	exit;
  }
 # Privat bank terminal interface
-elsif ('75.101.163.115,213.154.214.76,192.168.0.86' =~ /$ENV{REMOTE_ADDR}/) {
+elsif ('75.101.163.115,213.154.214.76' =~ /$ENV{REMOTE_ADDR}/) {
 	require "Privat_terminal.pm";
 	exit;
  }
@@ -230,7 +230,7 @@ elsif ($ENV{REMOTE_ADDR} =~ /^93\.183\.196\.26$/ ||
  	require "Easysoft.pm";
  	exit;
  } 
-elsif ($ENV{REMOTE_ADDR} =~ /^192.168.1.1$/) {
+elsif ($conf{PAYSYS_ERIPT_IPS} =~ /$ENV{REMOTE_ADDR}/) {
  	require "Erip.pm";
  	exit;
  }
@@ -321,7 +321,7 @@ sub payments {
   	rupay_payments();
    }
   elsif ($FORM{id_ups}) {
-  	ukrpays_payments();
+  	require "Ukrpays.pm";
    }
   elsif($FORM{smsid}) {
     smsproxy_payments();
@@ -1512,162 +1512,7 @@ elsif($FORM{LMI_HASH}) {
 
 
 
-#**********************************************************
-# http://ukrpays.com/
-# version Ver. 2.0.005
-#**********************************************************
-sub ukrpays_payments {
-#Pre request section
 
-my $inner_status = 0;
-
-if($FORM{hash}) {
-  my $info = '';
-  
-  if ($FORM{order} =~ /(\d{8}):(\d+)/) {
-  	#Info section
-  	my $operation_id = $1;
-  	my $domain_id    = $2;
-
-    my $list = $user->config_list({ PARAM      => 'PAYSYS_UKRPAYS_SERVICE_ID;PAYSYS_UKRPAYS_SECRETKEY', 
-  	                              DOMAIN_ID  => $domain_id,
-  	                              SORT       => 2 });
-
-    if ($user->{TOTAL}) {
-      foreach my $line ( @$list ) {
-    	  $conf{$line->[0]}=$line->[1];
-       }
-     }
-
-    $md5->reset;
-	  $md5->add($FORM{id_ups}); 
-	  $md5->add($FORM{order});
-	  $md5->add($FORM{note}) if (defined($FORM{note}));
-    $md5->add($FORM{amount});
-    $md5->add($FORM{date}); 
-    $md5->add($conf{PAYSYS_UKRPAYS_SECRETKEY});
-
-    my $checksum = $md5->hexdigest();	
-
-	  if ($FORM{hash} ne $checksum) {
-    	$status       = "ERROR: Incorect checksum '$checksum'";
-    	$inner_status = 5;
-     }
-    else {
-    	$status       = 'ok';
-    	$inner_status = 2;
-      $Paysys->add({ SYSTEM_ID  => 46, 
-  	             DATETIME       => '', 
-  	             SUM            => $FORM{amount},
-  	             UID            => $FORM{order}, 
-                 IP             => $FORM{IP} || '0.0.0.0',
-                 TRANSACTION_ID => "UKRPAYS:$FORM{id_ups}",
-                 INFO           => "STATUS: $status\nOPERATION_ID: $operation_id\n$info\nCards buy",
-                 PAYSYS_IP      => "$ENV{'REMOTE_ADDR'}",
-                 DOMAIN_ID      => $domain_id,
-                 STATUS         => $inner_status,
-               });
-
-      if ($Paysys->{errno}) {
-        if ($Paysys->{errno}==7) {
-          $output2 = "duplicate\n";
-         }
-        else {
-          $status = $output2;
-         }
-        $status = $output2;
-       }
-      elsif ($status !~ /ERROR/)  {
-  	    $status = 'ok';
-       }
-     }
-  	print $status;
-  	return 0;
-   }
-
-  $md5->reset;
-	$md5->add($FORM{id_ups}); 
-	$md5->add($FORM{order});
-	$md5->add($FORM{note}) if (defined($FORM{note}));
-  $md5->add($FORM{amount});
-  $md5->add($FORM{date}); 
-  $md5->add($conf{PAYSYS_UKRPAYS_SECRETKEY});
-
-  my $checksum = $md5->hexdigest();
-	my $user = $users->info($FORM{order});
-
-  if ($FORM{hash} ne $checksum) {
-  	$status = "ERROR: Incorect checksum '$checksum'";
-  	$inner_status=5;
-   }
-  elsif ($user->{errno}) {
-		$status = "ERROR: $user->{errno}";
-		$inner_status=8;
-	 }
-	elsif ($user->{TOTAL} < 0) {
-		$status = "ERROR: User not exist";
-		$inner_status=9;
-	 }
-  else {
-    #Add payments
-    my $er = 1;    
-    $payments->add($user, {SUM          => $FORM{amount},
-    	                     DESCRIBE     => 'Ukrpays', 
-    	                     METHOD       => ($conf{PAYSYS_PAYMENTS_METHODS} && $PAYSYS_PAYMENTS_METHODS{46}) ? 46 : '2', 
-  	                       EXT_ID       => "UKRPAYS:$FORM{id_ups}", 
-  	                       CHECK_EXT_ID => "UKRPAYS:$FORM{id_ups}", 
-  	                       ER           => $er
-  	                       } );  
-
-    if ($payments->{errno}) {
-      if ($payments->{errno} == 7) {
-        $info = "dublicate\n";
-        $inner_status=7;
-       }
-      else {
-        $info = "ERROR: PAYMENT $payments->{errno}\n";
-        $inner_status=6;
-       }      
-     }
-    else {
-    	$status = "Added $payments->{INSERT_ID}\n";
-    	$inner_status=2;
-     }
-   }
-  
-  while(my($k, $v)=each %FORM) {
-    $info .= "$k, $v\n" if ($k !~ /__B/);
-   }
-
-  $status =~ s/'/\\'/g;
-  #Info section  
-  $Paysys->add({ SYSTEM_ID      => 46, 
-  	             DATETIME       => '', 
-  	             SUM            => $FORM{amount},
-  	             UID            => $FORM{order}, 
-                 IP             => $FORM{IP} || '0.0.0.0',
-                 TRANSACTION_ID => "UKRPAYS:$FORM{id_ups}",
-                 INFO           => "STATUS, $status\n$info",
-                 PAYSYS_IP      => "$ENV{'REMOTE_ADDR'}",
-                 STATUS         => $inner_status
-               });
-
-  if ($Paysys->{errno}) {
-    if ($Paysys->{errno}==7) {
-      $output2 = "dublicate\n";
-     }
-    else {
-      $status = $output2;
-     }
-    $status = $output2;
-   }
-  elsif ($status !~ /ERROR/)  {
-  	$status = 'ok';
-   }
-}
-
-   print $status;
-}
 
 
 #**********************************************************
