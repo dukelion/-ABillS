@@ -505,11 +505,12 @@ sub ashield_user {
      }
 
     #subscribes
+    $Ashield->{debug}=1;
     $list =  $Ashield->ashield_avd_list({ %LIST_PARAMS  });
   	$table = $html->table({ width      => '100%',
   		                      caption    => "$_AGENTS",
   		                      title_plain=> ["$_COMP_NAME", "$_TARIF_PLAN", "$_ACTIVATE", "Online",
-  		                        "$_CREATED", "$_STATUS", "$_GRACEPERIOD", '-', '-', '-', '-', '-'],
+  		                        "$_CREATED", "$_STATUS", "$_GRACEPERIOD ($_DAYS)", '-', '-', '-', '-', '-'],
   		                      cols_align => ['left', 'left'],
   		                      ID         => 'DRWEB_AGENTS'
                           });
@@ -536,7 +537,6 @@ sub ashield_user {
 
       my ($id) = keys %{ $result_hash->{stations}->[0]->{station} };
       my $station_info = $result_hash->{stations}->[0]->{station}->{$id};
-
     	my $expire      = $station_info->{expires}->[0];
       my $name        = $id;
       my $graceperiod = $station_info->{grace_period};
@@ -546,7 +546,7 @@ sub ashield_user {
       my ($rate)      = keys %{ $station_info->{rate} };
       my $tp          = $AVD_TPS{$rate} || $rate;
       $tp             = ($ashield_tps_info->{$tp}) ? $html->b($tp).$html->br().$ashield_tps_info->{$tp}->{COMMENTS} : '';
-      my $status      = '';
+      my $status      = "";
       my $satus_code  = 0;
 
       my %statin_state_hash = (
@@ -602,8 +602,8 @@ sub ashield_user {
     	               $graceperiod_status. $html->br().
     	               $installed.  $html->br().
     	               $statin_state_hash{$station_info->{state}}. $html->br().
-    	               $status,
-    	               $graceperiod,
+    	               $status || $_ACTIV,
+    	               ($graceperiod && ! $graceperiod_status) ? "$_EXPIRE" : "$_ACTIV / $graceperiod_status",
     	               ($status) ? $html->button($_ACTIVATE, "index=$index&activate=$station_info->{id}&UID=$LIST_PARAMS{UID}", { CLASS => 'activate' }) :  $html->button($_CHANGE, "index=$index&info=$station_info->{id}&UID=$LIST_PARAMS{UID}", { CLASS => 'change' }),
     	               $html->button($_STATS, "index=$index&stats=$station_info->{id}&UID=$LIST_PARAMS{UID}", { CLASS => 'stats' }),
     	               (($satus_code) ? "" : $html->button("$_DOWNLOAD", '', { 
@@ -1655,7 +1655,7 @@ sub ashield_drweb_report_users {
  $list                 = $Ashield->ashield_avd_list({ PAGE_ROWS => 100000 });
  my %agent_hash        = ();
  foreach my $line (@{ $list }) {
- 	  $agent_hash{$line->[3]}="$line->[8]:$line->[1]:$line->[6]";
+ 	  $agent_hash{$line->[3]}="$line->[8]:$line->[1]:$line->[6]:$line->[10]";
   }
  
  my $table = $html->table({ width       => '100%',
@@ -1678,55 +1678,59 @@ sub ashield_drweb_report_users {
      $expires = "$1-$2-$3 $4:$5:$6";
     }
    
-   if ($line->{expires}->[0] > $date || $line->{expires}->[0] == 0) {
-     $drweb_active_users++ 
-    }
-    
    $line->{createdtime}->[0]=~ /(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})/;
    my $create = "$1-$2-$3 $4:$5:$6";
    $line->{modifiedtime}->[0]=~ /(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})/;
  	 my $changed = "$1-$2-$3 $4:$5:$6";   
    my $expire      = $line->{expires}->[0];
+   my $graceperiod = $line->{grace_period};
+   #my $graceperiod_status = "$_GRACEPERIOD $_TO $line->[10]" if($line->[10]);
 
    # Status Section
-   my $status = '-';
-
-        if ($expire > 0 && $expire > $cur_date) {
-    	  	$status = $html->color_mark("$_EXPIRE: ". val_parser($expires), $_COLORS[6]);
-    	   } 
-      	elsif ($expire > 0 && $expire < $cur_date) {
-    	  	$status = $html->color_mark("$_EXPIRE: ". val_parser($expires), $_COLORS[6]);
-    	  	$satus_code=1;
-    	   } 
-    	  else {
-      	  $blockbeg = $line->{blocking}->[0]->{begin}->[0];
-      	  if ($blockbeg > 0 ) {
-    		    $blockbeg = val_parser($blockbeg)
-  	  	   }
-  
-      	  $blockend = $line->{blocking}->[0]->{end}->[0];
-    		  if ($blockbeg > 0 && $blockbeg < $cur_date && $blockend < $cur_date) {
-    		  	
-    	     }
-          else {
-          	$status_code=1;
-           }
-   			  $blockend = val_parser($blockend);
-          $status = $html->color_mark("$_STATUS_4: $blockbeg - $blockend", $_COLORS[8]) if ($blockbeg > 0);
-    	   }
+   my $status = '';
+   my ($uid, $login, $tp, $grace_period) = split(/:/, $agent_hash{$line->{id}->[0]});
 
    
+   if ($expire > 0 && $expire > $cur_date) {
+    	  	$status = $html->color_mark("$_EXPIRE: ". val_parser($expires), $_COLORS[6]);
+    } 
+   elsif ($expire > 0 && $expire < $cur_date) {
+    	$status = $html->color_mark("$_EXPIRE: ". val_parser($expires), $_COLORS[6]);
+     	$satus_code=1;
+    } 
+   else {
+     $blockbeg = $line->{blocking}->[0]->{begin}->[0];
+     if ($blockbeg > 0 ) {
+       $blockbeg = val_parser($blockbeg)
+  	  }
+  
+     $blockend = $line->{blocking}->[0]->{end}->[0];
+     if ($blockbeg > 0 && $blockbeg < $cur_date && $blockend < $cur_date) {
+   	  	
+       }
+     else {
+       $status_code=1;
+      }
+   	 $blockend = val_parser($blockend);
+     $status = $html->color_mark("$_STATUS_4: $blockbeg - $blockend", $_COLORS[8]) if ($blockbeg > 0);
+    }
 
- 	 my ($uid, $login, $tp) = split(/:/, $agent_hash{$line->{id}->[0]});
+   if (! $status) {
+     if($grace_period) {
+    	 $status = "$_GRACEPERIOD $_TO $grace_period" ;
+      }
+     else {
+       $drweb_active_users++ 
+      }
+    } 	 
  	 
  	 #my $tp_name = ($AVD_TPS{$tp}) ? $AVD_TPS{$tp} : $tp; 
-
    use Encode;
    Encode::_utf8_off($line->{name}->[0]); 	 
    my $comp_name = ($conf{dbcharset} eq 'utf8') ?  $line->{name}->[0] : convert($line->{name}->[0], { utf82win => 1 });
 
  	 $table->addrow(
- 	 $html->button($login, "index=15&UID=$uid"),
+ 	 $html->button($login, "index=". get_function_index('ashield_user') ."&UID=$uid" ),
  	 $html->color_mark($line->{id}->[0], 'code'), 
  	 $comp_name,
  	 $tp,
@@ -1734,7 +1738,7 @@ sub ashield_drweb_report_users {
  	 ((ref $line->{lastseenfrom}->[0] eq 'HASH') ? '-' : "$_DOWNLOADED" ),
  	 $create,
  	 $changed,
- 	 $status,
+ 	 $status || $_ACTIV,
  	 $html->button($_DEL, "index=$index&del=$line->{id}->[0]", { MESSAGE => "$_DEL $line->{id}->[0] ?",  CLASS => 'del' })
  	 );
   } 

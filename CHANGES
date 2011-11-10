@@ -1,4 +1,37 @@
 =====0.54=====
+
+09.11.2011\\
+  * Обновлён шейпер для Mikrotik: улучшена производительность, переработана IPN режим работы
+**обязательно проверте наличие параметра Mikrotik-Address-List в  radius словаре**. Если версия Mikrotik OS ниже 3.10 нужно 
+
+указывать в радиус парах сервера доступа !Mikrotik-Address-List=0
+  * Добавлено установки прав на скидку в аккаунте абонента
+  * ''Msgs'' добавлено  заявки с заполненными полем ответственный видит только ответственный и автор при установке прав ''ADD''
+  * ''Msgs'' добавлена возможность выносить кнопки разделов в меню быстрого запуска
+  * ''Ashield'' добавлена реактивация приостановленных  подписок
+  * ''Portal'' Выпущен новый модуль
+  * ''Extfin'' Добавлен сводный отчёт Пополнения счета / снятия
+  * ''Extfin'' Добавлена отчёт баланс абонентов на начало месяца периода 
+  * ''Dv'' добавлена возможность запускать внешние программы во время включения Turbo режима 
+  * ''billd'' добавлен плагин слежения за запущенными процессами 
+  * ''Dv'' Добавлено поле установки типизации начислений по абон. плате
+
+MySQL
+  ALTER TABLE tarif_plans ADD fees_method tinyint(4) UNSIGNED NOT NULL DEFAULT '0';
+  
+  CREATE TABLE `extfin_balance_reports` (
+    `id` int(11) unsigned NOT NULL auto_increment,
+    `period` varchar(7) NOT NULL default '0000-00',
+    `sum` double(14,2)  NOT NULL default '0.00',
+    `bill_id` int(11) unsigned NOT NULL default '0',
+    `aid` smallint(6) unsigned NOT NULL default '0',
+    `date` date NOT NULL default '0000-00-00',
+    PRIMARY KEY  (`id`),
+    UNIQUE KEY `id` (`id`),
+    UNIQUE KEY `period` (`period`,`bill_id`)
+  ) COMMENT='Extfin  users balanse reports';
+
+
 20.10.2011\\
   * Добавлен пошаговый визард заведения пользователей
   * Добавлены шаблоны прав администраторов
