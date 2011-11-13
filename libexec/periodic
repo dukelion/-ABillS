@@ -295,11 +295,12 @@ $DEBUG .= "Shedule\n" if ($debug > 1);
    	 my $user = $users->info( $line->[13] );
    	 my ($sum, $descr, $bill_id) = split(/:/,  $action);
    	 if ($bill_id) {
-   	 	  if($bill_id =~ /(\S+)=(\S+)/) {
+   	 	 if($bill_id =~ /(\S+)=(\S+)/) {
    	 	  	$bill_id=$2;
-   	 	   }
+   	 	  }
+   	 	 $user->{BILL_ID}=$bill_id;  
    	  }
-   	 $user->{BILL_ID}=$bill_id;
+   	 
    	 $fees->take($user, $sum, { DESCRIBE => "$_SHEDULE: $descr" } );
       if ($fees->{errno}) {
        	$error_text .= "Error: [ $user->{UID} ] $user->{LOGIN} SUM: $sum [$fees->{errno}] $fees->{errstr}";
