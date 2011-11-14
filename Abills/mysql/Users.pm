@@ -705,6 +705,7 @@ sub list {
  my ($attr) = @_;
  my @list = ();
 
+
  $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
  $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
  $PG = ($attr->{PG}) ? $attr->{PG} : 0;
@@ -785,7 +786,7 @@ sub list {
    if ($CONF->{ADDRESS_REGISTER}) {
      if ($attr->{ADDRESS_BUILD}) {
        push @WHERE_RULES, @{ $self->search_expr($attr->{ADDRESS_BUILD}, 'STR', 'builds.number', { EXT_FIELD => 'builds.number' }) };
-          $EXT_TABLES .= "INNER JOIN builds ON (builds.id=pi.location_id)";
+       $EXT_TABLES .= "INNER JOIN builds ON (builds.id=pi.location_id)" if ($EXT_TABLES !~ /builds/);
       }
     }
    elsif ($attr->{ADDRESS_BUILD}) {
