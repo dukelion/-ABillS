@@ -192,8 +192,20 @@ sub acct {
       for(my $i=0; $i<=$#{ $RAD->{MPD_INPUT_OCTETS} }; $i++) {
         my($class, $byte)=split(/:/, $RAD->{MPD_INPUT_OCTETS}->[$i]);
         $class = ($class == 0) ? '' : $class + 1;
+        
+        if ($class eq '' && $byte > 4294967296) {
+          $RAD->{ACCT_INPUT_GIGAWORDS} = INT($byte / 4294967296);
+          $byte = $byte - ($RAD->{ACCT_INPUT_GIGAWORDS} * 4294967296);
+         }
+        
         $RAD->{'INBYTE' . $class}	= $byte;
         (undef, $byte)=split(/:/, $RAD->{MPD_OUTPUT_OCTETS}->[$i]);
+        
+        if ($class eq '' && $byte > 4294967296) {
+          $RAD->{ACCT_OUTPUT_GIGAWORDS} = INT($byte / 4294967296);
+          $byte = $byte - ($RAD->{ACCT_OUTPUT_GIGAWORDS} * 4294967296);
+         }
+        
         $RAD->{'OUTBYTE'. $class }	= $byte;
        }
      }
@@ -234,16 +246,26 @@ sub acct {
         for(my $i=0; $i<=$#{ $RAD->{MPD_INPUT_OCTETS} }; $i++) {
           my($class, $byte)=split(/:/, $RAD->{MPD_INPUT_OCTETS}->[$i]);
           $class = ($class == 0) ? '' : $class + 1;
+          if ($class eq '' && $byte > 4294967296) {
+            $RAD->{ACCT_OUTPUT_GIGAWORDS} = INT($byte / 4294967296);
+            $byte = $byte - ($RAD->{ACCT_OUTPUT_GIGAWORDS} * 4294967296);
+           }
           $RAD->{'OUTBYTE' . $class}= $byte;
           (undef, $byte)=split(/:/, $RAD->{MPD_OUTPUT_OCTETS}->[$i]);
-          $RAD->{'INBYTE'. $class }	= $byte;
+
+          if ($class eq '' && $byte > 4294967296) {
+            $RAD->{ACCT_INPUT_GIGAWORDS} = INT($byte / 4294967296);
+            $byte = $byte - ($RAD->{ACCT_INPUT_GIGAWORDS} * 4294967296);
+           }
+
+          $RAD->{'INBYTE'. $class}	= $byte;
         }
        }
       else {
           my($class, $byte)=split(/:/, $RAD->{MPD_INPUT_OCTETS});
           if ($class == 1) {
     	  	  ($RAD->{INBYTE}, $RAD->{OUTBYTE},
-              $RAD->{ACCT_INPUT_GIGAWORDS}, $RAD->{ACCT_OUTPUT_GIGAWORDS}) = (0,0,0,0); 
+             $RAD->{ACCT_INPUT_GIGAWORDS}, $RAD->{ACCT_OUTPUT_GIGAWORDS}) = (0,0,0,0); 
             $RAD->{'OUTBYTE2'}	= $byte;
            }
 

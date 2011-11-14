@@ -252,7 +252,8 @@ sub change {
               FILTER_ID        => 'filter_id',
               CALLBACK         => 'callback',
               PORT             => 'port',
-              JOIN_SERVICE     => 'join_service'
+              JOIN_SERVICE     => 'join_service',
+              TURBO_MODE       => 'turbo_mode'
              );
   
   if (! $attr->{CALLBACK}) {
