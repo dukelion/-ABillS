@@ -59,8 +59,8 @@ sub cards_card_info {
 #
 #**********************************************************
 sub cards_main {
-  if ($Cards::VERSION < 5.41) {
-  	$html->message('info', "UPDATE", "Please update module 'Cards' to version 5.40 or higher. http://abills.net.ua/");
+  if ($Cards::VERSION < 5.42) {
+  	$html->message('info', "UPDATE", "Please update module 'Cards' to version 5.42 or higher. http://abills.net.ua/");
   	return 0;
    }
 
