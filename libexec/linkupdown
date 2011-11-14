@@ -129,9 +129,7 @@ if ($ARGV[0] eq 'mpd') {
   $INTERFACE= $ARGV[2];
   $USER     = $ARGV[6];
   $CLIENT_IP= $ARGV[5];
-  $inum     = $INTERFACE;
-  $inum     =~ s/ng//;
-}
+ }
 #OpenVPN
 elsif ($ARGV[0] eq 'openvpn') {
   $ACTION    = $ARGV[1];
@@ -147,19 +145,8 @@ elsif ($ARGV[0] eq 'ipn') {
   $CLIENT_IP = $ARGV[4];
 	my ($n1, $n2, $n3, $n4) = split(/\./, $CLIENT_IP, 4);
   $inum  = $argv->{PORT} || $n4;
-
   if ($INTERFACE =~ /eth/) {
   	$OS = 'Linux';
-   }
-
-  if ($INTERFACE eq 'getif') {
-    if ($OS eq 'Linux') {
-      $INTERFACE = `/sbin/ip route get $CLIENT_IP | head -1 | sed s/.*dev // |awk '{ print \$1 }'`;
-      chop($INTERFACE);
-     }
-    else {
-      $INTERFACE = `/sbin/route -n get $CLIENT_IP | /usr/bin/grep interface: | /usr/bin/awk '{print \$2}'`;
-     }
    }
 }
 elsif($ARGV[0] eq 'pppd' || $ARGV[0] eq 'mikrotik') {
@@ -167,23 +154,32 @@ elsif($ARGV[0] eq 'pppd' || $ARGV[0] eq 'mikrotik') {
   $INTERFACE  = $ARGV[2];
   $USER       = $ARGV[3];
   $CLIENT_IP  = $ARGV[4];
-  $inum       = $INTERFACE;
-  if(! ($inum =~ s/ppp//)) {
-  	$inum = 0;
-   }
-  $OS = 'Linux';
+  $OS         = 'Linux';
  }
-# FreeBSD PPP
+# standart up/down
 else {
   $ACTION    = $ARGV[0];
   $INTERFACE = $ARGV[1];
   $USER      = $ARGV[2];
   $CLIENT_IP = $ARGV[3];
-  $inum      = $INTERFACE;
-  $inum      =~ s/^[a-z]+//;
 } 
 
 my $wan_if    = $argv->{WAN_IF};
+
+if ($INTERFACE eq 'getif') {
+  if ($OS eq 'Linux') {
+    $INTERFACE = `/sbin/ip route get $CLIENT_IP | head -1 | sed s/.*dev // |awk '{ print \$1 }'`;
+    chop($INTERFACE);
+   }
+  else {
+    $INTERFACE = `/sbin/route -n get $CLIENT_IP | /usr/bin/grep interface: | /usr/bin/awk '{print \$2}'`;
+   }
+ }
+
+if ($inum == 0) {
+	$inum      = $INTERFACE;
+  $inum      =~ s/^[a-z]+//;
+}
 
 
 $conf{SHAPER_CLASSES}=2 if (! defined($conf{SHAPER_CLASSES}));
@@ -373,7 +369,8 @@ if ($ACTION eq 'up' || $OS eq 'Linux') {
     else {	
       $speed = $speeds{$traf_type};
      }
-    if ($inum ne '-' ) {
+
+    if ($inum ne '-') {
       $fw_num_in    = $START_FW[$traf_type] + $inum * 2;
       $fw_num_out   = $START_FW[$traf_type] + $inum * 2 + 1;
      }
@@ -393,12 +390,14 @@ if ($ACTION eq 'up' || $OS eq 'Linux') {
 
  	  my @nets_arr = ();
  	  if ($nets{$traf_type}) {
+ 	  	print "!! <<< \n";
  	    $nets{$traf_type} =~ s/[\r]?\n//g;
  	    $nets{$traf_type} =~ s/;/,/g;
- 	    @nets_arr = split(/;|,/, $nets{$traf_type});
+ 	    @nets_arr         = split(/;|,/, $nets{$traf_type});
 	   }
-
-    @nets_arr = ('0.0.0.0/0') if ($#nets_arr < 0);
+    else { 
+      @nets_arr = ('0.0.0.0/0');
+     }
 
     #Mikrotik shaper
     if ($ARGV[0] eq 'mikrotik' ) {
@@ -438,7 +437,7 @@ if ($ACTION eq 'up' || $OS eq 'Linux') {
       if ($ACTION eq 'up') {
         foreach my $ip_full (@nets_arr) {
          if ($ip_full =~ /([!]{0,1})(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\/{0,1}(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}|\d{1,2}):{0,1}(\S{0,200})/ ) {
-             my $ip = $2;
+             my $ip   = $2;
              my $mask = $3;
              push @FW_ACTIONS, "$tc filter add dev $INTERFACE protocol ip parent 1: prio $fw_num_out u32 match ip src $ip/$mask match ip dst $CLIENT_IP flowid 1:$flowid";
              push @FW_ACTIONS, "$tc filter add dev $INTERFACE protocol ip parent ffff: prio $fw_num_in u32 match ip src $CLIENT_IP match ip dst $2/$3 $drop flowid 1:";
@@ -451,7 +450,7 @@ if ($ACTION eq 'up' || $OS eq 'Linux') {
     else {
       #my $dest_ip = 'any';
       # Networks tables
-      if ($#nets_arr > -1) {
+      if ($#nets_arr > -1 && $traf_type > 0) {
       	#print "Error: Traff_type: $traf_type User: $USER \n" if (! $traf_type || ! $nets_id{$traf_type});
         my $table_number = $nets_id{$traf_type} || 1;
         my $result = `$IPFW table $table_number list`;
@@ -460,7 +459,6 @@ if ($ACTION eq 'up' || $OS eq 'Linux') {
         	  push @FW_ACTIONS, "$IPFW table $table_number add $line $traf_type";
            }
          }
-       # $dest_ip = "table\\($table_number\\)";
        }
 
       if ( $traf_type > 0 ) {
