@@ -422,7 +422,7 @@ sub form_info {
          $user->{CREDIT_DATE}= $credit_date;
         }
        else {
-         $user->{CREDIT_CHG_BUTTON} =  $html->button("$_SET: ". sprintf("%.2f", $sum) . 
+         $user->{CREDIT_CHG_BUTTON} =  $html->button("$_SET $_CREDIT: ". sprintf("%.2f", $sum) . 
            (($price && $price > 0) ? sprintf(" (%s: %.2f)", "$_CREDIT $_CHANGE $_PRICE", $price) : undef),  
            "index=$index&sid=$sid&change_credit=$sum", { BUTTON => 1 });
         }
