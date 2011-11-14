@@ -1302,4 +1302,36 @@ sub form_neg_deposit {
  	$html->tpl_show(templates('form_neg_deposit'), $user);	
 }
 
+
+#**********************************************************
+# Make external operations
+#**********************************************************
+sub _external {
+	my ($file, $attr) = @_;
+  
+  my $arguments = '';
+  $attr->{LOGIN}      = $users->{LOGIN};
+  $attr->{DEPOSIT}    = $users->{DEPOSIT};
+  $attr->{CREDIT}     = $users->{CREDIT};
+  $attr->{GID}        = $users->{GID};
+  $attr->{COMPANY_ID} = $users->{COMPANY_ID};
+  
+  while(my ($k, $v) = each %$attr) {
+  	if ($k ne '__BUFFER' && $k =~ /[A-Z0-9_]/) {
+  		$arguments .= " $k=\"$v\"";
+  	 }
+   }
+
+  my $result = `$file $arguments`;
+  my ($num, $message)=split(/:/, $result, 2);
+  if ($num == 1) {
+   	$html->message('info', "_EXTERNAL $_ADDED", "$message");
+   	return 1;
+   }
+  else {
+ 	  $html->message('err', "_EXTERNAL $_ERROR", "[$num] $message");
+    return 0;
+   }
+}
+
 1
