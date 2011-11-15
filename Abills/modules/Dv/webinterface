@@ -631,7 +631,7 @@ sub dv_user {
        foreach my $line (@$list) {
          my ($nas_id, $nas_port_id, $acct_session_id, $user_name) = split(/ /, $FORM{hangup}, 4);
        	 $table->addrow(int2ip($line->[3]), $line->[4], int2byte($line->[5]), int2byte($line->[6]), "$_NAS: $line->[18]",
-       	 $html->button('Z', "index=$online_index&zap=$line->[18]+$line->[20]+$line->[21]".$pages_qs, { TITLE => 'Zap', BUTTON => 1 }),
+       	 $html->button('Z', "index=$online_index&zap=$Dv->{UID}+$line->[18]+$line->[20]+$line->[21]".$pages_qs, { TITLE => 'Zap', BUTTON => 1 }),
        	 $html->button('H', "index=$online_index&FRAMED_IP_ADDRESS=$line->[10]&hangup=$line->[18]+$line->[20]+$line->[21]+$line->[19]&$pages_qs", { TITLE => 'Hangup', BUTTON => 1, NO_LINK_FORMER => 1 })
        	        	 );
         }
@@ -1245,10 +1245,8 @@ if ($FORM{zapall}) {
   $html->message('info', $_INFO, "Zapped all sessions");
  }
 elsif($FORM{zap}) {
-  my($nas_id, $nas_port_id, $acct_session_id)=split(/ /, $FORM{zap}, 3);
+  my($uid, $nas_id, $nas_port_id, $acct_session_id)=split(/ /, $FORM{zap}, 4);
   $sessions->zap($nas_id, $nas_port_id, $acct_session_id, { %FORM });
-
-
 
   if ($sessions->{errno}) {
   	 $html->message('err', $_ERROR, "[$sessions->{errno}] $err_strs{$sessions->{errno}}");
@@ -1258,9 +1256,11 @@ elsif($FORM{zap}) {
   $Nas->info({NAS_ID => $nas_id });
   $message = "\n$_NAS ID:   $nas_id\n $_NAS IP: $Nas->{NAS_IP} \n $_PORT: $nas_port_id\n SESSION_ID: $acct_session_id\n\n";
   
-  $sessions->list({ ACCT_SESSION_ID => $acct_session_id, 
+  $sessions->list({ UID             => $uid,
+  	                ACCT_SESSION_ID => $acct_session_id, 
   	                NAS_PORT        => $nas_port_id,
-  	                NAS_ID          => $Nas->{NAS_ID} });  
+  	                NAS_ID          => $Nas->{NAS_ID},
+  	                PAGE_ROWS       => 1 });  
   
   if ($sessions->{TOTAL} < 1) {
     $message .=  $html->button('Add To log', "index=$index&tolog=$acct_session_id&nas_id=$nas_id&nas_port_id=$nas_port_id&ZAPED=1", { BUTTON => 1 }).' '.
@@ -1589,7 +1589,7 @@ foreach my $nas_row (@$nas_list) {
                            "CONNECT_INFO: \n".
                            "UPDATES: $line->[$#ACTIVE_FIELDS+8]";
 
-    	  	$value = user_ext_menu("$line->[$#ACTIVE_FIELDS+3]", $line->[0],  { TITLE => $user_info });
+    	  	$value = user_ext_menu($line->[$#ACTIVE_FIELDS+3], $line->[0],  { TITLE => $user_info });
           #Dublicate logins color yelow
  	  	    if (defined($dub_logins->{$line->[0]}) && $dub_logins->{$line->[0]} > 1) { $table->{rowcolor}='#FFFF00'; }
     	   }	
@@ -1604,7 +1604,7 @@ foreach my $nas_row (@$nas_list) {
       }
 
     if ($line->[$#ACTIVE_FIELDS + 9] > 3)  { $table->{rowcolor}='#FF0000';  }
-    my $zap = $html->button('Z', "index=$index&zap=$nas_row->[0]+".$line->[$#ACTIVE_FIELDS + 12]."+". $line->[($#ACTIVE_FIELDS + 13)].$pages_qs, { TITLE => 'Zap', BUTTON => 1, NO_LINK_FORMER => 1 });
+    my $zap = $html->button('Z', "index=$index&zap=". $line->[$#ACTIVE_FIELDS+3] .'+'. $nas_row->[0] .'+' .$line->[$#ACTIVE_FIELDS + 12].'+'. $line->[($#ACTIVE_FIELDS + 13)].$pages_qs, { TITLE => 'Zap', BUTTON => 1, NO_LINK_FORMER => 1 });
     my $hangup = ($FORM{ZAPED}) ? $html->form_input('dellist', "$line->[$#ACTIVE_FIELDS + 13]", { TYPE => 'checkbox', BUTTON => 1  } ) : $html->button('H', "index=$index&FRAMED_IP_ADDRESS=$line->[$#ACTIVE_FIELDS+2]&hangup=$nas_row->[0]+$line->[$#ACTIVE_FIELDS + 12]+$line->[$#ACTIVE_FIELDS + 13]+$line->[$#ACTIVE_FIELDS + 11]&UID=$line->[$#ACTIVE_FIELDS+3]$pages_qs", { TITLE => 'Hangup', BUTTON => 1 });
 
     $table->addrow(@rows,
