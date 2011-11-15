@@ -2055,34 +2055,48 @@ sub street_list {
 
  my $WHERE = ($#WHERE_RULES > -1) ?  "WHERE " . join(' and ', @WHERE_RULES) : ''; 
 
+=comments 
  my $EXT_TABLE        = '';
  my $EXT_FIELDS       = '';
  my $EXT_TABLE_TOTAL  = '';
  my $EXT_FIELDS_TOTAL = '';
-
- 
  if ($attr->{USERS_INFO} && ! $admin->{MAX_ROWS}) {
  	 $EXT_TABLE = 'LEFT JOIN users_pi pi ON (b.id=pi.location_id)';
    $EXT_FIELDS = ', count(pi.uid)';
    $EXT_TABLE_TOTAL  = 'LEFT JOIN builds b ON (b.street_id=s.id) LEFT JOIN users_pi pi ON (b.id=pi.location_id)';
    $EXT_FIELDS_TOTAL = ', count(DISTINCT b.id), count(pi.uid), sum(b.flats) / count(pi.uid)';
-
   }
 
- $self->query($db, "SELECT s.id, s.name, d.name, count(DISTINCT b.id) $EXT_FIELDS FROM streets s
+
+ "SELECT s.id, s.name, d.name, count(DISTINCT b.id) $EXT_FIELDS FROM streets s
   LEFT JOIN districts d ON (s.district_id=d.id)
   LEFT JOIN builds b ON (b.street_id=s.id)
   $EXT_TABLE 
   $WHERE 
   GROUP BY s.id
   ORDER BY $SORT $DESC
-  LIMIT $PG, $PAGE_ROWS;");
+  LIMIT $PG, $PAGE_ROWS;"
+=cut
+
+ my $sql = "SELECT s.id, s.name, districts.name, count(DISTINCT builds.id), count(users_pi.uid) FROM users_pi
+LEFT JOIN builds ON (builds.id=users_pi.location_id)
+LEFT JOIN streets s ON (builds.street_id=s.id)
+LEFT JOIN districts ON (s.district_id=districts.id)
+$WHERE
+GROUP BY s.id
+ORDER BY $SORT $DESC
+LIMIT $PG, $PAGE_ROWS;";
+
+ $self->query($db, $sql);
 
  my $list = $self->{list};
 
  if ($self->{TOTAL} > 0) {
-    $self->query($db, "SELECT count(DISTINCT s.id) $EXT_FIELDS_TOTAL FROM streets s 
-     $EXT_TABLE_TOTAL  $WHERE");
+ 	 # "SELECT count(DISTINCT s.id) $EXT_FIELDS_TOTAL FROM streets s 
+   #  $EXT_TABLE_TOTAL  $WHERE"
+ 	 my $sql = "SELECT count(DISTINCT s.id) , count(DISTINCT builds.id), count(users_pi.uid), sum(builds.flats) / count(users_pi.uid) FROM users_pi
+LEFT JOIN builds ON (builds.id=users_pi.location_id) LEFT JOIN streets  s ON (builds.street_id=s.id) $WHERE";
+    $self->query($db, $sql);
     ($self->{TOTAL},
      $self->{TOTAL_BUILDS},
      $self->{TOTAL_USERS},
