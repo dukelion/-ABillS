@@ -322,6 +322,8 @@ sub ashield_user {
 
 
   if ($FORM{add}) {
+  	my $a = `echo "$users->{LOGIN} // " >> /tmp/avd`;
+
   	if (defined($FORM{OP_SID}) and $FORM{OP_SID} eq $COOKIES{OP_SID}) {
  	    $html->message('err', $_ERROR, "$_EXIST");
      }
@@ -339,7 +341,8 @@ sub ashield_user {
           rate       => $FORM{'AVD_TP_ID_'.$FORM{TP_ID}}
       	  },
       	  );
-     	
+
+     	  my $a = `echo "!! status: $result_hash->{stations}->[0]->{station} // " >> /tmp/avd`;
   	    if ($result_hash->{error}) {
   	    	my $message = '';
   	    	if ($dr_web_errors{$result_hash->{error}->[0]->{code}->[0]}) {
@@ -351,10 +354,12 @@ sub ashield_user {
   	    	else {
   	    		$message = "$result_hash->{error}->[0]->{message}->[0]";  	    		
   	    	 }
+
           $html->message('err', $_ERROR, "Dr.Web: [$result_hash->{error}->[0]->{code}->[0]] $message");
           return 0; 
          }
         else {
+        	my $a = `echo "stations: $result_hash->{stations}->[0]->{station} // " >> /tmp/avd`;
           #$Ashield->user_add({ %FORM, UID => $LIST_PARAMS{UID} });
           my %AVD_TPS_REV = reverse %AVD_TPS;
           my ($name) = keys %{ $result_hash->{stations}->[0]->{station} };
