@@ -7951,7 +7951,6 @@ sub form_streets {
  $users->{ACTION}='add';
  $users->{LNG_ACTION}="$_ADD";
 
-
 if ($FORM{BUILDS}) {
 	form_builds();
 	
