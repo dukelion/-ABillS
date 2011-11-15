@@ -136,7 +136,7 @@ sub new {
 	                );
   %functions = ();
   $pages_qs = '';
-  $index = $FORM{index} || 0;
+  $index = int($FORM{index}) || 0;
 
   if ($attr->{language}) {
     $self->{language}=$attr->{language};

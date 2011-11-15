@@ -184,14 +184,14 @@ if ($uid > 0) {
   $OUTPUT{STATE}= ($user->{DISABLE}) ? $html->color_mark("$_DISABLE", $_COLORS[6])  : $_ENABLE;
   
   if ($COOKIES{lastindex}) {
-  	$index=$COOKIES{lastindex};
+  	$index=int($COOKIES{lastindex});
     $html->setCookie('lastindex', '', "Fri, 1-Jan-2038 00:00:01", $web_path, $domain, $secure);
    }
 
   $LIST_PARAMS{UID}  = $user->{UID};
   $LIST_PARAMS{LOGIN}= $user->{LOGIN};
 
-  $index = $FORM{qindex} if ($FORM{qindex});
+  $index = int($FORM{qindex}) if ($FORM{qindex});
   print $html->header() if ($FORM{header});
 
   my $lang_file = '';
