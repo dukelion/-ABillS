@@ -1255,8 +1255,9 @@ elsif($FORM{zap}) {
 
   $Nas->info({NAS_ID => $nas_id });
   $message = "\n$_NAS ID:   $nas_id\n $_NAS IP: $Nas->{NAS_IP} \n $_PORT: $nas_port_id\n SESSION_ID: $acct_session_id\n\n";
-  
+  my ($Y, $M, $D)=split(/-/, $DATE, 3);
   $sessions->list({ UID             => $uid,
+  	                DATE            => ">=$Y-$M-01",
   	                ACCT_SESSION_ID => $acct_session_id, 
   	                NAS_PORT        => $nas_port_id,
   	                NAS_ID          => $Nas->{NAS_ID},

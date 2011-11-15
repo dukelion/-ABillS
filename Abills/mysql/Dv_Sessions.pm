@@ -1092,10 +1092,9 @@ if ($attr->{FROM_DATE}) {
  }
 
 if ($attr->{DATE}) {
-   push @WHERE_RULES, "date_format(l.start, '%Y-%m-%d')>='$attr->{DATE}'";
+   push @WHERE_RULES, @{ $self->search_expr($attr->{DATE}, 'INT', 'l.start') }; 
  }
-
-if ($attr->{MONTH}) {
+elsif ($attr->{MONTH}) {
    push @WHERE_RULES, "date_format(l.start, '%Y-%m')>='$attr->{MONTH}'";
  }
 
@@ -1121,9 +1120,7 @@ elsif (defined($attr->{PERIOD}) ) {
      else {$WHERE .= "date_format(start, '%Y-%m-%d')=curdate() "; }
     }
  }
-elsif($attr->{DATE}) {
-	 push @WHERE_RULES, "date_format(start, '%Y-%m-%d')='$attr->{DATE}'";
-}
+
 
  $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
 

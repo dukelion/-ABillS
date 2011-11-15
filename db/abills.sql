@@ -433,7 +433,7 @@ CREATE TABLE `dv_log` (
   `ip` int(10) unsigned NOT NULL default '0',
   `sent2` int(11) unsigned NOT NULL default '0',
   `recv2` int(11) unsigned NOT NULL default '0',
-  `acct_session_id` varchar(25) NOT NULL default '',
+  `acct_session_id` varchar(20) NOT NULL default '',
   `CID` varchar(18) NOT NULL default '',
   `bill_id` int(11) unsigned NOT NULL default '0',
   `uid` int(11) unsigned NOT NULL default '0',
