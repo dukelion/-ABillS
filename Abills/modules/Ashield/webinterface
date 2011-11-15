@@ -510,7 +510,6 @@ sub ashield_user {
      }
 
     #subscribes
-    $Ashield->{debug}=1;
     $list =  $Ashield->ashield_avd_list({ %LIST_PARAMS  });
   	$table = $html->table({ width      => '100%',
   		                      caption    => "$_AGENTS",
