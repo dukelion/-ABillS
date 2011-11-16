@@ -1995,6 +1995,7 @@ $doc .= "
 ";
 
 $doc = $html->tpl_show(_include('docs_tax_export', 'Docs'), { %$Docs, BODY => $doc }, { OUTPUT2RETURN => 1, SKIP_QUOTE => 1 });
+$doc = convert($doc, { utf82win => 1 });
 
 my $filesize = length($doc);
 print "Content-Type: text/plain; filename=\"$filename\"\n".
