@@ -1910,6 +1910,7 @@ my $doc = '';
 
 $LIST_PARAMS{PAGE_ROWS}=1000000;
 $LIST_PARAMS{MONTH} = $FORM{MONTH} || "$y-$m";
+
 my $list = $Docs->tax_invoice_reports({ %LIST_PARAMS });
 my %invoice_hash = ();
 
@@ -1920,6 +1921,7 @@ foreach my $line ( @$list ) {
   push @{ $invoice_hash{T1RXXXXG3S}  }, $line->[2];
   push @{ $invoice_hash{T1RXXXXG4S}  }, 'ом02';
   push @{ $invoice_hash{T1RXXXXG5S}  }, $line->[3];
+
   push @{ $invoice_hash{T1RXXXXG6}   }, ''; # | $line->[3];
   push @{ $invoice_hash{T1RXXXXG7}   }, sprintf("%.2f", $line->[5]);
   push @{ $invoice_hash{T1RXXXXG8}   }, sprintf("%.2f", $line->[6]);
@@ -1992,7 +1994,7 @@ $doc .= "
 <HFILL>$fill_d$m$y</HFILL>
 ";
 
-$doc = $html->tpl_show(_include('docs_tax_export', 'Docs'), { %$Docs, BODY => $doc }, { OUTPUT2RETURN => 1 });
+$doc = $html->tpl_show(_include('docs_tax_export', 'Docs'), { %$Docs, BODY => $doc }, { OUTPUT2RETURN => 1, SKIP_QUOTE => 1 });
 
 my $filesize = length($doc);
 print "Content-Type: text/plain; filename=\"$filename\"\n".
