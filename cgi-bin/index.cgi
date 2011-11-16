@@ -412,7 +412,7 @@ sub form_info {
              }
             cross_modules_call('_payments_maked', { USER => $user, QUITE => 1 }); 
             if ($conf{external_userchange}) {
-              if (! _external($conf{external_userchange}, { %FORM }) ) {
+              if (! _external($conf{external_userchange}, $user) ) {
      	          return 0;
                }
              }
