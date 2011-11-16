@@ -395,7 +395,7 @@ if ($ACTION eq 'up' || $OS eq 'Linux') {
  	    $nets{$traf_type} =~ s/;/,/g;
  	    @nets_arr         = split(/;|,/, $nets{$traf_type});
 	   }
-    else { 
+    elsif($tarf_type == 0) { 
       @nets_arr = ('0.0.0.0/0');
      }
 
