@@ -401,6 +401,17 @@ a.activate {
         text-indent:-9000px;
 }
 
+a.off {
+        background:url(/img/button_off.png) no-repeat center;
+        padding-left:22px;
+        padding-top:5px;
+        height: 22px;
+        margin:0;
+        display:block;
+        overflow:hidden;
+        text-indent:-9000px;
+}
+
 a.sql {
         background:url(/img/button_sql.png) no-repeat center;
         padding-left:22px;

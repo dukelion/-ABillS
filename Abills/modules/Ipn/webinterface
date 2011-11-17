@@ -1427,7 +1427,7 @@ sub ipn_user_activate {
         $line->[4], 
         int2byte($line->[5]), 
         int2byte($line->[6]),
-        $html->button("$_HANGUP", "index=$index&UID=$LIST_PARAMS{UID}&LOGOUT=1&SESSION_ID=$line->[21]&REMOTE_ADDR=$online_ip&sid=$html->{SID}", { BUTTON => 1 })
+        $html->button("$_HANGUP", "index=$index&UID=$LIST_PARAMS{UID}&LOGOUT=1&SESSION_ID=$line->[21]&REMOTE_ADDR=$online_ip&sid=$html->{SID}", { CLASS => 'off' })
        )  if ($line->[11] == $LIST_PARAMS{UID});
      }
     $online_session = $table->show({ OUTPUT2RETURN => 1 });	
