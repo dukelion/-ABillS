@@ -1590,7 +1590,14 @@ foreach my $nas_row (@$nas_list) {
                            "CONNECT_INFO: \n".
                            "UPDATES: $line->[$#ACTIVE_FIELDS+8]";
 
-    	  	$value = user_ext_menu($line->[$#ACTIVE_FIELDS+3], $line->[0],  { TITLE => $user_info });
+          if ($line->[$#ACTIVE_FIELDS+3]) {
+    	  	  $value = user_ext_menu($line->[$#ACTIVE_FIELDS+3], $line->[0],  { TITLE => $user_info });
+    	  	 }
+          else {
+          	if ($value =~ /(\!)\s+(.+)/) {          		
+          		$values = color_mark($1, $_COLORS[6]).' '. $2;
+          	 }
+           }
           #Dublicate logins color yelow
  	  	    if (defined($dub_logins->{$line->[0]}) && $dub_logins->{$line->[0]} > 1) { $table->{rowcolor}='#FFFF00'; }
     	   }	
