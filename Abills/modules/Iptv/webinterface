@@ -33,17 +33,14 @@ sub iptv_user_del {
 sub iptv_close_period {
 
   if ($FORM{CLOSE_PERIOD}) {
-  	$users->config_del('IPTV_CLOSED_PERIOD');
-  	
+  	$users->config_del('IPTV_CLOSED_PERIOD');  	
   	$users->config_add({ PARAM   => 'IPTV_CLOSED_PERIOD',
                          VALUE   => "1"
-                         });
+                       });
    }
 
 
   $users->config_info({ PARAM => 'IPTV_CLOSED_PERIOD' });
-
-
   my $close_period = ($users->{VALUE} eq '1') ? "$_MONTH_FEE" : "$users->{VALUE}";
 
  	my $table = $html->table( { width      => '300',
@@ -79,8 +76,8 @@ sub iptv_chg_tp {
 
  if(defined($attr->{USER})) {
    $user = $attr->{USER};
-   $user = $Iptv->user_info($user->{UID});
-   if($user->{TOTAL} < 1) {
+   $Iptv = $Iptv->user_info($user->{UID});
+   if($Iptv->{TOTAL} < 1) {
  	   $html->message('info', $_INFO, $_NOT_ACTIVE);
  	   return 0;
     }
@@ -92,20 +89,62 @@ sub iptv_chg_tp {
 
  my $period = $FORM{period} || 0;
 
+
+
+if ($Iptv->{MONTH_ABON}> 0 && ! $Iptv->{STATUS} && ! $users->{DISABLE} &&
+        ($users->{DEPOSIT}+$users->{CREDIT} > 0 || 
+         $Iptv->{POSTPAID_ABON} || 
+         $Iptv->{PAYMENT_TYPE} == 1 )) {
+
+      if ($users->{ACTIVATE} ne '0000-00-00') {
+        my ($Y, $M, $D)=split(/-/, $users->{ACTIVATE}, 3);
+        $M--;
+        $Iptv->{ABON_DATE} = strftime "%Y-%m-%d", localtime(  (mktime(0, 0, 0, $D, $M, ($Y-1900), 0, 0, 0)  + 31 * 86400 + ( ($conf{START_PERIOD_DAY}) ? $conf{START_PERIOD_DAY} * 86400 : 0 ) ) );
+       }
+      else {
+        my ($Y, $M, $D)=split(/-/, $DATE, 3);
+        $M++;
+        if ($M == 13) {
+          $M = 1;
+          $Y++;
+         }
+
+        if ($conf{START_PERIOD_DAY}) {
+          $D=$conf{START_PERIOD_DAY}; 
+         }
+        else {
+          $D='01';
+         }
+        $Iptv->{ABON_DATE} = sprintf("%d-%02d-%02d", $Y,$M,$D);
+       }
+ }
+
  use Shedule;
  $shedule = Shedule->new($db, $admin);
 
 if ($FORM{set}) {
-  if ($period == 1) {
-    $FORM{date_M}++;
-    $shedule->add( {UID => $user->{UID},
-                   TYPE => 'tp',
+  if (! $permissions{0}{4} ) {
+     $html->message('err', $_ERROR, "$ERR_ACCESS_DENY");  	
+   	return 0;
+   }
+	
+  if ($period > 0) {
+    my ($year, $month, $day);
+    if ($period == 1) {
+      ($year, $month, $day)=split(/-/, $Iptv->{ABON_DATE}, 3);
+     }
+    else {
+    	($year, $month, $day)=split(/-/, $FORM{DATE}, 3);
+     }
+
+    $shedule->add( {UID   => $user->{UID},
+                   TYPE   => 'tp',
                    ACTION => $FORM{TP_ID},
-    	             D => $FORM{date_D},
-                   M => $FORM{date_M},
-                   Y => $FORM{date_Y},
-                   DESCRIBE => "$message<br>
-                   $_FROM: '$FORM{date_Y}-$FORM{date_M}-$FORM{date_D}'",
+    	             D        => $day,
+                   M        => $month,
+                   Y        => $year,
+                   COMMENTS => "$_FROM: $Dv->{TP_ID}:$Dv->{TP_NAME}",
+                   ADMIN_ACTION => 1,
                    MODULE => 'Iptv'
                     });
 
@@ -114,7 +153,7 @@ if ($FORM{set}) {
      }
     else {
       $html->message('info', $_CHANGED, "$_CHANGED");
-      $user->user_info($user->{UID});
+      $Iptv->user_info($Iptv->{UID});
     }
    }
   else {
@@ -133,7 +172,6 @@ if ($FORM{set}) {
       $Iptv->user_info($user->{UID});
       iptv_user_channels({ QUIET => 1, USER_INFO => $Iptv });
     }
-
   }
 }
 elsif($FORM{del}) {
@@ -163,32 +201,32 @@ elsif($FORM{del}) {
                                } );
 
   	$Tariffs->{TARIF_PLAN_SEL} = $table->show(). $html->form_input('SHEDULE_ID', "$shedule->{SHEDULE_ID}", {TYPE => 'HIDDEN' });
-  	$Tariffs->{ACTION}='del';
-  	$Tariffs->{LNG_ACTION}=$_DEL;
+  	$Tariffs->{ACTION}         = 'del';
+  	$Tariffs->{LNG_ACTION}     = $_DEL;
   }
  else {
    $Tariffs->{TARIF_PLAN_SEL}=$html->form_select('TP_ID', 
                                           { 
- 	                                          SELECTED          => $user->{TP_ID},
+ 	                                          SELECTED          => $Iptv->{TP_ID},
  	                                          SEL_MULTI_ARRAY   => $Tariffs->list({ MODULE => 'Iptv' }),
  	                                          MULTI_ARRAY_KEY   => 18,
  	                                          MULTI_ARRAY_VALUE => '0,1',
- 	                                          NO_ID             => 1
+ 	                                          NO_ID             => 1,
+ 	                                          MAIN_MENU         => ($permissions{0}{10}) ? get_function_index('iptv_tp') : undef,
+ 	                                          MAIN_MENU_AGRV    => "TP_ID=$Iptv->{TP_ID}"
  	                                        });
 
-   $Tariffs->{PARAMS} .= form_period($period);	
-   $Tariffs->{ACTION}='set';
-   $Tariffs->{LNG_ACTION}=$_CHANGE;
+   $Tariffs->{PARAMS}   .= form_period($period, { ABON_DATE => $Iptv->{ABON_DATE} });	
+   $Tariffs->{ACTION}    = 'set';
+   $Tariffs->{LNG_ACTION}= $_CHANGE;
   }
 
  
 
-my $tp_index = get_function_index('iptv_tp');
-$Tariffs->{UID}=$attr->{USER}->{UID};
-$Tariffs->{m}=$m;
-$Tariffs->{TP_ID} = $user->{TP_ID};
-$Tariffs->{TP_NAME} = "$user->{TP_NUM}:$user->{TP_NAME}". $html->button("$_TARIF_PLANS", "index=$tp_index&TP_ID=$user->{TP_ID}", { TITLE => "$_TP", BUTTON => 1 } );
-
+my $tp_index        = get_function_index('iptv_tp');
+$Tariffs->{UID}     = $attr->{USER}->{UID};
+$Tariffs->{TP_ID}   = $Iptv->{TP_ID};
+$Tariffs->{TP_NAME} = "$Iptv->{TP_NUM}:$Iptv->{TP_NAME}";
 print $html->tpl_show(templates('form_chg_tp'), $Tariffs);
 }
 
@@ -299,12 +337,13 @@ return 0;
 # user_dv
 #**********************************************************
 sub iptv_user {
+ 	my ($attr)=@_;
  	$Iptv->{UID}=$FORM{UID};	  
   
   if ($FORM{add}) {
     $Iptv->user_add({ %FORM });
     if (! $Iptv->{errno}) {
-    	$Iptv->{ACTIVATE}=$attr->{USER}->{ACTIVATE};
+    	$Iptv->{ACCOUNT_ACTIVATE}=$attr->{USER}->{ACTIVATE};
       iptv_get_month_fee($Iptv) if (! $FORM{STATUS});
       $html->message('info', $_INFO, "$_ADDED");	
       if ($conf{IPTV_DVCRYPT_FILENAME}) {
@@ -316,7 +355,7 @@ sub iptv_user {
     $Iptv->user_change({ %FORM });
 
     if (! $Iptv->{errno}) {
-    	$Iptv->{ACTIVATE}=$attr->{USER}->{ACTIVATE};
+    	$Iptv->{ACCOUNT_ACTIVATE}=$attr->{USER}->{ACTIVATE};
       iptv_get_month_fee($Iptv) if (! $FORM{STATUS});
       $html->message('info', $_INFO, "$_CHANGED");	
       if ($conf{IPTV_DVCRYPT_FILENAME}) {
@@ -346,13 +385,13 @@ sub iptv_user {
  	                                          SEL_MULTI_ARRAY   => $Tariffs->list({ MODULE => 'Iptv'}),
  	                                          MULTI_ARRAY_KEY   => 18,
  	                                          MULTI_ARRAY_VALUE => '0,1',
- 	                                          NO_ID             => 1
+ 	                                          NO_ID             => 1,
  	                                        });
 	 }
 	else {
 	  $user->{ACTION}='set';
 	  $user->{LNG_ACTION}=$_CHANGE;
-    $user->{CHANGE_TP_BUTTON}=$html->button($_CHANGE, 'UID='. $FORM{UID}.'&index='. ($index + 1), { CLASS => 'change rightAlignText'  });
+    $user->{CHANGE_TP_BUTTON}=$html->button($_CHANGE, 'UID='. $FORM{UID}.'&index='. get_function_index('iptv_chg_tp'), { CLASS => 'change rightAlignText'  });
 	 } 
 
    $user->{STATUS_SEL}          = $html->form_select('STATUS', 
@@ -1626,7 +1665,7 @@ sub iptv_user_channels {
                          METHOD   => 1  );
           
           if ($Iptv->{TP_INFO}->{MONTH_FEE} > 0) {
-            $Iptv->{ACTIVATE}=$users->{ACTIVATE};
+            $Iptv->{ACCOUNT_ACTIVATE}=$users->{ACTIVATE};
             iptv_get_month_fee($Iptv, { EXT_DESCRIBE => " $_CHANNEL: $line->[1]", QUIET => 1 });      
            }
           else {
@@ -1732,7 +1771,7 @@ sub iptv_user_channels {
                          METHOD   => 1  );
           
           if ($Iptv->{TP_INFO}->{MONTH_FEE} > 0) {
-            $Iptv->{ACTIVATE}=$users->{ACTIVATE};
+            $Iptv->{ACCOUNT_ACTIVATE}=$users->{ACTIVATE};
             iptv_get_month_fee($Iptv, { EXT_DESCRIBE => " $_CHANNEL: $line->[1]" });      
            }
           else {
@@ -2282,6 +2321,7 @@ sub iptv_report {
 sub iptv_get_month_fee {
   my ($Iptv, $attr) = @_;
 
+  my $info_message = '';
   #Get active price
   if ($Iptv->{TP_INFO}->{ACTIV_PRICE}) {
     my $users = Users->new($db, $admin, \%conf); 
@@ -2294,7 +2334,7 @@ sub iptv_get_month_fee {
    	                            DATE      => "$date $time"
   	                           });  
 
-    $html->message('info', $_INFO, "$_ACTIVATE $_TARIF_PLAN");	
+    $info_message .= "$_ACTIVATE $_TARIF_PLAN\n";	
    }
   #Get month fee
   if ($Iptv->{TP_INFO}->{MONTH_FEE} > 0) {
@@ -2309,26 +2349,25 @@ sub iptv_get_month_fee {
      my $message = ''; 
      #Current Month
      my ($y, $m, $d)=split(/-/, $DATE, 3);
-
-     my ($active_y, $active_m, $active_d)=split(/-/, $Iptv->{ACTIVATE}, 3);	 
+     my ($active_y, $active_m, $active_d)=split(/-/, $Iptv->{ACCOUNT_ACTIVATE}, 3);	 
      if (int("$y$m$d") < int("$active_y$active_m$active_d")) {
      	  return ;
       }
 
-        if ($Iptv->{TP_INFO}->{PERIOD_ALIGNMENT} && ! $Iptv->{TP_INFO}->{ABON_DISTRIBUTION}) {
-        	$message = "$_MONTH_ALIGNMENT, ";
+     if ($Iptv->{TP_INFO}->{PERIOD_ALIGNMENT} && ! $Iptv->{TP_INFO}->{ABON_DISTRIBUTION}) {
+        	$message = "$_MONTH_ALIGNMENT\n";
           my $days_in_month=($m!=2?(($m%2)^($m>7))+30:(!($y%400)||!($y%4)&&($y%25)?29:28));
 
-          if ($Iptv->{ACTIVATE} && $Iptv->{ACTIVATE} ne '0000-00-00') {
+          if ($Iptv->{ACCOUNT_ACTIVATE} && $Iptv->{ACCOUNT_ACTIVATE} ne '0000-00-00') {
             $days_in_month=($active_m!=2?(($active_m%2)^($active_m>7))+30:(!($active_y%400)||!($active_y%4)&&($active_y%25)?29:28)); 
             $d = $active_d;
            }
 
           $conf{START_PERIOD_DAY} = 1 if (! $conf{START_PERIOD_DAY});
           $sum = sprintf("%.2f", $sum / $days_in_month * ($days_in_month - $d + $conf{START_PERIOD_DAY}));
-         }
+      }
        
-        return 0 if ($sum == 0);
+      return 0 if ($sum == 0);
         
         my $periods = 0;
         if ($active_m > 0 && $active_m < $m) {
@@ -2345,8 +2384,7 @@ sub iptv_get_month_fee {
         	$sum = $sum / ( ($m!=2?(($m%2)^($m>7))+30:(!($y%400)||!($y%4)&&($y%25)?29:28)) );
         	$message .= " - $_ABON_DISTRIBUTION";
          }
-        
-        
+
         $m = $active_m if ($active_m > 0);
         for (my $i=0; $i<=$periods; $i++) {
           if ($m > 12) {
@@ -2358,13 +2396,13 @@ sub iptv_get_month_fee {
 
           if ( $i > 0 ) {
   	        $sum     = $Iptv->{TP_INFO}->{MONTH_FEE};
-            $message = "$_TV: $_MONTH_FEE: $sum ($Iptv->{TP_INFO}->{TP_ID})";
+            $message = "$_MONTH_FEE: $sum ($Iptv->{TP_INFO}->{TP_ID})";
             
             $message .= $attr->{EXT_DESCRIBE} if ($attr->{EXT_DESCRIBE});
             $DATE    = "$active_y-$m-01";
             $TIME    = "00:00:00";
            }
-          elsif ($Iptv->{ACTIVATE} && $Iptv->{ACTIVATE} ne '0000-00-00'){
+          elsif ($Iptv->{ACCOUNT_ACTIVATE} && $Iptv->{ACCOUNT_ACTIVATE} ne '0000-00-00'){
             $DATE    = "$active_y-$m-$active_d";
             $TIME    = "00:00:00";
             
@@ -2374,21 +2412,21 @@ sub iptv_get_month_fee {
              }
            }
          
-          $Fees->take($users, $sum, { DESCRIBE  => $message, 
+          $Fees->take($users, $sum, { DESCRIBE  => "$_TV: $message", 
         	                            METHOD    => 1, 
         	                            DATE      => "$DATE $TIME"
         	                           });  
         
           if ($Fees->{errno}) {
-        	  $html->message('err', $_ERROR, "[$Fees->{errno}] $Fees->{errstr}") if (! $attr->{QUIET});;	
+        	  $html->message('err', $_ERROR, "[$Fees->{errno}] $Fees->{errstr}") if (! $attr->{QUIET});
+        	  return 0;
            }
-          else {
-            $html->message('info', $_INFO, $message) if (! $attr->{QUIET});;	
-           }
-
+          $info_message .= "$_DATE: $DATE $message\n";
           $m++;
          }
       }
+
+  $html->message('info', $_INFO, $info_message) if (! $attr->{QUIET});;	
 }
 
 

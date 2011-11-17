@@ -74,6 +74,7 @@ sub dv_chg_tp {
  my $period = $FORM{period} || 0;
  my $Shedule = Shedule->new($db, $admin, \%conf);
 
+#Get next period
 if ($Dv->{MONTH_ABON}> 0 && ! $Dv->{STATUS} && ! $users->{DISABLE} &&
         ($users->{DEPOSIT}+$users->{CREDIT} > 0 || 
          $Dv->{POSTPAID_ABON} || 
@@ -243,6 +244,8 @@ elsif($FORM{del}) {
  	                                          SEL_MULTI_ARRAY   => $tp_list,
  	                                          MULTI_ARRAY_KEY   => 0,
  	                                          MULTI_ARRAY_VALUE => 1,
+ 	                                          MAIN_MENU         => ($permissions{0}{10}) ? get_function_index('dv_tp') : undef,
+ 	                                          MAIN_MENU_AGRV    => "TP_ID=$Dv->{TP_NUM}"
  	                                        });
 
    $tariffs->{PARAMS} .= form_period($period, { ABON_DATE => $Dv->{ABON_DATE} });	
@@ -259,7 +262,7 @@ $tariffs->{UID}     = $attr->{USER}->{UID};
 $tariffs->{m}       = $m;
 $tariffs->{TP_ID}   = $Dv->{TP_NUM};
 
-$tariffs->{TP_NAME} = "$Dv->{TP_ID}:$Dv->{TP_NAME} ". $html->button("$_TARIF_PLANS", "index=". get_function_index('dv_tp') ."&TP_ID=$Dv->{TP_NUM}", { TITLE => "$_TP", CLASS => 'show rightAlignText' });
+$tariffs->{TP_NAME} = "$Dv->{TP_ID}:$Dv->{TP_NAME} "; #. $html->button("$_TARIF_PLANS", "index=". get_function_index('dv_tp') ."&TP_ID=$Dv->{TP_NUM}", { TITLE => "$_TP", CLASS => 'show rightAlignText' });
 print $html->tpl_show(templates('form_chg_tp'), $tariffs);
 }
 
@@ -482,7 +485,7 @@ sub dv_user {
     $Dv->add({ %FORM });
     if (! $Dv->{errno}) {
   	  #Make month feee
-  	  $Dv->{ACTIVATE}=$attr->{USER}->{ACTIVATE};
+  	  $Dv->{ACCOUNT_ACTIVATE}=$attr->{USER}->{ACTIVATE};
    	  dv_get_month_fee($Dv) if (! $FORM{STATUS});
    	  
    	  if ($attr->{REGISTRATION}) {
@@ -529,7 +532,7 @@ sub dv_user {
      }
 
     if (! $Dv->{errno}) {
-      $Dv->{ACTIVATE}=$attr->{USER}->{ACTIVATE};
+      $Dv->{ACCOUNT_ACTIVATE}=$attr->{USER}->{ACTIVATE};
       if (! $FORM{STATUS} && ($FORM{GET_ABON} || ! $FORM{TP_ID} )) {
         dv_get_month_fee($Dv);
        }
@@ -631,7 +634,7 @@ sub dv_user {
        foreach my $line (@$list) {
          my ($nas_id, $nas_port_id, $acct_session_id, $user_name) = split(/ /, $FORM{hangup}, 4);
        	 $table->addrow(int2ip($line->[3]), $line->[4], int2byte($line->[5]), int2byte($line->[6]), "$_NAS: $line->[18]",
-       	 $html->button('Z', "index=$online_index&zap=$Dv->{UID}".'+'.$line->[18].'+'.$line->[20].'+'.$line->[21].$pages_qs, { TITLE => 'Zap', BUTTON => 1, NO_LINK_FORMER => 1   }),
+       	 $html->button('Z', "index=$online_index&zap=$Dv->{UID}".'+'.$line->[18].'+'.$line->[20].'+'.$line->[21].$pages_qs, { TITLE => 'Zap', CLASS => 'del', NO_LINK_FORMER => 1   }),
        	 $html->button('H', "index=$online_index&FRAMED_IP_ADDRESS=$line->[10]&hangup=$line->[18]+$line->[20]+$line->[21]+$line->[19]&$pages_qs", { TITLE => 'Hangup', CLASS => 'off', NO_LINK_FORMER => 1 })
        	        	 );
         }
@@ -1433,13 +1436,13 @@ $form_link = '';
 my $cure = '';
 if($FORM{ZAPED}) {
 	$LIST_PARAMS{ZAPED}=1;
-	$form_link = $html->button("Online", "index=$index", { BUTTON => 1 });
+	$form_link = $html->button("Online", "index=$index", { BUTTON => 1, IMG => ':button_activate.png' });
 	$cure = 'Zap';
 	$pages_qs .= "&ZAPED=1";
  } 
 else {
 	$sessions->{ZAPED}=0 if (! $sessions->{ZAPED});
- 	$form_link = $html->button("$_ZAPED ($sessions->{ZAPED})", "index=$index&ZAPED=1", { BUTTON => 1 });
+ 	$form_link = $html->button("$_ZAPED ($sessions->{ZAPED})", "index=$index&ZAPED=1", { BUTTON => 1, IMG => ':button_del.png' });
  	$cure='Online';
 }
 
@@ -1448,8 +1451,7 @@ my $table2 = $html->table( { width      => '100%',
                              cols_align => ['left', 'right', 'right', 'right']
                          } );
 
-$table2->addtd(   $table2->td($_TOTAL, { bgcolor => $_COLORS[0] }), 
-                  $table2->td($sessions->{ONLINE}, { bgcolor => $_COLORS[0] }), 
+$table2->addtd(   $table2->td("Online $_TOTAL: $sessions->{ONLINE}", { bgcolor => $_COLORS[0] }), 
                   $table2->td($form_link) 
                );
 
@@ -1595,7 +1597,7 @@ foreach my $nas_row (@$nas_list) {
     	  	 }
           else {
           	if ($value =~ /(\!)\s+(.+)/) {          		
-          		$values = color_mark($1, $_COLORS[6]).' '. $2;
+          		$values = $html->color_mark($html->b(' !! '), $_COLORS[6]). $2;
           	 }
            }
           #Dublicate logins color yelow
@@ -1612,7 +1614,7 @@ foreach my $nas_row (@$nas_list) {
       }
 
     if ($line->[$#ACTIVE_FIELDS + 9] > 3)  { $table->{rowcolor}='#FF0000';  }
-    my $zap = $html->button('Z', "index=$index&zap=". $line->[$#ACTIVE_FIELDS+3] .'+'. $nas_row->[0] .'+' .$line->[$#ACTIVE_FIELDS + 12].'+'. $line->[($#ACTIVE_FIELDS + 13)].$pages_qs, { TITLE => 'Zap', BUTTON => 1, NO_LINK_FORMER => 1 });
+    my $zap = $html->button('Z', "index=$index&zap=". $line->[$#ACTIVE_FIELDS+3] .'+'. $nas_row->[0] .'+' .$line->[$#ACTIVE_FIELDS + 12].'+'. $line->[($#ACTIVE_FIELDS + 13)].$pages_qs, { TITLE => 'Zap', CLASS => 'del', NO_LINK_FORMER => 1 });
     my $hangup = ($FORM{ZAPED}) ? $html->form_input('dellist', "$line->[$#ACTIVE_FIELDS + 13]", { TYPE => 'checkbox' } ) : $html->button('H', "index=$index&FRAMED_IP_ADDRESS=$line->[$#ACTIVE_FIELDS+2]&hangup=$nas_row->[0]+$line->[$#ACTIVE_FIELDS + 12]+$line->[$#ACTIVE_FIELDS + 13]+$line->[$#ACTIVE_FIELDS + 11]&UID=$line->[$#ACTIVE_FIELDS+3]$pages_qs", { TITLE => 'Hangup', CLASS => 'off' });
 
     $table->addrow(@rows,
@@ -2398,7 +2400,7 @@ if ($conf{ERROR2DB}) {
 		$log_levels_rev{$line->[1]},
 		$line->[2],
 		$html->button($line->[3], "index=11&LOGIN=$line->[3]"),
-		($line->[1] < 5) ? $html->color_mark($line->[4], "#FF0000") : $line->[4],
+		($line->[1] < 5) ? $html->color_mark($line->[4], "$_COLORS[6]") : $line->[4],
 		$nas_ids{$line->[5]}
 		);
 	 }
@@ -2434,7 +2436,7 @@ my $table = $html->table( { caption => "System $_ERROR",
 
 foreach my $line (@$list) {
   if ($line =~ m/LOG_WARNING/i) {
-     $line = $html->color_mark($line, '#FF0000');
+     $line = $html->color_mark($line, $_COLORS[6]);
    }
 
   $table->addrow($line);
@@ -5936,7 +5938,7 @@ sub dv_wizard_user {
         elsif (! $FORM{SERIAL}) {
           if (! $add_values{4}{STATUS} && $Dv->{TP_INFO}->{MONTH_FEE} > 0) {
             $Dv->{UID}=$UID;
-            $Dv->{ACTIVATE}=$add_values{1}{ACTIVATE};
+            $Dv->{ACCOUNT_ACTIVATE}=$add_values{1}{ACTIVATE};
             $user_fees = dv_get_month_fee($Dv);
            }
          }
@@ -6514,7 +6516,7 @@ sub dv_get_month_fee {
      #Current Month
      my ($y, $m, $d)=split(/-/, $DATE, 3);
 
-     my ($active_y, $active_m, $active_d)=split(/-/, $Dv->{ACTIVATE}, 3);	 
+     my ($active_y, $active_m, $active_d)=split(/-/, $Dv->{ACCOUNT_ACTIVATE}, 3);	 
      if (int("$y$m$d") < int("$active_y$active_m$active_d")) {
      	  return \%total_sum;
       }
@@ -6523,7 +6525,7 @@ sub dv_get_month_fee {
         	$message = "$_MONTH_ALIGNMENT, ";
           my $days_in_month=($m!=2?(($m%2)^($m>7))+30:(!($y%400)||!($y%4)&&($y%25)?29:28));
 
-          if ($Dv->{ACTIVATE} && $Dv->{ACTIVATE} ne '0000-00-00') {
+          if ($Dv->{ACCOUNT_ACTIVATE} && $Dv->{ACCOUNT_ACTIVATE} ne '0000-00-00') {
             $days_in_month=($active_m!=2?(($active_m%2)^($active_m>7))+30:(!($active_y%400)||!($active_y%4)&&($active_y%25)?29:28)); 
             $d = $active_d;
            }
@@ -6555,7 +6557,7 @@ sub dv_get_month_fee {
         	$message .= " - $_ABON_DISTRIBUTION";
          }
         
-        if ($Dv->{ACTIVATE} ne '0000-00-00' && $Dv->{OLD_STATUS} == 5) {
+        if ($Dv->{ACCOUNT_ACTIVATE} ne '0000-00-00' && $Dv->{OLD_STATUS} == 5) {
         	#if activation in cure month curmonth
         	if($periods == 0 || ( $periods == 1 && $d < $active_d ) ) {
           	$periods = -1;
@@ -6579,7 +6581,7 @@ sub dv_get_month_fee {
             $message = "$_MONTH_FEE: $sum ($Dv->{TP_INFO}->{ID})";
             $DATE    = "$active_y-$m-01";
            }
-          elsif ($Dv->{ACTIVATE} && $Dv->{ACTIVATE} ne '0000-00-00'){
+          elsif ($Dv->{ACCOUNT_ACTIVATE} && $Dv->{ACCOUNT_ACTIVATE} ne '0000-00-00'){
             if ($Dv->{TP_INFO}->{PERIOD_ALIGNMENT}) {
               $users->change($Dv->{UID}, { ACTIVATE => '0000-00-00',
               	                           UID      => $Dv->{UID} });
@@ -7078,7 +7080,7 @@ sub dv_payments_maked {
 	if ($Dv->{STATUS} > 3 && ($deposit > $Dv->{MONTH_ABON} + $Dv->{DAY_ABON} || $Dv->{ABON_DISTRIBUTION})) {
 		$Dv->change({ UID     => $attr->{USER}->{UID},
 			            STATUS  => 0  });
-    $Dv->{ACTIVATE}=$attr->{USER}->{ACTIVATE} || '0000-00-00';
+    $Dv->{ACCOUNT_ACTIVATE}=$attr->{USER}->{ACTIVATE} || '0000-00-00';
     
 #    if ($Dv->{ACTIVATE} ne '0000-00-00') {
 #      my ($Y, $M, $D)=split(/-/, $Dv->{ACTIVATE}, 3);
