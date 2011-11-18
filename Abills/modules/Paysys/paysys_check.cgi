@@ -169,7 +169,7 @@ elsif( $FORM{merchantid} ) {
   exit;
  }
 # IP: -
-elsif( $FORM{sberbank} ) {
+elsif( $FORM{params} ) {
   require "Sberbank.pm";
   exit;
  }
