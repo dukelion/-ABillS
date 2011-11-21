@@ -232,10 +232,8 @@ sub session_detail {
  my $self = shift;	
  my ($attr) = @_;
  
-
  $WHERE = " and l.uid='$attr->{UID}'" if ($attr->{UID});
  
- $self->{debug}=1;
  $self->query($db, "SELECT 
   l.start,
   l.start + INTERVAL l.duration SECOND,

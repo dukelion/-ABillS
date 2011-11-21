@@ -159,7 +159,7 @@ echo "RAD FILE: ${RAD_FILE}";
     echo "radclient -f ${RAD_FILE}  ${RADIUS_IP}:${PORT} ${ACTION} ${RADIUS_SECRET}";
   else
     PORT=1812
-    radtest ${USER_NAME} ${USER_PASSWORD} ${RADIUS_IP}:${PORT} 0 ${RADIUS_SECRET} 0 ${NAS_IP_ADDRESS}
+    ${RADTEST} ${USER_NAME} ${USER_PASSWORD} ${RADIUS_IP}:${PORT} 0 ${RADIUS_SECRET} 0 ${NAS_IP_ADDRESS}
   fi;
 
   echo "Send params to radius: ${RADIUS_IP}:${PORT}"

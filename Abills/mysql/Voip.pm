@@ -160,10 +160,11 @@ sub user_add {
   %DATA = $self->get_data($attr); 
 
   $self->query($db,  "INSERT INTO voip_main (uid, number, registration, tp_id, 
-             disable, ip, cid)
+             disable, ip, cid, allow_answer, allow_calls
+       )
         VALUES ('$DATA{UID}', '$DATA{NUMBER}', now(),
         '$DATA{TP_ID}', '$DATA{DISABLE}', INET_ATON('$DATA{IP}'), 
-        LOWER('$DATA{CID}'));", 'do');
+        LOWER('$DATA{CID}'), '$DATA{ALLOW_ANSWER}', '$DATA{ALLOW_CALLS}');", 'do');
   
   return $self if ($self->{errno});
   
@@ -185,14 +186,20 @@ sub user_change {
   my ($attr) = @_;
   
   my %FIELDS = (SIMULTANEONSLY => 'logins',
-              NUMBER					 => 'number',
-              DISABLE          => 'disable',
-              IP               => 'ip',
-              TP_ID            => 'tp_id',
-              CID              => 'cid',
-              UID              => 'uid',
-              FILTER_ID        => 'filter_id'
+                NUMBER					 => 'number',
+                DISABLE          => 'disable',
+                IP               => 'ip',
+                TP_ID            => 'tp_id',
+                CID              => 'cid',
+                UID              => 'uid',
+                FILTER_ID        => 'filter_id',
+                ALLOW_ANSWER     => 'allow_answer',
+                ALLOW_CALLS      => 'allow_calls'                
              );
+
+
+  $attr->{ALLOW_ANSWER} = ($attr->{ALLOW_ANSWER}) ? 1 : 0;
+  $attr->{ALLOW_CALLS}  = ($attr->{ALLOW_CALLS})  ? 1 : 0;
 
   $self->changes($admin,  { CHANGE_PARAM => 'UID',
                    TABLE        => 'voip_main',
