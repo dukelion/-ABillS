@@ -3,7 +3,7 @@
 
 AUTH_LOG=/usr/abills/var/log/abills.log
 ACCT_LOG=/usr/abills/var/log/acct.log
-VERSION=0.11
+VERSION=0.12
 
 
 USER_NAME=test
@@ -18,6 +18,7 @@ VOIP_CHAP_PASSWORD=''; #123456
 
 RAUTH="./rauth.pl";
 RACCT="./racct.pl";
+RADTEST=radtest
 echo `pwd -P`;
 
 
@@ -120,7 +121,10 @@ for _switch ; do
                 ;;
         -alive_count) ALIVE_COUNT=$2;
                 shift; shift;
-                ;;       
+                ;;
+        -radtest)RADTEST=$2;
+                shift; shift;
+                ;;
         esac
 done
 
