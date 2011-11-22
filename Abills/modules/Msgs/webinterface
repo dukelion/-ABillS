@@ -194,7 +194,7 @@ sub msgs_admin_add {
     if ($conf{MSGS_REDIRECT_FILTER_ADD}) {
        require "Dv.pm";
        $Dv = Dv->new($db, $admin, \%conf);
-     	 $conf{MSGS_REDIRECT_FILTER_ADD}=~/(EXEC:[a-zA-Z0-9\_\-\.\/ \>\%\"\']+)?;?(RAD:.+)?/;
+     	 $conf{MSGS_REDIRECT_FILTER_ADD}=~/(EXEC:[a-zA-Z0-9\_\-\.\/ \>\%\"\'\@\=]+)?;?(RAD:.+)?/;
        $cmd = $1;
        $rad = $2;
        $cmd =~ s/EXEC://;
@@ -203,7 +203,6 @@ sub msgs_admin_add {
     #Multi send
     if  (! $FORM{INNER_MSG} && (defined($FORM{GID}) || ($FORM{GID} == 0 && $FORM{UID} == 0 ) ) ) {
     	 my %NUMBERS = ();
-    	 $users->{debug}=1;
        my $list = $users->list({ GID       => $FORM{GID}, 
        	                         PAGE_ROWS => 1000000, 
        	                         DISABLE   => 0,

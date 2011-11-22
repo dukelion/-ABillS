@@ -31,6 +31,7 @@ $conf{'VOIP_DEFAULTDIALTIMEOUT'}=20 if (! $conf{'VOIP_DEFAULTDIALTIMEOUT'});
 #default 10800 (3hrs)
 $conf{'VOIP_MAX_SESSION_TIME'}=10800 if (! $conf{'VOIP_MAX_SESSION_TIME'});
 $conf{'timeshift'} = 0 if (! exists($conf{'VOIP_TIMESHIFT'}));
+$conf{'VOIP_AGI_DIAL_DELIMITER'}='|' if (! $conf{'VOIP_AGI_DIAL_DELIMITER'});
 
 # Creating new interface to asterisk
 use Asterisk::AGI;
@@ -69,12 +70,11 @@ $data{'dial_info'}       = '';
 
 
 my $call_type = "VoIP";
-$call_type = "Telephony" if $input{'Channel'} =~ /^(Zap)|(VPB)|(phone)|(Modem)|(CAPI)|(mISDN)|(Console)/;
-
-my $protocol = 'other';
-$protocol = 'sipv2' if $input{'Channel'} =~ /^SIP/i;
-$protocol = 'h323' if $input{'Channel'} =~ /^h323/i;
-my $context  = $input{context};
+$call_type    = "Telephony" if $input{'Channel'} =~ /^(Zap)|(VPB)|(phone)|(Modem)|(CAPI)|(mISDN)|(Console)/;
+my $protocol  = 'other';
+$protocol     = 'sipv2' if $input{'Channel'} =~ /^SIP/i;
+$protocol     = 'h323' if $input{'Channel'} =~ /^h323/i;
+my $context   = $input{context};
 
 my %rad_attributes = ();
 my %rad_authorize_attributes = ();
@@ -132,7 +132,6 @@ else {
 }
 
 # Radius Session timeout 
-
 if (defined($rad_response{'h323-credit-time'}) && $rad_response{'h323-credit-time'} < $data{'session_timeout'}){
   $data{'h323-credit-time'}=int($rad_response{'h323-credit-time'}); 
  } 
@@ -165,10 +164,10 @@ if ($debug > 0) {
 #Make calling string 
 
 my $rewrittennumber = $data{'called'};
-my $protocol = $conf{VOIP_AGI_PROTOCOL} || 'SIP';
-$protocol = $rad_response{'session-protocol'} if ($rad_response{'session-protocol'});
-my $dialstring = "$protocol/".$rewrittennumber; #."\@";
-$dialstring = $rad_response{'next-hop-ip'} if ($rad_response{'next-hop-ip'});
+my $protocol        = $conf{VOIP_AGI_PROTOCOL} || 'SIP';
+$protocol           = $rad_response{'session-protocol'} if ($rad_response{'session-protocol'});
+my $dialstring      = "$protocol/".$rewrittennumber; #."\@";
+$dialstring         = $rad_response{'next-hop-ip'} if ($rad_response{'next-hop-ip'});
 
 $agi->set_variable('LCRSTRING1', $dialstring);
 $agi->set_variable('TIMELIMIT', $data{'session_timeout'});
@@ -198,10 +197,10 @@ else {
  }
 
 # Dial Timeout
-$dialstring .= "|$conf{'VOIP_DEFAULTDIALTIMEOUT'}";
+$dialstring .= "$conf{VOIP_AGI_DIAL_DELIMITER}$conf{'VOIP_DEFAULTDIALTIMEOUT'}";
 
 if ($data{'session_timeout'} > 0){
-  $dialstring .= "|";
+  $dialstring .= "$conf{VOIP_AGI_DIAL_DELIMITER}";
   $dialstring .= "S(".$data{'session_timeout'}.")";
  }
 
@@ -215,19 +214,18 @@ if ($debug == 1) {
   syslog('debug', "$debug_info");
 }
 
+$agi->set_variable('TIMEOUT', $data{'session_timeout'});
 $agi->exec('Dial', $dialstring);
 #$agi->hangup();
 
-
-
-  my $session_length = $agi->get_variable('ANSWEREDTIME') + 0 + $conf{'VOIP_TIMESHIFT'};
-  my $call_length    = $agi->get_variable('DIALEDTIME') + 0 + $conf{'VOIP_TIMESHIFT'};
-  my $delay_time     = $call_length - $session_length;
-  my $sip_msg_code   = $agi->get_variable('SIPLASTERRORCODE')+0;
-  my $channel_state  = ''; #$agi->exec('GetChannelState','');  
+  my $session_length   = $agi->get_variable('ANSWEREDTIME') + 0 + $conf{'VOIP_TIMESHIFT'};
+  my $call_length      = $agi->get_variable('DIALEDTIME') + 0 + $conf{'VOIP_TIMESHIFT'};
+  my $delay_time       = $call_length - $session_length;
+  my $sip_msg_code     = $agi->get_variable('SIPLASTERRORCODE')+0;
+  my $channel_state    = ''; #$agi->exec('GetChannelState','');  
   my $disconnect_cause = $agi->get_variable('DIALSTATUS');
-  
-syslog('debug', "Disconnect cause: $disconnect_cause CHANNEL STATE: $channel_state SIP MSG CODE: $sip_msg_code");
+
+  syslog('debug', "Disconnect cause: $disconnect_cause CHANNEL STATE: $channel_state SIP MSG CODE: $sip_msg_code");
 
   # Sending Radius STOP
   # Changing some attributes
@@ -241,7 +239,7 @@ syslog('debug', "Disconnect cause: $disconnect_cause CHANNEL STATE: $channel_sta
   my $currenttime = time();
   $rad_acct_attributes{'h323-setup-time'}      = sec2date($currenttime - $call_length - $delay_time);
   if ($session_length > 0) {
-    $rad_acct_attributes{'h323-connect-time'} = sec2date($currenttime - $session_length);
+    $rad_acct_attributes{'h323-connect-time'}  = sec2date($currenttime - $session_length);
    }
   else { $rad_acct_attributes{'h323-connect-time'} = sec2date(0); }
   $rad_acct_attributes{'h323-disconnect-time'}     = sec2date($currenttime);

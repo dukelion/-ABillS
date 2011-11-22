@@ -1443,7 +1443,6 @@ elsif($FORM{zap}) {
      "$_PORT: $nas_port_id\n".
      "SESSION_ID: $acct_session_id\n";
  
-  $sessions->{debug}=1;
   $sessions->list({ ACCT_SESSION_ID => $acct_session_id, 
   	                NAS_ID          => $Nas->{NAS_ID} });  
   
