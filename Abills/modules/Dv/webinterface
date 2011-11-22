@@ -1642,7 +1642,7 @@ if ($FORM{ZAPED}) {
 else {
   $output .= dv_online_search({ FIELDS_ALL    => \@FIELDS_ALL, 
   	                            ACTIVE_FIELDS => \@ACTIVE_FIELDS 
-  	                            }); 
+  	                           }); 
 
   $output .= $html->button('Zap All', "index=$index&zapall=1", { IMG => ':tech_work.png', MESSAGE => "Do you realy want ZAP all sessions ?" }).
   ' '.$html->button("$_GRAPH $_NAS", "#", { IMG => ':chart.png', NEW_WINDOW => ((-f '../graphics.cgi') ? "../graphics.cgi?NAS_ID=all&DAILY=1&NAS_TYPE=$nas_row->[4]" : "index.cgi?MODULE=grapher&qindex=-1"), NEW_WINDOW_SIZE => "675:720" }).

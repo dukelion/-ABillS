@@ -1463,13 +1463,14 @@ sub docs_account {
   }
 	
 	if(! $user->{UID}  ) {
-  	$Docs->{FORM_ACCT_ID} = "<tr><td>$_ACCOUNT $_NUM:</td><td><input type='text' name='ACCT_ID' value='%ACCT_ID%'></td></tr>\n";
+  	$Docs->{FORM_ACCT_ID} = "<tr><td>$_ACCOUNT $_NUM:</td><td><input type='text' name='ACCT_ID' value='%ACCT_ID%' size=12></td></tr>\n";
     $Docs->{DATE_FIELD}=$html->date_fld2('DATE', { MONTHES => \@MONTHES, FORM_NAME => 'account_add', WEEK_DAYS => \@WEEKDAYS });    
    }
   else {
   	$Docs->{DATE_FIELD}="$DATE";
   	$users = $user;
    }
+
   $Docs->{SEL_ORDER} .= $html->form_select('ORDER', 
                                     { 
  	                                   SELECTED    => $FORM{ORDER},
@@ -1483,7 +1484,10 @@ sub docs_account {
   $Docs->{OP_SID}  = mk_unique_value(16);
   $Docs->{CUSTOMER}= $self->{COMPANY_NAME} || $users->{FIO} || '-';
   $Docs->{CAPTION} = $_ACCOUNT;  
-  $html->tpl_show(_include('docs_account_add', 'Docs'), { %$Docs, %$users, %FORM }) if (! $FORM{pdf});
+  if (! $FORM{pdf}) {
+  	$Docs->{ORDERS} = $html->tpl_show(_include('docs_account_orders', 'Docs'), { %$Docs, %$users, %FORM }, { OUTPUT2RETURN => 1 }) ;
+    $html->tpl_show(_include('docs_account_add', 'Docs'), { %$Docs, %$users, %FORM }) ;
+   }
 }
 
 
