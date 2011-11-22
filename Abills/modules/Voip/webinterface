@@ -1430,7 +1430,7 @@ elsif ($FORM{zapall}) {
   $html->message('info', $_INFO, "Zapped all sessions");
  }
 elsif($FORM{zap}) {
-  my  ($nas_id, $acct_session_id)=split(/ /, $FORM{zap}, 3);
+  my  ($nas_id, $acct_session_id)=split(/[ +]+/, $FORM{zap}, 3);
   $sessions->zap($nas_id, $acct_session_id);
 
   if ($sessions->{errno}) {
@@ -1443,6 +1443,7 @@ elsif($FORM{zap}) {
      "$_PORT: $nas_port_id\n".
      "SESSION_ID: $acct_session_id\n";
  
+  $sessions->{debug}=1;
   $sessions->list({ ACCT_SESSION_ID => $acct_session_id, 
   	                NAS_ID          => $Nas->{NAS_ID} });  
   
@@ -1452,6 +1453,7 @@ elsif($FORM{zap}) {
    }
   else {
   	$message = "$_EXIST";
+  	$sessions->{delete}=1;
   	$sessions->online_del({ NAS_ID          => $nas_id,
                             ACCT_SESSION_ID => $acct_session_id
                          });
@@ -1525,13 +1527,13 @@ my $cure = '';
 
 
 if($FORM{ZAPED}) {
-	$LIST_PARAMS{ZAPED}='yes';
-	$form_link = $html->button('On line', "index=$index", { BUTTON => 1  });
+	$LIST_PARAMS{ZAPED}=1;
+	$form_link = $html->button('On line', "index=$index", { BUTTON => 1, IMG => ':button_activate.png' });
 	$cure = 'Zap';
  } 
 else {
- 	$sessions->online( { ZAPED => 'yes' } );	
- 	$form_link = $html->button($_ZAPED, "index=$index&ZAPED=1", { BUTTON => 1  }). " ($sessions->{TOTAL})";
+ 	$sessions->online( { ZAPED => 1 } );	
+ 	$form_link = $html->button($_ZAPED, "index=$index&ZAPED=1", { BUTTON => 1, IMG => ':button_del.png'  }). " ($sessions->{TOTAL})";
 	$cure = 'Online';
 }
 
@@ -1543,25 +1545,20 @@ my $table = $html->table( { caption    => "$cure",
 	                          width      => '100%',
                             title      => ["$_USER", "$_FIO", "CALLED_STATION_ID", "CALLING_STATION_ID", "$_DURATION", "CLIENT_IP_ADDRESS",  "-", "-", "-"],
                             cols_align => ['left', 'left', 'right', 'right', 'right', 'right', 'right', 'right', 'right', 'center'],
-                            qs         => $pages_qs,
-                            
+                            qs         => $pages_qs,                            
                            });
 
 
  
-my $bg;
-my $online = $sessions->{nas_sorted};
-
+my $online   = $sessions->{nas_sorted};
 my $nas_list = $Nas->list();
 
 foreach my $nas_row (@$nas_list) {
   next if (! defined($online->{$nas_row->[0]}));
 
-  $table->{rowcolor}=$_COLORS[0];
-  $table->{extra}="colspan=\"9\" class=\"small\"";
-  $table->addrow("$nas_row->[0]:<b>$nas_row->[1]</b>:$nas_row->[4]" );
-
-
+  $table->{rowcolor}= $_COLORS[0];
+  $table->{extra}   = "colspan='9' class='small'";
+  $table->addrow("$nas_row->[0]:". $html->button($html->b($nas_row->[1]), "index=". get_function_index('form_nas') ."&NAS_ID=$nas_row->[0]")  . ":$nas_row->[4]" );
 
   my $l = $online->{$nas_row->[0]};
   foreach my $line (@$l) {
@@ -1570,10 +1567,9 @@ foreach my $nas_row (@$nas_list) {
     if (defined($dub_logins->{$line->[0]}))                   { $bg='#FFFF00';    }
 #    elsif (defined($dub_ports->{$nas_row->[4]}{$line->[2]})) { $bg='#00FF40';    }
     elsif ($line->[9] == 3)                                   { $bg='#FF0000';    }
-    else {  $bg = ($bg eq $_COLORS[1]) ? $_COLORS[2] : $_COLORS[1];    }
 
-    my $zap = $html->button('Z', "index=$index&zap=$nas_row->[0]+$line->[9]", { TITLE => 'Zap', BUTTON => 1 });
-    my $hangup = ($FORM{ZAPED}) ? $html->form_input('dellist', "$line->[9]", { TYPE => 'checkbox' } ) : $html->button('H', "index=$index&hangup=$nas_row->[0]+$line->[2]+$line->[9]+$line->[0]", { TITLE => 'Hangup', BUTTON => 1  } );
+    my $zap = $html->button('Z', "index=$index&zap=$nas_row->[0]+$line->[9]", { TITLE => 'Zap', CLASS => 'del' });
+    my $hangup = ($FORM{ZAPED}) ? $html->form_input('dellist', "$line->[9]", { TYPE => 'checkbox' } ) : $html->button('H', "index=$index&hangup=$nas_row->[0]+$line->[2]+$line->[9]+$line->[0]", { TITLE => 'Hangup', CLASS => 'off'  } );
 
     my $user_info =  ''; 
 
@@ -1616,7 +1612,7 @@ else {
 	                              METHOD  => 'GET'
                         });
 
-  $output .= $html->button('Zap All', "index=$index&zapall=1", { MESSAGE => "Do you realy want zap all sessions ?", BUTTON => 1  });
+  $output .= $html->button('Zap All', "index=$index&zapall=1", { IMG => ':tech_work.png', MESSAGE => "Do you realy want ZAP all sessions ?" });
  }
 
 

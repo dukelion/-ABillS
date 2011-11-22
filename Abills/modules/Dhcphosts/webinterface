@@ -1120,10 +1120,10 @@ foreach my $line (@$list) {
       my $mask   = $line->[3]; 
       my $router = $line->[4];
       
-      my @ip=split(/\./,$src);
-      my @ip2=split(/\./,$router);    
-      $mask = mask2bitlen($mask);
-      $routes.=$mask;
+      my @ip  = split(/\./,$src);
+      my @ip2 = split(/\./,$router);    
+      $mask   = mask2bitlen($mask);
+      $routes.= $mask;
         
       for(my $i=0;$i<$mask/8;$i++) {
      	  $routes.=", $ip[$i]";
@@ -1146,7 +1146,7 @@ foreach my $line (@$list) {
   $list = $Dhcphosts->hosts_list({ NETWORK   => $NET_ID, 
   	                               STATUS    => 0,
   	                               PAGE_ROWS => 100000,
-  	                               DHCPHOSTS_DEPOSITCHECK => $conf{DHCPHOSTS_DEPOSITCHECK},
+  	                               DHCPHOSTS_DEPOSITCHECK     => $conf{DHCPHOSTS_DEPOSITCHECK},
   	                               DHCPHOSTS_EXT_DEPOSITCHECK => $conf{DHCPHOSTS_EXT_DEPOSITCHECK},
   	                               USER_DISABLE => 0,
   	                               PORTS     => '*',
@@ -1155,12 +1155,13 @@ foreach my $line (@$list) {
   	                               VID       => '>=0',
   	                               BOOT_FILE => '*',
   	                               DELETED   => 0,
-                                       NEXT_SERVER => '*'
+                                   NEXT_SERVER => '*'
   	                             });
 
 
   foreach my $line (@$list) {
     my $deposit =  $line->[22] || 0;
+    
 
     if ( defined($conf{DHCPHOSTS_DEPOSITCHECK}) && $deposit < $conf{DHCPHOSTS_DEPOSITCHECK}) {
      	next;

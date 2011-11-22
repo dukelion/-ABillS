@@ -787,10 +787,13 @@ sub abon_docs {
 	my $list = $Abon->user_tariff_list($FORM{UID});
   my @services = ();
   foreach my $line (@$list) {
-    print "$line->[0]/$line->[1]<br>";
+    #print "$line->[0]/$line->[1]<br>";
+    if ($line->[5]) {
+      push @services, "$line->[1]|$line->[2]|$line->[3]";
+     }
    }
 	
-	return 
+	return \@services
 }
 
 1

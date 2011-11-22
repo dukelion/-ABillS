@@ -1221,12 +1221,54 @@ sub docs_account {
  $Docs->account_defaults();		
  $Docs->{DATE}=$DATE;
  $FORM{UID}=$LIST_PARAMS{UID} if (! $FORM{UID}); 
+
  
  if ($FORM{ALL_SERVICES}) {
+   my $table = $html->table( { width      => '500',
+                            border     => 1,
+                            caption    => "$_ORDER",
+                            title_plain=> ['#', $_NAME, $_SUM ],
+                            cols_align => ['right', 'left', 'right'],
+                            qs         => $pages_qs,
+                            ID         => 'DOCS_SERVICE_ACCOUNTS'
+                          });
+
+ 	 my $cross_modules_return = cross_modules_call('_docs');
+ 	 my $num       = 1;
+ 	 my $total_sum = 0;
+ 	 foreach my $module (sort keys %$cross_modules_return) {
+ 	 	 if (ref $cross_modules_return->{$module} eq 'ARRAY') {
+ 	 	 	
+ 	 	 	 $table->{extra}="colspan='3' class='small'";
+       $table->addrow("$module");
+ 	 	 	 $table->{extra}=undef;
+
+ 	 	 	 foreach my $line ( @{ $cross_modules_return->{$module} } ) {
+ 	 	 	   my ($name, $describe, $sum)=split(/\|/, $line);
+ 	 	     $table->addrow($html->form_input('ids', "$num", { TYPE => 'checkbox' }). $num, 
+ 	 	                    "$name $describe",
+ 	 	                    "$sum");
+ 	 	     $total_sum	+= $sum;
+ 	 	     $num++;  
+ 	 	    }
+       
+ 	 	  }
+ 	 }
  	 
+ 	 $table->{extra}="colspan='2' class='total'";
+   $table->addrow("$_TOTAL:", sprintf("%.2f", $total_sum));
+
  	 
- 	 
- 	 return 0;  
+ 	 print $html->form_main({ CONTENT => $table->show(),
+	                 HIDDEN  => { index          => "$index", 
+	                 	            UID            => $FORM{UID},
+	                 	            ALL_SERVICES   => 1
+	                 	           },
+	                 NAME    => 'DOCS_SERVICES_ACCOUNT',
+	                 SUBMIT  => { make => "$_CREATE $_ACCOUNT" }
+	                });
+
+ 	 return 0;
   }
   
  if ($FORM{create}) {
