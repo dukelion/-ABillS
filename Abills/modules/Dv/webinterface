@@ -6810,7 +6810,7 @@ if ($FORM{add}) {
 
 	($TO_Y, $TO_M, $TO_D) = split(/-/,  $FORM{TO_DATE}, 3);
 
-	my $to_date = mktime(0, 0, 0, $TO_D, ($TO_M-1), ($TO_Y-1900), 0, 0, 0);
+	my $to_date    = mktime(0, 0, 0, $TO_D, ($TO_M-1), ($TO_Y-1900), 0, 0, 0);
 	my $sum        = 0.00;
 	my $days       = 0;
 	$days_in_month = 31;
@@ -7153,6 +7153,38 @@ sub dv_pay_to {
   
   $html->tpl_show(_include('dv_pay_to', 'Dv'), $Dv);
 }
+
+
+
+#**********************************************************
+# get services for invoice
+#**********************************************************
+sub dv_docs {
+	my ($attr)=@_;
+	
+	$Dv->info($FORM{UID});
+  my @services = ();
+  if ($Dv->{MONTH_ABON} > 0) {
+    push @services, "$_MONTH_FEE||$Dv->{MONTH_ABON}";
+   }
+  
+  if ($Dv->{DAY_ABON} > 0) {
+  	my ($Y, $M, $D)=split(/-/, $DATE);
+ 		if ($M < 12) {
+  		$M=sprintf("%02d", $M+1);
+  	 }
+    else {
+     	$M = sprintf("%02d", 1);
+     	$Y++;
+     }
+     
+		my $days_in_month = ($M!=2?(($M%2)^($M>7))+30:(!($Y%400)||!($Y%4)&&($Y%25)?29:28));
+    push @services, "$_DAY_FEE|$days_in_month $_DAY|". sprintf("%.2f", ($Dv->{DAY_ABON}*$days_in_month));
+   }
+	
+	return \@services
+}
+
 
 1
 

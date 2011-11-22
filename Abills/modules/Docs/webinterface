@@ -677,7 +677,8 @@ my $table = $html->table( { width      => '100%',
                             qs         => $pages_qs,
                             pages      => $Docs->{TOTAL},
                             EXPORT     => ' XML:&xml=1',
-                            ID         => 'DOCS_ACCOUNTS_LIST'
+                            ID         => 'DOCS_ACCOUNTS_LIST',
+                            header     => ($FORM{UID}) ? $html->button("$_NEXT_PERIOD $_ACCOUNT", "index=$index&ALL_SERVICES=1&UID=$FORM{UID}") : undef
                           });
 
 my @rows = ();
@@ -1222,55 +1223,6 @@ sub docs_account {
  $Docs->{DATE}=$DATE;
  $FORM{UID}=$LIST_PARAMS{UID} if (! $FORM{UID}); 
 
- 
- if ($FORM{ALL_SERVICES}) {
-   my $table = $html->table( { width      => '500',
-                            border     => 1,
-                            caption    => "$_ORDER",
-                            title_plain=> ['#', $_NAME, $_SUM ],
-                            cols_align => ['right', 'left', 'right'],
-                            qs         => $pages_qs,
-                            ID         => 'DOCS_SERVICE_ACCOUNTS'
-                          });
-
- 	 my $cross_modules_return = cross_modules_call('_docs');
- 	 my $num       = 1;
- 	 my $total_sum = 0;
- 	 foreach my $module (sort keys %$cross_modules_return) {
- 	 	 if (ref $cross_modules_return->{$module} eq 'ARRAY') {
- 	 	 	
- 	 	 	 $table->{extra}="colspan='3' class='small'";
-       $table->addrow("$module");
- 	 	 	 $table->{extra}=undef;
-
- 	 	 	 foreach my $line ( @{ $cross_modules_return->{$module} } ) {
- 	 	 	   my ($name, $describe, $sum)=split(/\|/, $line);
- 	 	     $table->addrow($html->form_input('ids', "$num", { TYPE => 'checkbox' }). $num, 
- 	 	                    "$name $describe",
- 	 	                    "$sum");
- 	 	     $total_sum	+= $sum;
- 	 	     $num++;  
- 	 	    }
-       
- 	 	  }
- 	 }
- 	 
- 	 $table->{extra}="colspan='2' class='total'";
-   $table->addrow("$_TOTAL:", sprintf("%.2f", $total_sum));
-
- 	 
- 	 print $html->form_main({ CONTENT => $table->show(),
-	                 HIDDEN  => { index          => "$index", 
-	                 	            UID            => $FORM{UID},
-	                 	            ALL_SERVICES   => 1
-	                 	           },
-	                 NAME    => 'DOCS_SERVICES_ACCOUNT',
-	                 SUBMIT  => { make => "$_CREATE $_ACCOUNT" }
-	                });
-
- 	 return 0;
-  }
-  
  if ($FORM{create}) {
    $FORM{SUM} =~ s/\,/\./g;
    if ($FORM{OP_SID} and $FORM{OP_SID} eq $COOKIES{OP_SID}) {
@@ -1324,7 +1276,7 @@ sub docs_account {
        	 $users = $user if ($user->{UID});
        	 
          if (! $attr->{QUITE}) {
-       	   $html->message('info', "$_ACCOUNT $_CREATED", "$_ACCOUNT $_NUM: [$Docs->{ACCT_ID}]\n $_DATE: $FORM{DATE} ". $html->button($_PRINT, "qindex=$index&ACCOUNT_ID=$Docs->{DOC_ID}&print=$Docs->{DOC_ID}&UID=$LIST_PARAMS{UID}&pdf=1", { ex_params => 'target=_new', CLASS => 'print' }));
+       	   $html->message('info', "$_ACCOUNT $_CREATED", "$_ACCOUNT $_NUM: [$Docs->{ACCT_ID}]\n $_DATE: $FORM{DATE}\n $_TOTAL $_SUM: $Docs->{TOTAL_SUM} \n". $html->button($_PRINT, "qindex=$index&ACCOUNT_ID=$Docs->{DOC_ID}&print=$Docs->{DOC_ID}&UID=$LIST_PARAMS{UID}&pdf=1", { ex_params => 'target=_new', CLASS => 'print' }));
        	  }
        	 
 
@@ -1485,8 +1437,85 @@ sub docs_account {
   $Docs->{CUSTOMER}= $self->{COMPANY_NAME} || $users->{FIO} || '-';
   $Docs->{CAPTION} = $_ACCOUNT;  
   if (! $FORM{pdf}) {
+
+ if ($FORM{ALL_SERVICES}) {
+ 	
+ 	 my ($Y, $M, $D)=split(/-/, $DATE);
+ 	 if ($M < 12) {
+  	 $M=sprintf("%02d", $M+1);
+  	}
+   else {
+     $M = sprintf("%02d", 1);
+     $Y++;
+    }
+
+ 	
+   my $table = $html->table( { width      => '500',
+                            border     => 1,
+                            caption    => "$_ACCOUNT $_PERIOD: $Y-$M",
+                            title_plain=> ['#', $_NAME, $_SUM ],
+                            cols_align => ['right', 'left', 'right'],
+                            qs         => $pages_qs,
+                            ID         => 'DOCS_SERVICE_ACCOUNTS'
+                          });
+
+ 	 my $cross_modules_return = cross_modules_call('_docs');
+ 	 my $num       = 1;
+ 	 my $total_sum = 0;
+ 	 foreach my $module (sort keys %$cross_modules_return) {
+ 	 	 if (ref $cross_modules_return->{$module} eq 'ARRAY') {
+ 	 	 	
+ 	 	 	 $table->{extra}="colspan='3' class='small'";
+       $table->addrow("$module");
+ 	 	 	 $table->{extra}=undef;
+
+ 	 	 	 foreach my $line ( @{ $cross_modules_return->{$module} } ) {
+ 	 	 	   my ($name, $describe, $sum)=split(/\|/, $line);
+ 	 	 	 	 next if ($sum <= 0);
+ 	 	     $table->addrow($html->form_input('ORDER_'.$num, "$name $describe", { TYPE => 'hidden' }).
+                        $html->form_input('SUM_'.$num, "$sum", { TYPE => 'hidden' }).
+ 	 	                    $html->form_input('IDS', "$num", { TYPE => 'checkbox' }). $num, 
+ 	 	                    "$name $describe",
+ 	 	                    "$sum");
+ 	 	     $total_sum	+= $sum;
+ 	 	     $num++;  
+ 	 	    }
+ 	 	  }
+ 	 }
+
+
+   if($users->{DEPOSIT}<0) {
+     $table->addrow(
+       $html->form_input('ORDER_'.$num, "$_DEBT", { TYPE => 'hidden' }).
+       $html->form_input('SUM_'.$num, abs($users->{DEPOSIT}), { TYPE => 'hidden' }).
+       $html->form_input('IDS', "$num", { TYPE => 'checkbox' }). $num, 
+ 	 	                    "$_DEBT",
+ 	 	                    sprintf("%.2f", abs($users->{DEPOSIT}))
+ 	 	                    );
+     $total_sum	+= abs($users->{DEPOSIT});
+     $num++;  
+    }
+ 	 
+ 	 $table->{extra}="colspan='2' class='total'";
+   $table->addrow("$_TOTAL:", sprintf("%.2f", $total_sum));
+ 	 
+ 	 print $html->form_main({ CONTENT => $table->show(),
+	                 HIDDEN  => { index          => "$index",
+	                 	            UID            => $FORM{UID},
+	                 	            DATE           => $DATE,
+	                 	            create         => 1,
+	                 	            CUSTOMER       => $Docs->{CUSTOMER},
+	                 	            #ALL_SERVICES   => 1
+	                 	           },
+	                 NAME    => 'DOCS_SERVICES_ACCOUNT',
+	                 SUBMIT  => { make => "$_CREATE $_ACCOUNT" }
+	                });
+  }
+ else {
   	$Docs->{ORDERS} = $html->tpl_show(_include('docs_account_orders', 'Docs'), { %$Docs, %$users, %FORM }, { OUTPUT2RETURN => 1 }) ;
     $html->tpl_show(_include('docs_account_add', 'Docs'), { %$Docs, %$users, %FORM }) ;
+  }
+
    }
 }
 

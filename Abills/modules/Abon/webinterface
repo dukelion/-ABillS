@@ -783,7 +783,6 @@ sub abon_get_month_fee {
 sub abon_docs {
 	my ($attr)=@_;
 	
-	$Abon->{debug}=1;
 	my $list = $Abon->user_tariff_list($FORM{UID});
   my @services = ();
   foreach my $line (@$list) {
