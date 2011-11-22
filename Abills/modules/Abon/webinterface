@@ -776,4 +776,21 @@ sub abon_get_month_fee {
 }
 
 
+
+#**********************************************************
+# get services for invoice
+#**********************************************************
+sub abon_docs {
+	my ($attr)=@_;
+	
+	$Abon->{debug}=1;
+	my $list = $Abon->user_tariff_list($FORM{UID});
+  my @services = ();
+  foreach my $line (@$list) {
+    print "$line->[0]/$line->[1]<br>";
+   }
+	
+	return 
+}
+
 1

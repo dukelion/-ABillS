@@ -1216,11 +1216,18 @@ sub docs_accounts_multi_create {
 #**********************************************************
 sub docs_account {
  my ($attr) = @_;
+
+
  $Docs->account_defaults();		
  $Docs->{DATE}=$DATE;
  $FORM{UID}=$LIST_PARAMS{UID} if (! $FORM{UID}); 
  
- #$Docs->{debug}=1;
+ if ($FORM{ALL_SERVICES}) {
+ 	 
+ 	 
+ 	 
+ 	 return 0;  
+  }
   
  if ($FORM{create}) {
    $FORM{SUM} =~ s/\,/\./g;

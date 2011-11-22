@@ -8156,18 +8156,27 @@ print $table->show();
 #**********************************************************
 # Calls function for all registration modules if function exist 
 #
-# cross_modules_call(function_sufix, attr) 
+# HASH_REF = cross_modules_call(function_sufix, attr) 
+#
+# return HASH_REF
+#   MODULE -> return
 #**********************************************************
 sub cross_modules_call  {
   my ($function_sufix, $attr) = @_;
 
+  my %full_return = '';
+
   foreach my $mod (@MODULES) {
-     require "Abills/modules/$mod/webinterface";
-     my $function = lc($mod).$function_sufix;
-     if (defined(&$function)) {
-     	  $function->($attr);
-      }
+    require "Abills/modules/$mod/webinterface";
+    my $function = lc($mod).$function_sufix;
+    my $return;
+    if (defined(&$function)) {
+     	$return = $function->($attr);
+     }
+    $full_return{$mod}=$return;
    }
+
+  return \%full_return;
 }
 
 #**********************************************************
