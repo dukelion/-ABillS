@@ -439,7 +439,7 @@ if (defined($attr->{TP})) {
      }
 	 }
   elsif ($FORM{import}) {
-  	my $list = $Voip->routes_list({ %LIST_PARAMS, PAGE_ROWS => 10000 });	
+  	my $list = $Voip->routes_list({ %LIST_PARAMS, PAGE_ROWS => 100000 });	
   	my %prefix_id = ();
   	foreach my $line (@$list) {
   		$prefix_id{$line->[0]}=$line->[4];
