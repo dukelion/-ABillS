@@ -214,7 +214,6 @@ else {
   my %nets   = ();
   my %nets_id= ();
   my %expr   = ();
-
   my $user   = user_info({ LOGIN => $USER });
 
 # Mask
@@ -861,6 +860,7 @@ sub user_info {
     exit 1;
    }
   else {
+  	$user->{TP_NUM}          =$list->[0]->[0];
   	$user->{SPEED}           =$list->[0]->[7];
   	$user->{ACCOUNT_ACTIVATE}=$list->[0]->[8];
   	$user->{NETMASK}         =$list->[0]->[9];
