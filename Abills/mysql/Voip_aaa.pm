@@ -98,6 +98,7 @@ sub user_info {
   my $WHERE = '';
   if (defined($RAD->{H323_CALL_ORIGIN}) && $RAD->{H323_CALL_ORIGIN}==0) {
     $WHERE = " and number='$RAD->{CALLED_STATION_ID}'"; 
+    $RAD->{USER_NAME}=$RAD->{CALLED_STATION_ID};
    }
   else {
     $WHERE = " and number='$RAD->{USER_NAME}'";
@@ -219,9 +220,14 @@ sub auth {
     return 1, \%RAD_PAIRS;
    }
   elsif ($self->{TOTAL} < 1) {
-    $self->{errno} = 2;
+    $self->{errno}  = 2;
     $self->{errstr} = 'ERROR_NOT_EXIST';
-    $RAD_PAIRS{'Reply-Message'}="Caller Number Not Exist '$RAD->{USER_NAME}'";
+    if (! $RAD->{H323_CALL_ORIGIN}) {
+    	$RAD_PAIRS{'Reply-Message'}="Answer Number Not Exist '$RAD->{USER_NAME}'";
+     }
+    else {
+    	$RAD_PAIRS{'Reply-Message'}="Caller Number Not Exist '$RAD->{USER_NAME}'";
+     }
     return 1, \%RAD_PAIRS;
    }
 
