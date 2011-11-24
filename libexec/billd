@@ -73,11 +73,13 @@ CHECK speed
  PLUGINS
 $plugins
  CHECK connection Alive
-  checklines  - Check alive connections
-  -d          - deamon mode
+  checklines    - Check alive connections
+  -d            - deamon mode
 
-  debug       - debug mode
-  NAS_IDS=... - Make actions for NAS
+  debug         - debug mode
+  NAS_IDS=...   - Make actions for NAS
+  NAS_TYPES=...,- Make actions for NAS Types
+  LOGINS=...,   - Make actions for logins
 \n";
   exit;
 }
@@ -139,6 +141,7 @@ $Log->{PRINT}=1;
 
 
 $LIST_PARAMS{NAS_IDS}   = $ARGV->{NAS_IDS} || undef;
+$LIST_PARAMS{TYPE}      = $ARGV->{NAS_TYPES} || undef;
 $LIST_PARAMS{USER_NAME} = $ARGV->{LOGINS};
 $LIST_PARAMS{PAGE_ROWS} = 100000;
 $LIST_PARAMS{DISABLE}   = 0;
