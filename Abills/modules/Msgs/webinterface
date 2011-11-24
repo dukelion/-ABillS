@@ -1208,6 +1208,8 @@ sub msgs_user {
  	 	                        });
 
  	 	 if ($conf{MSGS_REDIRECT_FILTER_DEL}) {
+ 	 	 	 print "!! $conf{MSGS_REDIRECT_FILTER_DEL} !!";
+ 	 	 	
        require "Dv.pm";
        my $Dv = Dv->new($db, $admin, \%conf);
        $Dv->change({ UID => $LIST_PARAMS{UID}, FILTER_ID => '' });	
@@ -1693,6 +1695,7 @@ sub msgs_new {
         	                   USER_READ  => "$DATE $TIME",
  	 	                         });
 
+
      	 	  if ($conf{MSGS_REDIRECT_FILTER_DEL}) {
             require "Dv.pm";
             my $Dv = Dv->new($db, $admin, \%conf);
@@ -1703,7 +1706,8 @@ sub msgs_new {
        	      $cmd =~ s/\%LOGIN\%/$user->{LOGIN}/g;
        	      $cmd =~ s/\%MSG_ID\%/$Msgs->{MSG_ID}/g;
        	      my $res = `$cmd`;
-            }  
+             }
+ 	 	        
  	 	       }
    		  
     		  print "Location: $URL?GID=$user->{GID}&MESSAGE_CHAPTER=$Msgs->{CHAPTER}&MSG_ID=$Msgs->{MSG_ID}", "\n\n";

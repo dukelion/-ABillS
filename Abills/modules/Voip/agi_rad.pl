@@ -64,7 +64,7 @@ $data{'remote_ip'}       = $agi ->get_variable('CHANNEL(peerip)');
 $data{'theoretical_ip'}  = $agi ->get_variable('SIPTHEORETICALIP');
 $data{'return_code'}     = 0;
 $data{'dial_info'}       = '';
-
+local $SIG{HUP}          = "IGNORE";
 #my $call_origin = "originate";
 #$call_origin = "answer" if $event{'State'} =~ /^Ring$/i;
 
