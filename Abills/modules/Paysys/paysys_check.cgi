@@ -210,6 +210,10 @@ elsif($FORM{ACT}) {
 elsif($conf{PAYSYS_GIGS_IPS} && $conf{PAYSYS_GIGS_IPS} =~ /$ENV{REMOTE_ADDR}/) {
 	require "Gigs.pm";
 }
+elsif ($ENV{REMOTE_ADDR} =~ /^77\.222\.134\.205$/) {
+  require "Ipay.pm";
+  exit;
+}
 
 #Check payment system by IP
 

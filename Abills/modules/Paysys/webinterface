@@ -50,7 +50,8 @@ my %PAY_SYSTEMS = (41 => "Webmoney",
                    71 => 'Telcell',
                    72 => 'Ipay',
                    73 => 'Yandex',
-                   74 => 'Alpha-pay'
+                   74 => 'Alpha-pay',
+                   75 => 'Zaplati'
                   );
 
 my %CONF_OPTIONS = (PAYSYS_WEBMONEY_ACCOUNTS => 41,
@@ -84,7 +85,7 @@ my %CONF_OPTIONS = (PAYSYS_WEBMONEY_ACCOUNTS => 41,
                    
                    PAYSYS_CYBERPLAT_ACCOUNT_KEY => 70,
                    PAYSYS_TELLCELL_ACCOUNT_KEY  => 71,
-                   PAYSYS_IPAY_ID               => 72,
+                   PAYSYS_IPAY_MERCHANT_ID      => 72,
                    PAYSYS_YANDEX_ID             => 73,
                    ALFA_PAY_ACCOUNT_KEY         => 74,
                   );
@@ -579,7 +580,7 @@ sub paysys_payment {
 	                             59 => 'PAYSYS_QIWI_TERMINAL_ID',
 	                             62 => 'PAYSYS_LIQPAY_MERCHANT_ID',
 	                             66 => 'PAYSYS_PAYPAL_RECIEVER_EMAIL',
-                               72 => 'PAYSYS_IPAY_ID',
+                               72 => 'PAYSYS_IPAY_MERCHANT_ID',
                                73 => 'PAYSYS_YANDEX_ID',
 
 	                              );
@@ -2125,6 +2126,48 @@ else {
   
   $html->tpl_show(_include('paysys_paypal_add', 'Paysys'), { %info, %$user });
 }
+
+
+
+#**********************************************************
+# User portal payments system with Ipay
+#**********************************************************
+sub paysys_ipay () {
+
+
+if ($FORM{ipay_transaction}) {
+  if($FORM{ipay_transaction} ne 'FALSE') {
+    my $list = $payments->list({ INNER_DESCRIBE => $FORM{ipay_transaction}, PAGE_ROWS => 1 });
+    if ($list->[0]->[0]) {
+      $html->message('info', $_INFO, "$_ADDED $_TRANSACTION: $FORM{ipay_transact
+ion}");
+     }
+    else {
+      $html->message('err', $_ERROR, "$_FAILED");
+     }
+   }
+  else {
+    $html->message('err', $_ERROR, "$_FAILED");
+   }
+ } 
+else {
+
+  my %info = ();
+  my $sum;
+  $info{IPAY_PAYMENT_NO} = $FORM{OPERATION_ID};
+
+  if ($FORM{SUM} =~ /^(\d+)\.?(\d+)?$/) {
+        $sum = "$1$2"
+   }
+  $info{amount_with_point} = $FORM{SUM};
+  $info{amount} = $sum;
+  my $pay_describe = "Login: $LIST_PARAMS{LOGIN}\n Transaction: $FORM{OPERATION_ID}\n UID: $LIST_PARAMS{UID}";
+  $info{desc}   = $pay_describe;
+  #$conf{PAYSYS_LMI_RESULT_URL} = "http://$ENV{SERVER_NAME}". ( ($ENV{SERVER_PORT}!= 80) ? ":$ENV{SERVER_PORT}" : '' ) ."/paysys_check.cgi" if (! $conf{PAYSYS_LMI_RESULT_URL});
+  return $html->tpl_show(_include('paysys_ipay_add', 'Paysys'), \%info,  { OUTPUT2RETURN => $attr->{OUTPUT2RETURN} });
+ }
+}
+
 
 
 1
