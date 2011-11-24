@@ -114,6 +114,9 @@ else {
  }
 
 
+$conf{MINIMUM_SESSION_TIME}=0;
+$conf{MINIMUM_SESSION_TRAF}=0;
+
 require Tariffs;
 Tariffs->import();
 my $Tariffs = Tariffs->new($db, \%conf, $admin);
