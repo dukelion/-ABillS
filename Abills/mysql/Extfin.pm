@@ -1264,7 +1264,6 @@ sub report_payments_fees {
  $self->{PAYMENTS_TOTAL}= '0.00'; 
  $self->{FEES_TOTAL}    = '0.00'; 
 if ($self->{TOTAL} > 0 || $PG > 0 ) {	
-  $self->{debug}=1;
   $self->query($db, "SELECT count(DISTINCT u.uid), 
       sum((select sum(p.sum) FROM payments p WHERE u.uid=p.uid $PAYMENTS_WHERE)), sum(f.sum) 
       FROM users u
