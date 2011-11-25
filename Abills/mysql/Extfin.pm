@@ -1269,7 +1269,6 @@ if ($self->{TOTAL} > 0 || $PG > 0 ) {
       sum((select sum(p.sum) FROM payments p WHERE u.uid=p.uid $PAYMENTS_WHERE)), sum(f.sum) 
       FROM users u
       LEFT JOIN fees f ON (u.uid=f.uid $FEES_WHERE)
-      LEFT JOIN payments p ON (u.uid=p.uid $PAYMENTS_WHERE)
       WHERE u.deleted=0 $WHERE;");
 
   ($self->{USERS_TOTAL}, 
