@@ -1346,6 +1346,7 @@ else {
            	 if (! $START_FW[$traf_type]) {
            	 	 print "Error: Undefined traf type: $traf_type TP: $tp\n";
              	}
+
            	 $fw_step = 1000;
  	           my $pipe_rule_in  = int($START_FW[$traf_type] + $tp_id);
              my $pipe_rule_out = int($START_FW[$traf_type] + $fw_step + $tp_id);
@@ -1705,7 +1706,16 @@ else {
   	 my($IFACE, $TP, $SPEED, $JOIN_SERVICE, $IP, $UID, $DURATION, $CONNECT_INFO, $STARTED)=split(/:/, $other, 9);
      my $argument = 0;
      if ($SPEED > 0) {
-  	   $argument = ($SPEED > 10000) ? "$SPEED" : "1$SPEED";
+  	   $argument = "1$SPEED";
+   		 if($SPEED >= 100000) {
+  	     $argument = $SPEED / 10 + 1;
+  	    }
+		   elsif($SPEED >= 50000) {
+  	     $argument = '1'.$SPEED / 10;
+  	    }
+		   elsif($SPEED >= 10000) {
+  	     $argument = $SPEED;
+  	    }  	   
   	  }
      else {
      	 if (defined($tp_exprasions{$TP})) {

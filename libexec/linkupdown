@@ -228,8 +228,8 @@ if ($user->{NETMASK} ne '255.255.255.255') {
 if ($conf{DV_TURBO_MODE}) {
   require "Turbo.pm";
   Turbo->import();
-  my $Turbo       = Turbo->new($db, $admin, \%conf);
-  my $list = $Turbo->list({ UID    => $user->{UID},
+  my $Turbo = Turbo->new($db, $admin, \%conf);
+  my $list  = $Turbo->list({ UID    => $user->{UID},
               	            ACTIVE => 1,    	             
     	                    });
 
