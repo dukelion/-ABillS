@@ -1,12 +1,2 @@
 #
-docs_account.tpl:russian:Счёт (КВИТАНЦІЯ) для оплаты физическим лицами
-docs_account_add.tpl:russian:Форма выписки счёта
-docs_account_company.tpl:russian:Счёт для оплаты юридическими лицами
-docs_account_order_row.tpl:russian:Форма строки товаров в счете абонента
-docs_act.tpl:russian:Форма акта оказания услуг
-docs_contract.tpl:russian:Форма договора
-docs_invoice.tpl:russian:Форма счёта фактуры (чека), выставляется абоненту после внесения суммы на счёт,
-docs_multi_invoice.tpl:russian:Форма мультивыгрузки счетов
-docs_search.tpl:russian:Форма поиска по документам
-docs_tax_invoice.tpl:russian:Налоговая накладная
-
+docs_account.tpl:russian:РЎС‡С‘С‚ (РљР’Р

@@ -1,8 +1,8 @@
 #Template describe file
 # tpl_name:language:describe
-multidoms_client_intro.tpl:russian:Старичка которая показывается пользователю перед страницей логина
-multidoms_client_promo.tpl:russian:Страница которая показывается пользователю после страницы логина
-multidoms_client_start.tpl:russian:Главная страница логина клиента
-№multidoms_main_custom.tpl:russian:
-multidoms_metatags_client.tpl:russian:Шаблон мета данных для всех страниц клиентов
-multidoms_sell_points.tpl:russian:Описание точек продажи
+multidoms_client_intro.tpl:russian:РЎС‚Р°СЂРёС‡РєР° РєРѕС‚РѕСЂР°СЏ РїРѕРєР°Р·С‹РІР°РµС‚СЃСЏ РїРѕР»СЊР·РѕРІР°С‚РµР»СЋ РїРµСЂРµРґ СЃС‚СЂР°РЅРёС†РµР№ Р»РѕРіРёРЅР°
+multidoms_client_promo.tpl:russian:РЎС‚СЂР°РЅРёС†Р° РєРѕС‚РѕСЂР°СЏ РїРѕРєР°Р·С‹РІР°РµС‚СЃСЏ РїРѕР»СЊР·РѕРІР°С‚РµР»СЋ РїРѕСЃР»Рµ СЃС‚СЂР°РЅРёС†С‹ Р»РѕРіРёРЅР°
+multidoms_client_start.tpl:russian:Р“Р»Р°РІРЅР°СЏ СЃС‚СЂР°РЅРёС†Р° Р»РѕРіРёРЅР° РєР»РёРµРЅС‚Р°
+в„–multidoms_main_custom.tpl:russian:
+multidoms_metatags_client.tpl:russian:РЁР°Р±Р»РѕРЅ РјРµС‚Р° РґР°РЅРЅС‹С… РґР»СЏ РІСЃРµС… СЃС‚СЂР°РЅРёС† РєР»РёРµРЅС‚РѕРІ
+multidoms_sell_points.tpl:russian:РћРїРёСЃР°РЅРёРµ С‚РѕС‡РµРє РїСЂРѕРґР°Р¶Рё
