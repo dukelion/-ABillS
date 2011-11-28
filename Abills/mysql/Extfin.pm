@@ -1264,10 +1264,13 @@ sub report_payments_fees {
  $self->{PAYMENTS_TOTAL}= '0.00'; 
  $self->{FEES_TOTAL}    = '0.00'; 
 if ($self->{TOTAL} > 0 || $PG > 0 ) {	
+	$PAYMENTS_WHERE =~ s/AND//;
+	my $FEES_WHERE = $PAYMENTS_WHERE;
+	$FEES_WHERE =~ s/p\./f\./g;
   $self->query($db, "SELECT count(DISTINCT u.uid), 
-      sum((select sum(p.sum) FROM payments p WHERE u.uid=p.uid $PAYMENTS_WHERE)), sum(f.sum) 
+      (select sum(p.sum) FROM payments p WHERE $PAYMENTS_WHERE), 
+      (select sum(f.sum) FROM fees f WHERE $FEES_WHERE)
       FROM users u
-      LEFT JOIN fees f ON (u.uid=f.uid $FEES_WHERE)
       WHERE u.deleted=0 $WHERE;");
 
   ($self->{USERS_TOTAL}, 
