@@ -1,10 +1,17 @@
 =====0.54=====
 
-09.11.2011\\
-  * Обновлён шейпер для Mikrotik: улучшена производительность, переработана IPN режим работы
-**обязательно проверте наличие параметра Mikrotik-Address-List в  radius словаре**. Если версия Mikrotik OS ниже 3.10 нужно 
+28.11.2011\\
+  * ''Dhcphosts'' Freeradius DHCP  добавлена возможность выдавать независимые гостевые сети на VLAN
+  * ''Docs'' Добавлены дополнительные поля в счета: статус отправки, депозит на момент выписки счета, сума к оплате
+  * ''Docs'' Формирование счетов по всем услугам на следующий учётный период
+  * Предупреждение пользователя о оплате следующего учётного периода
 
-указывать в радиус парах сервера доступа !Mikrotik-Address-List=0
+MySQL:\\
+  ALTER TABLE docs_acct ADD  COLUMN `deposit` double(15,6) NOT NULL default '0.000000';
+  ALTER TABLE docs_acct ADD  COLUMN `delivery_status` tinyint(2) unsigned NOT NULL default '0';
+
+09.11.2011\\
+  * Обновлён шейпер для Mikrotik: улучшена производительность, переработана IPN режим работы **обязательно проверте наличие параметра Mikrotik-Address-List в  radius словаре**. Если версия Mikrotik OS ниже 3.10 нужно указывать в радиус парах сервера доступа !Mikrotik-Address-List=0
   * Добавлено установки прав на скидку в аккаунте абонента
   * ''Msgs'' добавлено  заявки с заполненными полем ответственный видит только ответственный и автор при установке прав ''ADD''
   * ''Msgs'' добавлена возможность выносить кнопки разделов в меню быстрого запуска
@@ -16,9 +23,8 @@
   * ''billd'' добавлен плагин слежения за запущенными процессами 
   * ''Dv'' Добавлено поле установки типизации начислений по абон. плате
 
-MySQL
+MYSQL:\\
   ALTER TABLE tarif_plans ADD fees_method tinyint(4) UNSIGNED NOT NULL DEFAULT '0';
-  
   CREATE TABLE `extfin_balance_reports` (
     `id` int(11) unsigned NOT NULL auto_increment,
     `period` varchar(7) NOT NULL default '0000-00',
@@ -80,7 +86,7 @@ MySQL:\\
     UNIQUE KEY `name` (`name`)
   ) COMMENT='Payments types';
   
-  ALTEr TABLE dhcphosts_networks ADD COLUMN `static` tinyint(1) unsigned NOT NULL default '0';
+  ALTER TABLE dhcphosts_networks ADD COLUMN `static` tinyint(1) unsigned NOT NULL default '0';
   INSERT INTO fees_types (id, name) VALUES (1, '$_ABON'), (2, '$_FINE'), (3, '$_ACTIVATE'), (4, '$_MONEY_TRANSFER'), (0, '$_ONE_TIME');
   UPDATE fees_types SET id=0 where name='$_ONE_TIME';
 

@@ -470,9 +470,9 @@ sub account_add {
   $DATA{VAT}     = '' if (! $DATA{VAT});
   $DATA{PAYMENT_ID} = 0 if (!  $DATA{PAYMENT_ID});
 
-  $self->query($db, "insert into docs_acct (acct_id, date, created, customer, phone, aid, uid, payment_id, vat)
+  $self->query($db, "insert into docs_acct (acct_id, date, created, customer, phone, aid, uid, payment_id, vat, deposit, delivery_status)
       values ('$DATA{ACCT_ID}', $DATA{DATE}, now(), \"$DATA{CUSTOMER}\", \"$DATA{PHONE}\", 
-      '$admin->{AID}', '$DATA{UID}', '$DATA{PAYMENT_ID}', '$DATA{VAT}');", 'do');
+      '$admin->{AID}', '$DATA{UID}', '$DATA{PAYMENT_ID}', '$DATA{VAT}', '$DATA{DEPOSIT}', '$DATA{DELIVERY_STATUS}');", 'do');
  
   return $self if($self->{errno});
   $self->{DOC_ID}=$self->{INSERT_ID};
@@ -532,8 +532,8 @@ sub account_info {
 	my $self = shift;
 	my ($id, $attr) = @_;
 
-  $WHERE = ($attr->{UID}) ? "and d.uid='$attr->{UID}'" : '';  
-  
+  $WHERE = ($attr->{UID}) ? "and d.uid='$attr->{UID}'" : '';
+
   $self->query($db, "SELECT d.acct_id, 
    d.date, 
    d.customer,  
@@ -556,7 +556,9 @@ sub account_info {
    c.name,
    d.payment_id,
    p.method,
-   p.ext_id
+   p.ext_id,
+   d.deposit,
+   d.delivery_status
     FROM (docs_acct d, docs_acct_orders o)
     LEFT JOIN users u ON (d.uid=u.uid)
     LEFT JOIN companies c ON (u.company_id=c.id)
@@ -594,9 +596,13 @@ sub account_info {
    $self->{COMPANY_NAME},
    $self->{PAYMENT_ID},
    $self->{PAYMENT_METHOD_ID},
-   $self->{EXT_ID}
+   $self->{EXT_ID},
+   $self->{DEPOSIT},
+   $self->{DELIVERY_STATUS},
   )= @{ $self->{list}->[0] };
 
+  
+  $self->{AMOUNT_FOR_PAY}=($self->{DEPOSIT}>0) ? $self->{TOTAL_SUM}-$self->{DEPOSIT} : $self->{TOTAL_SUM}+$self->{DEPOSIT};
 
   if ($self->{TOTAL} > 0) {
     $self->{NUMBER}=$self->{ACCT_ID};
@@ -624,7 +630,8 @@ sub account_change {
                 SUM         => 'sum',
                 ID          => 'id',
                 UID         => 'uid',
-                PAYMENT_ID  => 'payment_id'
+                PAYMENT_ID  => 'payment_id',
+                DELIVERY_STATUS => 'delivery_status'
              );
 
   my $old_info =   $self->account_info($attr->{ID});

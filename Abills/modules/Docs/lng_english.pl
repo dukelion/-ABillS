@@ -26,3 +26,5 @@ $_PAID='Paid account';
 $_PARTLY_PAID='Partly paid';
 $_UNPAID='UnPaid account';
 $_VAT_INCLUDE='Vat include';
+$_AMOUNT_FOR_PAY='Amount for pay';
+$_ACTIVATE_NEXT_PERIOD='For next activation period';

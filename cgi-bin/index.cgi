@@ -194,25 +194,9 @@ if ($uid > 0) {
   $index = int($FORM{qindex}) if ($FORM{qindex});
   print $html->header() if ($FORM{header});
 
-  my $lang_file = '';
-  foreach my $prefix (@INC) {
-    my $realfilename = "$prefix/Abills/modules/$module{$index}/lng_$html->{language}.pl";
-    if (-f $realfilename) {
-      $lang_file =  $realfilename;
-      last;
-     }
-    elsif (-f "$prefix/Abills/modules/$module{$index}/lng_english.pl") {
-    	$lang_file = "$prefix/Abills/modules/$module{$index}/lng_english.pl";
-     }
-   }
-
-  if ($lang_file ne '') {
-    require $lang_file;
-   }
-
   if ($FORM{qindex}) {
     if(defined($module{$FORM{qindex}})) {
- 	   	require "Abills/modules/$module{$FORM{qindex}}/webinterface";
+ 	   	load_module($module{$FORM{qindex}}, $html);
      }
 
     $functions{$FORM{qindex}}->();
@@ -221,7 +205,7 @@ if ($uid > 0) {
    }
 
   if(defined($module{$index})) {
- 	 	require "Abills/modules/$module{$index}/webinterface";
+ 	 	load_module($module{$index}, $html);
    }
 
   $index=$default_index if ($index == 0);
@@ -429,8 +413,16 @@ sub form_info {
      }
    }
   
-  
-  form_neg_deposit($user) if ($attr->{NEG_DEPOSIT});
+  if ($attr->{NEG_DEPOSIT}) {
+     form_neg_deposit($user) ;
+    }
+  else {
+  	if (in_array('Docs', \@MODULES) ) {
+    	$FORM{ALL_SERVICES}=1;
+    	load_module('Docs', $html);
+    	docs_account();
+     }
+   }
   
   if ($conf{user_chg_pi}) {
   	if ($FORM{chg}) {
@@ -1245,15 +1237,21 @@ if ($FORM{s2} || $FORM{transfer}) {
 # cross_modules_call(function_sufix, attr) 
 #**********************************************************
 sub cross_modules_call  {
-  my ($funtion_sufix, $attr) = @_;
+  my ($function_sufix, $attr) = @_;
+
+  my %full_return = '';
 
   foreach my $mod (@MODULES) {
-     require "Abills/modules/$mod/webinterface";
-     my $function = lc($mod).$funtion_sufix;
-     if (defined(&$function)) {
-     	  $function->( $attr );
-      }
+    require "Abills/modules/$mod/webinterface";
+    my $function = lc($mod).$function_sufix;
+    my $return;
+    if (defined(&$function)) {
+     	$return = $function->($attr);
+     }
+    $full_return{$mod}=$return;
    }
+
+  return \%full_return;
 }
 
 
@@ -1332,6 +1330,35 @@ sub _external {
  	  $html->message('err', "_EXTERNAL $_ERROR", "[$num] $message");
     return 0;
    }
+}
+
+
+
+#**********************************************************
+# load_module($string, \%HASH_REF);
+#**********************************************************
+sub load_module {
+	my ($module, $attr) = @_;
+
+	my $lang_file = '';
+  foreach my $prefix (@INC) {
+    my $realfilename = "$prefix/Abills/modules/$module/lng_$attr->{language}.pl";
+    if (-f $realfilename) {
+      $lang_file =  $realfilename;
+      last;
+     }
+    elsif (-f "$prefix/Abills/modules/$module/lng_english.pl") {
+    	$lang_file = "$prefix/Abills/modules/$module/lng_english.pl";
+     }
+   }
+
+  if ($lang_file ne '') {
+    require $lang_file;
+   }
+
+ 	require "Abills/modules/$module/webinterface";
+
+	return 0;
 }
 
 1

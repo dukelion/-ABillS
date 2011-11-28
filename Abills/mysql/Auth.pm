@@ -169,10 +169,10 @@ if ($self->{DISABLE}) {
 		 $self->query($db, "UPDATE dv_main SET disable=0 WHERE uid='$self->{UID}'", 'do');
 	 }
 	else {
-	  if ($CONF->{DV_STATUS_NEG_DEPOSIT}) {
+	  if ($CONF->{DV_STATUS_NEG_DEPOSIT} && $self->{NEG_DEPOSIT_FILTER_ID}) {
       return $self->neg_deposit_filter_former($RAD, $NAS, $self->{NEG_DEPOSIT_FILTER_ID});
 	   }
-    $RAD_PAIRS->{'Reply-Message'}="Service Disabled";
+    $RAD_PAIRS->{'Reply-Message'}="Service Disabled $self->{DISABLE}";
     return 1, $RAD_PAIRS;
   }
  }
