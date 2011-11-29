@@ -243,7 +243,7 @@ sub dhcphosts_monitor {
 	 
    my $table = $html->table({ width    => '100%',
                      			  caption    => "$_HOSTS",
-				                    title      => ["$_USER", 'IP', "$_START", "MAC", "$_HOSTS",  "abandoned", "$_STATE", "remote-id", "circuit_id", "-" ],
+				                    title      => ["$_USER", 'IP', "$_START", "MAC", "$_HOSTS",  "abandoned", "$_STATE", "$_PORT", "Vlan", "remote-id", "circuit_id", "-" ],
 				                    cols_align => ['left', 'right', 'right', 'right', 'left', 'center:noprint', 'center:noprint','center:noprint', 'center:noprint' ],
 				                    ID         => 'MONITOR_DHCP',
                   				  qs         => $pages_qs,
@@ -261,6 +261,8 @@ sub dhcphosts_monitor {
                      $state_hash_rev{$line->[6]},
                      $line->[7],
                      $line->[8],
+                     $line->[9],
+                     $line->[10],                    
                      $html->button('P', "index=$index&ping=$line->[1]", { TITLE => 'ping', BUTTON => 1 })
                      );
     }

@@ -892,7 +892,7 @@ sub leases_list {
   $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
 
   @WHERE_RULES = ();
-
+  
   if ($attr->{HOSTNAME}) {
     push @WHERE_RULES, @{ $self->search_expr("$attr->{HOSTNAME}", 'STR', 'hostname') };
    }
@@ -909,61 +909,28 @@ sub leases_list {
    push @WHERE_RULES, @{ $self->search_expr("$attr->{CIRCUIT_ID}", 'STR', 'circuit_id') };
   }
 
-
- if ($attr->{IPS}) {
- 	 my @ip_arr = split(/,/, $attr->{IPS});
- 	 $attr->{IPS}='';
- 	 foreach my $ip (@ip_arr) {
- 	   $ip =~ s/ //g;
- 	   $attr->{IPS}.="INET_ATON('$ip'),";
- 	 }
- 	 chop($attr->{IPS});
- 	 push @WHERE_RULES, "ip IN ($attr->{IPS})";
-  }
- elsif ($attr->{IP}) {
-    if ($attr->{IP} =~ m/\*/g) {
-      my ($i, $first_ip, $last_ip);
-      my @p = split(/\./, $attr->{IP});
-      for ($i=0; $i<4; $i++) {
-
-         if ($p[$i] eq '*') {
-           $first_ip .= '0';
-           $last_ip .= '255';
-          }
-         else {
-           $first_ip .= $p[$i];
-           $last_ip .= $p[$i];
-          }
-         if ($i != 3) {
-           $first_ip .= '.';
-           $last_ip .= '.';
-          }
-       }
-      push @WHERE_RULES, "(ip>=INET_ATON('$first_ip') and ip<=INET_ATON('$last_ip'))";
-     }
-    else {
-      push @WHERE_RULES, @{ $self->search_expr("$attr->{IP}", 'IP', 'ip') };
-    }
+ if ($attr->{IP}) {
+ 	 push @WHERE_RULES, @{ $self->search_expr("$attr->{IP}", 'IP', 'ip') };
   }
 
  if ($attr->{ENDS}) {
-    push @WHERE_RULES, @{ $self->search_expr("$attr->{ENDS}", 'INT', 'ends') };
+   push @WHERE_RULES, @{ $self->search_expr("$attr->{ENDS}", 'INT', 'ends') };
   }
 
  if ($attr->{STARTS}) {
-    push @WHERE_RULES, @{ $self->search_expr("$attr->{STARTS}", 'INT', 'starts') };
+   push @WHERE_RULES, @{ $self->search_expr("$attr->{STARTS}", 'INT', 'starts') };
   }
 
  if (defined($attr->{STATE})) {
-    push @WHERE_RULES, "state='$attr->{STATE}'";
+   push @WHERE_RULES, "state='$attr->{STATE}'";
   }
 
  if (defined($attr->{NEXT_STATE})) {
-    push @WHERE_RULES, "next_state='$attr->{NEXT_STATE}'";
+   push @WHERE_RULES, "next_state='$attr->{NEXT_STATE}'";
   }
 
  if (defined($attr->{NAS_ID})) {
-    push @WHERE_RULES, "nas_id='$attr->{NAS_ID}'";
+   push @WHERE_RULES, "nas_id='$attr->{NAS_ID}'";
   }
 
  if ($attr->{PORTS}) {
@@ -981,13 +948,14 @@ sub leases_list {
   $self->query($db,"SELECT '', INET_NTOA(ip), start,  hardware, hostname, 
   ends,
   state,
+  port,
+  vlan,
+
   remote_id,
   circuit_id,
   next_state,
   uid,
-  nas_id,
-  port,
-  vlan
+  nas_id
   FROM dhcphosts_leases 
    $WHERE 
   ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS; ");

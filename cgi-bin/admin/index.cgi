@@ -813,7 +813,7 @@ elsif ($FORM{import}) {
       	my @rows = split(/[\r]{0,1}\n/, $FORM{"FILE_DATA"}{'Contents'});
 
         foreach my $line (@rows) {
-        	 my @params       = split(/\t/, $line);
+        	 my @params    = split(/\t/, $line);
         	 my %USER_HASH = (CREATE_BILL  => 1,
         	                  COMPANY_NAME => $params[0]);
 
