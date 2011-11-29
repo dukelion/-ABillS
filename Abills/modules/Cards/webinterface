@@ -216,6 +216,7 @@ my $table;
 
 my @total_arr=();
 if (defined($FORM{SERIA})) {
+	$LIST_PARAMS{SORT}=2;
   $pages_qs.="&PAGE_ROWS=$PAGE_ROWS" if (! $FORM{search});
   my @pin = ();
   @pin = ("PIN") if ($conf{CARDS_SHOW_PINS}) ;
