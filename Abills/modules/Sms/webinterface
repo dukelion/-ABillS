@@ -101,14 +101,11 @@ sub sms_info {
 #**********************************************************
 sub turbosms_reports {
   turbosms_connect();
-#eval { require Turbosms; };
-#if (! $@) {
-#  Turbosms->import();
-# }
-#else {
-#  $html->message('err', $_ERROR, "Can't load 'Turbosms'. Purchase this module http://abills.net.ua");
-#  return 0;
-# }	
+
+  if ($Turbosms::VERSION < 2.02) {
+  	$html->message('info', "UPDATE", "Please update module 'Turbosms' to version 2.02 or higher. http://abills.net.ua/");
+  	return 0;
+   }
 
 my $Turbosms = Turbosms->new($db, $admin, \%conf);
 
@@ -128,8 +125,7 @@ my $list = $Turbosms->info({ %LIST_PARAMS });
                               pages      => $Turbosms->{TOTAL}
                            } );
 
-  use Encode;
-  
+  use Encode; 
 
 
   foreach my $line (@$list) {

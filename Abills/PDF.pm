@@ -1383,7 +1383,6 @@ for my $key (sort keys %$tpl_describe) {
     $font_color = $1 if ($pattern =~ /font_color=(\S+)/);
     $encode     = $1 if ($pattern =~ /encode=(\S+)/);
     $align      = $1 if ($pattern =~ /align=([a-z]+)/i);
-
     if ($pattern =~ /font_name=(\S+)/) {
     	$font_name  = $1;
       if($font_name =~ /\.ttf$/) {
@@ -1479,7 +1478,14 @@ if ($attr->{MULTI_DOCS} && $multi_doc_count <= $#{ $attr->{MULTI_DOCS} }) {
   	$pdf->end;
     
     $pdf = PDF::API2->open($filename);
-    $font = $pdf->corefont($font_name, -encode => "$encode");
+    
+    if ($encode =~ /utf-8/) {
+    	$font_name  = '/usr/abills/Abills/templates/fonts/FreeSerif.ttf';
+      $font       = $pdf->ttfont($font_name, -encode => "$encode");
+     }
+    else {
+      $font = $pdf->corefont($font_name, -encode => "$encode");
+     }
    }
 
   $variables_ref = $attr->{MULTI_DOCS}[$multi_doc_count];
