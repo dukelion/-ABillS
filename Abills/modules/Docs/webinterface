@@ -1438,7 +1438,7 @@ sub docs_account {
   $Docs->{CAPTION} = $_ACCOUNT;  
   if (! $FORM{pdf}) {
 
- if ($FORM{ALL_SERVICES}) {
+ if ($attr->{REGISTRATION} || $FORM{ALL_SERVICES}) {
  	
  	 my ($Y, $M, $D)=split(/-/, $DATE);
  	 if ($M < 12) {
@@ -1509,17 +1509,27 @@ sub docs_account {
    if ($user->{DEPOSIT} && $user->{DEPOSIT} > $amount_for_pay) {
   	 return 0;
     }   
+  
+   my $action = '';	 
+ 	 if ($attr->{ACTION}) {
+	   $action = $html->form_input('back', "$_BACK", {  TYPE => 'submit' }).
+	             $html->form_input('make', "$_CREATE $_ACCOUNT", {  TYPE => 'submit' });
+    }
+   else{
+	   $action = $html->form_input('make', "$_CREATE $_ACCOUNT", {  TYPE => 'submit' });
+    }
+
  	 
- 	 my $content = $html->form_main({ CONTENT => $table->show({ OUTPUT2RETURN => 1 }),
+ 	 my $content = $html->form_main({ CONTENT => $table->show({ OUTPUT2RETURN => 1 }).$action,
 	                 HIDDEN  => { index          => "$index",
 	                 	            UID            => $FORM{UID},
 	                 	            DATE           => $DATE,
 	                 	            create         => 1,
 	                 	            CUSTOMER       => $Docs->{CUSTOMER},
+	                 	            step           => $FORM{step},
 	                 	            #ALL_SERVICES   => 1
 	                 	           },
 	                 NAME    => 'DOCS_SERVICES_ACCOUNT',
-	                 SUBMIT  => { make => "$_CREATE $_ACCOUNT" }
 	                });
   
    print $content;
@@ -1530,6 +1540,7 @@ sub docs_account {
   }
 
    }
+  return 0;
 }
 
 

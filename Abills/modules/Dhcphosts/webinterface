@@ -243,7 +243,7 @@ sub dhcphosts_monitor {
 	 
    my $table = $html->table({ width    => '100%',
                      			  caption    => "$_HOSTS",
-				                    title      => ["$_USER", 'IP', "$_START", "MAC", "$_HOSTS",  "abandoned", "$_STATE", "$_PORT", "Vlan", "remote-id", "circuit_id", "-" ],
+				                    title      => ["$_USER", 'IP', "$_START", "MAC", "$_HOSTS",  "abandoned", "$_STATE", "$_PORT", "Vlan", "$_MODE", "remote-id", "circuit_id", "-" ],
 				                    cols_align => ['left', 'right', 'right', 'right', 'left', 'center:noprint', 'center:noprint','center:noprint', 'center:noprint' ],
 				                    ID         => 'MONITOR_DHCP',
                   				  qs         => $pages_qs,
@@ -252,7 +252,7 @@ sub dhcphosts_monitor {
 
 	 
    foreach my $line (@$list) {
-      $table->addrow($line->[0],
+      $table->addrow(($line->[0]) ? $html->button($line->[0], "index=15&UID=$line->[13]") : '',
                      $line->[1],
                      $line->[2],
                      $line->[3],
@@ -263,6 +263,7 @@ sub dhcphosts_monitor {
                      $line->[8],
                      $line->[9],
                      $line->[10],                    
+                     $line->[11],
                      $html->button('P', "index=$index&ping=$line->[1]", { TITLE => 'ping', BUTTON => 1 })
                      );
     }

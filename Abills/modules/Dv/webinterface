@@ -557,7 +557,7 @@ sub dv_user {
   if($Dv->{TOTAL} < 1) {
     $Dv->{TP_ID}=$html->form_select('TP_ID', 
                                          { 
- 	                                          SELECTED          => $Dv->{TP_ID},
+ 	                                          SELECTED          => $Dv->{TP_ID} || $FORM{TP_ID},
  	                                          SEL_MULTI_ARRAY   => $tariffs->list({ MODULE => 'Dv' }),
  	                                          MULTI_ARRAY_KEY   => 0,
  	                                          MULTI_ARRAY_VALUE => 1,
@@ -675,7 +675,7 @@ sub dv_user {
 
   $Dv->{STATUS_SEL}          = $html->form_select('STATUS', 
                                           { 
- 	                                          SELECTED     => $Dv->{STATUS},
+ 	                                          SELECTED     => $Dv->{STATUS} || $FORM{STATUS},
  	                                          SEL_ARRAY    => \@service_status,
  	                                          STYLE        => \@service_status_colors,
  	                                          ARRAY_NUM_ID => 1
@@ -688,7 +688,7 @@ sub dv_user {
 
   $Dv->{TURBO_MODE_SEL} = $html->form_select('TURBO_MODE', 
                                           { 
- 	                                          SELECTED     => $Dv->{TURBO_MODE} || 0,
+ 	                                          SELECTED     => $Dv->{TURBO_MODE} || $FORM{TURBO_MODE},
  	                                          SEL_ARRAY    => [ $_ENABLE,
  	                                             $_DISABLE, 
  	                                             $_NOT_ACTIVE, 
@@ -742,7 +742,7 @@ sub dv_user {
  	                                          NO_ID             => 1
  		                                        });
   
-  $html->tpl_show(_include('dv_user', 'Dv'), $Dv, {  });
+  $html->tpl_show(_include('dv_user', 'Dv'), { %$attr, %$Dv }, {  });
   return 0; 
 }
 

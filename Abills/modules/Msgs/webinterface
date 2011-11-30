@@ -450,7 +450,7 @@ if (in_array('Sms', \@MODULES) ) {
   $Msgs->{EXTRA_PARAMS} = $html->tpl_show(_include('sms_check_form', 'Sms'), $Msgs, { OUTPUT2RETURN => 1 });
 }
 
-  my $message_form = $html->tpl_show(_include('msgs_send_form', 'Msgs'), $Msgs, { OUTPUT2RETURN => 1 });
+  my $message_form = $html->tpl_show(_include('msgs_send_form', 'Msgs'), { %$attr, %$Msgs }, { OUTPUT2RETURN => 1 });
 
   if ($attr->{OUTPUT2RETURN}) {
   	return $message_form;

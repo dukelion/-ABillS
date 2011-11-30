@@ -303,22 +303,7 @@ if ($FORM{qindex}) {
    }
   
   if(defined($module{$index})) {
-    my $lang_file = '';
-    foreach my $prefix (@INC) {
-      my $realfilename = "$prefix/Abills/modules/$module{$index}/lng_$html->{language}.pl";
-      if (-f $realfilename) {
-        $lang_file =  $realfilename;
-        last;
-       }
-      elsif (-f "$prefix/Abills/modules/$module{$index}/lng_english.pl") {
-      	$lang_file = "$prefix/Abills/modules/$module{$index}/lng_english.pl";
-       }
-     }
-
-    if ($lang_file ne '') {
-      require $lang_file;
-     }
- 	 	require "Abills/modules/$module{$index}/webinterface";
+ 	 	load_module($module{$index}, $html);
    }
   if ($functions{$index}) {
     $functions{$index}->();
@@ -383,7 +368,7 @@ $admin->{SEL_TYPE} = $html->form_select('type',
 
 #Domains sel
 if (in_array('Multidoms', \@MODULES) && $permissions{10}) {
-  require "Abills/modules/Multidoms/webinterface";
+  load_module('Multidoms', $html);
   $FORM{DOMAIN_ID}       = $COOKIES{DOMAIN_ID};
   $admin->{DOMAIN_ID}    = $FORM{DOMAIN_ID};
   $LIST_PARAMS{DOMAIN_ID}= $admin->{DOMAIN_ID};
@@ -450,22 +435,7 @@ $menu_text
 
 if ($functions{$index}) {
   if(defined($module{$index})) {
-    my $lang_file = '';
-    foreach my $prefix (@INC) {
-      my $realfilename = "$prefix/Abills/modules/$module{$index}/lng_$html->{language}.pl";
-      if (-f $realfilename) {
-        $lang_file =  $realfilename;
-        last;
-       }
-      elsif (-f "$prefix/Abills/modules/$module{$index}/lng_english.pl") {
-      	$lang_file = "$prefix/Abills/modules/$module{$index}/lng_english.pl";
-       }
-     }
-
-    if ($lang_file ne '') {
-      require $lang_file;
-     }
- 	 	require "Abills/modules/$module{$index}/webinterface";
+ 	 	load_module($module{$index}, $html);
    }
  	  
   if(($FORM{UID} && $FORM{UID} > 0) || ($FORM{LOGIN} && $FORM{LOGIN} ne ''  && $FORM{LOGIN} !~ /\*/ && ! $FORM{add})) {
@@ -653,15 +623,20 @@ sub form_wizard {
 
 # Function name:module:describe
 my %steps = (
-  1 =>  'user_form::',
-  2 =>  'dv_user:Dv:',
-  3 =>  'abon_user:Abon:',
-  4 =>  'form_fees_wizard::',
-  5 =>  'msgs_admin_add:Msgs:'
+  1 =>  "user_form::$_ADD $_USER",
+  2 =>  "form_payments::$_PAYMENTS",
+  5 =>  "form_fees_wizard::$_FEES",
 );
 
+$steps{3}= 'dv_user:Dv:Internet' if (in_array('Dv', \@MODULES));
+$steps{4}= "abon_user:Abon:$_ABON" if (in_array('Abon', \@MODULES));
+$steps{6}= "msgs_admin_add:Msgs:$_MESSAGES" if (in_array('Msgs', \@MODULES));
+
+
 if ($conf{REG_WIZARD}) {
-	my @arr  = split(/;/, $conf{REG_WIZARD});
+	$conf{REG_WIZARD}=~s/[\r\n]+//g;
+	%steps=();
+	my @arr  = split(/;/, ';'.$conf{REG_WIZARD});
 	for(my $i=1; $i<=$#arr; $i++) {
 		$steps{$i}=$arr[$i];
 	 }
@@ -669,9 +644,13 @@ if ($conf{REG_WIZARD}) {
 
 START:
 
+delete $FORM{OP_SID};
 if (! $FORM{step}) {
   $FORM{step}= 1;
   $FORM{UID} = mk_unique_value(16);
+ }
+elsif ($FORM{back}) {
+	$FORM{step}=$FORM{step}-2;
  }
 else {
  	while(my($k, $v) = each %FORM) {
@@ -701,29 +680,26 @@ else {
   	 }
 
     my @steps_arr = sort keys %steps;
-    for($i=0; $i<=$#steps_arr; $i++) {
-    	
+    for($i=0; $i<=$#steps_arr; $i++) {    	
     	my $step=$i+1;
     	my ($fn, $module, $describe)=split(/:/, $steps{$step}, 3);
     	
   		if ($module) {
   			if (in_array($module, \@MODULES)) {
-          require "Abills/modules/$module/webinterface";  		
+          load_module($module, $html);
          }
         else {
         	next;
          } 
        }
 
-    	#print "<br>-------------- $step / $fn<br>\n";
     	%FORM = %{ $DATA_{$step} };
  	    $FORM{add}=1;
  	    $FORM{UID} = $LIST_PARAMS{UID} if (! $FORM{UID} && $LIST_PARAMS{UID});
     	#while(my($k, $v)=each %FORM) {
     	#	print "$k, $v<br>";
     	# }
-    	my $return = $fn->({ REGISTRATION => 1 });
-    	#print "/ > $db->{AutoCommit} < / $return //<br>";
+    	my $return = $fn->({ REGISTRATION => 1, USER => $users });
     	$LIST_PARAMS{UID}=$FORM{UID};
     	# Error
     	if ($return) {
@@ -736,10 +712,42 @@ else {
     $db->commit();
    }
   else {
+  	# get step info
+  	my $list = $users->wizard_list({ SESSION_ID => $FORM{UID},
+  		                               STEP       => ($FORM{step}+1) });
+  	$DATA_ = ();
+  	foreach my $line ( @$list ) {
+  		$DATA_{$line->[2]}=$line->[3];
+  		$FORM{$line->[2]}=$line->[3];
+  	 }
+
+    my $table = $html->table({ width      => '100%',
+                               border     => 1,
+                               #title_plain=> ["$_STEP $FORM{step}: ".$describe],
+                               #rows       => [ [ @rows, $html->b("$_STEP $FORM{step}: ".$describe) ]]
+                             });
+  	
     my ($fn, $module, $describe)=split(/:/, $steps{$FORM{step}}, 3);
+    my @rows = ();
+    foreach my $i ( sort keys %steps ) {
+    	 my ($fn, $module, $describe)=split(/:/, $steps{$i}, 3);
+       if ($i<$FORM{step}) {
+         push @rows, $table->th($html->button("$_STEP: $i $describe", "index=$index&back=1&UID=$FORM{UID}&step=".($i+2)));
+        }
+       elsif ($i == $FORM{step}) {
+         push @rows, $table->th("$_STEP: $i $describe", { class => 'small' });
+        }
+       else{
+       	 push @rows, $table->th("$_STEP $i: ".$describe, { class=>'even' });
+        }
+     }
+
+    $table->addtd( @rows ); 
+    print $table->show();
+    
   	if ($module) {
   		if (in_array($module, \@MODULES)) {
-        require "Abills/modules/$module/webinterface";  		
+        load_module($module, $html);
        }
       else {
       	$FORM{step}++;
@@ -747,14 +755,32 @@ else {
        }
   	 }
   	
-  	if ($FORM{step}==2 && ! $FORM{LOGIN}) {
- 		  $html->message('err', $_ERROR, "'$FORM{LOGIN}' $ERR_WRONG_NAME");	
-  		$FORM{step}=1;
-  		goto START;
+  	if ($FORM{step}==2 && ! $FORM{back}) {
+  		if (! $FORM{LOGIN}) {
+ 		    $html->message('err', $_ERROR, "'$FORM{LOGIN}' $ERR_WRONG_NAME");	
+  		  $FORM{step}=1;
+  		  goto START;
+  		 }
+  	  else {
+  	  	$users->info( 0 , { LOGIN => $FORM{LOGIN} });
+  	  	if ($users->{TOTAL}) {
+  	  		delete $users->{UID};
+          $html->message('err', $_INFO, "$FORM{LOGIN} $_USER_EXIST.");
+          $FORM{step}=1;
+          goto START;
+  	  	 }
+  	   }
   	 }
   	 
     $FORM{step}++;
- 	  $fn->({ ACTION => 'next', LNG_ACTION => "$_NEXT " });
+ 	  $fn->({ ACTION      => 'next',
+ 	  	      REGISTRATION=> 1,
+ 	  	      USER        => \%FORM,
+ 	  	      LNG_ACTION  => ($steps{$FORM{step}+1}) ? "$_NEXT " : "$_REGISTRATION",
+ 	  	      BACK_BUTTON => ($FORM{step} > 1) ? $html->form_input('back', "$_BACK", {  TYPE => 'submit' }) : undef,
+ 	  	      UID         => $FORM{UID},
+ 	  	      %DATA_
+ 	  	     });
    }
 }
 
@@ -862,7 +888,7 @@ elsif($FORM{COMPANY_ID}) {
   $company->info($FORM{COMPANY_ID});
   #print contract
   if ($FORM{PRINT_CONTRACT}) {
-    require "Abills/modules/Docs/webinterface";
+    load_module('Docs', $html);
     docs_contract({ COMPANY_CONTRACT => 1, %$company });
   	return 0;
    }
@@ -1117,10 +1143,7 @@ print "$menu</td></tr>
 if ($FORM{subf}) {
   if ($functions{$FORM{subf}}) {
     if(defined($module{$FORM{subf}})) {
-   	  if (-f "../../Abills/modules/$module{$FORM{subf}}/lng_$html->{language}.pl") {
-        require "../../Abills/modules/$module{$FORM{subf}}/lng_$html->{language}.pl";
-       }
-  	 	require "Abills/modules/$module{$FORM{subf}}/webinterface";
+    	load_module($module{$FORM{subf}}, $html);
      }
 
     $functions{$FORM{subf}}->($f_args->{f_args});
@@ -1232,7 +1255,7 @@ sub user_form {
    if ($FORM{COMPANY_ID}) {
      use Customers;	
      my $customers = Customers->new($db, $admin, \%conf);
-     my $company = $customers->company->info($FORM{COMPANY_ID});
+     my $company   = $customers->company->info($FORM{COMPANY_ID});
  	   $user_info->{COMPANY_ID}=$FORM{COMPANY_ID};
      $user_info->{EXDATA} =  "<tr><td>$_COMPANY:</td><td>". (($company->{COMPANY_ID} > 0) ? $html->button($company->{COMPANY_NAME}, "index=13&COMPANY_ID=$company->{COMPANY_ID}", { BUTTON => 1 }) : '' ). "</td></tr>\n";
     }
@@ -1244,21 +1267,23 @@ sub user_form {
    	 $user_info->{GID} .=  $html->form_input('GID', "$admin->{GID}", { TYPE => 'hidden' }); 
     }
    else {
+   	 $FORM{GID}=$attr->{GID};
+   	 delete $attr->{GID};
    	 $user_info->{GID} = sel_groups();
     }
 
-   $user_info->{EXDATA} .=  $html->tpl_show(templates('form_user_exdata_add'), { CREATE_BILL => ' checked' }, { OUTPUT2RETURN => 1 });
+   $user_info->{EXDATA} .=  $html->tpl_show(templates('form_user_exdata_add'), { %$attr, CREATE_BILL => ' checked'  }, { OUTPUT2RETURN => 1 });
    $user_info->{EXDATA} .=  $html->tpl_show(templates('form_ext_bill_add'), { CREATE_EXT_BILL => ' checked' }, { OUTPUT2RETURN => 1 }) if ($conf{EXT_BILL_ACCOUNT});
 
    if ($user_info->{DISABLE} > 0) {
-     $user_info->{DISABLE} = ' checked';
+     $user_info->{DISABLE}      = ' checked';
      $user_info->{DISABLE_MARK} = $html->color_mark($html->b($_DISABLE), $_COLORS[6]);
     } 
    else {
    	 $user_info->{DISABLE} = '';
     }
 
-   my $main_account = $html->tpl_show(templates('form_user'), $user_info, { OUTPUT2RETURN => 1 });
+   my $main_account = $html->tpl_show(templates('form_user'), { %$user_info, %$attr  }, { OUTPUT2RETURN => 1 });
    $main_account =~ s/<FORM.+>//ig;
    $main_account =~ s/<\/FORM>//ig;
    $main_account =~ s/<input.+type=submit.+>//ig;
@@ -1856,7 +1881,7 @@ sub user_pi {
     $user_pi->{ADDRESS_TPL} = $html->tpl_show(templates('form_address'), $user_pi, { OUTPUT2RETURN => 1 });	
    }
 
-  $html->tpl_show(templates('form_pi'), { UID => $LIST_PARAMS{UID}, %$user_pi, MAIN_USER_TPL => $attr->{MAIN_USER_TPL}  });
+  $html->tpl_show(templates('form_pi'), { %$attr, UID => $LIST_PARAMS{UID}, %$user_pi,  });
 }
 
 #**********************************************************
@@ -1866,12 +1891,12 @@ sub form_users {
   my ($attr)=@_;
 
   if ($FORM{PRINT_CONTRACT}) {
-    require "Abills/modules/Docs/webinterface";
+    load_module('Docs', $html);
     docs_contract();
   	return 0;
    }
  	elsif ($FORM{SEND_SMS_PASSWORD}) {
-    require "Abills/modules/Sms/webinterface";
+    load_module('Sms', $html);
     $users->info($FORM{UID}, { SHOW_PASSWORD => 1 });
     $users->pi({ UID => $FORM{UID} });
     if(sms_send({ NUMBER   => $users->{PHONE},,
@@ -1961,22 +1986,7 @@ if($attr->{USER_INFO}) {
     if ($functions{$service_func_index}) {
       $index = $service_func_index;
       if(defined($module{$service_func_index})) {
-        my $lang_file = '';
-        foreach my $prefix (@INC) {
-          my $realfilename = "$prefix/Abills/modules/$module{$service_func_index}/lng_$html->{language}.pl";
-          if (-f $realfilename) {
-            $lang_file =  $realfilename;
-            last;
-           }
-          elsif (-f "$prefix/Abills/modules/$module{$service_func_index}/lng_english.pl") {
-      	    $lang_file = "$prefix/Abills/modules/$module{$service_func_index}/lng_english.pl";
-           }
-         }
-
-        if ($lang_file ne '') {
-          require $lang_file;
-         }
-   	 	  require "Abills/modules/$module{$service_func_index}/webinterface";
+        load_module($module{$service_func_index}, $html);
        }
     
       print "<TABLE width='100%' border=0>
@@ -1986,8 +1996,8 @@ if($attr->{USER_INFO}) {
   
       $functions{$service_func_index}->({ USER => $user_info });
     }
-    
-    user_pi({ USER_INFO => $user_info });
+
+    user_pi({ %$attr, USER_INFO => $user_info });
    }
 
 my $payments_menu = (defined($permissions{1})) ? '<li class=umenu_item>'. $html->button($_PAYMENTS, "UID=$user_info->{UID}&index=2").'</li>' : '';
@@ -2086,7 +2096,7 @@ elsif ( $FORM{add}) {
     $html->tpl_show(templates('form_user_info'), $user_info);
     $LIST_PARAMS{UID}= $user_info->{UID};
     $FORM{UID}       = $user_info->{UID};
-    user_pi({ REGISTRATION => 1 });
+    user_pi({ %$attr, REGISTRATION => 1 });
     $index=get_function_index('form_payments');
     #form_payments({ USER => $user_info });
     return 0;
@@ -2423,7 +2433,7 @@ if ($FORM{FULL_DELETE}) {
   my $mods = '';
   foreach my $mod (@MODULES) {
   	$mods .= "$mod,";
-   	require "Abills/modules/$mod/webinterface";
+   	load_module($mod, $html);
     my $function = lc($mod).'_user_del';
     if (defined(&$function)) {
      	$function->($user_info->{UID}, $user_info );
@@ -3372,7 +3382,7 @@ if ($admin->{DOMAIN_ID}) {
 	$admin_form->{DOMAIN_SEL} = $admin->{DOMAIN_NAME};
  }
 elsif (in_array('Multidoms', \@MODULES)) {
-  require "../../Abills/modules/Multidoms/webinterface";
+  load_module('Multidoms', $html);
   $admin_form->{DOMAIN_SEL} = multidoms_domains_sel();
  }
 else  {
@@ -5346,6 +5356,7 @@ print $html->form_main({ CONTENT => $table->show({ OUTPUT2RETURN => 1 }),
 #**********************************************************
 sub form_payments () {
  my ($attr) = @_; 
+
  use Finance;
  my $payments = Finance->payments($db, $admin, \%conf);
  
@@ -5355,7 +5366,7 @@ sub form_payments () {
  my %BILL_ACCOUNTS = ();
 
  if ($FORM{print}) {
-   require "Abills/modules/Docs/webinterface";
+   load_module('Docs', $html);
    if ($FORM{ACCOUNT_ID}) {
    	 docs_account({ %FORM  });
     }
@@ -5364,6 +5375,8 @@ sub form_payments () {
     }
    exit;
   }
+
+
 
 if (defined($attr->{USER})) {
   my $user = $attr->{USER};
@@ -5376,13 +5389,15 @@ if (defined($attr->{USER})) {
 
   if (in_array('Docs', \@MODULES) ) {
     $FORM{QUICK}=1;
-  	require "Abills/modules/Docs/webinterface";
+  	load_module('Docs', $html);
    }
 
-  if($user->{BILL_ID} < 1) {
-    form_bills({ USER => $user });
-    return 0;
-  }
+  if(! $attr->{REGISTRATION}) {
+    if($user->{BILL_ID} < 1) {
+      form_bills({ USER => $user });
+      return 0;
+     }
+   }
 
   if ($FORM{DATE}) {
     ($DATE, $TIME)=split(/ /, $FORM{DATE});
@@ -5450,6 +5465,8 @@ if (defined($attr->{USER})) {
      }
    }
 
+
+return 0 if ($attr->{REGISTRATION} && $FORM{add});
 #exchange rate sel
 $payments->{SEL_ER}=$html->form_select('ER', 
                                 { 
@@ -5515,8 +5532,20 @@ if ($permissions{1} && $permissions{1}{1}) {
    if (in_array('Docs', \@MODULES) ) {
      $payments->{DOCS_ACCOUNT_ELEMENT} .= "<tr><td colspan=2>$_INVOICE:</td><td>". $html->form_input('CREATE_INVOICE', '1', { TYPE => 'checkbox', STATE => 1 }). "</td></tr>\n";
     }   
+   
+   
+   if ($attr->{ACTION}) {
+	   $payments->{ACTION}    = $attr->{ACTION};
+	   $payments->{LNG_ACTION}= $attr->{LNG_ACTION}
+	  }
+	 else {
+	   $payments->{ACTION}    = 'add';
+	   $payments->{LNG_ACTION}= $_ACTIVATE;
+	  }
 
-   $html->tpl_show(templates('form_payments'), $payments);
+   
+   $html->tpl_show(templates('form_payments'), { %$payments, %FORM, %$attr  });
+   return 0 if ($attr->{REGISTRATION});
  }
 }
 elsif($FORM{AID} && ! defined($LIST_PARAMS{AID})) {
@@ -5525,6 +5554,7 @@ elsif($FORM{AID} && ! defined($LIST_PARAMS{AID})) {
 	return 0;
  }
 elsif($FORM{UID}) {
+	$index = get_function_index('form_fees');
 	form_users();
 	return 0;
  }	
@@ -5758,9 +5788,8 @@ sub get_fees_types  {
 #**********************************************************
 sub form_fees_wizard  {
 	my ($attr)=@_;
-	
   my $fees = Finance->fees($db, $admin, \%conf);
-  
+ 
 
 if ($FORM{add}) {
 	%FEES_METHODS = %{ get_fees_types({ SHORT => 1 }) };
@@ -5798,13 +5827,14 @@ my $table = $html->table( { width      => '100%',
                             title      => [ '#', $_TYPE, $_SUM, $_DESCRIBE, "$_ADMIN $_DESCRIBE" ],
                             cols_align => ['right', 'left', 'left', 'left', 'center:noprint'],
                             qs         => $pages_qs,
-                            pages      => $nas->{TOTAL}
+                            #pages      => $nas->{TOTAL},
+                            ID         => 'FEES_WIZARD'
                        } );
 
 
 for (my $i=0; $i<=6; $i++) {
   my $method =  $html->form_select('METHOD_'.$i, 
-                                { SELECTED     => '',
+                                { SELECTED     => $FORM{'METHOD_'.$i},
  	                                SEL_HASH     => {'' => '', %FEES_METHODS },
  	                                NO_ID        => 1,
  	                                SORT_KEY     => 1
@@ -5812,21 +5842,30 @@ for (my $i=0; $i<=6; $i++) {
 
   $table->addrow(($i+1), 
    $method,
-   $html->form_input('SUM_'.$i, '', { SIZE => 8 }),
-   $html->form_input('DESCRIBE_'.$i, '', { SIZE => 30 }),
-   $html->form_input('INNER_DESCRIBE_'.$i, '', { SIZE => 30 }),
+   $html->form_input('SUM_'.$i, $FORM{'SUM_'.$i}, { SIZE => 8 }),
+   $html->form_input('DESCRIBE_'.$i, $FORM{'DESCRIBE_'.$i}, { SIZE => 30 }),
+   $html->form_input('INNER_DESCRIBE_'.$i, $FORM{'INNER_DESCRIBE_'.$i}, { SIZE => 30 }),
    );
 }
 
 my $output = $table->show({ OUTPUT2RETURN => 1 });
 
 if ($attr->{ACTION}) {
-	print $html->form_main({ CONTENT => $output,
+  my $action = "";
+  if ($attr->{ACTION}) {
+	  $action = $html->form_input('back', "$_BACK", {  TYPE => 'submit' }).
+	  $html->form_input('next', "$_NEXT", {  TYPE => 'submit' });
+   }
+  else{
+	  $action = $html->form_input('change', "$_CHANGE", {  TYPE => 'submit' });
+   }
+
+	print $html->form_main({ CONTENT => $output. $action,
 	                         HIDDEN  => { index    => "$index",
 	                         	            step     => $FORM{step},
 	                         	            UID      => "$FORM{UID}"
                                      },
-	                         SUBMIT  =>  { $atrr->{ACTION}   => $attr->{LNG_ACTION} } 
+	                         #SUBMIT  =>  { $atrr->{ACTION}   => $attr->{LNG_ACTION} } 
 	                       });
  }
 else {
@@ -8167,7 +8206,7 @@ sub cross_modules_call  {
   my %full_return = '';
 
   foreach my $mod (@MODULES) {
-    require "Abills/modules/$mod/webinterface";
+    load_module("$mod", $html);
     my $function = lc($mod).$function_sufix;
     my $return;
     if (defined(&$function)) {
@@ -8275,5 +8314,34 @@ sub upload_file {
   	$html->message('err', $_ERROR, "$_ERROR  '$!'");
    }
 }
+
+
+#**********************************************************
+# load_module($string, \%HASH_REF);
+#**********************************************************
+sub load_module {
+	my ($module, $attr) = @_;
+
+	my $lang_file = '';
+  foreach my $prefix (@INC) {
+    my $realfilename = "$prefix/Abills/modules/$module/lng_$attr->{language}.pl";
+    if (-f $realfilename) {
+      $lang_file =  $realfilename;
+      last;
+     }
+    elsif (-f "$prefix/Abills/modules/$module/lng_english.pl") {
+    	$lang_file = "$prefix/Abills/modules/$module/lng_english.pl";
+     }
+   }
+
+  if ($lang_file ne '') {
+    require $lang_file;
+   }
+
+ 	require "Abills/modules/$module/webinterface";
+
+	return 0;
+}
+
 
 1

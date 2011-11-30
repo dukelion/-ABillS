@@ -42,5 +42,6 @@ function check_status(object, text) {
 <tr><td>$_ABON:</td><td>%ABON_DATE%</td></tr>
 <tr><td colspan='2'>%REGISTRATION_INFO%  %REGISTRATION_INFO_PDF%</td></tr>
 </table>
-<input type=submit name='%ACTION%' value='%LNG_ACTION%' class='noprint' onclick=\"return check_status(this, 'Удалить 77?')\">
+%BACK_BUTTON%
+<input type=submit name='%ACTION%' value='%LNG_ACTION%' class='noprint' onclick=\"return check_status(this, '$_DELETE ?')\">
 </form>

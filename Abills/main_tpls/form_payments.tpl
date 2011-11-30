@@ -15,6 +15,7 @@ function postthread(param) {
 <input type=hidden name=subf value=$FORM{subf}>
 <input type=hidden name=OP_SID value=%OP_SID%>
 <input type=hidden name=UID value=%UID%>
+<input type=hidden name=step value=$FORM{step}>
 
 <TABLE>
 <TR><TH class='form_title' colspan=3>$_PAYMENTS</TH></TR>
@@ -26,13 +27,13 @@ function postthread(param) {
 <TR><TD colspan=2>$_PAYMENT_METHOD:</TD><TD>%SEL_METHOD%</TD></TR>
 <TR><TD colspan=2>EXT ID:</TD><TD><input type=text name='EXT_ID' value='%EXT_ID%'></TD></TR>
 %EXT_DATA%
-%DATE%
+
 
 
 %DOCS_ACCOUNT_ELEMENT%
 
 
 </TABLE>
-<input type=submit name=add value='$_ADD' ID='submitbutton' >
+%BACK_BUTTON% <input type=submit name=%ACTION% value='%LNG_ACTION%' ID='submitbutton' >
 </form>
 </div>

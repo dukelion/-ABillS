@@ -74,5 +74,5 @@ else {
 %EXTRA_PARAMS%
 <!-- <tr><td>$_LOCK:</td><td><input type=checkbox name=LOCK value=1 %LOCK%></td></tr> -->
 </table>
-<input type=submit name='%ACTION%' value='%LNG_ACTION%' id='go' title='Ctrl+C'/>
+%BACK_BUTTON% <input type=submit name='%ACTION%' value='%LNG_ACTION%' id='go' title='Ctrl+C'/>
 </FORM>

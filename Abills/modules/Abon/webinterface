@@ -34,13 +34,12 @@ sub abon_user_del {
 sub abon_user {
  my ($attr) = @_;
 
-
+ my $message = '';
  if ($FORM{change} || $FORM{add}) {
     $FORM{QUICK}=1;
-  	require "Abills/modules/Docs/webinterface";
+  	load_module('Docs', $html);
 
     $users->pi({ UID => $users->{UID} || $FORM{UID} || $LIST_PARAMS{UID} });
-
     my @new_arr  = ();
     my @ids_arr  = split(/, /, $FORM{IDS});
     my %ids_hash = ();
@@ -65,7 +64,6 @@ sub abon_user {
     @new_arr = keys %ids_hash;
     if ($#new_arr > -1) {
       my $list = $Abon->tariff_list({ IDS => join(', ', @new_arr) });  
-      
       foreach my $line (@$list) {
         my ($Y, $M, $D)=split(/-/, $FORM{'DATE_'.$line->[7]}, 3);
         my $seltime = POSIX::mktime(0, 0, 0, $D, ($M - 1), ($Y - 1900));
@@ -104,7 +102,7 @@ sub abon_user {
            }
           elsif ($line->[2] == 1 && $Abon->{TP_INFO}->{PERIOD_ALIGNMENT} == 1) {
             $Abon->{ACTIVATE}=$users->{ACTIVATE};
-            abon_get_month_fee($Abon);      
+            $message .= abon_get_month_fee($Abon);
            }
           else {
             $fees->take($users, $Abon->{TP_INFO}->{MONTH_FEE}, { %PARAMS } ); 
@@ -112,8 +110,7 @@ sub abon_user {
         	    $html->message('err', "$_FEES : $_ERROR", "[$fees->{errno}] $fees->{errstr}");	
              }
             else {
-            	my $message = "$_ABON: $Abon->{TP_INFO}->{MONTH_FEE} ($Abon->{TP_INFO}->{TP_ID})";
-              $html->message('info', $_INFO, $message);	
+            	$message .= "$_ABON: $Abon->{TP_INFO}->{MONTH_FEE} ($Abon->{TP_INFO}->{TP_ID})\n";
              }
            }
 
@@ -157,15 +154,16 @@ sub abon_user {
       delete $FORM{IDS};
       $Abon->user_tariff_change({ %FORM, 
       	                         IDS => join(', ', @add_arr),
-      	                         DEL => join(', ', @del_arr) }) ;  
+      	                         DEL => join(', ', @del_arr) 
+      	                        }) ;  
 
       if (! $Abon->{errno}){
-    	   $html->message('info', $_ABON, "$_CHANGED");
        }
       else {
     	  $html->message('err', $_ERROR, "[$Abon->{errno}] $err_strs{$Abon->{errno}}");	
        }
-   
+
+   $html->message('info', $_ABON, $message) if ($message);	   
    return 0 if ($attr->{QUITE} || $attr->{REGISTRATION});
   }
  
@@ -177,14 +175,20 @@ my $table = $html->table( { width      => '100%',
                             cols_align => ['left', 'left', 'left', 'right', 'left', 'right', 'right'],
                             qs         => $pages_qs,
                             ID         => 'USER_ABON'
-                           });
+                          });
 
+my @ids = ();
+if ($FORM{step}) {
+  @ids = split(/, /, $FORM{IDS});
+ }
 
 foreach my $line (@$list) {
+	my $describe =  $line->[2] || $FORM{'COMMENTS_'.$line->[0]};
+	my $state    = ($#ids > -1) ? in_array($line->[0], \@ids) :  $line->[8];
   $table->addrow($line->[0] . $html->form_input('IDS', "$line->[0]", { TYPE => 'CHECKBOX', 
-  	                                                      STATE => ($line->[8] == 1) ? 1 : undef   }),
+  	                                                      STATE => ($state == 1) ? 1 : undef   }),
      ($permissions{5}) ? $html->button($line->[1], "index=".get_function_index('abon_tariffs').'&ABON_ID='.$line->[0]) : "$line->[1]",
-     $html->form_input('COMMENTS_'.$line->[0], "$line->[2]", { SIZE => 40 }),
+     $html->form_input('COMMENTS_'.$line->[0], "$describe", { SIZE => 40 }),
      "$line->[3]", 
      $PERIODS[$line->[4]], 
      "$line->[5]",
@@ -197,23 +201,22 @@ foreach my $line (@$list) {
    );
  }
 
-
-my %ACTION = ();
-
+my $action = "";
 if ($attr->{ACTION}) {
-	$ACTION{$attr->{ACTION}} = $attr->{LNG_ACTION};
+	$action = $html->form_input('back', "$_BACK", {  TYPE => 'submit' }).
+	$html->form_input('next', "$_NEXT", {  TYPE => 'submit' });
  }
 else{
-	$ACTION{'change'}        = "$_CHANGE";
+	$action = $html->form_input('change', "$_CHANGE", {  TYPE => 'submit' });
 }
 
-print $html->form_main({ CONTENT => $table->show(),
+print $html->form_main({ CONTENT => $table->show(). $action,
 	                 HIDDEN  => { index  => "$index", 
 	                 	            UID    => $FORM{UID},
 	                 	            step   => $FORM{step}
 	                 	           },
 	                 NAME    => 'ABON_USER_TPS',
-	                 SUBMIT  => \%ACTION
+	                 #SUBMIT  => \%ACTION
 	                });
 
 }
@@ -692,12 +695,12 @@ sub abon_get_month_fee {
 
   my $result_sum = 0;
 
+  my $message = ''; 
   #Get month fee
   if ($Abon->{TP_INFO}->{MONTH_FEE} > 0) {
      my $sum   = $Abon->{TP_INFO}->{MONTH_FEE};
      my $user  = $users->info($Abon->{UID});
 
-     my $message = ''; 
      #Current Month
      my ($y, $m, $d)=split(/-/, $DATE, 3);
      my ($active_y, $active_m, $active_d)=split(/-/, $Abon->{ACTIVATE}, 3);	 
@@ -706,7 +709,7 @@ sub abon_get_month_fee {
       }
 
         if ($Abon->{TP_INFO}->{PERIOD_ALIGNMENT}) {
-        	$message = ", $_PERIOD_ALIGNMENT";
+        	$message = ", $_PERIOD_ALIGNMENT\n";
           my $days_in_month=($m!=2?(($m%2)^($m>7))+30:(!($y%400)||!($y%4)&&($y%25)?29:28));
 
           if ($Abon->{ACTIVATE} && $Abon->{ACTIVATE} ne '0000-00-00') {
@@ -728,7 +731,7 @@ sub abon_get_month_fee {
         	$periods = 12 - $active_m + $m; 
          }
 
-        $message = "$_ABON: ". (($Abon->{COMMENTS}) ? " $Abon->{TP_INFO}->{NAME} $Abon->{COMMENTS}" : " [$Abon->{TP_INFO}->{TP_ID}] $Abon->{TP_INFO}->{NAME} " ) .$message;
+        $message = "$_ABON: ". (($Abon->{COMMENTS}) ? " $Abon->{TP_INFO}->{NAME} $Abon->{COMMENTS}" : " [$Abon->{TP_INFO}->{TP_ID}] $Abon->{TP_INFO}->{NAME} " ) .$message."\n";
 
         for (my $i=0; $i<=$periods; $i++) {
           if ($active_m+$i > 12) {
@@ -740,7 +743,7 @@ sub abon_get_month_fee {
 
           if ( $i > 0 ) {
   	        $sum     = $Abon->{TP_INFO}->{MONTH_FEE};
-            $message = "$_ABON: $sum ($Abon->{TP_INFO}->{TP_ID})";
+            $message = "$_ABON: $sum ($Abon->{TP_INFO}->{TP_ID})\n";
             $DATE    = "$active_y-$m-01";
             $TIME    = "00:00:00";
            }
@@ -765,14 +768,12 @@ sub abon_get_month_fee {
         
           if ($fees->{errno}) {
         	  $html->message('err', $_ERROR, "[$fees->{errno}] $fees->{errstr}");	
-           }
-          else {
-            $html->message('info', $_INFO, $message);	
+        	  $message = '';
            }
          }
-
-
       }
+
+   return $message;
 }
 
 

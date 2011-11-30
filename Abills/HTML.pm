@@ -1107,7 +1107,7 @@ sub th {
 	my $self = shift;
 	my ($value, $attr) = @_;
 	
-	return $self->td($value, { TH => 1, ($attr) ? %$attr : undef  } );
+	return $self->td($value, { TH => 1, ($attr) ?  %$attr  : undef } );
 }
 
 #*******************************************************************
@@ -1118,7 +1118,7 @@ sub td {
   my $self = shift;
   my ($value, $attr) = @_;
   my $extra='';
-  
+
   while(my($k, $v)=each %$attr ) {
     next if ($k eq 'TH');
     $extra.=" $k=$v";

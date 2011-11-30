@@ -945,18 +945,20 @@ sub leases_list {
 
  # IP, START, MAC, HOSTNAME, ENDS, STATE, REMOTE_ID, 
  
-  $self->query($db,"SELECT '', INET_NTOA(ip), start,  hardware, hostname, 
-  ends,
-  state,
-  port,
-  vlan,
-
-  remote_id,
-  circuit_id,
-  next_state,
-  uid,
-  nas_id
-  FROM dhcphosts_leases 
+  $self->query($db,"SELECT if (l.uid > 0, u.uid, ''), 
+  INET_NTOA(l.ip), l.start, l.hardware, l.hostname, 
+  l.ends,
+  l.state,
+  l.port,
+  l.vlan,
+  l.flag,
+  l.remote_id,
+  l.circuit_id,
+  l.next_state,
+  l.uid,
+  l.nas_id
+  FROM dhcphosts_leases  l
+  LEFT JOIN users u ON (u.uid=l.uid)
    $WHERE 
   ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS; ");
 
@@ -964,9 +966,7 @@ sub leases_list {
 
   $self->query($db,"SELECT count(*) FROM dhcphosts_leases $WHERE;");
 
-  ($self->{TOTAL}) = @{ $self->{list}->[0] };
-
-  
+  ($self->{TOTAL}) = @{ $self->{list}->[0] };  
 
   return $list;
 }

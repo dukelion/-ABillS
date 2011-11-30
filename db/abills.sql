@@ -1259,7 +1259,8 @@ CREATE TABLE `reg_wizard` (
   `aid` smallint(6) unsigned NOT NULL default '0',
   `module` varchar(40) NOT NULL default '',
   `step` tinyint(2) NOT NULL default '0',
-  `session_id` varchar(30) NOT NULL default '' 
+  `session_id` varchar(30) NOT NULL default '',
+ UNIQUE KEY `session_id` (`session_id`, `step`, `param`) 
 ) COMMENT "Registration wizard temp table";
 
     

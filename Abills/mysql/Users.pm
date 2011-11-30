@@ -2403,6 +2403,11 @@ sub wizard_list {
 	 push @WHERE_RULES, @{ $self->search_expr($attr->{SESSION_ID}, 'INT', 'session_id') };
   }
 
+ if ($attr->{STEP}) {
+	 push @WHERE_RULES, @{ $self->search_expr($attr->{STEP}, 'INT', 'step') };
+  }
+
+
  my $WHERE = ($#WHERE_RULES > -1) ?  "WHERE " . join(' and ', @WHERE_RULES) : ''; 
  my $sql = "SELECT session_id, step, param, value
    FROM reg_wizard
