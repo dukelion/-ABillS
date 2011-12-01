@@ -1550,7 +1550,7 @@ sub docs_account {
    my $action = '';	 
  	 if ($attr->{ACTION}) {
 	   $action = $html->form_input('back', "$_BACK", {  TYPE => 'submit' }).
-	             $html->form_input('make', "$_CREATE $_ACCOUNT", {  TYPE => 'submit' });
+	             $html->form_input('make', "$attr->{LNG_ACTION}", {  TYPE => 'submit' });
     }
    else{
 	   $action = $html->form_input('make', "$_CREATE $_ACCOUNT", {  TYPE => 'submit' });

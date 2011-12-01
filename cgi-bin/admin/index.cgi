@@ -776,7 +776,7 @@ else {
  	  $fn->({ ACTION      => 'next',
  	  	      REGISTRATION=> 1,
  	  	      USER        => \%FORM,
- 	  	      LNG_ACTION  => ($steps{$FORM{step}+1}) ? "$_NEXT " : "$_REGISTRATION",
+ 	  	      LNG_ACTION  => ($steps{$FORM{step}}) ? "$_NEXT " : "$_REGISTRATION",
  	  	      BACK_BUTTON => ($FORM{step} > 1) ? $html->form_input('back', "$_BACK", {  TYPE => 'submit' }) : undef,
  	  	      UID         => $FORM{UID},
  	  	      %DATA_
