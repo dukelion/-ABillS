@@ -1586,6 +1586,7 @@ sub date_fld2  {
    	   $day=1;
       }
      $date = sprintf("%d-%.2d-%.2d", $year, $month, $day);
+     $self->{$base_name}=$date;
     }
 
 my $monthes = "'January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'";

@@ -228,11 +228,48 @@ sub docs_invoice {
  	                                  });
 
     $users->pi({ UID => $users->{UID} });
-    $Docs->{OP_SID}  = mk_unique_value(16);
-    $Docs->{CUSTOMER}= $users->{FIO} || '-';
-    $Docs->{CAPTION} = $_INVOICE;
-    $Docs->{DATE_FIELD}=$html->date_fld2('DATE', { MONTHES => \@MONTHES, FORM_NAME => 'account_add', WEEK_DAYS => \@WEEKDAYS });        
-    $html->tpl_show(_include('docs_account_add', 'Docs'), { %$Docs, %$users }) if (! $FORM{pdf});
+    $Docs->{OP_SID}    = mk_unique_value(16);
+    $Docs->{CUSTOMER}  = $users->{FIO} || '-';
+    $Docs->{CAPTION}   = $_INVOICE;
+    $Docs->{DATE} = $html->date_fld2('DATE', { MONTHES => \@MONTHES, FORM_NAME => 'invoice_add', WEEK_DAYS => \@WEEKDAYS });
+    $Docs->{FROM_DATE} = $html->date_fld2('FROM_DATE', { MONTHES => \@MONTHES, FORM_NAME => 'invoice_add', WEEK_DAYS => \@WEEKDAYS });
+    $Docs->{TO_DATE}= $html->date_fld2('TO_DATE', { MONTHES => \@MONTHES, FORM_NAME => 'invoice_add', WEEK_DAYS => \@WEEKDAYS });
+
+    my $list = $Fees->list({ FROM_DATE => $html->{FROM_DATE},
+    	                       TO_DATE   => $html->{TO_DATE},
+    	                       PAGE_ROWS => 500,
+    	                       UID       => $users->{UID}
+    	                      });   
+
+    my $table = $html->table( { width      => '100%',
+                            caption    => "$_ORDERS",
+                            border     => 1,
+                            title_plain=> ['#', "$_LOGIN", "$_DATE", "$_DESCRIBE", $_SUM ],
+                            cols_align => ['right', 'left', 'right', 'right' ],
+                            pages      => $Docs->{TOTAL},
+                            ID         => 'DOCS_INVOCE_ORDERS'
+                           });
+
+    my $num       = 0;
+    my $total_sum = 0;
+    foreach my $line (@$list) {
+      $num++;
+      $table->addrow($html->form_input("IDS", "$line->[0]", { TYPE => 'checkbox' }). "$num", 
+        "$line->[1]",
+        "$line->[2]", 
+        "$line->[3]", 
+        "$line->[4]"
+         );      
+      $total_sum+=$line->[4]; 
+     }
+
+    $table->{extra}=" colspan=4 class=total ";
+    $table->addrow("$_COUNT: $num", "$total_sum");
+
+    $Docs->{ORDERS} =  $table->show();
+
+
+    $html->tpl_show(_include('docs_invoice_add', 'Docs'), { %$attr, %$Docs, %$users }) if (! $FORM{pdf});
    }
 
   docs_invoice_list();
