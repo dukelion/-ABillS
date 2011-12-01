@@ -548,8 +548,13 @@ sub dv_user {
 	 }
 
   if ($Dv->{errno}) {
-    $html->message('err', $_ERROR, "[$Dv->{errno}] $err_strs{$Dv->{errno}}");
-    return 1 if ($attr->{REGISTRATION});
+    if ($Dv->{errno}==15) {
+    	$html->message('err', "Internet:$_ERROR", "$ERR_SMALL_DEPOSIT");
+     }
+    else {
+ 	    $html->message('err', "Internet:$_ERROR", "[$Dv->{errno}] $err_strs{$Dv->{errno}}");
+      return 1 if ($attr->{REGISTRATION});	
+     } 
    }
 
   $Dv->info($Dv->{UID});
