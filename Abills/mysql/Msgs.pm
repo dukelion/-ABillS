@@ -220,13 +220,15 @@ sub messages_list {
  }
 
  
-
  if (defined($attr->{STATE})) {
    if ($attr->{STATE} == 4) {
    	 push @WHERE_RULES, @{ $self->search_expr('0000-00-00 00:00:00', 'INT', 'm.admin_read') };
     }
    elsif ($attr->{STATE} == 7) {
      push @WHERE_RULES, @{ $self->search_expr(">0", 'INT', 'm.deligation')  };
+    }
+   elsif ($attr->{STATE} == 8) {
+     push @WHERE_RULES, @{ $self->search_expr("$admin->{AID}", 'INT', 'm.resposible')  };
     }
    else {
      push @WHERE_RULES, @{ $self->search_expr($attr->{STATE}, 'INT', 'm.state')  };

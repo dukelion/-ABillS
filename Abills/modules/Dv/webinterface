@@ -527,7 +527,8 @@ sub dv_user {
                               });
        if ($Shedule->{TOTAL} == 1) {
        	 $Shedule->del({ UID    => $FORM{UID},
-                         IDS    => $list->[0][14]  });
+                         IDS    => $list->[0][14]  
+                        });
         }
      }
 
@@ -6437,7 +6438,8 @@ sub dv_get_month_fee {
   my ($Dv, $attr) = @_;
 
   my %total_sum =( ACTIVATE  => 0,
-  	               MONTH_FEE => 0 ) ;
+  	               MONTH_FEE => 0 
+  	              );
   
   $users = $user if ($user->{UID});
   #Make bonus

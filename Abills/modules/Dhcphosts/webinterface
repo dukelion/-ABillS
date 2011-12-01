@@ -202,7 +202,7 @@ sub dhcphosts_mac_block {
 #*******************************************************************
 sub dhcphosts_monitor {
 
- if (! $conf{DHCPHOSTS_LEASES}) {
+ if (! $conf{DHCPHOSTS_LEASES} && ! $AUTH{dhcp}) {
   	print $html->message('err', $_ERROR, "$_NOT_EXIST ". '$conf{DHCPHOSTS_LEASES}');
   	return 0;
   }
@@ -1281,7 +1281,7 @@ $INFO{NETWORKS} .="}
 #	print "<table><tr><td><pre>$conf_content</pre></td></tr></table>\n";
 
 
-if ($attr->{reconfig} || $FORM{reconfig} ) {
+if (! $AUTH{dhcp} && ($attr->{reconfig} || $FORM{reconfig})) {
 	$conf{DHCPHOSTS_CONFIG} = "/usr/local/etc/dhcpd.conf" if (! $conf{DHCPHOSTS_CONFIG}) ;
   
   my $tpl = $html->tpl_show(_include('dhcphosts_dhcp_conf_main', 'Dhcphosts'), 

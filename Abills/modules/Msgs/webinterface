@@ -391,6 +391,8 @@ sub msgs_admin_add {
  	                                          SEL_MULTI_ARRAY   => $Msgs->chapters_list({ CHAPTERS => $LIST_PARAMS{CHAPTERS} }),
  	                                          MULTI_ARRAY_KEY   => 0,
  	                                          MULTI_ARRAY_VALUE => 1,
+ 	                                          MAIN_MENU         => get_function_index('msgs_chapters'),
+ 	                                          MAIN_MENU_AGRV    => "chg=$Msgs->{CHAPTER}"
  	                                        });
 
   $Msgs->{DATE}        = $html->date_fld2('DATE', { MONTHES   => \@MONTHES, 
@@ -471,7 +473,8 @@ sub msgs_admin {
                   "$_NEW_MESSAGE",
                   "$_HOLD_UP",
                   "$_ANSWER_WAIT",
-                  "$_DELIGATED"
+                  "$_DELIGATED",
+                  "$_RESPOSIBLE",
                   );
 
   @msg_status = @msg_status_all;
@@ -646,6 +649,8 @@ sub msgs_admin {
  	                                          SEL_MULTI_ARRAY   => [['', ''], @{ $Msgs->chapters_list({ CHAPTERS => join(',', keys %A_PRIVILEGES) }) } ],
  	                                          MULTI_ARRAY_KEY   => 0,
  	                                          MULTI_ARRAY_VALUE => 1,
+ 	                                          MAIN_MENU         => get_function_index('msgs_chapters'),
+ 	                                          MAIN_MENU_AGRV    => "chg=$Msgs->{CHAPTER}"
  	                                        });    
     
     $Msgs->{PLAN_DATE} = $html->date_fld2('PLAN_DATE', { NO_DEFAULT_DATE=>1, MONTHES => \@MONTHES, FORM_NAME => 'add_message', WEEK_DAYS => \@WEEKDAYS });
@@ -774,9 +779,9 @@ sub msgs_admin {
    }
   elsif ($FORM{del} && $FORM{is_js_confirmed}) {
   	if ($conf{MSGS_REDIRECT_FILTER_ADD}) {
-       require "Dv.pm";
-       $Dv = Dv->new($db, $admin, \%conf);
-       $Dv->change({ UID => $FORM{UID}, FILTER_ID => '' });
+      require "Dv.pm";
+      $Dv = Dv->new($db, $admin, \%conf);
+      $Dv->change({ UID => $FORM{UID}, FILTER_ID => '' });
      }
 
     $Msgs->message_del({ ID => $FORM{del}, UID => $UID  });
@@ -829,6 +834,8 @@ sub msgs_admin {
  	                                          SEL_MULTI_ARRAY   => [ [ 0, "$_ALL" ], @{ $Msgs->chapters_list({ CHAPTERS => join(',', keys %A_PRIVILEGES) }) } ],
  	                                          MULTI_ARRAY_KEY   => 0,
  	                                          MULTI_ARRAY_VALUE => 1,
+ 	                                          MAIN_MENU         => get_function_index('msgs_chapters'),
+ 	                                          MAIN_MENU_AGRV    => "chg=$Msgs->{CHAPTER}"
  	                                        }); 
 
     $Msgs->{PLAN_DATE} = "0000-00-00";
@@ -1049,6 +1056,8 @@ sub msgs_user {
                   "$_ANSWER_WAIT",
                   );
  
+   print "Content-Type: text/html\n\n";
+ 
 	 $Msgs->{STATE_SEL} =  $html->form_select('STATE', 
                                           { 
  	                                          SELECTED          => $FORM{STATE} || 0,
@@ -1208,8 +1217,6 @@ sub msgs_user {
  	 	                        });
 
  	 	 if ($conf{MSGS_REDIRECT_FILTER_DEL}) {
- 	 	 	 print "!! $conf{MSGS_REDIRECT_FILTER_DEL} !!";
- 	 	 	
        require "Dv.pm";
        my $Dv = Dv->new($db, $admin, \%conf);
        $Dv->change({ UID => $LIST_PARAMS{UID}, FILTER_ID => '' });	
@@ -1245,6 +1252,8 @@ sub msgs_user {
  	                                          SEL_MULTI_ARRAY   => $Msgs->chapters_list({ INNER_CHAPTER => 0 }),
  	                                          MULTI_ARRAY_KEY   => 0,
  	                                          MULTI_ARRAY_VALUE => 1,
+ 	                                          MAIN_MENU         => get_function_index('msgs_chapters'),
+ 	                                          MAIN_MENU_AGRV    => "chg=$Msgs->{CHAPTER}"
  	                                        });
 
    $html->tpl_show(_include('msgs_send_form_user', 'Msgs'), $Msgs);
@@ -1357,9 +1366,7 @@ sub msgs_chapters {
     $html->message('info', $_INFO, "$_CHANGED") if (! $Msgs->{errno});  	
    }
   elsif ($FORM{chg}) {
-
     $Msgs->chapter_info($FORM{chg});
-
     $Msgs->{ACTION}='change';
     $Msgs->{LNG_ACTION}=$_CHANGE;
 
@@ -1695,13 +1702,13 @@ sub msgs_new {
         	                   USER_READ  => "$DATE $TIME",
  	 	                         });
 
-
      	 	  if ($conf{MSGS_REDIRECT_FILTER_DEL}) {
             require "Dv.pm";
             my $Dv = Dv->new($db, $admin, \%conf);
             $Dv->change({ UID => $LIST_PARAMS{UID}, FILTER_ID => '' });	
             if ($conf{MSGS_REDIRECT_FILTER_DEL} =~ /EXEC:(.+)/) {
        	      my $cmd = $1;
+       	      $cmd =~ s/\%DATE\%/$DATE $TIME/g;
        	      $cmd =~ s/\%IP\%/$ENV{REMOTE_ADDR}/g;
        	      $cmd =~ s/\%LOGIN\%/$user->{LOGIN}/g;
        	      $cmd =~ s/\%MSG_ID\%/$Msgs->{MSG_ID}/g;
@@ -2334,6 +2341,8 @@ sub msgs_unreg_requests_list {
  	                                          SEL_MULTI_ARRAY   => [ [ 0, "$_ALL" ], @{ $Msgs->chapters_list() } ],
  	                                          MULTI_ARRAY_KEY   => 0,
  	                                          MULTI_ARRAY_VALUE => 1,
+ 	                                          MAIN_MENU         => get_function_index('msgs_chapters'),
+ 	                                          MAIN_MENU_AGRV    => "chg=$Msgs->{CHAPTER}"
  	                                        }); 
 
     $Msgs->{PLAN_DATE}="0000-00-00";
@@ -2503,6 +2512,8 @@ sub msgs_unreg_requests {
  	                                          SEL_MULTI_ARRAY   => $Msgs->chapters_list({ CHAPTERS => $LIST_PARAMS{CHAPTERS} }),
  	                                          MULTI_ARRAY_KEY   => 0,
  	                                          MULTI_ARRAY_VALUE => 1,
+ 	                                          MAIN_MENU         => get_function_index('msgs_chapters'),
+ 	                                          MAIN_MENU_AGRV    => "chg=$Msgs->{CHAPTER}"
  	                                        });
 
 
