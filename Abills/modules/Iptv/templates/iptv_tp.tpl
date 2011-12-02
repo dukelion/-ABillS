@@ -3,7 +3,7 @@
 <input type=hidden name=index value=$index>
 <input type=hidden name=TP_ID value='%TP_ID%'>
 <table border=0>
-  <tr><th>#</th><td><input type=text name=CHG_TP_ID value='%TP_ID%'></td></tr>
+  <tr><th>#</th><td><input type=text name=CHG_TP_ID value='%ID%'></td></tr>
   <tr><td>$_NAME:</td><td><input type=text name=NAME value='%NAME%'></td></tr>
   <tr><td>$_UPLIMIT:</td><td><input type=text name=ALERT value='%ALERT%'></td></tr>
   <tr><td>$_GROUP:</td><td>%GROUPS_SEL%</td></tr>

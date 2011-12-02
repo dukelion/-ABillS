@@ -353,10 +353,11 @@ sub iptv_user {
    }
 	elsif($FORM{set}) {
     $Iptv->user_change({ %FORM });
-
+    
     if (! $Iptv->{errno}) {
     	$Iptv->{ACCOUNT_ACTIVATE}=$attr->{USER}->{ACTIVATE};
       iptv_get_month_fee($Iptv) if (! $FORM{STATUS});
+      $Iptv->user_channels();
       $html->message('info', $_INFO, "$_CHANGED");	
       if ($conf{IPTV_DVCRYPT_FILENAME}) {
       	 dv_crypt();
@@ -834,7 +835,7 @@ foreach my $line (@$list) {
     $change = $html->button($_CHANGE, "index=$index&TP_ID=$line->[18]", { CLASS => 'change' });
    }
   
-  if($FORM{TP_ID} eq $line->[0]) {
+  if($FORM{TP_ID} eq $line->[18]) {
   	$table->{rowcolor}=$_COLORS[0];
    }
   else {
@@ -1980,14 +1981,21 @@ sub iptv_monthly_fees {
 
  my $debug = $attr->{DEBUG} || 0;
  my $debug_output = '';
- $debug_output .= "Iptv - Monthly pariodic payments\n" if ($debug > 1);
+ $debug_output .= "Iptv - Monthly periodic payments\n" if ($debug > 1);
 
  use Users;
+
+ 
+ $LIST_PARAMS{TP_ID} = $attr->{TP_ID} if ($attr->{TP_ID});
+ my %USERS_LIST_PARAMS = ();
+ $USERS_LIST_PARAMS{LOGIN} = $attr->{LOGIN} if ($attr->{LOGIN});
+ $USERS_LIST_PARAMS{EXT_BILL} = 1 if ($conf{BONUS_EXT_FUNCTIONS});
+
+
  my $users = Users->new($db, $admin, \%conf); 
 
  #close period Fees
- if ($conf{IPTV_CLOSE_PERIOD}) {
- 	
+ if ($conf{IPTV_CLOSE_PERIOD}) { 	
  	 $users->config_info({ PARAM => 'IPTV_CLOSED_PERIOD' });
    if ($users->{VALUE} ne '1') {
      $debug_output	.= "Period not closed\n" if ($debug > 1);
@@ -1996,17 +2004,19 @@ sub iptv_monthly_fees {
     }
 	}
 
-
- my $list = $Tariffs->list({ %LIST_PARAMS, MODULE => 'Iptv' });
+ $Tariffs->{debug}=1 if ($debug > 6);
+ my $list = $Tariffs->list({ %LIST_PARAMS, 
+ 	                            MODULE      => 'Iptv' 
+ 	                         });
  $ADMIN_REPORT{DATE}=$DATE if (! $ADMIN_REPORT{DATE});
  my ($y, $m, $d)=split(/-/, $ADMIN_REPORT{DATE}, 3);
  $m--;
 
-  if ($d != 1) {
-    $debug_output	.= "Period not closed\n" if ($debug > 1);
-    $DEBUG .= $debug_output;
-    return $debug_output;	
-   }
+ if ($d != 1) {
+   $debug_output	.= "Period not closed\n" if ($debug > 1);
+   $DEBUG .= $debug_output;
+   return $debug_output;	
+  }
  
  my $date_unixtime =  mktime(0, 0, 0, $d, $m, $y - 1900, 0, 0, 0);
 #Get Preview month begin end
@@ -2021,18 +2031,20 @@ sub iptv_monthly_fees {
  my $pre_month_end   = "$y-$m-$days_in_month";
 
  foreach my $line (@$list) {
- 	 my $TP_ID       = $line->[0];
+ 	 my $TP_ID       = $line->[18];
  	 my $min_use     = $line->[15];
  	 my $postpaid    = $line->[4];
    my $tp_postpaid = $line->[12];
    my $month_fee   = $line->[6];
+   my $TP_NUM      = $line->[0];
 
    my %used_traffic = ();
 
    #Monthfee & min use
  	 if ($month_fee > 0 || $min_use > 0) {
- 	   $debug_output .= "TP ID: $line->[0] MF: $line->[6] POSTPAID: $line->[12] REDUCTION: $line->[11] EXT_BILL_ID: $line->[13] CREDIT: $line->[14] MIN_USE: $min_use\n" if ($debug > 1);
+ 	   $debug_output .= "TP ID: $TP_NUM MF: $month_fee POSTPAID: $postpaid REDUCTION: $line->[11] EXT_BILL_ID: $line->[13] CREDIT: $line->[14] MIN_USE: $min_use\n" if ($debug > 1);
 
+     $Iptv->{debug}=1 if ($debug > 6); 
      my $ulist = $Iptv->user_list({ 
          ACTIVATE   => "<='$ADMIN_REPORT{DATE}'",
          EXPIRE     => ">'$ADMIN_REPORT{DATE}'",
@@ -2041,8 +2053,8 @@ sub iptv_monthly_fees {
          TP_ID      => $TP_ID,
          SORT       => 1,
          PAGE_ROWS  => 1000000,
+         %USERS_LIST_PARAMS
  	   	 });
-
 
      foreach my $u (@$ulist) {
        $debug_output .= " Login: $u->[0] ($u->[7])  TP_ID: $u->[10] Fees: $line->[6] REDUCTION: $u->[14]  $u->[2] $u->[3] $u->[10] - $u->[11]\n" if ($debug > 3); 	
@@ -2146,7 +2158,8 @@ sub iptv_monthly_fees {
          SORT          => 1,
          PAGE_ROWS     => 1000000,
          SHOW_CHANNELS => 1,
-         MONTH_PRICE   > '>0'
+         MONTH_PRICE   => '>0',
+         %USERS_LIST_PARAMS
  	   	 });
 
      foreach my $u (@$ulist) {
@@ -2519,9 +2532,13 @@ foreach my $line (@$tp_list) {
 
   print $html->pre($content) if($debug > 1);
 
-	open(FILE, ">$filename") or print "Can't create file '$filename' $!\n";
+	if(open(FILE, ">$filename")) {
 	  print FILE $content;
-	close(FILE);
+  	close(FILE);
+   }
+  else {
+  	print "Can't create Dv_crypt file '$filename' $!\n";
+   }
 
   print "Generated '$filename'\n" if($debug > 1);
 }

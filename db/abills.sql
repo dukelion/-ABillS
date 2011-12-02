@@ -890,6 +890,7 @@ CREATE TABLE `tarif_plans` (
   `fine` double(14,2) unsigned NOT NULL default '0.00',
   `neg_deposit_ippool` smallint(6) unsigned NOT NULL DEFAULT '0',
   `next_tp_id` smallint(6) unsigned NOT NULL DEFAULT '0',
+  `fees_method` tinyint(4) UNSIGNED NOT NULL DEFAULT '0',
   PRIMARY KEY  (`id`,`module`, `domain_id`),
   UNIQUE KEY `tp_id` (`tp_id`),
   KEY `name` (`name`, `domain_id`)

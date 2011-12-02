@@ -5536,11 +5536,12 @@ if ($permissions{1} && $permissions{1}{1}) {
    
    if ($attr->{ACTION}) {
 	   $payments->{ACTION}    = $attr->{ACTION};
-	   $payments->{LNG_ACTION}= $attr->{LNG_ACTION}
+	   $payments->{LNG_ACTION}= $attr->{LNG_ACTION};
+	   print "!!!!!!!!!!!!!";
 	  }
 	 else {
 	   $payments->{ACTION}    = 'add';
-	   $payments->{LNG_ACTION}= $_ACTIVATE;
+	   $payments->{LNG_ACTION}= $_ADD;
 	  }
 
    

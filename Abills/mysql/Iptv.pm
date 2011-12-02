@@ -307,24 +307,12 @@ sub user_list {
  undef @WHERE_RULES;
  push @WHERE_RULES, "u.uid = service.uid";
  
- # Start letter 
- if ($attr->{FIRST_LETTER}) {
-    push @WHERE_RULES, "u.id LIKE '$attr->{FIRST_LETTER}%'";
-  }
- elsif ($attr->{LOGIN}) {
-    $attr->{LOGIN_EXPR} =~ s/\*/\%/ig;
-    push @WHERE_RULES, "u.id='$attr->{LOGIN}'";
-  }
- # Login expresion
- elsif ($attr->{LOGIN_EXPR}) {
-    $attr->{LOGIN_EXPR} =~ s/\*/\%/ig;
-    push @WHERE_RULES, "u.id LIKE '$attr->{LOGIN_EXPR}'";
+ if ($attr->{LOGIN}) {
+    push @WHERE_RULES, @{ $self->search_expr($attr->{LOGIN}, 'STR', 'u.id') };
   }
  
-
  if ($attr->{DEPOSIT}) {
-    my $value = $self->search_expr($attr->{DEPOSIT}, 'INT');
-    push @WHERE_RULES, "u.deposit$value";
+   push @WHERE_RULES, @{ $self->search_expr($attr->{DEPOSIT}, 'INT', 'u.deposit') };
   }
 
  if ($attr->{FILTER_ID}) {
@@ -340,12 +328,12 @@ sub user_list {
 
  if ($attr->{FIO}) {
     $attr->{FIO} =~ s/\*/\%/ig;
-    push @WHERE_RULES, "u.fio LIKE '$attr->{FIO}'";
+    push @WHERE_RULES, @{ $self->search_expr($attr->{FIO}, 'STR', 'u.fio') };
   }
 
 
  if ($attr->{COMMENTS}) {
-   push @WHERE_RULES, @{ $self->search_expr($attr->{COMMENTS}, 'INT', 'service.comments', { EXT_FIELD => 1 }) };
+   push @WHERE_RULES, @{ $self->search_expr($attr->{COMMENTS}, 'STR', 'service.comments', { EXT_FIELD => 1 }) };
   }
 
  # Show users for spec tarifplan 
