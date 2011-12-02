@@ -115,6 +115,10 @@ else {
 require Billing;
 Billing->import();
 my $Billing   = Billing->new($db, \%conf);
+require Tariffs;
+Tariffs->import();
+my $Tariffs   = Tariffs->new($db, \%conf, undef);
+
 my $fw_step   = 1000;
 my $IPFW      = '/sbin/ipfw -q';
 my @START_FW  = (5000, 3000, 1000);
@@ -230,8 +234,8 @@ if ($conf{DV_TURBO_MODE}) {
   Turbo->import();
   my $Turbo = Turbo->new($db, $admin, \%conf);
   my $list  = $Turbo->list({ UID    => $user->{UID},
-              	            ACTIVE => 1,    	             
-    	                    });
+              	             ACTIVE => 1,    	             
+    	                     });
 
   if($Turbo->{TOTAL} > 0) {
   	$user->{SPEED} = $list->[0]->[5];
@@ -389,8 +393,7 @@ if ($ACTION eq 'up' || $OS eq 'Linux') {
 
  	  my @nets_arr = ();
  	  if ($nets{$traf_type}) {
- 	    $nets{$traf_type} =~ s/[\r]?\n//g;
- 	    $nets{$traf_type} =~ s/;/,/g;
+ 	    $nets{$traf_type} =~ s/[\r\n]?//g;
  	    @nets_arr         = split(/;|,/, $nets{$traf_type});
 	   }
     elsif($traf_type == 0) { 
@@ -871,9 +874,17 @@ sub user_info {
 	    foreach my $line (@$list) {  
 	      $speeds{$line->[2]}{IN} = "$line->[3]";
         $speeds{$line->[2]}{OUT}= "$line->[4]";
- 	      $nets_id{$line->[2]}    = "$line->[5]";
+ 	      $nets_id{$line->[2]}    = $line->[5] if ($line->[5]);
  	      $expr{$line->[2]}       = "$line->[6]";
  	     }
+      
+      if ($Dv->{TOTAL} > 1) {
+      	my $list = $Tariffs->traffic_class_list();
+      	my %nets_id_rev = reverse %nets_id;
+      	foreach my $line (@$list) {
+           $nets{$nets_id_rev{$line->[0]}}=$line->[2] if ($nets_id_rev{$line->[0]});
+         }
+       }
      }
    }
 

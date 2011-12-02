@@ -1280,38 +1280,38 @@ $INFO{NETWORKS} .="}
 #my $conf_content = $html->tpl_show(_include('dhcphosts_dhcp_conf_main', 'Dhcphosts'), \%INFO, { OUTPUT2RETURN => 1 });
 #	print "<table><tr><td><pre>$conf_content</pre></td></tr></table>\n";
 
-
-if (! $AUTH{dhcp} && ($attr->{reconfig} || $FORM{reconfig})) {
-	$conf{DHCPHOSTS_CONFIG} = "/usr/local/etc/dhcpd.conf" if (! $conf{DHCPHOSTS_CONFIG}) ;
+if (! $AUTH{dhcp}) {
+  if (($attr->{reconfig} || $FORM{reconfig})) {
+	  $conf{DHCPHOSTS_CONFIG} = "/usr/local/etc/dhcpd.conf" if (! $conf{DHCPHOSTS_CONFIG}) ;
   
-  my $tpl = $html->tpl_show(_include('dhcphosts_dhcp_conf_main', 'Dhcphosts'), 
+    my $tpl = $html->tpl_show(_include('dhcphosts_dhcp_conf_main', 'Dhcphosts'), 
                             \%INFO, 
                             { OUTPUT2RETURN => 1 }
                            );	 
 
-	if(open(FILE, ">$conf{DHCPHOSTS_CONFIG}")) {
-	  print FILE $tpl;
-    close(FILE);
+	  if(open(FILE, ">$conf{DHCPHOSTS_CONFIG}")) {
+	    print FILE $tpl;
+      close(FILE);
+     }
+    else {
+  	  print "Can't open file '$conf{DHCPHOSTS_CONFIG}' $!";
+  	  return 0;
+     }
+
+    dhcphosts_reconfigure({ DEBUG => $FORM{DEBUG} });
+    $html->message('info', $_INFO, "DHCP $_RECONFIGURE '$conf{DHCPHOSTS_CONFIG}'") if (! $attr->{QUITE});
    }
   else {
-  	print "Can't open file '$conf{DHCPHOSTS_CONFIG}' $!";
-  	return 0;
-   }
+    my $conf_content = $html->tpl_show(_include('dhcphosts_dhcp_conf_main', 'Dhcphosts'), \%INFO, { OUTPUT2RETURN => 1 });
 
-  dhcphosts_reconfigure({ DEBUG => $FORM{DEBUG} });
-  $html->message('info', $_INFO, "DHCP $_RECONFIGURE '$conf{DHCPHOSTS_CONFIG}'") if (! $attr->{QUITE});
- }
-else {
-  my $conf_content = $html->tpl_show(_include('dhcphosts_dhcp_conf_main', 'Dhcphosts'), \%INFO, { OUTPUT2RETURN => 1 });
-
-	print "<textarea cols=90 rows=20>$conf_content</textarea>\n";
-	print $html->form_main(	{  HIDDEN  => { index    => $index,
+	  print "<textarea cols=90 rows=20>$conf_content</textarea>\n";
+	  print $html->form_main(	{  HIDDEN  => { index    => $index,
 		                                      IDS      => $FORM{IDS},
 		                                      config   => 'dhcp.conf' },
                              SUBMIT  => { reconfig => $_RECONFIGURE }
                          } );
-}
-	
+   }
+	}
 }
 
 

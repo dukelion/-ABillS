@@ -4262,8 +4262,9 @@ elsif ($conf{DV_IP_DISCOVERY}) {
    	my @turbo_mods_full = ();
     	
     my $i=1;
+    my ($speed, $time, $price, $name);
   	foreach my $line (@turbo_mods) {
-   		my ($speed, $time, $price, $name)=split(/:/, $line, 4);
+   		($speed, $time, $price, $name)=split(/:/, $line, 4);
    		push @turbo_mods_full, sprintf("$name\n $_SPEED: $speed\n $_TIME: %s\n $_PRICE: %.2f", sec2time($time, { format => 1 }), $price);
    		if ($FORM{SPEED} && $FORM{SPEED} == $i){
    			$FORM{MODE_ID}= $i-1;
@@ -4287,20 +4288,29 @@ elsif ($conf{DV_IP_DISCOVERY}) {
       $html->message('info', $_INFO, $html->b("$turbo_mods_full[$list->[0]->[1]]"). "\n$_REMAIN $_TIME: $last sec.");
      } 
     elsif ($FORM{change} && $FORM{SPEED}) {
-      $Turbo->add({
-      	UID       => $LIST_PARAMS{UID},
-      	MODE_ID   => $FORM{MODE_ID},
-      	SPEED     => int($FORM{SPEED}),
-      	SPEED_TYPE=> 0, 
-      	TIME      => $FORM{TIME},
-      	   });	
+      if ($user->{DEPOSIT}+$user->{CREDIT}>$price) {
+        $Turbo->add({
+      	  UID       => $LIST_PARAMS{UID},
+      	  MODE_ID   => $FORM{MODE_ID},
+      	  SPEED     => int($FORM{SPEED}),
+      	  SPEED_TYPE=> 0, 
+      	  TIME      => $FORM{TIME},
+      	   });
+        
+        if ($price > 0) {
+        	$fees->take($user, $price, { DESCRIBE => "Turbo mode: $Turbo->{INSERT_ID}" } );
+         }
+        
+        if ($conf{DV_TURBO_CMD}) {
+      	  $conf{DV_TURBO_CMD} = tpl_parse($conf{DV_TURBO_CMD}, { %$user, IP => $ENV{REMOTE_ADDR} });
+          my $result = `$conf{DV_TURBO_CMD}`;
+         }
       
-      if ($conf{DV_TURBO_CMD}) {
-      	$conf{DV_TURBO_CMD} = tpl_parse($conf{DV_TURBO_CMD}, { %$user, IP => $ENV{REMOTE_ADDR} });
-        my $result = `$conf{DV_TURBO_CMD}`;
+        $html->message('info', $_INFO, $html->b("$turbo_mods_full[$FORM{MODE_ID}]"). "\n$_REMAIN $_TIME: $FORM{TIME} sec.");
        }
-      
-      $html->message('info', $_INFO, $html->b("$turbo_mods_full[$FORM{MODE_ID}]"). "\n$_REMAIN $_TIME: $FORM{TIME} sec.");
+      else {
+      	$html->message('err', "$_ERROR:Turbo", "$ERR_SMALL_DEPOSIT");
+       }
      }
     else {
       $Dv->{SPEED_SEL} = $html->form_select('SPEED', 
