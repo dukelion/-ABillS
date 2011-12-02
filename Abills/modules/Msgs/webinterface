@@ -1056,8 +1056,7 @@ sub msgs_user {
                   "$_ANSWER_WAIT",
                   );
  
-   print "Content-Type: text/html\n\n";
- 
+
 	 $Msgs->{STATE_SEL} =  $html->form_select('STATE', 
                                           { 
  	                                          SELECTED          => $FORM{STATE} || 0,
@@ -1705,7 +1704,7 @@ sub msgs_new {
      	 	  if ($conf{MSGS_REDIRECT_FILTER_DEL}) {
             require "Dv.pm";
             my $Dv = Dv->new($db, $admin, \%conf);
-            $Dv->change({ UID => $LIST_PARAMS{UID}, FILTER_ID => '' });	
+            $Dv->change({ UID => $user->{UID}, FILTER_ID => '' });	
             if ($conf{MSGS_REDIRECT_FILTER_DEL} =~ /EXEC:(.+)/) {
        	      my $cmd = $1;
        	      $cmd =~ s/\%DATE\%/$DATE $TIME/g;
