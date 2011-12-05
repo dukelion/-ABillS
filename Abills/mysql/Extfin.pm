@@ -414,11 +414,16 @@ sub extfin_report_balances {
   my $self = shift;
   my ($attr) = @_;
 
- @WHERE_RULES = ();
+ @WHERE_RULES             = ();
+ my @FEES_WHERE_RULES     = ();
+ my @PAYMENTS_WHERE_RULES = ();
  my %NAMES=();
 
  if ($attr->{MONTH}) {
    push @WHERE_RULES, "report.period='$attr->{MONTH}'";
+   push @FEES_WHERE_RULES,  "DATE_FORMAT(f.date, '%Y-%m')='$attr->{MONTH}'";
+   push @PAYMENTS_WHERE_RULES, "DATE_FORMAT(p.date, '%Y-%m')='$attr->{MONTH}' ";
+
   }
  elsif ($attr->{FROM_DATE}) {
  	 push @WHERE_RULES, "report.period>='$attr->{FROM_DATE}' AND report.period<='$attr->{TO_DATE}'";
@@ -443,13 +448,18 @@ sub extfin_report_balances {
  push @WHERE_RULES, '(u.id is not null)';
  
  my $WHERE = ($#WHERE_RULES > -1) ? join(' and ', @WHERE_RULES)  : '';
+ my $FEES_WHERE = ($#FEES_WHERE_RULES > -1) ? "AND " . join(' AND ', @FEES_WHERE_RULES)  : '';
+ my $PAYMENTS_WHERE = ($#PAYMENTS_WHERE_RULES > -1) ? "AND " . join(' AND ', @PAYMENTS_WHERE_RULES)  : '';
+
+
+ $self->{debug}=1;
 
  $self->query($db, "SELECT report.id,
    u.id,
    IF(company.name is not null, company.name,
     IF(pi.fio<>'', pi.fio, u.id)),
-   $report_sum+sum(if (p.sum is not null, p.sum, 0) ),
-   sum(f.sum),
+    if ((SELECT sum(p.sum) FROM payments p WHERE (u.uid = p.uid) $PAYMENTS_WHERE) is not null, $report_sum + (SELECT sum(p.sum) FROM payments p WHERE (u.uid = p.uid) $PAYMENTS_WHERE), $report_sum), 
+    (SELECT sum(f.sum) FROM fees f WHERE (u.uid = f.uid) $FEES_WHERE), 
    $report_sum,
    u.uid
   FROM extfin_balance_reports report
@@ -457,8 +467,6 @@ sub extfin_report_balances {
   LEFT JOIN users u ON (b.id = u.bill_id)
   LEFT JOIN users_pi pi ON (u.uid = pi.uid)
   LEFT JOIN companies company ON (b.id=company.bill_id)
-  LEFT JOIN fees f ON (u.uid = f.uid)
-  LEFT JOIN payments p ON (u.uid = p.uid)
   WHERE $WHERE
    GROUP BY $GROUP
   ORDER BY $SORT $DESC 
