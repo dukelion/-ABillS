@@ -1568,11 +1568,12 @@ if ($Extfin->{errno}) {
 $table = $html->table( { width      => '100%',
                          caption    => "$_DEPOSIT $_DATE: $period",
                          border     => 1,
-                         title      => ['#', $_PERIOD,  $_LOGIN, "$_FIO/$_NAME", $_TYPE, "$_DEPOSIT" ],
+                         title      => ['#', $_LOGIN, "$_FIO/$_NAME", "DEBIT", "CREDIT", "SALDO" ],
                          cols_align => ['right', 'right', 'right', 'left', 'left', 'right', 'right', 'center',  'center', 'center:noprint', 'center:noprint'],
                          ID         => 'EXTFIN_PAYMENT_DEED',
                          } );
-
+# остатки+оплаты-переносы|списания| депозит
+my $num = 1;
 foreach my $line (@$list) {
   my $date = $line->[1];
   
@@ -1586,81 +1587,17 @@ foreach my $line (@$list) {
  	  $name = ($line->[4] == 1) ? "$_TOTAL: $_COMPANIES" : "$_TOTAL: $_USERS"; 
    }
   
-  $table->addrow($line->[0], 
-   $date,
-   $html->button($line->[2], "index=11&UID=$line->[9]"), 
-   $name,
-   $line->[4], 
+  $table->addrow($num, 
+   $html->button($line->[1], "index=11&UID=$line->[6]"), 
+   $line->[2],
+   $line->[3],
+   $line->[4],
    $line->[5],
    );
+  $num++;
 }
 
 print $table->show();
-
-	
-#
-#
-#  if (! $permissions{2} || ! $permissions{2}{0}) {
-#  	$html->message('err', $_ERROR, "$ERR_ACCESS_DENY");  	
-#  	return 0;
-#  }
-#
-#  $LIST_PARAMS{PAGE_ROWS}=1000000;
-#
-#  my $graph_type= 'month_stats';
-#  my %DATA_HASH = ();
-#  my %AVG       = ();
-#  my %CHART     = ();
-#  my $num       = 1;
-#  my @CHART_TYPE= ('area', 'line', 'column');
-#
-#  my $list = $Extfin->report_users_balance( { %LIST_PARAMS } );
-#  my $table_fees = $html->table( { width      => '100%',
-#                            caption    => "$_USERS $_BALANCE",
-#                            border     => 1,
-#                            title      => [$_LOGIN, $_FIO, $_DEPOSIT, $_CREDIT, 'SALDO'],
-#                            cols_align => ['left', 'right', 'right', 'left' ],
-#                            qs         => $pages_qs,
-#                            pages      => $fees->{TOTAL},
-#                            ID         => 'REPORTS_USERS_BALANCE',
-#                            EXPORT     => $_EXPORT .' XML:&xml=1',
-#                        } );
-#
-#  $pages_qs .= "&subf=2" if (! $FORM{subf});
-#  foreach my $line (@$list) {
-#    $table_fees->addrow($html->button($line->[0], "index=15&UID=".$line->[5]), 
-#      $line->[1], 
-#      $line->[2] || '0.00', 
-#      $line->[3] || '0.00', 
-#      sprintf('%.2f', $line->[2]-$line->[3])
-#     );
-#    $num++;
-#   }
-#
-#
-#  print $table_fees->show();	
-#  $table = $html->table({ width      => '100%',
-#                          cols_align => ['right', 'right', 'right'],
-#                          rows       => [[ 
-#                              "$_USERS: ". $html->b($Extfin->{USERS_TOTAL}), 
-#                              "$_DEPOSIT: ". $html->b($Extfin->{PAYMENTS_TOTAL}), 
-#                              "$_CREDIT: ". $html->b($Extfin->{FEES_SUM}) 
-#                            ]],
-#                           rowcolor   => 'even'
-#                        });
-#  print $table->show();
-#  
-#  if ($graph_type ne '') {
-#    print $html->make_charts({  
-#	        PERIOD     => $graph_type,
-#	        DATA       => \%DATA_HASH,
-#	        AVG        => \%AVG,
-#	        TYPE       => \@CHART_TYPE,
-#	        TRANSITION => 1,
-#          OUTPUT2RETURN => 1,
-#          %CHART 
-#       });
-#   }
 
 }
 

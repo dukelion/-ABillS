@@ -279,10 +279,10 @@ sub docs_invoice {
     }
 
 
-    $table->{extra}=" colspan=4 class=total ";
+    $table->{extra} = " colspan=4 class=total ";
     $table->addrow("$_COUNT: $num", sprintf("%.2f", $total_sum));
     $table->addrow($html->b("$_AMOUNT_FOR_PAY:"), $html->b(sprintf("%.2f", $amount_for_pay)));
-    $Docs->{ORDERS} =  $table->show();
+    $Docs->{ORDERS} = $table->show();
 
     $html->tpl_show(_include('docs_invoice_add', 'Docs'), { %$attr, %$Docs, %$users }) if (! $FORM{pdf});
    }

@@ -7,7 +7,7 @@ use vars qw(@ISA @EXPORT @EXPORT_OK %EXPORT_TAGS $VERSION
 );
 
 use Exporter;
-$VERSION = 2.01;
+$VERSION = 2.02;
 @ISA = ('Exporter');
 
 @EXPORT = qw();
@@ -445,21 +445,20 @@ sub extfin_report_balances {
  my $WHERE = ($#WHERE_RULES > -1) ? join(' and ', @WHERE_RULES)  : '';
 
  $self->query($db, "SELECT report.id,
-   report.period,
    u.id,
    IF(company.name is not null, company.name,
     IF(pi.fio<>'', pi.fio, u.id)),
-   IF(company.name is not null, 1, 0),
+   $report_sum+sum(if (p.sum is not null, p.sum, 0) ),
+   sum(f.sum),
    $report_sum,
-   IF(company.name is not null, company.vat, 0),
-   report.date,
-   report.aid, 
    u.uid
   FROM extfin_balance_reports report
   INNER JOIN bills b ON (report.bill_id = b.id)
   LEFT JOIN users u ON (b.id = u.bill_id)
   LEFT JOIN users_pi pi ON (u.uid = pi.uid)
   LEFT JOIN companies company ON (b.id=company.bill_id)
+  LEFT JOIN fees f ON (u.uid = f.uid)
+  LEFT JOIN payments p ON (u.uid = p.uid)
   WHERE $WHERE
    GROUP BY $GROUP
   ORDER BY $SORT $DESC 
