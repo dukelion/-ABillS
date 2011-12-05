@@ -452,15 +452,12 @@ sub extfin_report_balances {
  my $PAYMENTS_WHERE = ($#PAYMENTS_WHERE_RULES > -1) ? "AND " . join(' AND ', @PAYMENTS_WHERE_RULES)  : '';
 
 
- $self->{debug}=1;
-
  $self->query($db, "SELECT report.id,
    u.id,
-   IF(company.name is not null, company.name,
-    IF(pi.fio<>'', pi.fio, u.id)),
-    if ((SELECT sum(p.sum) FROM payments p WHERE (u.uid = p.uid) $PAYMENTS_WHERE) is not null, $report_sum + (SELECT sum(p.sum) FROM payments p WHERE (u.uid = p.uid) $PAYMENTS_WHERE), $report_sum), 
-    (SELECT sum(f.sum) FROM fees f WHERE (u.uid = f.uid) $FEES_WHERE), 
-   $report_sum,
+   IF(company.name is not null, company.name, IF(pi.fio<>'', pi.fio, u.id)),
+   \@a := if ((SELECT sum(p.sum) FROM payments p WHERE (u.uid = p.uid) $PAYMENTS_WHERE) is not null, $report_sum + (SELECT sum(p.sum) FROM payments p WHERE (u.uid = p.uid) $PAYMENTS_WHERE), $report_sum), 
+   \@b := (SELECT sum(f.sum) FROM fees f WHERE (u.uid = f.uid) $FEES_WHERE), 
+   \@a,
    u.uid
   FROM extfin_balance_reports report
   INNER JOIN bills b ON (report.bill_id = b.id)
@@ -472,9 +469,31 @@ sub extfin_report_balances {
   ORDER BY $SORT $DESC 
    ;");
 
+ my $list = $self->{list};
+
+ $self->query($db, "SELECT 
+    \@a := sum(if ((SELECT sum(p.sum) FROM payments p WHERE (u.uid = p.uid) $PAYMENTS_WHERE) is not null, $report_sum + (SELECT sum(p.sum) FROM payments p WHERE (u.uid = p.uid) $PAYMENTS_WHERE), $report_sum)), 
+    sum((SELECT sum(f.sum) FROM fees f WHERE (u.uid = f.uid) $FEES_WHERE)), 
+    \@a - sum($report_sum)
+   
+  FROM extfin_balance_reports report
+  INNER JOIN bills b ON (report.bill_id = b.id)
+  LEFT JOIN users u ON (b.id = u.bill_id)
+  LEFT JOIN users_pi pi ON (u.uid = pi.uid)
+  LEFT JOIN companies company ON (b.id=company.bill_id)
+  WHERE $WHERE
+   GROUP BY $GROUP
+  ORDER BY $SORT $DESC 
+   ;");
+
+    ($self->{TOTAL_DEBIT}, 
+     $self->{TOTAL_CREDIT},
+     $self->{TOTAL_SALDO},
+     ) = @{ $self->{list}->[0] };
 
 
-  return $self->{list};
+
+  return $list;
 }
 
 #**********************************************************
