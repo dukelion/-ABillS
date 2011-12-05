@@ -422,7 +422,7 @@ sub dv_user {
  	my ($attr) = @_;
 
  	$Dv->{UID}=$FORM{UID} || $LIST_PARAMS{UID} ;	  
-  
+  undef $Dv->{errno};
   if ($FORM{REGISTRATION_INFO}) {
      # Info
      my $users = Users->new($db, $admin, \%conf); 
@@ -498,7 +498,7 @@ sub dv_user {
        }
      }
    }
-	elsif($FORM{set}) {
+	elsif($FORM{change}) {
     if (! $permissions{0}{4} ) {
       $html->message('err', $_ERROR, "$ERR_ACCESS_DENY");  	
     	return 0;
@@ -515,7 +515,6 @@ sub dv_user {
       	return 0;
     	 }
      }
-
     $Dv->change({ %FORM });
 
     if ($FORM{STATUS} == 0) {
@@ -538,7 +537,8 @@ sub dv_user {
         dv_get_month_fee($Dv);
        }
 
-      $html->message('info', $_INFO, "$_CHANGED");	
+      $html->message('info', "Internet", "$_CHANGED");	
+      return 0 if ($attr->{REGISTRATION});
      }
    }
 	elsif($FORM{del}) {
@@ -552,8 +552,12 @@ sub dv_user {
     if ($Dv->{errno}==15) {
     	$html->message('err', "Internet:$_ERROR", "$ERR_SMALL_DEPOSIT");
      }
+    elsif ($Dv->{errno}==7) {
+    	$html->message('err', "Internet:$_ERROR", "$_SERVISE $_EXIST");
+    	return 1 if ($attr->{REGISTRATION});	
+     }
     else {
- 	    $html->message('err', "Internet:$_ERROR", "[$Dv->{errno}] $err_strs{$Dv->{errno}}");
+ 	    $html->message('err', "$Dv->{errno} $Dv->{err_str}!!!!!!!! Internet:$_ERROR", "[$Dv->{errno}] $err_strs{$Dv->{errno}}");
       return 1 if ($attr->{REGISTRATION});	
      } 
    }
@@ -585,8 +589,17 @@ sub dv_user {
   	  return 0;
      }
 		
-	  $Dv->{ACTION}='set';
-	  $Dv->{LNG_ACTION}=$_CHANGE;
+	  
+		if ($attr->{ACTION}) {
+	    $Dv->{ACTION}    = 'change';
+	    $Dv->{LNG_ACTION}= $attr->{LNG_ACTION}
+	   }
+	  else {
+      $Dv->{ACTION}='change';
+	    $Dv->{LNG_ACTION}=$_CHANGE;	   
+	   }
+
+	
 	  
     if ($permissions{0}{10} ) {
       $Dv->{CHANGE_TP_BUTTON}=$html->button($_CHANGE, 'UID='.$Dv->{UID}.'&index='. get_function_index('dv_chg_tp'), { CLASS => 'change rightAlignText' });

@@ -254,32 +254,9 @@ sub messages_list {
  my $EXT_JOIN = ''; 
 
  if ($attr->{IP}) {
-    if ($attr->{IP} =~ m/\*/g) {
-      my ($i, $first_ip, $last_ip);
-      my @p = split(/\./, $attr->{IP});
-      for ($i=0; $i<4; $i++) {
-
-         if ($p[$i] eq '*') {
-           $first_ip .= '0';
-           $last_ip .= '255';
-          }
-         else {
-           $first_ip .= $p[$i];
-           $last_ip .= $p[$i];
-          }
-         if ($i != 3) {
-           $first_ip .= '.';
-           $last_ip .= '.';
-          }
-       }
-      push @WHERE_RULES, "(m.ip>=INET_ATON('$first_ip') and m.ip<=INET_ATON('$last_ip'))";
-     }
-    else {
-      push @WHERE_RULES, @{ $self->search_expr($attr->{IP}, 'IP', 'm.ip') };
-    }
-
-    $self->{SEARCH_FIELDS} = 'INET_NTOA(m.ip), ';
-    $self->{SEARCH_FIELDS_COUNT}++;
+   push @WHERE_RULES, @{ $self->search_expr($attr->{IP}, 'IP', 'm.ip') };
+   $self->{SEARCH_FIELDS} = 'INET_NTOA(m.ip), ';
+   $self->{SEARCH_FIELDS_COUNT}++;
   }
 
  if ($attr->{FULL_ADDRESS}) {
@@ -311,6 +288,7 @@ m.date,
 m.state,
 $self->{SEARCH_FIELDS}
 m.closed_date,
+ra.id,
 a.id,
 m.priority,
 CONCAT(m.plan_date, ' ', m.plan_time),
@@ -324,7 +302,6 @@ m.admin_read,
 if(r.id IS NULL, 0, count(r.id)),
 m.chapter,
 DATE_FORMAT(plan_date, '%w'),
-m.resposible,
 m.deligation,
 m.inner_msg
 
@@ -336,6 +313,7 @@ LEFT JOIN admins a ON (m.aid=a.aid)
 LEFT JOIN groups g ON (m.gid=g.gid)
 LEFT JOIN msgs_reply r ON (m.id=r.main_msg)
 LEFT JOIN msgs_chapters mc ON (m.chapter=mc.id)
+LEFT JOIN admins ra ON (m.resposible=ra.aid)
  $WHERE
 GROUP BY m.id 
     ORDER BY $SORT $DESC

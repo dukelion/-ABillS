@@ -1,5 +1,21 @@
 =====0.54=====
 
+05.12.2011\\
+  * ''Docs'' добавлена привязка начислений к счетам фактур
+  * ''Docs'' Добавлены дополнительные поля в счета фактуры: статус отправки, депозит на момент выписки счета, сума к оплате
+  * Добавлен вывод всех сервисов пользователя в учётной записи $conf{USER_ALL_SERVICES}=1;
+  * ''Dhcphosts''  активация Ipn c IP (Dhcp) меню
+
+MySQL:\\
+
+  ALTER TABLE `docs_invoice_orders` ADD COLUMN `fees_id` int(11) unsigned NOT NULL default 0;
+  ALTER TABLE `docs_invoice_orders` ADD key fees_id (fees_id);
+  ALTER TABLE `docs_invoice_orders` ADD COLUMN `deposit` double(15,6) NOT NULL default '0.000000';
+  ALTER TABLE `docs_invoice_orders` ADD COLUMN `delivery_status` tinyint(2) unsigned NOT NULL default '0';
+  ALTER TABLE docs_invoice ADD  COLUMN `deposit` double(15,6) NOT NULL default '0.000000';
+  ALTER TABLE docs_invoice ADD  COLUMN `delivery_status` tinyint(2) unsigned NOT NULL default '0';
+
+
 28.11.2011\\
   * ''Dhcphosts'' Freeradius DHCP  добавлена возможность выдавать независимые гостевые сети на VLAN
   * ''Docs'' Добавлены дополнительные поля в счета: статус отправки, депозит на момент выписки счета, сума к оплате

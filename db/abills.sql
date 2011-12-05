@@ -273,6 +273,7 @@ CREATE TABLE `docs_invoice_orders` (
   `counts` int(10) unsigned NOT NULL default '0',
   `unit` tinyint(3) unsigned NOT NULL default '0',
   `price` double(10,2) unsigned NOT NULL default '0.00',
+  `fees_id` int(11) unsigned NOT NULL default 0,
   KEY `invoice_id` (`invoice_id`)
 ) COMMENT='Docs invoices orders';
 

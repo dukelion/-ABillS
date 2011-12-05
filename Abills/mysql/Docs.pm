@@ -148,6 +148,114 @@ sub docs_invoice_list {
 	return $list;
 }
 
+
+
+#**********************************************************
+# docs_invoice_new
+#**********************************************************
+sub docs_invoice_new {
+  my $self = shift;
+  my ($attr) = @_;
+
+ $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
+ $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
+
+
+ undef @WHERE_RULES;
+
+ if ($attr->{UID}) {
+   push @WHERE_RULES, @{ $self->search_expr($attr->{UID}, 'INT', 'f.uid') };
+  }
+ if ($attr->{LOGIN}) {
+   push @WHERE_RULES, @{ $self->search_expr($attr->{LOGIN}, 'STR', 'u.id') };
+  }
+
+ if ($attr->{BILL_ID}) {
+   push @WHERE_RULES, @{ $self->search_expr($attr->{BILL_ID}, 'INT', 'f.bill_id') };
+  }
+ elsif ($attr->{COMPANY_ID}) {
+ 	 push @WHERE_RULES, @{ $self->search_expr($attr->{COMPANY_ID}, 'INT', 'u.company_id') };
+  }
+ 
+ if ($attr->{AID}) {
+   push @WHERE_RULES, @{ $self->search_expr($attr->{AID}, 'INT', 'f.aid') };
+  }
+
+ if ($attr->{ID}) {
+   push @WHERE_RULES, @{ $self->search_expr($attr->{ID}, 'INT', 'f.id') };
+  }
+
+ if ($attr->{A_LOGIN}) {
+ 	 push @WHERE_RULES, @{ $self->search_expr($attr->{A_LOGIN}, 'STR', 'a.id') };
+ }
+
+ if ($attr->{DOMAIN_ID}) {
+   push @WHERE_RULES, "u.domain_id='$attr->{DOMAIN_ID}' ";
+  }
+
+ # Show debeters
+ if ($attr->{DESCRIBE}) {
+    push @WHERE_RULES, @{ $self->search_expr($attr->{DESCRIBE}, 'STR', 'f.dsc') };
+  }
+
+ if ($attr->{INNER_DESCRIBE}) {
+    push @WHERE_RULES, @{ $self->search_expr($attr->{INNER_DESCRIBE}, 'STR', 'f.inner_describe') };
+  }
+
+ if (defined($attr->{METHOD}) && $attr->{METHOD} >=0) {
+    push @WHERE_RULES, "f.method IN ($attr->{METHOD}) ";
+  }
+
+ if ($attr->{SUM}) {
+    push @WHERE_RULES, @{ $self->search_expr($attr->{SUM}, 'INT', 'f.sum') };
+  }
+
+ # Show groups
+ if ($attr->{GIDS}) {
+   push @WHERE_RULES, "u.gid IN ($attr->{GIDS})";
+  }
+ elsif ($attr->{GID}) {
+   push @WHERE_RULES, "u.gid='$attr->{GID}'";
+  }
+
+ # Date
+ if ($attr->{FROM_DATE}) {
+ 	    push @WHERE_RULES, @{ $self->search_expr(">=$attr->{FROM_DATE}", 'DATE', 'date_format(f.date, \'%Y-%m-%d\')') },
+   @{ $self->search_expr("<=$attr->{TO_DATE}", 'DATE', 'date_format(f.date, \'%Y-%m-%d\')') };
+  }
+ elsif ($attr->{DATE}) {
+   push @WHERE_RULES, @{ $self->search_expr($attr->{DATE}, 'DATE', 'date_format(f.date, \'%Y-%m-%d\')') };
+  }
+ # Month
+ elsif ($attr->{MONTH}) {
+   push @WHERE_RULES, "date_format(f.date, '%Y-%m')='$attr->{MONTH}'";
+  }
+ 
+
+
+ $WHERE = ($#WHERE_RULES > -1) ? 'WHERE ' . join(' and ', @WHERE_RULES)  : '';
+
+  $self->query($db, "SELECT f.id, u.id, f.date, f.dsc, f.sum, io.fees_id,
+f.last_deposit, 
+f.method, f.bill_id, if(a.name is NULL, 'Unknown', a.name), 
+INET_NTOA(f.ip), f.uid, f.inner_describe 
+FROM fees f 
+LEFT JOIN users u ON (u.uid=f.uid) 
+LEFT JOIN admins a ON (a.aid=f.aid) 
+LEFT JOIN docs_invoice_orders io ON (io.fees_id=f.id) 
+$WHERE
+GROUP BY f.id 
+    ORDER BY $SORT $DESC
+    LIMIT $PG, $PAGE_ROWS;");
+
+
+ return $self->{list}  if ($self->{TOTAL} < 1);
+ my $list = $self->{list};
+
+
+	return $list;
+}
+
 #**********************************************************
 # Bill
 #**********************************************************
@@ -173,11 +281,14 @@ sub docs_invoice_info {
    d.id,
    d.uid,
    d.date + interval $CONF->{DOCS_ACCOUNT_EXPIRE_PERIOD} day,
-   d.payment_id
-    FROM (docs_invoice d, docs_invoice_orders o)
+   d.payment_id,
+   d.deposit,
+   d.delivery_status
+    FROM (docs_invoice d)
+    LEFT JOIN  docs_invoice_orders o ON (d.id=o.invoice_id)
     LEFT JOIN users u ON (d.uid=u.uid)
     LEFT JOIN admins a ON (d.aid=a.aid)
-    WHERE d.id=o.invoice_id and d.id='$id' $WHERE
+    WHERE d.id='$id' $WHERE
     GROUP BY d.id;");
 
   if ($self->{TOTAL} < 1) {
@@ -201,13 +312,15 @@ sub docs_invoice_info {
    $self->{DOC_ID},
    $self->{UID},
    $self->{EXPIRE_DATE},
-   $self->{PAYMENT_ID}
+   $self->{PAYMENT_ID},
+   $self->{DEPOSIT},
+   $self->{DELIVERY_STATUS},
   )= @{ $self->{list}->[0] };
 	
   if ($self->{TOTAL} > 0) {
     $self->{NUMBER}=$self->{INVOICE_ID};
  
-    $self->query($db, "SELECT invoice_id, orders, unit, counts, price
+    $self->query($db, "SELECT invoice_id, orders, unit, counts, fees_id, price
       FROM docs_invoice_orders WHERE invoice_id='$id'");
     $self->{ORDERS}=$self->{list};
    }
@@ -226,15 +339,15 @@ sub docs_invoice_add {
  
   %DATA = $self->get_data($attr, { default => \%DATA }); 
 
-  if ($attr->{ORDER}) {
-    push @{ $attr->{ORDERS} }, "$attr->{ORDER}|0|1|$attr->{SUM}";
-   }
-
-  if (! defined($attr->{ORDERS}) || $#{ $attr->{ORDERS} } < 0) {
+  if (! $attr->{ORDERS} && ! $attr->{IDS}) {
   	$self->{errno}=1;
   	$self->{errstr}="No orders";
   	return $self;
-  }
+   }
+  
+  if ($attr->{ORDER}) {
+    push @{ $attr->{ORDERS} }, "$attr->{ORDER}|0|1|$attr->{SUM}";
+   }
 
   $DATA{DATE}       = ($attr->{DATE})    ? "'$attr->{DATE}'" : 'now()';
   $DATA{INVOICE_ID} = ($attr->{INVOICE_ID}) ? $attr->{INVOICE_ID}  : $self->docs_nextid({ TYPE => 'INVOICE' });
@@ -243,22 +356,39 @@ sub docs_invoice_add {
     by_proxy_seria,
     by_proxy_person,
     by_proxy_date,
-    payment_id)
+    payment_id,
+    deposit,
+    delivery_status)
       values ('$DATA{INVOICE_ID}', $DATA{DATE}, now(), '$DATA{CUSTOMER}', '$DATA{PHONE}', 
       '$admin->{AID}', '$DATA{UID}',
       '$DATA{BY_PROXY_SERIA}',
       '$DATA{BY_PROXY_PERSON}',
       '$DATA{BY_PROXY_DATE}',
-      '$DATA{PAYMENT_ID}');", 'do');
+      '$DATA{PAYMENT_ID}',
+      '$DATA{DEPOSIT}',
+      '$DATA{DELIVERY_STATUS}');", 'do');
  
   return $self if($self->{errno});
   $self->{DOC_ID}=$self->{INSERT_ID};
   
-  foreach my $line (@{ $attr->{ORDERS} }) {
-    my ($order, $unit, $count,  $sum)=split(/\|/, $line, 4);
-    $self->query($db, "INSERT INTO docs_invoice_orders (invoice_id, orders, counts, unit, price)
-      values ($self->{DOC_ID}, '$order', '$count', '$unit', '$sum')", 'do');
-  }
+  if ($attr->{ORDERS}) {
+    foreach my $line (@{ $attr->{ORDERS} }) {
+      my ($order, $unit, $count,  $sum, $fees_id)=split(/\|/, $line, 4);
+      $self->query($db, "INSERT INTO docs_invoice_orders (invoice_id, orders, counts, unit, price, fees_id)
+        values ($self->{DOC_ID}, '$order', '$count', '$unit', '$sum', '$fees_id')", 'do');
+    }
+   }
+  else {
+  	my @ids = split(/, /, $attr->{IDS});
+  	foreach my $id (@ids) {
+  		my $sql = "INSERT INTO docs_invoice_orders (invoice_id, orders, counts, unit, price, fees_id)
+        values ($self->{DOC_ID}, '". $DATA{'ORDER_'. $id} ."', '". 
+        ((! $DATA{'COUNT_'.$id}) ? 1 : $DATA{'COUNT_'.$id})  ."', '". $DATA{'UNIT_'.$id} ."', '".
+        $DATA{'SUM_'.$id} ."', '".
+        $DATA{'FEES_ID_'.$id} ."')";
+      $self->query($db, "$sql");
+  	 }
+   } 
 
   return $self if($self->{errno});
   $self->{INVOICE_ID}=$DATA{INVOICE_ID};

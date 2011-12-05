@@ -452,7 +452,7 @@ if (in_array('Sms', \@MODULES) ) {
   $Msgs->{EXTRA_PARAMS} = $html->tpl_show(_include('sms_check_form', 'Sms'), $Msgs, { OUTPUT2RETURN => 1 });
 }
 
-  my $message_form = $html->tpl_show(_include('msgs_send_form', 'Msgs'), { %$attr, %$Msgs }, { OUTPUT2RETURN => 1 });
+  my $message_form = $html->tpl_show(_include('msgs_send_form', 'Msgs'), { %$attr, %FORM, %$Msgs  }, { OUTPUT2RETURN => 1 });
 
   if ($attr->{OUTPUT2RETURN}) {
   	return $message_form;
@@ -860,8 +860,7 @@ sub msgs_admin {
 
   my  $table = $html->table( { width      => '100%',
                               caption    => "$_MESSAGES",
-                              title      => ['#', "$_USER", "$_SUBJECT", "$_CHAPTERS", "$_DATE", "$_STATUS", "$_CLOSED", 
-                               "$_ADMIN", "$_PRIORITY", "$_EXECUTION", "-", "-"],
+                              title      => ['#', "$_USER", "$_SUBJECT", "$_CHAPTERS", "$_DATE", "$_STATUS", "$_CLOSED", "$_RESPOSIBLE", "$_ADMIN", "$_PRIORITY", "$_EXECUTION", "-", "-"],
                               cols_align => ['right', 'left', 'left', 'right', 'right', 'left', 'center', 'right', 'left', 'center:noprint', 'center:noprint'],
                               qs         => $pages_qs,
                               pages      => $Msgs->{TOTAL},
@@ -882,51 +881,40 @@ function CheckAllINBOX() {
 foreach my $line (@$list) {
   my $state = ($line->[5] == 0) ? $html->b($msg_status[$line->[5]]) : $msg_status[$line->[5]];
 
-  $state .= ' <img src="../img/red_dot.gif" border="0" alt="No reply"/>' if ($line->[16] eq '0000-00-00 00:00:00');
-  if ($line->[21] > 0) {
-    if ($CHAPTERS_DELIGATION{$line->[18]} == $line->[21]) {
+  $state .= ' <img src="../img/red_dot.gif" border="0" alt="No reply"/>' if ($line->[17] eq '0000-00-00 00:00:00');
+  if ($line->[22] > 0) {
+    if ($CHAPTERS_DELIGATION{$line->[19]} == $line->[21]) {
     	$state .= ' <img src="../img/delivered2.png" border="0" alt="'. $_DELIVERED. '"/>' ;
      }
     else {
       $state .= ' <img src="../img/delivered1.png" border="0" alt="'. $_DELIVERED. '"/>' ;
      }
    }
-  my $priority = $html->color_mark($priority[$line->[8]], $priority_colors[$line->[8]]);
+  my $priority = $html->color_mark($priority[$line->[9]], $priority_colors[$line->[9]]);
 
   $table->addrow(
-   $line->[0] . ( ($A_PRIVILEGES{$line->[18]} > 2 || scalar keys %CHAPTERS_DELIGATION == 0 ) ? $html->form_input('del', "$line->[0]", {TYPE => 'checkbox' }) : '' ).
+   $line->[0] . ( ($A_PRIVILEGES{$line->[19]} > 2 || scalar keys %CHAPTERS_DELIGATION == 0 ) ? $html->form_input('del', "$line->[0]", {TYPE => 'checkbox' }) : '' ).
      ( ($line->[22]) ? $html->b( "($_INNER_MSGS_CHAR)") : "" ), 
-   ($line->[11] > 0)  ? $html->button($line->[1], "index=11&UID=$line->[11]") :  $line->[1],
-   $html->button((($line->[2]) ? "$line->[2]" : $_NO_SUBJECT ), "index=$index&UID=$line->[11]&chg=$line->[0]"), 
+   ($line->[12] > 0)  ? $html->button($line->[1], "index=11&UID=$line->[12]") :  $line->[1],
+   $html->button((($line->[2]) ? "$line->[2]" : $_NO_SUBJECT ), "index=$index&UID=$line->[12]&chg=$line->[0]"), 
    $line->[3],
    $line->[4],
    $state,
    $line->[6],      
    $line->[7],      
+   $line->[8],
    $priority,
-   $line->[9],
-   $html->button("$_SHOW", "index=$index&chg=$line->[0]&UID=$line->[11]", { CLASS => 'show' }),
-   ( ($A_PRIVILEGES{$line->[18]} > 2 || $#A_CHAPTER == -1) ? $html->button($_DEL, "index=$index&del=$line->[0]$pages_qs", { MESSAGE => "$_DEL '$line->[0]' ?", CLASS => 'del' }): '') 
+   $line->[10],
+   $html->button("$_SHOW", "index=$index&chg=$line->[0]&UID=$line->[12]", { CLASS => 'show' }),
+   ( ($A_PRIVILEGES{$line->[19]} > 2 || $#A_CHAPTER == -1) ? $html->button($_DEL, "index=$index&del=$line->[0]$pages_qs", { MESSAGE => "$_DEL '$line->[0]' ?", CLASS => 'del' }): '') 
   );
 }
 
 my $total_msgs = $Msgs->{TOTAL};
-my $table2 = $html->table({ width      => '100%',
-                            caption    => "$_DISPATCHES",
-                            cols_align => ['center', 'center', 'center'],
-                            rows       => [ [ "$_DISPATCH:" ,  
-                                              $html->form_select('DISPATCH_ID',  { 
- 	                                             SELECTED          => $Msgs->{DISPATCH_ID},
- 	                                             SEL_MULTI_ARRAY   => [ [ undef, "$_ALL" ], @{ $Msgs->dispatch_list({ STATE => 0 }) } ],
- 	                                             MULTI_ARRAY_KEY   => 0,
- 	                                             MULTI_ARRAY_VALUE => 1,
- 	                                            }), 
-                                            $html->form_input('add_dispatch', "$_ADD", { TYPE => 'submit', OUTPUT2RETURN => 1   }) 
-                                          ] ]
-                      });
 
+my $dispatch = msgs_dispatch_sel();
 
-print $html->form_main({ CONTENT => $table->show(). $table2->show(),
+print $html->form_main({ CONTENT => $table->show().$dispatch,
 	                       HIDDEN  => { index            => "$index",
 	                                    UID							 => $FORM{UID},
 	                                    is_js_confirmed  => 1,
@@ -943,6 +931,33 @@ $table = $html->table({ width      => '100%',
 print $table->show();
 }
 
+
+
+
+#**********************************************************
+# msgs_dispatch_sel();
+#**********************************************************
+sub msgs_dispatch_sel {
+  my $table = $html->table({ width      => '100%',
+                            caption    => "$_DISPATCHES",
+                            cols_align => ['center', 'center', 'center'],
+                            rows       => [ [ "$_DISPATCH:" ,  
+                                              $html->form_select('DISPATCH_ID',  { 
+ 	                                             SELECTED          => $Msgs->{DISPATCH_ID},
+ 	                                             SEL_MULTI_ARRAY   => [ @{ $Msgs->dispatch_list({ STATE => 0 }) } ],
+ 	                                             MULTI_ARRAY_KEY   => 0,
+ 	                                             MULTI_ARRAY_VALUE => 1,
+ 	                                             MAIN_MENU         => get_function_index('msgs_dispatch'),
+ 	                                             MAIN_MENU_AGRV    => "chg=$Msgs->{DISPATCH_ID}"
+
+ 	                                            }), 
+                                            $html->form_input('add_dispatch', "$_ADD", { TYPE => 'submit', OUTPUT2RETURN => 1   }) 
+                                          ] ]
+                      });
+
+
+  return $table->show();
+}
 
 #**********************************************************
 #
@@ -1499,7 +1514,7 @@ sub msgs_dispatch {
     exit;
    } 
   elsif ($FORM{change}) {
-     if ($FORM{STATE} > 0) {
+    if ($FORM{STATE} > 0) {
       $FORM{DONE_DATE}="$DATE" if ($FORM{STATE} == 2); 
       $FORM{CLOSED_DATE}="$DATE";
      }
@@ -1515,7 +1530,6 @@ sub msgs_dispatch {
    }
   elsif ($FORM{del} && $FORM{is_js_confirmed} ) {
     $Msgs->dispatch_del({ ID => $FORM{del} });
-
     $html->message('info', $_INFO, "$_DELETED") if (! $Msgs->{errno});
    }
   elsif ($FORM{msg_del} && $FORM{is_js_confirmed} ) {
@@ -1557,10 +1571,11 @@ sub msgs_dispatch {
   	                                DESC => (! $FORM{sort}) ? 'DESC' : $FORM{desc} 
   	                               });
 
-  my  $table = $html->table( { width      => '100%',
+    $pages_qs .= "&chg=$FORM{chg}";
+    my  $table = $html->table( { width      => '100%',
                               caption    => "$_MESSAGES",
                               title      => ['#', "$_USER", "$_SUBJECT", "$_CHAPTERS", "$_DATE", "$_STATUS", "IP", 
-                               "$_ADMIN", "$_PRIORITY", "$_EXECUTION", "-", "-"],
+                               "$_RESPOSIBLE", "$_ADMIN", "$_PRIORITY", "$_EXECUTION", "-", "-"],
                               cols_align => ['right', 'left', 'left', 'right', 'right', 'left', 'center', 'right', 'left', 'center:noprint', 'center:noprint'],
                               qs         => $pages_qs,
                               pages      => $Msgs->{TOTAL},
@@ -1579,29 +1594,39 @@ function CheckAllINBOX() {
                            });
 
 foreach my $line (@$list) {
-  my $state = ($line->[5] == 0) ? $html->b($msg_status[$line->[5]]) : $msg_status[$line->[5]];
+  my $state = ($line->[6] == 0) ? $html->b($msg_status[$line->[6]]) : $msg_status[$line->[6]];
 
-  $state .= '<img src="../img/red_dot.gif" border="0" alt="No reply"/>' if ($line->[16] eq '0000-00-00 00:00:00');
-  my $priority = $html->color_mark($priority[$line->[8]], $priority_colors[$line->[8]]);
+  $state .= '<img src="../img/red_dot.gif" border="0" alt="No reply"/>' if ($line->[17] eq '0000-00-00 00:00:00');
+  my $priority = $html->color_mark($priority[$line->[9]], $priority_colors[$line->[9]]);
+
 
   $table->addrow(
-   $line->[0] . ( ($A_PRIVILEGES{$line->[18]} > 2 || $#A_CHAPTER == -1) ? $html->form_input('del', "$line->[0]", {TYPE => 'checkbox' }) : '' ), 
-   ($line->[10] > 0)  ? $html->button($line->[1], "index=11&UID=$line->[11]") :  $line->[1],
-   $html->button($line->[2], "index=". ($index - 2). "&UID=$line->[11]&chg=$line->[0]"), 
+   $line->[0] . ( ($A_PRIVILEGES{$line->[19]} > 2 || scalar keys %CHAPTERS_DELIGATION == 0 ) ? $html->form_input('del', "$line->[0]", {TYPE => 'checkbox' }) : '' ).
+     ( ($line->[22]) ? $html->b( "($_INNER_MSGS_CHAR)") : "" ), 
+   ($line->[12] > 0)  ? $html->button($line->[1], "index=11&UID=$line->[12]") :  $line->[1],
+   $html->button((($line->[2]) ? "$line->[2]" : $_NO_SUBJECT ), "index=". get_function_index('msgs_admin') ."&UID=$line->[12]&chg=$line->[0]"), 
    $line->[3],
    $line->[4],
+   $line->[5],
    $state,
-   $line->[6],      
    $line->[7],      
+   $line->[8],      
    $priority,
-   $line->[9],
-   $html->button("$_SHOW", "index=". ($index-2) . "&chg=$line->[0]&UID=$line->[11]&DIAPTACH_ID=", { CLASS => 'show' }),
-   ( ($A_PRIVILEGES{$line->[18]} > 2 || $#A_CHAPTER == -1) ? $html->button($_DEL, "index=$index&msg_del=$line->[0]$pages_qs", { MESSAGE => "$_DEL '$line->[0]' ?", CLASS => 'del' }): '') 
+   $line->[10],
+   $html->button("$_SHOW", "index=". get_function_index('msgs_admin') ."&chg=$line->[0]&UID=$line->[12]", { CLASS => 'show' }),
+   ( ($A_PRIVILEGES{$line->[19]} > 2 || $#A_CHAPTER == -1) ? $html->button($_DEL, "index=". get_function_index('msgs_admin') ."&del=$line->[0]", { MESSAGE => "$_DEL '$line->[0]' ?", CLASS => 'del' }): '') 
   );
 }
  
-    print $table->show();
-     msgs_dispatch_admins();
+    my $dispatch = msgs_dispatch_sel();
+    print $html->form_main({ CONTENT => $table->show().$dispatch,
+	                       HIDDEN  => { index            => get_function_index('msgs_admin'),
+	                                    UID							 => $FORM{UID},
+	                                   },
+	                       NAME    => 'users_list'
+	                     });
+
+    msgs_dispatch_admins();
    }
   
   

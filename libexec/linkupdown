@@ -95,7 +95,7 @@ use FindBin '$Bin';
 require $Bin . '/config.pl';
 unshift(@INC, $Bin . '/../', $Bin ."/../Abills/$conf{dbtype}");
 require Abills::Base;
-Abills::Base->import(qw{ check_time parse_arguments ip2int});
+Abills::Base->import(qw{ check_time parse_arguments ip2int cmd });
 my $begin_time = check_time();
 
 require Abills::SQL;
@@ -539,7 +539,7 @@ foreach my $line (@FW_ACTIONS) {
   else {
     if (system("$line")) {
       my $error = "$DATE $TIME Error: $?/$! '$line' \n";
-      if ($error !~ /shutdown/) {
+      if ($conf{SHAPER_DEBUG} && $error !~ /shutdown/) {
         open(FILE, ">>/tmp/linkupdown.log") or print "Can't open file\n";
           print FILE $error;  
         close(FILE);
@@ -918,5 +918,7 @@ sub user_info {
 if ($conf{linkupdown_external}) {
   my $res = `$conf{linkupdown_external} "$ACTION" "$INTERFACE" "$USER" "$CLIENT_IP"`;	
 }
+
+
 
 1

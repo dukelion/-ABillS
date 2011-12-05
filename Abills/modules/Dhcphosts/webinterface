@@ -807,8 +807,8 @@ sub dhcphosts_user {
       	                    });
       	  
       	  #Activate IPN Section
-      	  if($FORM{IPN_ACTIVATE} && $conf{IPN_DHCP_ACTIVE} && in_array('Snmputils', \@MODULES)) {
-      	  	require "Abills/modules/Ipn/webinterface";
+      	  if($FORM{IPN_ACTIVATE} && $conf{IPN_DHCP_ACTIVE} && in_array('Ipn', \@MODULES)) {
+      	  	load_module('Ipn', $html);
       	  	$FORM{ACTIVE}=1;
       	  	ipn_user_activate({ IP => $FORM{IP} });
       	   }
@@ -932,7 +932,20 @@ sub dhcphosts_user {
                                           });
 
   $Dhcphosts->{DISABLE}=' checked' if($Dhcphosts->{DISABLE});
-  $Dhcphosts->{IPN_ACTIVATE}=' checked' if($Dhcphosts->{IPN_ACTIVATE});
+  if($Dhcphosts->{IPN_ACTIVATE}) {
+    $Dhcphosts->{IPN_ACTIVATE}=' checked';
+    if ($Dhcphosts->{IP} ne '0.0.0.0') {
+    	use Dv_Sessions;
+      my $Sessions = Dv_Sessions->new($db, $admin, \%conf);
+    	my $list   = $Sessions->online({ FRAMED_IP_ADDRESS => $Dhcphosts->{IP} });
+    	if ($Sessions->{TOTAL}) {	
+    	  $Dhcphosts->{IPN_ACTIVATE_BUTTON}=$html->color_mark('Online', '#00FF00');
+    	 }
+      else {
+        $Dhcphosts->{IPN_ACTIVATE_BUTTON}=$html->button($_ACTIVATE, "UID=$FORM{UID}&ACTIVE=1&REMOTE_ADDR=$Dhcphosts->{IP}&index=". get_function_index('ipn_user_activate'), { BUTTON => 1 });
+       }
+     }
+   }
 
   if (! $Dhcphosts->{OPTION_82}) {
     #$Dhcphosts->{INPUT_STATE}=" DISABLED STYLE='background-color: $_COLORS[3]'";

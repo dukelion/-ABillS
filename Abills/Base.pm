@@ -34,6 +34,7 @@ $VERSION = 2.00;
   &encode_base64
   &cfg2hash
   &clearquotes
+  &cmd
  );
 
 @EXPORT_OK = qw(
@@ -59,6 +60,7 @@ $VERSION = 2.00;
   encode_base64
   cfg2hash
   clearquotes
+  cmd
 );
 
 
@@ -941,7 +943,30 @@ sub tpl_parse {
 	return $string;
 }
 
+#**********************************************************
+# cmd($cmd, \%HASH_REF);
+#**********************************************************
+sub cmd {
+  my ($cmd, $attr) = @_;
 
+  my $timeout = $attr->{timeout} || 5 ;
+
+  eval {
+    local $SIG{ALRM} = sub { die "alarm\n" }; # NB: \n required
+    alarm $timeout;
+    system($cmd);
+    alarm 0;
+   };
+
+  if ($@) {
+    die unless $@ eq "alarm\n"; # propagate unexpected errors
+    print "timed out\n" if ($attr->{debug});
+   }
+  else {
+    # didn't
+    print "didn't\n" if ($attr->{debug});
+   }
+}
 
 
 1;

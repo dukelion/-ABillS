@@ -642,12 +642,12 @@ if ($conf{REG_WIZARD}) {
 	 }
 }
 
+my $return=0;
 START:
-
 delete $FORM{OP_SID};
 if (! $FORM{step}) {
   $FORM{step}= 1;
-  $FORM{UID} = mk_unique_value(16);
+  #$FORM{UID} = mk_unique_value(16);
  }
 elsif ($FORM{back}) {
 	$FORM{step}=$FORM{step}-2;
@@ -667,65 +667,11 @@ else {
  	 }
 }
 
+
  	$LIST_PARAMS{UID}=$FORM{UID};
-  my %DATA_= ();
-  #Last registration step
-  if (! $steps{$FORM{step}}) {
-  	my $session_id = $FORM{UID};
-  	$db->{AutoCommit} = 0;
-  	my $list = $users->wizard_list({ SESSION_ID => $FORM{UID} });
-  	foreach my $line ( @$list ) {
-  		#print "$line->[0] / $line->[1] / $line->[2] / $line->[3]<br>";
-  		$DATA_{$line->[1]-1}{$line->[2]}=$line->[3];
-  	 }
-
-    my @steps_arr = sort keys %steps;
-    for($i=0; $i<=$#steps_arr; $i++) {    	
-    	my $step=$i+1;
-    	my ($fn, $module, $describe)=split(/:/, $steps{$step}, 3);
-    	
-  		if ($module) {
-  			if (in_array($module, \@MODULES)) {
-          load_module($module, $html);
-         }
-        else {
-        	next;
-         } 
-       }
-
-    	%FORM = %{ $DATA_{$step} };
- 	    $FORM{add}=1;
- 	    $FORM{UID} = $LIST_PARAMS{UID} if (! $FORM{UID} && $LIST_PARAMS{UID});
-    	#while(my($k, $v)=each %FORM) {
-    	#	print "$k, $v<br>";
-    	# }
-    	my $return = $fn->({ REGISTRATION => 1, USER => $users });
-    	$LIST_PARAMS{UID}=$FORM{UID};
-    	# Error
-    	if ($return) {
-    		$db->rollback();
-    		$html->message('err', $_ERROR, "'$FORM{LOGIN}', ". $html->button("$_REGISTRATION", "index=". get_function_index('form_wizard'). "&SESSION_ID=$session_id", { BUTTON => 1 } ));	
-    		return 0;
-    	 }
-     }
-    
-    $db->commit();
-   }
-  else {
-  	# get step info
-  	my $list = $users->wizard_list({ SESSION_ID => $FORM{UID},
-  		                               STEP       => ($FORM{step}+1) });
-  	$DATA_ = ();
-  	foreach my $line ( @$list ) {
-  		$DATA_{$line->[2]}=$line->[3];
-  		$FORM{$line->[2]}=$line->[3];
-  	 }
-
-    my $table = $html->table({ width      => '100%',
-                               border     => 1,
-                               #title_plain=> ["$_STEP $FORM{step}: ".$describe],
-                               #rows       => [ [ @rows, $html->b("$_STEP $FORM{step}: ".$describe) ]]
-                             });
+  my $table = $html->table({ width      => '100%',
+                             border     => 1,
+                           });
   	
     my ($fn, $module, $describe)=split(/:/, $steps{$FORM{step}}, 3);
     my @rows = ();
@@ -741,10 +687,50 @@ else {
        	 push @rows, $table->th("$_STEP $i: ".$describe, { class=>'even' });
         }
      }
-
     $table->addtd( @rows ); 
-    print $table->show();
+    print $table->show() if (! $return); 
     
+    if($FORM{step} > 1 && ! $FORM{back}) {
+      REG:
+ 	  	$db->{AutoCommit} = 0;
+    	my $step=$FORM{step}-1;
+    	my ($fn, $module, $describe)=split(/:/, $steps{$step}, 3);
+    	
+  		if ($module) {
+  			if (in_array($module, \@MODULES)) {
+          load_module($module, $html);
+         }
+        else {
+        	next;
+         } 
+       }
+
+ 	    $FORM{add} = 1 if (! $FORM{change});
+ 	    $FORM{UID} = $LIST_PARAMS{UID} if (! $FORM{UID} && $LIST_PARAMS{UID});
+    	#while(my($k, $v)=each %FORM) {
+    	#	print "$k, $v<br>";
+    	# }
+    	$return = $fn->({ REGISTRATION => 1, USER => $users });
+    	$LIST_PARAMS{UID}=$FORM{UID};
+    	# Error
+    	if ($return) {
+    		$db->rollback();
+    		$FORM{step}=1;
+    		goto START;
+    	 }
+      else {
+        $db->commit();
+       }
+      undef $FORM{add} ;
+      undef $FORM{change} ;
+     }
+
+    if (! $steps{$FORM{step}} || $FORM{finish}) {
+      $html->message('info', $_INFO, "$_REGISTRATION_COMPLETE");
+      form_users();
+      return 0;
+     }
+
   	if ($module) {
   		if (in_array($module, \@MODULES)) {
         load_module($module, $html);
@@ -754,34 +740,17 @@ else {
       	goto START;
        }
   	 }
-  	
-  	if ($FORM{step}==2 && ! $FORM{back}) {
-  		if (! $FORM{LOGIN}) {
- 		    $html->message('err', $_ERROR, "'$FORM{LOGIN}' $ERR_WRONG_NAME");	
-  		  $FORM{step}=1;
-  		  goto START;
-  		 }
-  	  else {
-  	  	$users->info( 0 , { LOGIN => $FORM{LOGIN} });
-  	  	if ($users->{TOTAL}) {
-  	  		delete $users->{UID};
-          $html->message('err', $_INFO, "$FORM{LOGIN} $_USER_EXIST.");
-          $FORM{step}=1;
-          goto START;
-  	  	 }
-  	   }
-  	 }
-  	 
+
     $FORM{step}++;
  	  $fn->({ ACTION      => 'next',
  	  	      REGISTRATION=> 1,
  	  	      USER        => \%FORM,
- 	  	      LNG_ACTION  => ($steps{$FORM{step}}) ? "$_NEXT " : "$_REGISTRATION",
- 	  	      BACK_BUTTON => ($FORM{step} > 1) ? $html->form_input('back', "$_BACK", {  TYPE => 'submit' }) : undef,
+ 	  	      LNG_ACTION  => ($steps{$FORM{step}}) ? "$_NEXT " : "$_REGISTRATION_COMPLETE",
+ 	  	      BACK_BUTTON => ($FORM{step} > 1) ? $html->form_input('finish', "$_REGISTRATION_COMPLETE", {  TYPE => 'submit' }).' '. $html->form_input('back', "$_BACK", {  TYPE => 'submit' }) : undef,
  	  	      UID         => $FORM{UID},
- 	  	      %DATA_
+ 	  	      SUBJECT     => $_REGISTRATION
  	  	     });
-   }
+#   }
 }
 
 #**********************************************************
@@ -1243,7 +1212,7 @@ sub add_company {
 sub user_form {
  my ($attr) = @_;
 
-	$index = 15 if (! $attr->{ACTION});
+	$index = 15 if (! $attr->{ACTION} && ! $attr->{REGISTRATION});
 
  if ($FORM{add}) {
  	 form_users();
@@ -1981,7 +1950,42 @@ if($attr->{USER_INFO}) {
      }
 
     user_form({ USER_INFO => $user_info });
+    
+    if ($conf{USER_ALL_SERVICES}) {
 
+  
+  foreach my $module (@MODULES) {
+  	$FORM{MODULE}=$module;
+  	my $service_func_index = 0;
+  	my $service_func_menu  = '';
+ 	  my $service_menu       = '';
+    foreach my $key ( sort keys %menu_items) {
+	    if (defined($menu_items{$key}{20})) {
+	  	  $service_func_index=$key if (($FORM{MODULE} && $FORM{MODULE} eq $module{$key} || ! $FORM{MODULE}) && $service_func_index == 0);
+		    $service_menu .= '<li class=umenu_item>'. $html->button($menu_items{$key}{20}, "UID=$user_info->{UID}&index=$key");
+	     }
+  
+   	  if ($service_func_index > 0 && $menu_items{$key}{$service_func_index}) {
+	  	  $service_func_menu .= $html->button($menu_items{$key}{$service_func_index}, "UID=$user_info->{UID}&index=$key") .' ';
+ 	 	   }
+     }
+     if ($service_func_index) {
+       print "<TABLE width='100%' border=0>
+        <TR><TH class=form_title>$module</TH></TR>
+        <TR><TH class=odd><div id='rules'><ul><li class='center'>$service_func_menu</li></ul></div></TH></TR></TABLE>\n";
+
+        $index = $service_func_index;
+        if(defined($module{$service_func_index})) {
+          load_module($module{$service_func_index}, $html);
+         }
+
+        $functions{$service_func_index}->({ USER => $user_info });
+      }
+   }
+
+     }
+    else {
+#===============     
     #$service_func_index
     if ($functions{$service_func_index}) {
       $index = $service_func_index;
@@ -1990,13 +1994,14 @@ if($attr->{USER_INFO}) {
        }
     
       print "<TABLE width='100%' border=0>
-      <TR bgcolor='$_COLORS[0]'><TH align='right'>$module{$service_func_index}</TH></TR>
-      <TR bgcolor='$_COLORS[1]'><TH align='right'><div id='rules'><ul><li class='center'>$service_func_menu</li></ul></div></TH></TR>
+      <TR><TH class=form_title>$module{$service_func_index}</TH></TR>
+      <TR><TH class=even><div id='rules'><ul><li class='center'>$service_func_menu</li></ul></div></TH></TR>
     </TABLE>\n";
   
       $functions{$service_func_index}->({ USER => $user_info });
     }
-
+#===============
+    }
     user_pi({ %$attr, USER_INFO => $user_info });
    }
 
@@ -2085,7 +2090,6 @@ elsif ( $FORM{add}) {
    }
   else {
     $html->message('info', $_ADDED, "$_ADDED '$user_info->{LOGIN}' / [$user_info->{UID}]");
-
     if ($conf{external_useradd}) {
       if (! _external($conf{external_useradd}, { %FORM }) ) {
         return 0;
@@ -2097,7 +2101,7 @@ elsif ( $FORM{add}) {
     $LIST_PARAMS{UID}= $user_info->{UID};
     $FORM{UID}       = $user_info->{UID};
     user_pi({ %$attr, REGISTRATION => 1 });
-    $index=get_function_index('form_payments');
+    #$index=get_function_index('form_payments');
     #form_payments({ USER => $user_info });
     return 0;
    }
@@ -5359,7 +5363,7 @@ sub form_payments () {
 
  use Finance;
  my $payments = Finance->payments($db, $admin, \%conf);
- 
+
  return 0 if (! $permissions{1});
 
  %PAYMENTS_METHODS = ();
@@ -5375,6 +5379,7 @@ sub form_payments () {
     }
    exit;
   }
+
 
 
 
@@ -5537,7 +5542,6 @@ if ($permissions{1} && $permissions{1}{1}) {
    if ($attr->{ACTION}) {
 	   $payments->{ACTION}    = $attr->{ACTION};
 	   $payments->{LNG_ACTION}= $attr->{LNG_ACTION};
-	   print "!!!!!!!!!!!!!";
 	  }
 	 else {
 	   $payments->{ACTION}    = 'add';
@@ -5546,7 +5550,7 @@ if ($permissions{1} && $permissions{1}{1}) {
 
    
    $html->tpl_show(templates('form_payments'), { %$payments, %FORM, %$attr  });
-   return 0 if ($attr->{REGISTRATION});
+   #return 0 if ($attr->{REGISTRATION});
  }
 }
 elsif($FORM{AID} && ! defined($LIST_PARAMS{AID})) {
@@ -5813,7 +5817,7 @@ if ($FORM{add}) {
 	 }
 	
 	if ($message ne '') {
-		print $html->message('info', $_FEES, "$message");
+		$html->message('info', $_FEES, "$message");
 	 }
 	
 	return 0;
@@ -5854,7 +5858,8 @@ my $output = $table->show({ OUTPUT2RETURN => 1 });
 if ($attr->{ACTION}) {
   my $action = "";
   if ($attr->{ACTION}) {
-	  $action = $html->form_input('back', "$_BACK", {  TYPE => 'submit' }).
+	  $action = $html->form_input('finish', "$_REGISTRATION_COMPLETE", {  TYPE => 'submit' }).' '.
+	  $html->form_input('back', "$_BACK", {  TYPE => 'submit' }).' '.
 	  $html->form_input('next', "$_NEXT", {  TYPE => 'submit' });
    }
   else{
@@ -7095,7 +7100,7 @@ sub tpl_describe {
   my %TPL_DESCRIBE = ();
 
   if (! -f $filename) {
-  	print $html->message('info', "$_INFO", "$_INFO $_NOT_EXIST ($filename)");
+  	$html->message('info', "$_INFO", "$_INFO $_NOT_EXIST ($filename)");
   	return \%TPL_DESCRIBE;
    }
 
