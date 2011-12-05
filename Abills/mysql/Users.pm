@@ -2076,16 +2076,6 @@ sub street_list {
   ORDER BY $SORT $DESC
   LIMIT $PG, $PAGE_ROWS;";
 
-
- $sql = "SELECT s.id, s.name, d.name, count(b.id) , sum(pi.users_count) FROM streets s
-LEFT JOIN districts d ON (s.district_id=d.id)
-LEFT JOIN builds b ON (b.street_id=s.id)
-LEFT JOIN (select location_id, count(uid) as users_count from users_pi group by location_id) pi ON (b.id=pi.location_id)
-$WHERE
-GROUP BY s.id
-ORDER BY $SORT $DESC
-LIMIT $PG, $PAGE_ROWS;";
-
  $self->query($db, $sql);
 
  my $list = $self->{list};

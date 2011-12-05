@@ -380,7 +380,7 @@ sub iptv_user {
 	  $user              = $Iptv->defaults();
 	  $user->{ACTION}    = 'add';
 	  $user->{LNG_ACTION}= $_ACTIVATE;
-    $user->{TP_ID}=$html->form_select('TP_ID', 
+    $user->{TP_NUM}     = $html->form_select('TP_ID', 
                                          { 
  	                                          SELECTED          => $user->{TP_ID},
  	                                          SEL_MULTI_ARRAY   => $Tariffs->list({ MODULE => 'Iptv'}),
@@ -388,10 +388,11 @@ sub iptv_user {
  	                                          MULTI_ARRAY_VALUE => '0,1',
  	                                          NO_ID             => 1,
  	                                        });
+	  
 	 }
 	else {
-	  $user->{ACTION}='set';
-	  $user->{LNG_ACTION}=$_CHANGE;
+	  $user->{ACTION}    = 'set';
+	  $user->{LNG_ACTION}= $_CHANGE;
     $user->{CHANGE_TP_BUTTON}=$html->button($_CHANGE, 'UID='. $FORM{UID}.'&index='. get_function_index('iptv_chg_tp'), { CLASS => 'change rightAlignText'  });
 	 } 
 
@@ -402,7 +403,7 @@ sub iptv_user {
  	                                          ARRAY_NUM_ID => 1
  	                                        });
  
-  $html->tpl_show(_include('iptv_user', 'Iptv'), $user);
+  $html->tpl_show(_include('iptv_user', 'Iptv'), { %$attr, %$user });
   
   if ($user->{TOTAL} > 0) {
     iptv_user_channels({ USER_INFO => $user });
