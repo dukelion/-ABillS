@@ -471,6 +471,7 @@ sub extfin_report_balances {
 
  my $list = $self->{list};
 
+ $self->{debug}=1;
  $self->query($db, "SELECT 
     \@a := sum(if ((SELECT sum(p.sum) FROM payments p WHERE (u.uid = p.uid) $PAYMENTS_WHERE) is not null, $report_sum + (SELECT sum(p.sum) FROM payments p WHERE (u.uid = p.uid) $PAYMENTS_WHERE), $report_sum)), 
     sum((SELECT sum(f.sum) FROM fees f WHERE (u.uid = f.uid) $FEES_WHERE)), 
@@ -482,8 +483,7 @@ sub extfin_report_balances {
   LEFT JOIN users_pi pi ON (u.uid = pi.uid)
   LEFT JOIN companies company ON (b.id=company.bill_id)
   WHERE $WHERE
-   GROUP BY $GROUP
-  ORDER BY $SORT $DESC 
+
    ;");
 
     ($self->{TOTAL_DEBIT}, 

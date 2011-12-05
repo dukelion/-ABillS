@@ -1597,6 +1597,11 @@ foreach my $line (@$list) {
   $num++;
 }
 
+$table->{rowcolor}=$_COLORS[3];
+$table->addrow('-', '', '', $Extfin->{TOTAL_DEBIT}, 
+     $Extfin->{TOTAL_CREDIT},
+     $Extfin->{TOTAL_SALDO});
+
 print $table->show();
 
 }
