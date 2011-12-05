@@ -271,24 +271,12 @@ sub docs_invoice {
      }
 
    my $amount_for_pay = 0;
-   if($users->{DEPOSIT}<0) {
-   	 $num++;
-     $table->addrow(
-       $html->form_input('ORDER_'.$num, "$_DEBT", { TYPE => 'hidden', OUTPUT2RETURN => 1 }).
-       $html->form_input('SUM_'.$num, abs($users->{DEPOSIT}), { TYPE => 'hidden', OUTPUT2RETURN => 1 }).
-       $html->form_input('IDS', "$num", { TYPE => ($user->{UID}) ? 'hidden' : 'checkbox', STATE => 'checked', OUTPUT2RETURN => 1 }). $num,
- 	 	                    "$_DEBT",
- 	 	                    '',
- 	 	                    '',
- 	 	                    sprintf("%.2f", abs($users->{DEPOSIT}))
- 	 	                    );
-     $total_sum	+= abs($users->{DEPOSIT});
-     $amount_for_pay = $total_sum;
-     $num++;  
-    }
- 	 else {
- 	 	 $amount_for_pay = $total_sum-$users->{DEPOSIT};
+   if ($users->{DEPOSIT}>0) {
+ 	   $amount_for_pay    = $total_sum-$users->{DEPOSIT};
  	  }
+   else {
+   	 $amount_for_pay    = $total_sum;
+    }
 
 
     $table->{extra}=" colspan=4 class=total ";
