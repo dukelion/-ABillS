@@ -1355,8 +1355,8 @@ my $output = qq{
 
 <TABLE width="100%">
 $head
-<tr><TD bgcolor="$_COLORS[1]" align=center width=30>$img</TD>
-<TD bgcolor="$_COLORS[1]">$message</TD></TR>
+<tr><TD class="odd" align="center" width="30">$img</TD>
+<TD class="odd">$message</TD></TR>
 </TABLE>
 
 </TD></TR>
