@@ -2848,7 +2848,6 @@ sub voip_mk_users_conf {
 
 my $content = '';
 
-
 my $list = $Voip->user_list({ PAGE_ROWS => 100000, 
 	                            CID       => '*',
 	                            PASSWORD  => 1,
