@@ -7106,8 +7106,10 @@ sub dv_payments_maked {
 	$Dv->info($attr->{USER}->{UID});
 
   my $deposit = $attr->{USER}->{DEPOSIT} + (($attr->{USER}->{CREDIT} > 0) ? $attr->{USER}->{CREDIT} : $Dv->{TP_CREDIT});
+  
+  my $abon_fees = ($attr->{USER}->{REDUCTION} ) ? $Dv->{MONTH_ABON} + $Dv->{DAY_ABON} : ($Dv->{MONTH_ABON} + $Dv->{DAY_ABON}) * (100 - $attr->{USER}->{REDUCTION}) / 100;
 
-	if ($Dv->{STATUS} > 3 && ($deposit > $Dv->{MONTH_ABON} + $Dv->{DAY_ABON} || $Dv->{ABON_DISTRIBUTION})) {
+	if ($Dv->{STATUS} > 3 && ($deposit > $abon_fees || $Dv->{ABON_DISTRIBUTION})) {
 		$Dv->change({ UID     => $attr->{USER}->{UID},
 			            STATUS  => 0  });
     $Dv->{ACCOUNT_ACTIVATE}=$attr->{USER}->{ACTIVATE} || '0000-00-00';
