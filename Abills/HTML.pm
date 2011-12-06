@@ -1333,11 +1333,11 @@ sub message {
  $caption .= ': '. $attr->{ID} if ($attr->{ID});
  my $img = '';
  if ($type eq 'err') {
-   $head = "<tr><th class='err_message' colspan='2'>$caption</th></TR>\n";
+   $head = "<tr><th class='err_message' colspan='2'>$caption</th></tr>\n";
    $img = '<img src="/img/attention.png" border="0" hspace="10" dir="ltr" alt=\'Error\'>';
   }
  elsif ($type eq 'info') {
-   $head = "<tr><th class='info_message' colspan='2'>$caption</th></TR>\n";
+   $head = "<tr><th class='info_message' colspan='2'>$caption</th></tr>\n";
    $img = '<img src="/img/information.png" border="0" hspace="10" dir="ltr" alt=\'Information\'>';
   }  
  
