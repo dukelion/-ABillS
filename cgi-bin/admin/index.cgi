@@ -2209,7 +2209,6 @@ foreach my $name ( @statuses ) {
   $i++;
 }
 
-
 my $list = $users->list( { %LIST_PARAMS, FULL_LIST => 1 } );
 
 if ($users->{errno}) {
@@ -2237,6 +2236,8 @@ elsif ($users->{TOTAL} == 0) {
 
 print $html->letters_list({ pages_qs => $pages_qs  }); 
 
+
+
 my @TITLE = ($_LOGIN, $_FIO, $_DEPOSIT, $_CREDIT, $_STATUS, '-', '-');
 my %SEARCH_TITLES = ('if(company.id IS NULL,ext_b.deposit,ext_cb.deposit)' => "$_EXTRA $_DEPOSIT",
                   'max(p.date)'       => "$_PAYMENTS $_DATE",
@@ -2263,7 +2264,8 @@ my %SEARCH_TITLES = ('if(company.id IS NULL,ext_b.deposit,ext_cb.deposit)' => "$
                   'streets.name'      => "$_STREETS",
                   'districts.name'    => "$_DISTRICTS",
                   'u.deleted'         => "$_DELETED",
-                  'u.gid'             => "$_GROUP"
+                  'u.gid'             => "$_GROUP",
+                  'builds.id'       => 'Location ID'
                     );
 
 if ($users->{EXTRA_FIELDS}) {

@@ -747,16 +747,15 @@ sub list {
  	 push @WHERE_RULES, @{ $self->search_expr($attr->{EMAIL}, 'STR', 'pi.email', { EXT_FIELD => 1 }) }; 
  	}
 
-
  if($attr->{NOT_FILLED}) {
  	 push @WHERE_RULES, "builds.id IS NULL";
  	 $EXT_TABLES .= "LEFT JOIN builds ON (builds.id=pi.location_id)";
   }
  elsif ($attr->{LOCATION_ID}) {
-   push @WHERE_RULES, @{ $self->search_expr($attr->{LOCATION_ID}, 'INT', 'pi.location_id', { EXT_FIELD => 'streets.name, builds.number, builds.id' }) };
+   push @WHERE_RULES, @{ $self->search_expr($attr->{LOCATION_ID}, 'INT', 'pi.location_id', { EXT_FIELD => 'streets.name, builds.number, pi.address_flat, builds.id' }) };
    $EXT_TABLES .= "LEFT JOIN builds ON (builds.id=pi.location_id)
    LEFT JOIN streets ON (streets.id=builds.street_id)";
-   $self->{SEARCH_FIELDS_COUNT}+=2;
+   $self->{SEARCH_FIELDS_COUNT}+=3;
   }
  else {
    if ($attr->{STREET_ID}) {
@@ -824,16 +823,7 @@ sub list {
   }
 
  if ($attr->{CONTRACT_ID}) {
-    if ($attr->{CONTRACT_ID} =~ /^list:(.+)/) {
-      my $contract_id = $1;
-      push @WHERE_RULES, "pi.contract_id IN ($contract_id)";
-     }
-    else {
-      push @WHERE_RULES, @{ $self->search_expr($attr->{CONTRACT_ID}, 'STR', 'pi.contract_id' ) }; 
-     }
-
-    $self->{SEARCH_FIELDS} .= 'pi.contract_id, ';
-    $self->{SEARCH_FIELDS_COUNT}++;
+   push @WHERE_RULES, @{ $self->search_expr($attr->{CONTRACT_ID}, 'STR', 'pi.contract_id', { EXT_FIELD => 1}) };  
   }
 
  if ($attr->{CONTRACT_SUFIX}) {

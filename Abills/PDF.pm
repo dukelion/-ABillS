@@ -691,7 +691,7 @@ else {
 
 
 #*******************************************************************
-# heder off main page
+# header off main page
 # header()
 #*******************************************************************
 sub header {
@@ -701,12 +701,12 @@ sub header {
  my $admin_ip=$ENV{REMOTE_ADDR};
 
  if ($FORM{debug}) {
- 	  $self->{header} = "Content-Type: text/plain\n\n";
-          $self->{debug}=1;
- 	  return $self->{header};
+ 	 $self->{header} = "Content-Type: text/plain\n\n";
+   $self->{debug}=1;
+ 	 return $self->{header};
   }
 
- my $filename = int(rand(32768)).'.pdf';
+ my $filename = ($attr->{NAME}) ? $attr->{NAME}.'pdf' : int(rand(32768)).'.pdf';
  $self->{header} = "Content-type: application/pdf; filename=$filename\n";
  $self->{header}.= "Cache-Control: no-cache\n";
  $self->{header}.= "Content-disposition: inline; name=\"$filename\"\n\n";
@@ -1497,7 +1497,7 @@ if ($attr->{MULTI_DOCS} && $multi_doc_count <= $#{ $attr->{MULTI_DOCS} }) {
      }
    }
 
-  $multi_doc_count++;  
+  $multi_doc_count++;
   goto MULTIDOC_LABEL;
 }
 
