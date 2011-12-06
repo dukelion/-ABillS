@@ -1288,7 +1288,7 @@ sub button {
   
   if ($attr->{IMG}) {
      my $img_path = ($attr->{IMG}=~s/^://) ? "$IMG_PATH/" : '';
-     $name = "<img alt='$attr->{IMG_ALT}' src='$img_path$attr->{IMG}' border=0> $name";
+     $name = "<img alt='$attr->{IMG_ALT}' src='$img_path$attr->{IMG}' border='0'> $name";
    }
   
   my $message = '';
@@ -1334,11 +1334,11 @@ sub message {
  my $img = '';
  if ($type eq 'err') {
    $head = "<tr><th class=err_message colspan=2>$caption</th></TR>\n";
-   $img = '<img src=/img/attention.png border=0 hspace=10 dir=ltr alt=\'Error\'>';
+   $img = '<img src=/img/attention.png border='0' hspace=10 dir=ltr alt=\'Error\'>';
   }
  elsif ($type eq 'info') {
    $head = "<tr><th class=info_message colspan=2>$caption</th></TR>\n";
-   $img = '<img src=/img/information.png border=0 hspace=10 dir=ltr alt=\'Information\'>';
+   $img = '<img src=/img/information.png border='0' hspace=10 dir=ltr alt=\'Information\'>';
   }  
  
  $message =~ s/\n/<br>/g;
@@ -1350,7 +1350,7 @@ my $output = qq{
 <br>
 <TABLE width="400" border="0" cellpadding="0" cellspacing="0" class="noprint">
 <tr><TD bgcolor="$_COLORS[9]">
-<TABLE width="100%" border=0 cellpadding="2" cellspacing="1">
+<TABLE width="100%" border="0" cellpadding="2" cellspacing="1">
 <tr><TD bgcolor="$_COLORS[1]">
 
 <TABLE width="100%">

@@ -5409,7 +5409,7 @@ if (defined($attr->{USER})) {
    }
 
   if (defined($FORM{OP_SID}) and $FORM{OP_SID} eq $COOKIES{OP_SID}) {
- 	  $html->message('err', $_ERROR, "$_EXIST/ $FORM{OP_SID} eq $COOKIES{OP_SID} /");
+ 	  $html->message('err', $_ERROR, "$_EXIST");
    }
   elsif ($FORM{add} && $FORM{SUM}) {
   	$FORM{SUM} =~ s/,/\./g;
@@ -8206,7 +8206,7 @@ print $table->show();
 # return HASH_REF
 #   MODULE -> return
 #**********************************************************
-sub cross_modules_call  {
+sub cross_modules_call {
   my ($function_sufix, $attr) = @_;
 
   my %full_return = ();

@@ -374,8 +374,8 @@ if ($ACTION eq 'up' || $OS eq 'Linux') {
      }
 
     if ($inum ne '-') {
-      $fw_num_in    = $START_FW[$traf_type] + $inum * 2;
-      $fw_num_out   = $START_FW[$traf_type] + $inum * 2 + 1;
+      $fw_num_in    = ($START_FW[$traf_type] + $inum * 2) + $user->{UID};
+      $fw_num_out   = ($START_FW[$traf_type] + $inum * 2 + 1) + $user->{UID};
      }
 
     my $speed_in  = 0;
