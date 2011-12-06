@@ -1620,9 +1620,18 @@ sub mk_log {
 sub cross_modules_call  {
   my ($function_sufix, $attr) = @_;
 
-  my %full_return = ();
-
+  my %full_return  = ();
+  my @skip_modules = ();
+  
+  if ($attr->{SKIP_MODULES}) {
+  	$attr->{SKIP_MODULES}=~s/\s+//g;
+  	@skip_modules=split(/,/, $attr->{SKIP_MODULES});
+   }
+  
   foreach my $mod (@MODULES) {
+  	if (in_array($mod, \@skip_modules)) {
+  		next;
+  	 }
     require "Abills/modules/$mod/webinterface";
     my $function = lc($mod).$function_sufix;
     my $return;

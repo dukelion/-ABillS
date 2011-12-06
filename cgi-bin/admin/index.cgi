@@ -8209,7 +8209,7 @@ print $table->show();
 sub cross_modules_call  {
   my ($function_sufix, $attr) = @_;
 
-  my %full_return = '';
+  my %full_return = ();
 
   foreach my $mod (@MODULES) {
     load_module("$mod", $html);

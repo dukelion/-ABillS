@@ -339,15 +339,16 @@ sub docs_invoice_add {
  
   %DATA = $self->get_data($attr, { default => \%DATA }); 
 
+  if ($attr->{ORDER}) {
+    push @{ $attr->{ORDERS} }, "$attr->{ORDER}|0|1|$attr->{SUM}";
+   }
+
   if (! $attr->{ORDERS} && ! $attr->{IDS}) {
   	$self->{errno}=1;
   	$self->{errstr}="No orders";
   	return $self;
    }
   
-  if ($attr->{ORDER}) {
-    push @{ $attr->{ORDERS} }, "$attr->{ORDER}|0|1|$attr->{SUM}";
-   }
 
   $DATA{DATE}       = ($attr->{DATE})    ? "'$attr->{DATE}'" : 'now()';
   $DATA{INVOICE_ID} = ($attr->{INVOICE_ID}) ? $attr->{INVOICE_ID}  : $self->docs_nextid({ TYPE => 'INVOICE' });
