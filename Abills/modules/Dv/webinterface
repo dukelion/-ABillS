@@ -6472,7 +6472,7 @@ sub dv_get_month_fee {
       Bonus_rating->import();
      }
     else {
-      $html->message('err', $_ERROR, "Can't load 'Bonus_rating'. Purchase this module http://abills.net.ua");
+      $html->message('err', $_ERROR, "Can't load 'Bonus_rating'. Purchase this module http://abills.net.ua") if (! $attr->{QUITE});
       return 0;
      }	
 
@@ -6501,7 +6501,7 @@ sub dv_get_month_fee {
   	                     DESCRIBE       => "$_BONUS: $_TARIF_PLAN: $Dv->{TP_ID}",
 	                      } );
 	      if ($payments->{errno})  {
-	      	$html->message('err', $_ERROR, "[$payments->{errno}] $payments->{errstr}");	 
+	      	$html->message('err', $_ERROR, "[$payments->{errno}] $payments->{errstr}") if (! $attr->{QUITE});	 
 	       }
         else {
         	$html->message('info', $_INFO, "$_BONUS: $bonus_sum") if (! $attr->{QUITE});	 
@@ -6646,10 +6646,10 @@ sub dv_get_month_fee {
           $total_sum{MONTH_FEE} += $sum;
         
           if ($fees->{errno}) {
-        	  $html->message('err', $_ERROR, "[$fees->{errno}] $fees->{errstr}");	
+        	  $html->message('err', $_ERROR, "[$fees->{errno}] $fees->{errstr}") if (! $attr->{QUITE});	
            }
           else {
-            $html->message('info', $_INFO, $message) if ($html);	
+            $html->message('info', $_INFO, $message) if ($html && ! $attr->{QUITE});
            }
           $m++;
          }
@@ -7121,7 +7121,7 @@ sub dv_payments_maked {
 #        return ;	
 #       }
 #		 }
-		dv_get_month_fee($Dv);
+		dv_get_month_fee($Dv, $attr);
 	 }
 }
 
