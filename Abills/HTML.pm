@@ -1356,12 +1356,12 @@ my $output = qq{
 <TABLE width="100%">
 $head
 <tr><TD class="odd" align="center" width="30">$img</TD>
-<TD class="odd">$message</TD></TR>
+<TD class="odd">$message</TD></tr>
 </TABLE>
 
-</TD></TR>
+</TD></tr>
 </TABLE>
-</TD></TR>
+</TD></tr>
 </TABLE>
 <br>
 };
