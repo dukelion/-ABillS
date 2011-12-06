@@ -2870,9 +2870,13 @@ foreach my $line (@$list) {
   $content .=  $html->tpl_show(_include('voip_users_conf', 'Voip'), \%info, { OUTPUT2RETURN => 1 });
 }
 
-open(FILE, ">$conf{VOIP_ASTERISK_USERS}") || $html->message('err', "Voip:$_ERROR", "Can't open file config file '$conf{VOIP_ASTERISK_USERS}' $!");
+if(open(FILE, ">$conf{VOIP_ASTERISK_USERS}")) {
   print FILE "$content\n";
-close(FILE);
+  close(FILE);
+ }
+else {
+  #$html->message('err', "Voip:$_ERROR", "Can't open file config file '$conf{VOIP_ASTERISK_USERS}' $!") if (! $attr->{QUITE});	
+}
 
 if ($conf{VOIP_ASTERISK_RESTART}) {
 	#$conf{VOIP_ASTERISK_RESTART}=~

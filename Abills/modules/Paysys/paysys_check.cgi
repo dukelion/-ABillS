@@ -1,4 +1,4 @@
-#!/usr/bin/perl -w
+#!/usr/bin/perl
 # Paysys processing system
 # Check payments incomming request
 #
@@ -15,6 +15,7 @@ $debug
 %conf
 %PAYSYS_PAYMENTS_METHODS
 $md5
+$html
 $systems_ips
 %systems_ident_params
 );
@@ -27,6 +28,7 @@ BEGIN {
  unshift(@INC, $libpath);
  unshift(@INC, $libpath . 'libexec/');
  unshift(@INC, $libpath . 'Abills/modules/Paysys');
+ unshift(@INC, $libpath . 'Abills');
 
  eval { require Time::HiRes; };
  if (! $@) {
@@ -48,12 +50,14 @@ use Finance;
 use Admins;
 
 $debug     = $conf{PAYSYS_DEBUG} || 0;
-my $html   = Abills::HTML->new();
+$html   = Abills::HTML->new();
 my $sql    = Abills::SQL->connect($conf{dbtype}, $conf{dbhost}, $conf{dbname}, $conf{dbuser},
     $conf{dbpasswd}, { CHARSET => ($conf{dbcharset}) ? $conf{dbcharset} : undef  });
 my $db     = $sql->{db};
 #Operation status
 my $status = '';
+
+require "Abills/templates.pl";
 
 if ($Paysys::VERSION < 3.2) {
 	print "Content=-Type: text/html\n\n";
@@ -693,6 +697,7 @@ elsif ($command eq 'pay') {
   	                       EXT_ID       => "$payment_system:$FORM{txn_id}",
   	                       CHECK_EXT_ID => "$payment_system:$FORM{txn_id}" } );  
 
+    cross_modules_call('_payments_maked', { USER => $user, QUITE => 1 });
 
     #Exists
     if ($payments->{errno} && $payments->{errno} == 7) {
@@ -709,16 +714,14 @@ elsif ($command eq 'pay') {
  	              DATETIME       => "'$DATE $TIME'", 
  	              SUM            => "$FORM{sum}",
   	            UID            => "$user->{UID}", 
-                IP             => '0.0.0.0',
+                IP             => $ENV{REMOTE_ADDR},
                 TRANSACTION_ID => "$payment_system:$FORM{txn_id}",
                 INFO           => "TYPE: $FORM{command} PS_TIME: ".
   (($FORM{txn_date}) ? $FORM{txn_date} : '' ) ." STATUS: $status $status_hash{$status}",
-                PAYSYS_IP      => "$ENV{'REMOTE_ADDR'}"
+                PAYSYS_IP      => "$ENV{'REMOTE_ADDR'}",
+                STATUS         => 2
                });
-
      }    
-
-
 	 }
 
 $RESULT_HASH{result} = $status;
@@ -992,6 +995,8 @@ elsif($request_hash{'request-type'} == 2) {
     	                     METHOD       => ($conf{PAYSYS_PAYMENTS_METHODS} && $PAYSYS_PAYMENTS_METHODS{44}) ? 44 : '2',  
   	                       EXT_ID       => "$payment_system:$transaction_number",
   	                       CHECK_EXT_ID => "$payment_system:$transaction_number" } );  
+
+    cross_modules_call('_payments_maked', { USER => $user, QUITE => 1 });
 
     #Exists
     if ($payments->{errno} && $payments->{errno} == 7) {
@@ -1605,5 +1610,30 @@ sub mk_log {
     print "Can't open file '$paysys_log_file' $!\n";
    }
 }
+
+
+#**********************************************************
+# Calls function for all registration modules if function exist 
+#
+# cross_modules_call(function_sufix, attr) 
+#**********************************************************
+sub cross_modules_call  {
+  my ($function_sufix, $attr) = @_;
+
+  my %full_return = ();
+
+  foreach my $mod (@MODULES) {
+    require "Abills/modules/$mod/webinterface";
+    my $function = lc($mod).$function_sufix;
+    my $return;
+    if (defined(&$function)) {
+     	$return = $function->($attr);
+     }
+    $full_return{$mod}=$return;
+   }
+
+  return \%full_return;
+}
+
 
 1
