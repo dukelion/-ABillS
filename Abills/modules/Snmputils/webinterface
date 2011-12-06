@@ -1348,7 +1348,7 @@ if($sw_info->{version} !~ /DES-32/) {
   #Шаг 4. Задать режим связки IP MAC Port Binding (ARP / ACL):
   if ($oid_sufix{MODE}) {
     my $mode = (defined($attr->{ACL_IP_MAC})) ? int($attr->{ACL_IP_MAC}) : 1;
-    if ($sw_info->{version} =~ /DES-3526/) { $mode = 0; }
+    if ($sw_info->{version} =~ /DES-3526/) { $mode = $mode; }
     $message .= $oid_prefix.$oid_sufix{MODE}.".$ip => $mode\n";
   
     if(snmpset($SNMP_COMMUNITY, $oid_prefix.$oid_sufix{MODE}.".$ip", "integer", $mode)) {
