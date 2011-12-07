@@ -320,7 +320,7 @@ sub docs_invoice_info {
   if ($self->{TOTAL} > 0) {
     $self->{NUMBER}=$self->{INVOICE_ID};
  
-    $self->query($db, "SELECT invoice_id, orders, unit, counts, fees_id, price
+    $self->query($db, "SELECT invoice_id, orders, unit, counts, price, fees_id
       FROM docs_invoice_orders WHERE invoice_id='$id'");
     $self->{ORDERS}=$self->{list};
    }

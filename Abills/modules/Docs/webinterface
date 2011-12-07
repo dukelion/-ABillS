@@ -105,12 +105,12 @@ sub docs_invoice_add  {
      my $date = $FORM{DATE} || $DATE;
      if(! $Docs->{errno}) {
        if ($conf{DOCS_PDF_PRINT}) {
-  	     $html->message('info', "$_INVOICE $_ADDED", "$_INVOICE $_NUM: [$Docs->{DOC_ID}]\n $_DATE: $date\n ". $html->button($_PRINT, "qindex=$index&print=$Docs->{DOC_ID}&UID=$LIST_PARAMS{UID}&pdf=1", { ex_params => 'target=_new', CLASS => 'print' }));
+  	     $html->message('info', "$_INVOICE $_ADDED", "$_INVOICE $_NUM: [$Docs->{DOC_ID}]\n $_DATE: $date\n ". $html->button($_PRINT, "qindex=". get_function_index('docs_invoice_list') ."&print=$Docs->{DOC_ID}&UID=$LIST_PARAMS{UID}&pdf=1", { ex_params => 'target=_new', CLASS => 'print' }));
    	     return 0;
         }
        else {
          $html->message('info', "$_INVOICE $_ADDED", "$_INVOICE $_NUM: [$Docs->{DOC_ID}]\n $_DATE: $date". 
-           $html->button($_PRINT, "qindex=$index&print=$Docs->{DOC_ID}&UID=$LIST_PARAMS{UID}", { ex_params => 'target=_new', CLASS => 'print' }) );
+           $html->button($_PRINT, "qindex=". get_function_index('docs_invoice_list') ."&print=$Docs->{DOC_ID}&UID=$LIST_PARAMS{UID}", { ex_params => 'target=_new', CLASS => 'print' }) );
          #$Docs->docs_invoice_info($Docs->{DOC_ID});
         }
       }
