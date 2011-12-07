@@ -1554,6 +1554,8 @@ sub docs_account {
  	 	 $amount_for_pay = $total_sum-$users->{DEPOSIT};
  	  }
  	 
+ 	 return $amount_for_pay if ($attr->{TOTAL_ONLY});
+ 	 
  	 $table->{extra}="colspan='2' class='total'";
    $table->addrow("$_TOTAL:", sprintf("%.2f", $total_sum));
    $table->{extra}="colspan='2' class='odd'";

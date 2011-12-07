@@ -317,6 +317,8 @@ sub docs_invoice_info {
    $self->{DELIVERY_STATUS},
   )= @{ $self->{list}->[0] };
 	
+	$self->{AMOUNT_FOR_PAY}=($self->{DEPOSIT}>0) ? $self->{TOTAL_SUM}-$self->{DEPOSIT} : $self->{TOTAL_SUM}+$self->{DEPOSIT};
+	
   if ($self->{TOTAL} > 0) {
     $self->{NUMBER}=$self->{INVOICE_ID};
  
