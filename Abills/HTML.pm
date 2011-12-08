@@ -1345,7 +1345,6 @@ sub message {
  
  
  
- 
 my $output = qq{
 <br>
 <TABLE width="400" border="0" cellpadding="0" cellspacing="0" class="noprint">

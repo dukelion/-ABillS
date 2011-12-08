@@ -647,50 +647,33 @@ START:
 delete $FORM{OP_SID};
 if (! $FORM{step}) {
   $FORM{step}= 1;
-  #$FORM{UID} = mk_unique_value(16);
  }
 elsif ($FORM{back}) {
 	$FORM{step}=$FORM{step}-2;
  }
-else {
- 	while(my($k, $v) = each %FORM) {
- 		if (! in_array($k, [ '__BUFFER', 'step', 'next', 'ACTION', 'LNG_ACTION', 'UID' ]) ) {
- 		  #print "$k -> $v<br>";
- 		  $users->wizard_add({ 
-		    PARAM      => $k,
-		    VALUE      => $v,
-		    MODULE     => '', 
-		    STEP       => $FORM{step},
-		    SESSION_ID => $FORM{UID},
-		   });
- 	   }
- 	 }
-}
+#else {
+# 	while(my($k, $v) = each %FORM) {
+# 		if (! in_array($k, [ '__BUFFER', 'step', 'next', 'ACTION', 'LNG_ACTION', 'UID' ]) ) {
+# 		  #print "$k -> $v<br>";
+# 		  $users->wizard_add({ 
+#		    PARAM      => $k,
+#		    VALUE      => $v,
+#		    MODULE     => '', 
+#		    STEP       => $FORM{step},
+#		    SESSION_ID => $FORM{UID},
+#		   });
+# 	   }
+# 	 }
+#}
 
 
  	$LIST_PARAMS{UID}=$FORM{UID};
-  my $table = $html->table({ width      => '100%',
-                             border     => 1,
-                           });
-  	
-    my ($fn, $module, $describe)=split(/:/, $steps{$FORM{step}}, 3);
-    my @rows = ();
-    foreach my $i ( sort keys %steps ) {
-    	 my ($fn, $module, $describe)=split(/:/, $steps{$i}, 3);
-       if ($i<$FORM{step}) {
-         push @rows, $table->th($html->button("$_STEP: $i $describe", "index=$index&back=1&UID=$FORM{UID}&step=".($i+2)));
-        }
-       elsif ($i == $FORM{step}) {
-         push @rows, $table->th("$_STEP: $i $describe", { class => 'small' });
-        }
-       else{
-       	 push @rows, $table->th("$_STEP $i: ".$describe, { class=>'even' });
-        }
-     }
-    $table->addtd( @rows ); 
-    print $table->show() if (! $return); 
-    
-    if($FORM{step} > 1 && ! $FORM{back}) {
+ 
+  #Make functions
+  my $reg_output = '';
+  my $user_info;
+  if($FORM{step} > 1 && ! $FORM{back}) {
+      $html->{NO_PRINT}=1;
       REG:
  	  	$db->{AutoCommit} = 0;
     	my $step=$FORM{step}-1;
@@ -721,9 +704,40 @@ else {
       else {
         $db->commit();
        }
-      undef $FORM{add} ;
-      undef $FORM{change} ;
+    undef $FORM{add} ;
+    undef $FORM{change} ;
+    
+    $html->{NO_PRINT}=undef; 
+    $reg_output = $html->{OUTPUT};
+   }
+  elsif (($step==1 || ! $step) && $FORM{back}) {
+  	$users->info($FORM{UID});
+  	$users->pi({ UID => $FORM{UID} });
+  	$user_info = $users;
+   }
+
+  # Make navigate menu
+  my $table = $html->table({ width      => '100%',
+                             border     => 1,
+                           });
+  	
+    my ($fn, $module, $describe)=split(/:/, $steps{$FORM{step}}, 3);
+    my @rows = ();
+    foreach my $i ( sort keys %steps ) {
+    	 my ($fn, $module, $describe)=split(/:/, $steps{$i}, 3);
+       if ($i<$FORM{step}) {
+         push @rows, $table->th($html->button("$_STEP: $i $describe", "index=$index&back=1&UID=$FORM{UID}&step=".($i+2)));
+        }
+       elsif ($i == $FORM{step}) {
+         push @rows, $table->th("$_STEP: $i $describe", { class => 'small' });
+        }
+       else{
+       	 push @rows, $table->th("$_STEP $i: ".$describe, { class=>'even' });
+        }
      }
+    $table->addtd( @rows ); 
+    print $table->show().$reg_output; # if (! $return);
+    
 
     if (! $steps{$FORM{step}} || $FORM{finish}) {
       $html->message('info', $_INFO, "$_REGISTRATION_COMPLETE");
@@ -745,6 +759,7 @@ else {
  	  $fn->({ ACTION      => 'next',
  	  	      REGISTRATION=> 1,
  	  	      USER        => \%FORM,
+ 	  	      USER_INFO   => $user_info,
  	  	      LNG_ACTION  => ($steps{$FORM{step}}) ? "$_NEXT " : "$_REGISTRATION_COMPLETE",
  	  	      BACK_BUTTON => ($FORM{step} > 1) ? $html->form_input('finish', "$_REGISTRATION_COMPLETE", {  TYPE => 'submit' }).' '. $html->form_input('back', "$_BACK", {  TYPE => 'submit' }) : undef,
  	  	      UID         => $FORM{UID},
@@ -1258,7 +1273,6 @@ sub user_form {
    $main_account =~ s/<input.+type=submit.+>//ig;
    $main_account =~ s/<input.+index.+>//ig;
    $main_account =~ s/user_form/users_pi/ig;
-   
    user_pi({ MAIN_USER_TPL => $main_account, %$attr });
   }
  else {
@@ -1308,8 +1322,19 @@ sub user_form {
      $user_info->{PASSWORD} .= ' '. $html->button("$_SEND $_PASSWD SMS", "index=$index&header=1&UID=$LIST_PARAMS{UID}&SHOW_PASSWORD=1&SEND_SMS_PASSWORD=1", {  BUTTON => 1, MESSAGE => "$_SEND $_PASSWD SMS ?" });
    }
 
-   $html->tpl_show(templates('form_user'), $user_info);
-  } 
+   if ($attr->{REGISTRATION}) {
+ 	   my $main_account = $html->tpl_show(templates('form_user'), { %$user_info, %$attr  }, { OUTPUT2RETURN => 1 });
+     $main_account =~ s/<FORM.+>//ig;
+     $main_account =~ s/<\/FORM>//ig;
+     $main_account =~ s/<input.+type=submit.+>//ig;
+     $main_account =~ s/<input.+index.+>//ig;
+     $main_account =~ s/user_form/users_pi/ig;
+     user_pi({ MAIN_USER_TPL => $main_account, %$attr });
+    }
+   else {
+     $html->tpl_show(templates('form_user'), $user_info);
+    }
+  }
 
 }
 

@@ -592,6 +592,7 @@ if ($NAS->{NAS_TYPE} eq 'mpd5') {
    }
   }
 	#$RAD_PAIRS->{'Session-Timeout'}=604800;
+$RAD_PAIRS->{'Acct-Interim-Interval'}=$NAS->{NAS_ALIVE} if ($NAS->{NAS_ALIVE});
  }
 elsif($CONF->{cisco_shaper} && $NAS->{NAS_TYPE} eq 'cisco') {
   #$traf_tarif 
@@ -673,6 +674,8 @@ elsif ($NAS->{NAS_TYPE} eq 'mikrotik') {
     #$RAD_PAIRS->{'Ascend-Xmit-Rate'} = int($EX_PARAMS->{speed}->{0}->{IN}) * $CONF->{KBYTE_SIZE};
     #$RAD_PAIRS->{'Ascend-Data-Rate'} = int($EX_PARAMS->{speed}->{0}->{OUT})* $CONF->{KBYTE_SIZE};
    }
+
+  $RAD_PAIRS->{'Acct-Interim-Interval'}=$NAS->{NAS_ALIVE} if ($NAS->{NAS_ALIVE});
  }
 # MPD4
 elsif ($NAS->{NAS_TYPE} eq 'mpd4' && $RAD_PAIRS->{'Session-Timeout'} > 604800) {
