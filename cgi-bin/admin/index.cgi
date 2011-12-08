@@ -645,6 +645,7 @@ if ($conf{REG_WIZARD}) {
 
 
 my $return=0;
+my $reg_output = '';
 START:
 delete $FORM{OP_SID};
 if (! $FORM{step}) {
@@ -654,7 +655,6 @@ elsif ($FORM{back}) {
 	$FORM{step}=$FORM{step}-2;
  }
 
- 	      	
   if ($FORM{UID}) {
   	$LIST_PARAMS{UID}=$FORM{UID};
   	$users->info($FORM{UID});
@@ -662,7 +662,6 @@ elsif ($FORM{back}) {
    }
 
   #Make functions
-  my $reg_output = '';
   if($FORM{step} > 1 && ! $FORM{back}) {
       $html->{NO_PRINT}=1;
       REG:
@@ -689,8 +688,12 @@ elsif ($FORM{back}) {
     	# Error
     	if ($return) {
     		$db->rollback();
-    		$FORM{step}=1;
+    		$FORM{step}+=1;
+    		$FORM{back}=1;
     		$html->{NO_PRINT}=undef; 
+ 		    undef $FORM{add} ;
+        undef $FORM{change} ;
+        $reg_output = $html->{OUTPUT};
     		goto START;
     	 }
       else {
@@ -5441,46 +5444,59 @@ if ($attr->{USER_INFO}) {
    }
   elsif ($FORM{add} && $FORM{SUM}) {
   	$FORM{SUM} =~ s/,/\./g;
-    if( $FORM{ACCOUNT_ID} && $FORM{ACCOUNT_ID} eq 'create') {
-    	$LIST_PARAMS{UID}= $FORM{UID};
-    	$FORM{create}    = 1;
-    	$FORM{CUSTOMER}  = '-';
-    	$FORM{ORDER}     = $FORM{DESCRIBE};
-    	docs_account();    	
-     }
-    elsif($FORM{ACCOUNT_ID}) {
-    	$Docs->account_info($FORM{ACCOUNT_ID});
-      if ($Docs->{TOTAL} == 0) {
-      	$FORM{ACCOUNT_SUM}=0;
+  	
+  	if ($FORM{SUM}!~/[0-9\.]+/) {
+  	  $html->message('err', $_ERROR, "$ERR_WRONG_SUM");	
+      return 1 if ($attr->{REGISTRATION});
+  	 }
+  	else {
+      if( $FORM{ACCOUNT_ID} && $FORM{ACCOUNT_ID} eq 'create') {
+    	  $LIST_PARAMS{UID}= $FORM{UID};
+    	  $FORM{create}    = 1;
+    	  $FORM{CUSTOMER}  = '-';
+    	  $FORM{ORDER}     = $FORM{DESCRIBE};
+    	  docs_account();    	
        }
-      else {
-      	$FORM{ACCOUNT_SUM} = $Docs->{TOTAL_SUM};
-       }
-     }
-
-   	if ($FORM{ACCOUNT_SUM} && $FORM{ACCOUNT_SUM} != $FORM{SUM})  {
-      $html->message('err', "$_PAYMENTS: $ERR_WRONG_SUM", "$_ACCOUNT $_SUM: $Docs->{TOTAL_SUM} / $_PAYMENTS $_SUM: $FORM{SUM}");
-     }
-    else {
-      my $er = $payments->exchange_info($FORM{ER});
-      $FORM{ER} = $er->{ER_RATE};
-      $payments->add($user, { %FORM } );  
-      if ($payments->{errno}) {
-        $html->message('err', $_ERROR, "[$payments->{errno}] $err_strs{$payments->{errno}}");	
-       }
-      else {
-        $html->message('info', $_PAYMENTS, "$_ADDED $_SUM: $FORM{SUM} $er->{ER_SHORT_NAME}");
-        
-        if ($conf{external_payments}) {
-          if (! _external($conf{external_payments}, { %FORM }) ) {
-     	      return 0;
-           }
+      elsif($FORM{ACCOUNT_ID}) {
+    	  $Docs->account_info($FORM{ACCOUNT_ID});
+        if ($Docs->{TOTAL} == 0) {
+      	  $FORM{ACCOUNT_SUM}=0;
          }
-        #Make cross modules Functions
-        $attr->{USER_INFO}->{DEPOSIT}+=$FORM{SUM};
-        $FORM{PAYMENTS_ID} = $payments->{PAYMENT_ID};
-        cross_modules_call('_payments_maked', { %$attr, PAYMENT_ID => $payments->{PAYMENT_ID} });
-      }
+        else {
+      	  $FORM{ACCOUNT_SUM} = $Docs->{TOTAL_SUM};
+         }
+       }
+
+   	  if ($FORM{ACCOUNT_SUM} && $FORM{ACCOUNT_SUM} != $FORM{SUM})  {
+        $html->message('err', "$_PAYMENTS: $ERR_WRONG_SUM", "$_ACCOUNT $_SUM: $Docs->{TOTAL_SUM} / $_PAYMENTS $_SUM: $FORM{SUM}");
+       }
+      else {
+        my $er = $payments->exchange_info($FORM{ER});
+        $FORM{ER} = $er->{ER_RATE};
+        $payments->add($user, { %FORM } );  
+        if ($payments->{errno}) {
+      	  if ($payments->{errno}==12) {
+      		  $html->message('err', $_ERROR, "$ERR_WRONG_SUM");	
+      	   }
+      	  else {
+            $html->message('err', $_ERROR, "[$payments->{errno}] $err_strs{$payments->{errno}}");	
+           }
+          return 1 if ($attr->{REGISTRATION});
+         }
+        else {
+          $html->message('info', $_PAYMENTS, "$_ADDED $_SUM: $FORM{SUM} $er->{ER_SHORT_NAME}");
+        
+          if ($conf{external_payments}) {
+            if (! _external($conf{external_payments}, { %FORM }) ) {
+     	        return 0;
+             }
+           }
+          #Make cross modules Functions
+          $attr->{USER_INFO}->{DEPOSIT}+=$FORM{SUM};
+          $FORM{PAYMENTS_ID} = $payments->{PAYMENT_ID};
+          cross_modules_call('_payments_maked', { %$attr, PAYMENT_ID => $payments->{PAYMENT_ID} });
+        }
+       }
      }
    }
   elsif($FORM{del} && $FORM{is_js_confirmed}) {
