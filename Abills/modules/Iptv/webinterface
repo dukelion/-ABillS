@@ -74,8 +74,8 @@ sub iptv_chg_tp {
 
  my $user;
 
- if(defined($attr->{USER})) {
-   $user = $attr->{USER};
+ if(defined($attr->{USER_INFO})) {
+   $user = $attr->{USER_INFO};
    $Iptv = $Iptv->user_info($user->{UID});
    if($Iptv->{TOTAL} < 1) {
  	   $html->message('info', $_INFO, $_NOT_ACTIVE);
@@ -224,7 +224,7 @@ elsif($FORM{del}) {
  
 
 my $tp_index        = get_function_index('iptv_tp');
-$Tariffs->{UID}     = $attr->{USER}->{UID};
+$Tariffs->{UID}     = $attr->{USER_INFO}->{UID};
 $Tariffs->{TP_ID}   = $Iptv->{TP_ID};
 $Tariffs->{TP_NAME} = "$Iptv->{TP_NUM}:$Iptv->{TP_NAME}";
 print $html->tpl_show(templates('form_chg_tp'), $Tariffs);
@@ -343,7 +343,7 @@ sub iptv_user {
   if ($FORM{add}) {
     $Iptv->user_add({ %FORM });
     if (! $Iptv->{errno}) {
-    	$Iptv->{ACCOUNT_ACTIVATE}=$attr->{USER}->{ACTIVATE};
+    	$Iptv->{ACCOUNT_ACTIVATE}=$attr->{USER_INFO}->{ACTIVATE};
       iptv_get_month_fee($Iptv) if (! $FORM{STATUS});
       $html->message('info', $_INFO, "$_ADDED");	
       if ($conf{IPTV_DVCRYPT_FILENAME}) {
@@ -355,7 +355,7 @@ sub iptv_user {
     $Iptv->user_change({ %FORM });
     
     if (! $Iptv->{errno}) {
-    	$Iptv->{ACCOUNT_ACTIVATE}=$attr->{USER}->{ACTIVATE};
+    	$Iptv->{ACCOUNT_ACTIVATE}=$attr->{USER_INFO}->{ACTIVATE};
       iptv_get_month_fee($Iptv) if (! $FORM{STATUS});
       $Iptv->user_channels();
       $html->message('info', $_INFO, "$_CHANGED");	
@@ -1309,8 +1309,8 @@ sub iptv_error {
   my $login  = ''; 
 
 
-if ($attr->{USER}) {
-  my $user = $attr->{USER};
+if ($attr->{USER_INFO}) {
+  my $user = $attr->{USER_INFO};
   $login = $user->{LOGIN};
 }
 elsif ($FORM{LOGIN_EXPR}) {
@@ -1593,7 +1593,7 @@ elsif($FORM{del}) {
    $Tariffs->{LNG_ACTION}=$_CHANGE;
   }
 
-   $Tariffs->{UID}=$attr->{USER}->{UID};
+   $Tariffs->{UID}=$attr->{USER_INFO}->{UID};
    $Tariffs->{m}=$m;
    $Tariffs->{TP_ID}   = $Iptv->{TP_ID};
    $Tariffs->{TP_NAME} = "$Iptv->{TP_ID}:$Iptv->{TP_NAME}";

@@ -448,7 +448,7 @@ if ($functions{$index}) {
     	$html->message('err', $_ERROR, "[$FORM{UID}] $_USER_NOT_EXIST GID: $admin->{GIDS} / $ui->{GID}")
      }
   	else {
-  	  $functions{$index}->({ USER => $ui });
+  	  $functions{$index}->({ USER_INFO => $ui });
   	}
    }
   elsif ($index == 0) {
@@ -642,6 +642,8 @@ if ($conf{REG_WIZARD}) {
 	 }
 }
 
+
+
 my $return=0;
 START:
 delete $FORM{OP_SID};
@@ -651,27 +653,16 @@ if (! $FORM{step}) {
 elsif ($FORM{back}) {
 	$FORM{step}=$FORM{step}-2;
  }
-#else {
-# 	while(my($k, $v) = each %FORM) {
-# 		if (! in_array($k, [ '__BUFFER', 'step', 'next', 'ACTION', 'LNG_ACTION', 'UID' ]) ) {
-# 		  #print "$k -> $v<br>";
-# 		  $users->wizard_add({ 
-#		    PARAM      => $k,
-#		    VALUE      => $v,
-#		    MODULE     => '', 
-#		    STEP       => $FORM{step},
-#		    SESSION_ID => $FORM{UID},
-#		   });
-# 	   }
-# 	 }
-#}
 
+ 	      	
+  if ($FORM{UID}) {
+  	$LIST_PARAMS{UID}=$FORM{UID};
+  	$users->info($FORM{UID});
+  	$users->pi({ UID => $FORM{UID} });
+   }
 
- 	$LIST_PARAMS{UID}=$FORM{UID};
- 
   #Make functions
   my $reg_output = '';
-  my $user_info;
   if($FORM{step} > 1 && ! $FORM{back}) {
       $html->{NO_PRINT}=1;
       REG:
@@ -693,12 +684,13 @@ elsif ($FORM{back}) {
     	#while(my($k, $v)=each %FORM) {
     	#	print "$k, $v<br>";
     	# }
-    	$return = $fn->({ REGISTRATION => 1, USER => $users });
+    	$return = $fn->({ REGISTRATION => 1, USER_INFO => ($FORM{UID}) ? $users : undef });
     	$LIST_PARAMS{UID}=$FORM{UID};
     	# Error
     	if ($return) {
     		$db->rollback();
     		$FORM{step}=1;
+    		$html->{NO_PRINT}=undef; 
     		goto START;
     	 }
       else {
@@ -710,11 +702,7 @@ elsif ($FORM{back}) {
     $html->{NO_PRINT}=undef; 
     $reg_output = $html->{OUTPUT};
    }
-  elsif (($step==1 || ! $step) && $FORM{back}) {
-  	$users->info($FORM{UID});
-  	$users->pi({ UID => $FORM{UID} });
-  	$user_info = $users;
-   }
+
 
   # Make navigate menu
   my $table = $html->table({ width      => '100%',
@@ -755,11 +743,13 @@ elsif ($FORM{back}) {
        }
   	 }
 
+
+
     $FORM{step}++;
  	  $fn->({ ACTION      => 'next',
  	  	      REGISTRATION=> 1,
- 	  	      USER        => \%FORM,
- 	  	      USER_INFO   => $user_info,
+ 	  	      #USER        => \%FORM,
+ 	  	      USER_INFO   => ($FORM{UID}) ? $users : undef,
  	  	      LNG_ACTION  => ($steps{$FORM{step}}) ? "$_NEXT " : "$_REGISTRATION_COMPLETE",
  	  	      BACK_BUTTON => ($FORM{step} > 1) ? $html->form_input('finish', "$_REGISTRATION_COMPLETE", {  TYPE => 'submit' }).' '. $html->form_input('back', "$_BACK", {  TYPE => 'submit' }) : undef,
  	  	      UID         => $FORM{UID},
@@ -1229,8 +1219,8 @@ sub user_form {
 
 	$index = 15 if (! $attr->{ACTION} && ! $attr->{REGISTRATION});
 
- if ($FORM{add}) {
- 	 form_users();
+ if ($FORM{add} || $FORM{change}) {
+ 	 form_users($attr);
   }
  elsif (! $attr->{USER_INFO}) {
    my $user = Users->new($db, $admin, \%conf); 
@@ -1745,8 +1735,15 @@ sub user_pi {
      }
    }
   elsif($permissions{0}{4}) {
- 	  $user_pi->{ACTION}='change';
-	  $user_pi->{LNG_ACTION}=$_CHANGE;
+    if ($attr->{ACTION}) {
+      $user_pi->{ACTION}    = $attr->{ACTION};
+      $user_pi->{LNG_ACTION}= $attr->{LNG_ACTION};
+     }
+    else {
+ 	    $user_pi->{ACTION}='change';
+	    $user_pi->{LNG_ACTION}=$_CHANGE;
+	   }
+    $user_pi->{ACTION}='change'; 
    }
 
 
@@ -1902,6 +1899,7 @@ sub form_users {
  	 	return 0;
  	 }
 
+
 if($attr->{USER_INFO}) {
   my $user_info = $attr->{USER_INFO};
   if ($users->{errno}) {
@@ -1925,7 +1923,7 @@ if($attr->{USER_INFO}) {
  	 	 }
    }
 
-  form_passwd({ USER => $user_info }) if (defined($FORM{newpassword}));
+  form_passwd({ USER_INFO => $user_info }) if (defined($FORM{newpassword}));
 
   if ($FORM{change}) {
     if (! $permissions{0}{4} ) {
@@ -1951,18 +1949,23 @@ if($attr->{USER_INFO}) {
      }
     else {
       $html->message('info', $_CHANGED, "$_CHANGED $users->{info}");
-      cross_modules_call('_payments_maked', { USER => $user_info, }); 
+      if (defined($FORM{FIO}))  {
+        $users->pi_change({ %FORM });      	
+       }
+
+      cross_modules_call('_payments_maked', { USER_INFO => $user_info, }); 
       
       #External scripts 
       if ($conf{external_userchange}) {
         if (! _external($conf{external_userchange}, { %FORM }) ) {
      	    return 0;
          }
-       }      
+       }
+      #return 0;
      }
    }
   elsif ($FORM{del_user} && $FORM{is_js_confirmed} && $index == 15 && $permissions{0}{5} ) {
-    user_del({ USER => $user_info });
+    user_del({ USER_INFO => $user_info });
     print "</td></tr></table>\n";
     return 0;
    }
@@ -2004,7 +2007,7 @@ if($attr->{USER_INFO}) {
           load_module($module{$service_func_index}, $html);
          }
 
-        $functions{$service_func_index}->({ USER => $user_info });
+        $functions{$service_func_index}->({ USER_INFO => $user_info });
       }
    }
 
@@ -2023,7 +2026,7 @@ if($attr->{USER_INFO}) {
       <TR><TH class=even><div id='rules'><ul><li class='center'>$service_func_menu</li></ul></div></TH></TR>
     </TABLE>\n";
   
-      $functions{$service_func_index}->({ USER => $user_info });
+      $functions{$service_func_index}->({ USER_INFO => $user_info });
     }
 #===============
     }
@@ -2120,7 +2123,7 @@ elsif ( $FORM{add}) {
         return 0;
        }
      }
-
+  	
     $user_info = $users->info( $user_info->{UID}, { SHOW_PASSWORD => 1 } );
     $html->tpl_show(templates('form_user_info'), $user_info);
     $LIST_PARAMS{UID}= $user_info->{UID};
@@ -2160,7 +2163,7 @@ elsif ($FORM{MULTIUSER}) {
   	foreach my $uid (@multiuser_arr) {
   		if ($FORM{DEL} && $FORM{MU_DEL}) {
   	    my $user_info = $users->info( $uid );
-        user_del({ USER => $user_info });
+        user_del({ USER_INFO => $user_info });
 
         if ($users->{errno}) {
           $html->message('err', $_ERROR, "[$users->{errno}] $err_strs{$users->{errno}}");	
@@ -2436,7 +2439,7 @@ else {
 sub user_del {
   my ($attr) = @_;
   
-  my $user_info = $attr->{USER};
+  my $user_info = $attr->{USER_INFO};
   
   if ($FORM{UNDELETE}) {
   	$user_info->change($user_info->{UID}, { UID => $user_info->{UID}, DELETED => 0 });
@@ -2493,7 +2496,7 @@ if ($FORM{FULL_DELETE}) {
 #**********************************************************
 sub user_group {
   my ($attr) = @_;
-  my $user = $attr->{USER};
+  my $user = $attr->{USER_INFO};
 
   $user->{SEL_GROUPS} = sel_groups();
   $html->tpl_show(templates('form_chg_group'), $user);
@@ -2504,7 +2507,7 @@ sub user_group {
 #**********************************************************
 sub user_company {
  my ($attr) = @_;
- my $user_info = $attr->{USER};
+ my $user_info = $attr->{USER_INFO};
  use Customers;
  my $customer = Customers->new($db, $admin, \%conf);
  my $company  = $customer->company();
@@ -2554,8 +2557,8 @@ sub form_nas_allow {
  my %EX_HIDDEN_PARAMS = (subf  => "$FORM{subf}",
 	                       index => "$index");
 
-if ($attr->{USER}) {
-  my $user = $attr->{USER};
+if ($attr->{USER_INFO}) {
+  my $user = $attr->{USER_INFO};
   if ($FORM{change}) {
     $user->nas_add(\@allow);
     if (! $user->{errno}) {
@@ -2656,11 +2659,10 @@ print $html->form_main({ CONTENT => $table->show({ OUTPUT2RETURN => 1 }),
 #**********************************************************
 sub form_bills {
   my ($attr) = @_;
-  my $user = $attr->{USER};
-
+  my $user = $attr->{USER_INFO};
 
   if($FORM{UID} && $FORM{change}) {
-  	form_users({ USER => $user } ); 
+  	form_users({ USER_INFO => $user } ); 
   	return 0;
   }
   
@@ -4474,7 +4476,7 @@ sub form_passwd {
        	                               });
  	 $index=50;
  	}
- elsif (defined($attr->{USER})) {
+ elsif (defined($attr->{USER_INFO})) {
 	 $password_form->{HIDDDEN_INPUT} = $html->form_input('UID', "$FORM{UID}", { TYPE => 'hidden',
        	                               OUTPUT2RETURN => 1
        	                               });
@@ -5000,7 +5002,7 @@ if ($FORM{DATE}) {
     "$line->[5]", 
     $PAYMENTS_METHODS{$line->[6]}, 
     "$line->[7]", 
-    ($conf{EXT_BILL_ACCOUNT} && $attr->{USER}) ? $BILL_ACCOUNTS{$line->[8]} : "$line->[8]",
+    ($conf{EXT_BILL_ACCOUNT} && $attr->{USER_INFO}) ? $BILL_ACCOUNTS{$line->[8]} : "$line->[8]",
     "$line->[9]", 
     "$line->[10]", 
     );
@@ -5390,7 +5392,7 @@ sub form_payments () {
 
  use Finance;
  my $payments = Finance->payments($db, $admin, \%conf);
-
+ 
  return 0 if (! $permissions{1});
 
  %PAYMENTS_METHODS = ();
@@ -5408,12 +5410,10 @@ sub form_payments () {
   }
 
 
-
-
-if (defined($attr->{USER})) {
-  my $user = $attr->{USER};
+if ($attr->{USER_INFO}) {
+  my $user = $attr->{USER_INFO};
   $payments->{UID} = $user->{UID};
-
+  
   if ($conf{EXT_BILL_ACCOUNT}) {
     $BILL_ACCOUNTS{$user->{BILL_ID}}     = "$_PRIMARY : $user->{BILL_ID}" if ($user->{BILL_ID}); 
     $BILL_ACCOUNTS{$user->{EXT_BILL_ID}} = "$_EXTRA : $user->{EXT_BILL_ID}" if ($user->{EXT_BILL_ID}); 
@@ -5426,7 +5426,7 @@ if (defined($attr->{USER})) {
 
   if(! $attr->{REGISTRATION}) {
     if($user->{BILL_ID} < 1) {
-      form_bills({ USER => $user });
+      form_bills({ USER_INFO => $user });
       return 0;
      }
    }
@@ -5435,12 +5435,13 @@ if (defined($attr->{USER})) {
     ($DATE, $TIME)=split(/ /, $FORM{DATE});
    }
 
-  if (defined($FORM{OP_SID}) and $FORM{OP_SID} eq $COOKIES{OP_SID}) {
+
+  if (defined($FORM{OP_SID1}) and $FORM{OP_SID} eq $COOKIES{OP_SID}) {
  	  $html->message('err', $_ERROR, "$_EXIST");
    }
   elsif ($FORM{add} && $FORM{SUM}) {
   	$FORM{SUM} =~ s/,/\./g;
-    if( $FORM{ACCOUNT_ID} && $FORM{ACCOUNT_ID} eq 'create' ) {
+    if( $FORM{ACCOUNT_ID} && $FORM{ACCOUNT_ID} eq 'create') {
     	$LIST_PARAMS{UID}= $FORM{UID};
     	$FORM{create}    = 1;
     	$FORM{CUSTOMER}  = '-';
@@ -5476,7 +5477,7 @@ if (defined($attr->{USER})) {
            }
          }
         #Make cross modules Functions
-        $attr->{USER}->{DEPOSIT}+=$FORM{SUM};
+        $attr->{USER_INFO}->{DEPOSIT}+=$FORM{SUM};
         $FORM{PAYMENTS_ID} = $payments->{PAYMENT_ID};
         cross_modules_call('_payments_maked', { %$attr, PAYMENT_ID => $payments->{PAYMENT_ID} });
       }
@@ -5496,6 +5497,7 @@ if (defined($attr->{USER})) {
       $html->message('info', $_PAYMENTS, "$_DELETED ID: $FORM{del}");
      }
    }
+
 
 
 return 0 if ($attr->{REGISTRATION} && $FORM{add});
@@ -5534,7 +5536,7 @@ if ($permissions{1} && $permissions{1}{1}) {
    
    if ($conf{EXT_BILL_ACCOUNT}) {
      $payments->{EXT_DATA} = "<tr><td colspan=2>$_BILL:</td><td>". $html->form_select('BILL_ID', 
-                                { SELECTED     => $FORM{BILL_ID} || $attr->{USER}->{BILL_ID},
+                                { SELECTED     => $FORM{BILL_ID} || $attr->{USER_INFO}->{BILL_ID},
  	                                SEL_HASH     => \%BILL_ACCOUNTS,
  	                                NO_ID        => 1
  	                               }).
@@ -5586,7 +5588,7 @@ elsif($FORM{AID} && ! defined($LIST_PARAMS{AID})) {
 	return 0;
  }
 elsif($FORM{UID}) {
-	$index = get_function_index('form_fees');
+	$index = get_function_index('form_payments');
 	form_users();
 	return 0;
  }	
@@ -5632,7 +5634,7 @@ foreach my $line (@$list) {
   "$line->[5]", 
   $PAYMENTS_METHODS{$line->[6]}, 
   "$line->[7]", 
-  ($conf{EXT_BILL_ACCOUNT} && $attr->{USER}) ? $BILL_ACCOUNTS{$line->[8]} : "$line->[8]",
+  ($conf{EXT_BILL_ACCOUNT} && $attr->{USER_INFO}) ? $BILL_ACCOUNTS{$line->[8]} : "$line->[8]",
   "$line->[9]", 
   "$line->[10]",   
   $delete);
@@ -5835,7 +5837,7 @@ if ($FORM{add}) {
 			$FORM{'SUM_'.$i} = $price;
 		 }		
 
-    $fees->take($attr->{USER}, $FORM{'SUM_'.$i}, { DESCRIBE       => $FORM{'DESCRIBE_'.$i},
+    $fees->take($attr->{USER_INFO}, $FORM{'SUM_'.$i}, { DESCRIBE       => $FORM{'DESCRIBE_'.$i},
     	                                     INNER_DESCRIBE => $FORM{'INNER_DESCRIBE_'.$i} } );      
 
 
@@ -5924,16 +5926,16 @@ sub form_fees  {
 
  %FEES_METHODS = %{ get_fees_types() };
 
-if ($attr->{USER}) {
-  my $user = $attr->{USER};
+if ($attr->{USER_INFO}) {
+  my $user = $attr->{USER_INFO};
 
   if ($conf{EXT_BILL_ACCOUNT}) {
-    $BILL_ACCOUNTS{$attr->{USER}->{BILL_ID}} = "$_PRIMARY : $attr->{USER}->{BILL_ID}" if ($attr->{USER}->{BILL_ID}); 
-    $BILL_ACCOUNTS{$attr->{USER}->{EXT_BILL_ID}} = "$_EXTRA : $attr->{USER}->{EXT_BILL_ID}" if ($attr->{USER}->{EXT_BILL_ID}); 
+    $BILL_ACCOUNTS{$attr->{USER_INFO}->{BILL_ID}} = "$_PRIMARY : $attr->{USER_INFO}->{BILL_ID}" if ($attr->{USER_INFO}->{BILL_ID}); 
+    $BILL_ACCOUNTS{$attr->{USER_INFO}->{EXT_BILL_ID}} = "$_EXTRA : $attr->{USER_INFO}->{EXT_BILL_ID}" if ($attr->{USER_INFO}->{EXT_BILL_ID}); 
    }
 
   if($user->{BILL_ID} < 1) {
-    form_bills({ USER => $user });
+    form_bills({ USER_INFO => $user });
     return 0;
   }
   
@@ -6058,7 +6060,7 @@ if ($attr->{USER}) {
 
     if ($conf{EXT_BILL_ACCOUNT}) {
        $fees->{EXT_DATA} = "<tr><td colspan=2>$_BILL:</td><td>". $html->form_select('BILL_ID', 
-                                { SELECTED     => $FORM{BILL_ID} || $attr->{USER}->{BILL_ID},
+                                { SELECTED     => $FORM{BILL_ID} || $attr->{USER_INFO}->{BILL_ID},
  	                                SEL_HASH     => \%BILL_ACCOUNTS,
  	                                NO_ID        => 1
  	                               }).

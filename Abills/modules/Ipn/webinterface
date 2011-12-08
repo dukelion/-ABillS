@@ -1091,8 +1091,8 @@ sub ipn_session_detail {
 	my ($attr) = @_;
   my $user;
  
-if (defined($attr->{USER}))	{
-	$user = $attr->{USER};
+if ($attr->{USER_INFO})	{
+	$user = $attr->{USER_INFO};
 	$LIST_PARAMS{LOGIN}=$user->{LOGIN};
 }
 elsif($FORM{UID}) {

@@ -1570,13 +1570,13 @@ sub color_marks {
 #**********************************************************
 sub dhcphosts_payments_maked {
 	my ($attr) = @_;
-  my $deposit = $attr->{USER}->{DEPOSIT} + $attr->{USER}->{CREDIT};
+  my $deposit = $attr->{USER_INFO}->{DEPOSIT} + $attr->{USER_INFO}->{CREDIT};
   
 #  if ($deposit > 0) {
   	my %NETWORKS=();
   	my %NAS_IDS =();
 
-    my $list = $Dhcphosts->hosts_list({ UID => $attr->{USER}->{UID}, STATUS => 0, NAS_ID => '>0' });
+    my $list = $Dhcphosts->hosts_list({ UID => $attr->{USER_INFO}->{UID}, STATUS => 0, NAS_ID => '>0' });
     foreach my $line (@$list) {
       $NETWORKS{$line->[5]}=1;
       $NAS_IDS{$line->[11+$Dhcphosts->{SEARCH_FIELDS_COUNT}]}=1;

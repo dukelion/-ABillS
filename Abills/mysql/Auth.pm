@@ -723,10 +723,11 @@ elsif ($NAS->{NAS_TYPE} eq 'accel_pptp' or ($NAS->{NAS_TYPE} eq 'lepppd') or
     $RAD_PAIRS->{'PPPD-Downstream-Speed-Limit'} = int($EX_PARAMS->{speed}->{0}->{OUT}); 
     $RAD_PAIRS->{'PPPD-Upstream-Speed-Limit'} = int($EX_PARAMS->{speed}->{0}->{IN}); 
    }
+  $RAD_PAIRS->{'Acct-Interim-Interval'}=$NAS->{NAS_ALIVE} if ($NAS->{NAS_ALIVE});
  }
 #Chillispot
 elsif ($NAS->{NAS_TYPE} eq 'chillispot') {
-	my $EX_PARAMS = $self->ex_traffic_params({ traf_limit          => $traf_limit, 
+  my $EX_PARAMS = $self->ex_traffic_params({ traf_limit          => $traf_limit, 
                                              deposit             => $self->{DEPOSIT}, 
                                              MAX_SESSION_TRAFFIC => $MAX_SESSION_TRAFFIC }); 
   #global Traffic 
@@ -743,7 +744,7 @@ elsif ($NAS->{NAS_TYPE} eq 'chillispot') {
      $RAD_PAIRS->{'WISPr-Bandwidth-Max-Down'} = int($EX_PARAMS->{speed}->{0}->{IN}) * $CONF->{KBYTE_SIZE}; 
      $RAD_PAIRS->{'WISPr-Bandwidth-Max-Up'} = int($EX_PARAMS->{speed}->{0}->{OUT}) * $CONF->{KBYTE_SIZE}; 
    } 
-	
+   $RAD_PAIRS->{'Acct-Interim-Interval'}=$NAS->{NAS_ALIVE} if ($NAS->{NAS_ALIVE});	
 }
 
 #Auto assing MAC in first connect

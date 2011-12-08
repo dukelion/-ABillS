@@ -84,8 +84,8 @@ sub voip_chg_tp {
 
  my $user;
 
- if(defined($attr->{USER})) {
-   $user = $attr->{USER};
+ if(defined($attr->{USER_INFO})) {
+   $user = $attr->{USER_INFO};
    $user = $Voip->user_info($user->{UID});
    if($user->{TOTAL} < 1) {
  	   $html->message('info', $_INFO, $_NOT_ACTIVE);
@@ -189,7 +189,7 @@ my $tariffs;
 
 my $tp_index = get_function_index('voip_tp');
 
-$tariffs->{UID}     = $attr->{USER}->{UID};
+$tariffs->{UID}     = $attr->{USER_INFO}->{UID};
 $tariffs->{m}       = $m;
 $tariffs->{TP_ID}   = $user->{TP_NUM};
 $tariffs->{TP_NAME} = "$user->{TP_ID}:$user->{TP_NAME} ". $html->button("$_TARIF_PLANS", "index=$tp_index&TP_ID=$user->{TP_ID}", { TITLE => "$_TP", CLASS => 'show rightAlignText' } ). "";
@@ -248,7 +248,7 @@ if ($Voip->{errno}) {
   return 0;
  }
 elsif ($Voip->{TOTAL} == 1) {
-	form_users({  USER => user_info($list->[0]->[7]) });
+	form_users({  USER_INFO => user_info($list->[0]->[7]) });
 	return 0;
 }
 
@@ -1791,9 +1791,9 @@ sub voip_error {
   my @ACTIONS = ('', 'AUTH', 'ACCT', 'HANGUP', 'CALCULATION', 'CMD');
  
 
-if ($attr->{USER}) {
-  my $user = $attr->{USER};
-  $Voip->user_info($attr->{USER}->{UID});  
+if ($attr->{USER_INFO}) {
+  my $user = $attr->{USER_INFO};
+  $Voip->user_info($attr->{USER_INFO}->{UID});  
  
   $login   = $Voip->{NUMBER};
   $LIST_PARAMS{LOGIN_EXPR} = $Voip->{NUMBER};
@@ -1962,8 +1962,8 @@ print $table->show();
 sub voip_stats {
 	my ($attr) = @_;
  
-if (defined($attr->{USER}))	{
-	my $user = $attr->{USER};
+if (defined($attr->{USER_INFO}))	{
+	my $user = $attr->{USER_INFO};
 
 	$UID = $user->{UID};
 	$LIST_PARAMS{UID} = $UID;
@@ -1988,7 +1988,7 @@ if (defined($attr->{USER}))	{
    }
   elsif($FORM{SESSION_ID}) {
   	$pages_qs .= "&SESSION_ID=$FORM{SESSION_ID}";
-  	voip_session_detail({ USER => $attr->{USER} });
+  	voip_session_detail({ USER_INFO => $attr->{USER_INFO} });
   	
   	return 0;
   }
@@ -2100,8 +2100,8 @@ sub voip_session_detail {
   my $user;
 
  
-if (defined($attr->{USER}))	{
-	$user = $attr->{USER};
+if (defined($attr->{USER_INFO}))	{
+	$user = $attr->{USER_INFO};
 	$LIST_PARAMS{LOGIN}=$user->{LOGIN};
 	
 #	if ($FORM{RECALC}) {

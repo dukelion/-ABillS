@@ -51,8 +51,8 @@ sub dv_chg_tp {
  my ($attr) = @_;
 
  my $user;
- if(defined($attr->{USER})) {
-   $user = $attr->{USER};
+ if(defined($attr->{USER_INFO})) {
+   $user = $attr->{USER_INFO};
    $Dv = $Dv->info($user->{UID});
    if($Dv->{TOTAL} < 1) {
  	   $html->message('info', $_INFO, "$_NOT_ACTIVE");
@@ -258,7 +258,7 @@ elsif($FORM{del}) {
    $tariffs->{LNG_ACTION}=$_CHANGE;
   }
 
-$tariffs->{UID}     = $attr->{USER}->{UID};
+$tariffs->{UID}     = $attr->{USER_INFO}->{UID};
 $tariffs->{m}       = $m;
 $tariffs->{TP_ID}   = $Dv->{TP_NUM};
 
@@ -364,7 +364,7 @@ elsif ($Dv->{TOTAL} == 1) {
   delete $FORM{LOGIN};
   $ui   = user_info($list->[0]->[6+$Dv->{SEARCH_FIELDS_COUNT}]);
   print $ui->{TABLE_SHOW};
-  form_users({  USER => $ui });
+  form_users({  USER_INFO => $ui });
   return 0;
 }
 
@@ -485,7 +485,7 @@ sub dv_user {
     $Dv->add({ %FORM });
     if (! $Dv->{errno}) {
   	  #Make month feee
-  	  $Dv->{ACCOUNT_ACTIVATE}=$attr->{USER}->{ACTIVATE};
+  	  $Dv->{ACCOUNT_ACTIVATE}=$attr->{USER_INFO}->{ACTIVATE};
    	  dv_get_month_fee($Dv) if (! $FORM{STATUS});
    	  
    	  if ($attr->{REGISTRATION}) {
@@ -532,7 +532,7 @@ sub dv_user {
      }
 
     if (! $Dv->{errno}) {
-      $Dv->{ACCOUNT_ACTIVATE}=$attr->{USER}->{ACTIVATE};
+      $Dv->{ACCOUNT_ACTIVATE}=$attr->{USER_INFO}->{ACTIVATE};
       if (! $FORM{STATUS} && ($FORM{GET_ABON} || ! $FORM{TP_ID} )) {
         dv_get_month_fee($Dv);
        }
@@ -716,9 +716,9 @@ sub dv_user {
  	                                        });
 
   #Join Service
-  if($attr->{USER}->{COMPANY_ID}) {
+  if($attr->{USER_INFO}->{COMPANY_ID}) {
     my $list  = $Dv->list({ JOIN_SERVICE => 1, 
-                            COMPANY_ID   => $attr->{USER}->{COMPANY_ID}   
+                            COMPANY_ID   => $attr->{USER_INFO}->{COMPANY_ID}   
                          });
     
     $Dv->{JOIN_SERVICES_SEL}= $html->form_select('JOIN_SERVICE', 
@@ -733,7 +733,7 @@ sub dv_user {
 
      if ($Dv->{JOIN_SERVICE} == 1) {
    	   my $list = $Dv->list({ JOIN_SERVICE => $Dv->{UID}, 
-                              COMPANY_ID   => $attr->{USER}->{COMPANY_ID} ,
+                              COMPANY_ID   => $attr->{USER_INFO}->{COMPANY_ID} ,
                               PAGE_ROWS    => 1000
                              });
 
@@ -2318,8 +2318,8 @@ sub dv_error {
   my @ACTIONS = ('', 'AUTH', 'ACCT', 'HANGUP', 'CALCULATION', 'CMD', 'LOST_ALIVE');
  
 
-if ($attr->{USER}) {
-  my $user = $attr->{USER};
+if ($attr->{USER_INFO}) {
+  my $user = $attr->{USER_INFO};
   $login   = $user->{LOGIN};
   $LIST_PARAMS{LOGIN_EXPR} = $user->{LOGIN};
 }
@@ -2485,8 +2485,8 @@ print $table->show();
 sub dv_stats {
 	my ($attr) = @_;
  
-if (defined($attr->{USER}))	{
-	my $user = $attr->{USER};
+if (defined($attr->{USER_INFO}))	{
+	my $user = $attr->{USER_INFO};
 
 	$UID = $user->{UID};
 	$LIST_PARAMS{UID} = $UID;
@@ -2511,7 +2511,7 @@ if (defined($attr->{USER}))	{
    }
   elsif($FORM{SESSION_ID}) {
   	$pages_qs .= "&SESSION_ID=$FORM{SESSION_ID}";
-  	dv_session_detail({ USER => $attr->{USER} });
+  	dv_session_detail({ USER_INFO => $attr->{USER_INFO} });
   	return 0;
   }
 }
@@ -2552,7 +2552,7 @@ if ($sessions->{errno})	 {
        if ($Dv->{JOIN_SERVICE} == 1) {
          my @uids = ();
    	     my $list = $Dv->list({ JOIN_SERVICE => $Dv->{UID}, 
-                                COMPANY_ID   => $attr->{USER}->{COMPANY_ID} ,
+                                COMPANY_ID   => $attr->{USER_INFO}->{COMPANY_ID} ,
                                 PAGE_ROWS    => 10000
                                });
 
@@ -2823,7 +2823,7 @@ if ($sessions->{errno})	{
 
      if ($Dv->{JOIN_SERVICE} == 1) {
    	   my $list = $Dv->list({ JOIN_SERVICE => $UID, 
-                              COMPANY_ID   => $attr->{USER}->{COMPANY_ID} ,
+                              COMPANY_ID   => $attr->{USER_INFO}->{COMPANY_ID} ,
                               PAGE_ROWS    => 1000
                              });
 
@@ -3048,8 +3048,8 @@ sub dv_session_detail {
   my $user;
 
  
-if (defined($attr->{USER}))	{
-	$user = $attr->{USER};
+if (defined($attr->{USER_INFO}))	{
+	$user = $attr->{USER_INFO};
 	$LIST_PARAMS{LOGIN}=$user->{LOGIN};
 	
 	if ($FORM{RECALC}) {
@@ -3628,7 +3628,7 @@ elsif($FORM{del}) {
    $tariffs->{ACTION}    = $html->form_input('set', $_CHANGE, { TYPE => 'submit', OUTPUT2RETURN => 1  } );
   }
 
-   $tariffs->{UID}     = $attr->{USER}->{UID};
+   $tariffs->{UID}     = $attr->{USER_INFO}->{UID};
    $tariffs->{m}       = $m;
    $tariffs->{TP_ID}   = $Dv->{TP_ID};
    $tariffs->{TP_NAME} = "$Dv->{TP_ID}:$Dv->{TP_NAME}";
@@ -4162,7 +4162,7 @@ elsif ($conf{DV_IP_DISCOVERY}) {
     my $ret = hangup($Nas, "0", "$user->{LOGIN}", { ACCT_SESSION_ID   => '',
   	                                                FRAMED_IP_ADDRESS => $user->{REMOTE_ADDR},
   	                                                UID               => $user->{UID},
-  	                                                USER              => $user->{LOGIN} });
+  	                                                USER_INFO              => $user->{LOGIN} });
    }
   
   $Dv->info($LIST_PARAMS{UID});
@@ -5911,7 +5911,7 @@ sub dv_wizard_user {
           	$FORM{SUM}=abs($FORM{SUM});
            }
           $FORM{SHORT_REPORT}=1;
-          bonus_user_log({ USER => $user });
+          bonus_user_log({ USER_INFO => $user });
          }
         else {
           if($FORM{'5.EXT_BILL_DEPOSIT'} + 0 > 0) {
@@ -6030,7 +6030,7 @@ sub dv_wizard_user {
         %FORM=%{ $add_values{10} };
         $FORM{UID}   =$UID;
         $FORM{add}=$UID;
-      	form_fees_wizard({ USER => $user });
+      	form_fees_wizard({ USER_INFO => $user });
        }
 
 
@@ -7103,16 +7103,16 @@ sub dv_payments_maked {
 	
 	return '' if ($FORM{DISABLE});
 	
-	$Dv->info($attr->{USER}->{UID});
+	$Dv->info($attr->{USER_INFO}->{UID});
 
-  my $deposit = $attr->{USER}->{DEPOSIT} + (($attr->{USER}->{CREDIT} > 0) ? $attr->{USER}->{CREDIT} : $Dv->{TP_CREDIT});
+  my $deposit = $attr->{USER_INFO}->{DEPOSIT} + (($attr->{USER_INFO}->{CREDIT} > 0) ? $attr->{USER_INFO}->{CREDIT} : $Dv->{TP_CREDIT});
   
-  my $abon_fees = ($attr->{USER}->{REDUCTION} ) ? $Dv->{MONTH_ABON} + $Dv->{DAY_ABON} : ($Dv->{MONTH_ABON} + $Dv->{DAY_ABON}) * (100 - $attr->{USER}->{REDUCTION}) / 100;
+  my $abon_fees = ($attr->{USER_INFO}->{REDUCTION} ) ? $Dv->{MONTH_ABON} + $Dv->{DAY_ABON} : ($Dv->{MONTH_ABON} + $Dv->{DAY_ABON}) * (100 - $attr->{USER_INFO}->{REDUCTION}) / 100;
 
 	if ($Dv->{STATUS} > 3 && ($deposit > $abon_fees || $Dv->{ABON_DISTRIBUTION})) {
-		$Dv->change({ UID     => $attr->{USER}->{UID},
+		$Dv->change({ UID     => $attr->{USER_INFO}->{UID},
 			            STATUS  => 0  });
-    $Dv->{ACCOUNT_ACTIVATE}=$attr->{USER}->{ACTIVATE} || '0000-00-00';
+    $Dv->{ACCOUNT_ACTIVATE}=$attr->{USER_INFO}->{ACTIVATE} || '0000-00-00';
     
 #    if ($Dv->{ACTIVATE} ne '0000-00-00') {
 #      my ($Y, $M, $D)=split(/-/, $Dv->{ACTIVATE}, 3);
