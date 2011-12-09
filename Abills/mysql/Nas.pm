@@ -135,7 +135,7 @@ sub info {
  elsif($attr->{CALLED_STATION_ID}) {
    $WHERE = "mac='$attr->{CALLED_STATION_ID}'";
   }
- elsif($attr->{NAS_ID}) {
+ else { #($attr->{NAS_ID}) {
    $WHERE = "id='$attr->{NAS_ID}'";
   }
 

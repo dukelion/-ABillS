@@ -238,7 +238,6 @@ sub dhcphosts_monitor {
 	            });
 
 
-
 	 my $list = $Dhcphosts->leases_list({ %LIST_PARAMS });
 	 
    my $table = $html->table({ width    => '100%',

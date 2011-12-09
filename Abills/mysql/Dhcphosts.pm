@@ -945,7 +945,7 @@ sub leases_list {
 
  # IP, START, MAC, HOSTNAME, ENDS, STATE, REMOTE_ID, 
  
-  $self->query($db,"SELECT if (l.uid > 0, u.uid, ''), 
+  $self->query($db,"SELECT if (l.uid > 0, u.id, ''), 
   INET_NTOA(l.ip), l.start, l.hardware, l.hostname, 
   l.ends,
   l.state,
