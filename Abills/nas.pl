@@ -420,7 +420,7 @@ sub hangup_radius {
    }
 
   my ($ip, $mng_port)=split(/:/, $NAS->{NAS_MNG_IP_PORT}, 2);
-  $Log->log_print('LOG_DEBUG', "$USER", " HANGUP: User-Name=$USER NAS_MNG: $ip:$mng_port '$NAS->{NAS_MNG_PASSWORD}'", { ACTION => 'CMD' }); 
+  $Log->log_print('LOG_DEBUG', "$USER", " HANGUP: User-Name=$USER Framed-IP-Address=$attr->{FRAMED_IP_ADDRESS} NAS_MNG: $ip:$mng_port '$NAS->{NAS_MNG_PASSWORD}'", { ACTION => 'CMD' }); 
 
   my %RAD_PAIRS = ();
   $mng_port = 1700 if (! $mng_port);
