@@ -210,6 +210,7 @@ sub vlan_user {
     		$login_button = $html->button($list->[0][0], 'index=15&UID='.$list->[0][11]);
     	 }
     	else {
+    		$FORM{UNNUMBERED_IP}=ip2int($FORM{UNNUMBERED_IP}) if ($FORM{UNNUMBERED_IP});
         $Vlan->change({ %FORM });
         if (! $Vlan->{errno}) {
       	  my $message = vlan_create({ DEBUG => 1, NAS_IDS => $FORM{NAS_ID} });
@@ -266,8 +267,6 @@ sub vlan_user {
   $Vlan->{DISABLE}=($user->{DISABLE} == 1) ? ' checked' : '';
   $Vlan->{DHCP}   =($user->{DHCP} == 1) ? ' checked' : '';
   $Vlan->{PPPOE}  =($user->{PPPOE} == 1) ? ' checked' : '';
-  $Vlan->{UNNUMBERED}  =($user->{UNNUMBERED} == 1) ? ' checked' : '';
-
   my $Nas = Nas->new($db, \%conf);
   $Vlan->{NAS_LIST} = $html->form_select('NAS_ID', 
                                          { 
@@ -409,6 +408,7 @@ foreach my $line (@$list) {
    }
 
 
+
   my $vlan_list = $Vlan->list({ DISABLE    => 0,
 	                              PAGE_ROWS  => 100000,
 	                              NAS_ID     => $line->[0],
@@ -416,6 +416,7 @@ foreach my $line (@$list) {
 	                              VLAN_GROUP => 1,
 	                              LOGIN      => ($attr->{LOGIN}) ? $attr->{LOGIN} : undef
 	                             });
+
 
   my $sudo = ($nas_mng_ip_port ne '') ? $SUDO : '';
   my $vlans_info = vlan_info({ NAS_MNG_IP      => $nas_mng_ip,
@@ -428,14 +429,15 @@ foreach my $line (@$list) {
   foreach my $line (@$vlan_list) {
   #Port
     $debug_output .= "$line->[0]: VLAN ID: $line->[4] IP: $line->[11]/$line->[12] NETMASK: $line->[6]".
-       " USER IPs: $line->[6] DHCP: $line->[8] PPPoE: $line->[9]\n" if ($debug > 2); 
+       " USER IPs: $line->[6] DHCP: $line->[8] PPPoE: $line->[9] UNNUMBERED_IP: \n" if ($debug > 2); 
 
     $INFO{VLAN_IF_NETMASK} = '';
-    $INFO{LOGIN}      = $line->[0];
-    $INFO{VLAN_ID}    = $line->[4];
-    $INFO{VLAN_IF_IP} = $line->[11];
-    $INFO{DHCP}       = $line->[8];
-    $INFO{PPPOE}      = $line->[9];
+    $INFO{LOGIN}        = $line->[0];
+    $INFO{VLAN_ID}      = $line->[4];
+    $INFO{VLAN_IF_IP}   = $line->[11];
+    $INFO{DHCP}         = $line->[8];
+    $INFO{PPPOE}        = $line->[9];
+    $INFO{UNNUMBERED_IP}= $line->[13];
    
     if (($INFO{VLAN_IF_NETMASK} && $line->[12] ne '255.255.255.255') || ! $INFO{VLAN_IF_NETMASK}) {
       $INFO{VLAN_IF_NETMASK} = $line->[12];
@@ -645,8 +647,6 @@ sub vlan_info {
   #FreeBSD 7.xx VLANS analize 
   my $vlan_count = 0;
   while($ifconfig =~ m/vlan(\d+): .+\n\s+.+\n\s+.+\n((\s+inet\s+\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\s+netmask.+\n)?\s.*[\n\sa-zA-Z0-9:]+\n\s.*\n)/gi ) {
-
-	
     my  $ip        = '0.0.0.0';
     my  $if_num    = $1;
     my  $res       = $2;
@@ -679,12 +679,10 @@ sub vlan_info {
     my  $ip        = $3;
     my  $brodcast  = $4 || '';
     my  $netmask   = $5;
-    
-    
 
-   $VLANS{$if_num}=$ip; # if (! $attr->{PARENT_IF} || $attr->{PARENT_IF} eq $parent_if);
+    $VLANS{$if_num}=$ip; # if (! $attr->{PARENT_IF} || $attr->{PARENT_IF} eq $parent_if);
 
-   print "Vlan: $if_num IP: $ip Parent: '$parent_if'\n$res\n" if ($attr->{DEBUG} && $attr->{DEBUG} > 4);
+    print "Vlan: $if_num IP: $ip Parent: '$parent_if'\n$res\n" if ($attr->{DEBUG} && $attr->{DEBUG} > 4);
   }
 
 
