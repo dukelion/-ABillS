@@ -860,7 +860,7 @@ sub user_info {
   elsif($Dv->{TOTAL} < 1) {
     print "$USER - Not exist\n" if ($debug);
     my $a = `echo "$DATE $TIME / $USER - Not exist" >> /tmp/linkupdown`;    
-    exit 1;
+    exit 0;
    }
   else {
   	$user->{TP_NUM}          =$list->[0]->[0];
