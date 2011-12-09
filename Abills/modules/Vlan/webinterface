@@ -227,7 +227,6 @@ sub vlan_user {
 	 }
 
 
-
   if ($Vlan->{errno}) {
 	  if ($Vlan->{errno} == 8) {
     	my $login = $html->button("$Dhcphosts->{LOGIN}", "index=15&UID=$Vlan->{UID}&MODULE=Vlan");
@@ -267,6 +266,7 @@ sub vlan_user {
   $Vlan->{DISABLE}=($user->{DISABLE} == 1) ? ' checked' : '';
   $Vlan->{DHCP}   =($user->{DHCP} == 1) ? ' checked' : '';
   $Vlan->{PPPOE}  =($user->{PPPOE} == 1) ? ' checked' : '';
+  $Vlan->{UNNUMBERED}  =($user->{UNNUMBERED} == 1) ? ' checked' : '';
 
   my $Nas = Nas->new($db, \%conf);
   $Vlan->{NAS_LIST} = $html->form_select('NAS_ID', 

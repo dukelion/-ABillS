@@ -66,7 +66,8 @@ sub info {
    disable, 
    dhcp,
    pppoe,
-   nas_id
+   nas_id,
+   unnumbered
      FROM vlan_main
    $WHERE;");
 
@@ -82,7 +83,8 @@ sub info {
    $self->{DISABLE},
    $self->{DHCP},
    $self->{PPPOE},
-   $self->{NAS_ID}
+   $self->{NAS_ID},
+   $self->{UNNUMBERED},
   )= @{ $self->{list}->[0] };
 
   return $self;
@@ -103,7 +105,8 @@ sub defaults {
    NETMASK        => '255.255.255.255', 
    DHCP           => 0,
    NAS_ID         => 0,
-   PPPOE          => 0
+   PPPOE          => 0,
+   UNNUMBERED     => 0
   );
 
   $self = \%DATA;
@@ -128,13 +131,15 @@ sub add {
              disable, 
              dhcp,
              pppoe,
-             nas_id
+             nas_id,
+             unnumbered
            )
         VALUES ('$DATA{UID}', '$DATA{VLAN_ID}', INET_ATON('$DATA{IP}'), 
         INET_ATON('$DATA{NETMASK}'), '$DATA{DISABLE}', 
         '$DATA{DHCP}',
         '$DATA{PPPOE}',
-        '$DATA{NAS_ID}');", 'do');
+        '$DATA{NAS_ID}',
+        '$DATA{UNNUMBERED}');", 'do');
 
   return $self if ($self->{errno});
   $admin->action_add("$DATA{UID}", "ACTIVE");
@@ -156,11 +161,13 @@ sub change {
               DHCP             => 'dhcp',
               PPPOE            => 'pppoe',
               UID              => 'uid',
-              NAS_ID           => 'nas_id'
+              NAS_ID           => 'nas_id',
+              UNNUMBERED       => 'unnumbered' 
              );
   
   $attr->{DHCP} = ($attr->{DHCP}) ? $attr->{DHCP} : 0;
   $attr->{PPPOE} = ($attr->{PPPOE}) ? $attr->{PPPOE} : 0;
+  $attr->{UNNUMBERED} = ($attr->{UNNUMBERED}) ? $attr->{UNNUMBERED} : 0;
   
   my $old_info = $self->info($attr->{UID});
   
