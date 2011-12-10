@@ -1,16 +1,37 @@
 # $tpl, $lang, $describe
-form_client_hotspot_start.tpl:russian:РџРµСЂРІР°СЏ СЃС‚СЂР°РЅРёС†Р° РѕС‚РѕР±СЂР°Р¶Р°РµРјР°СЏ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏРј РїСЂРё Р·Р°С…РѕРґРµ РЅР° Hotspot
+form_client_hotspot_start.tpl:russian:Первая страница отображаемая пользователям при заходе на Hotspot
 form_client_hotspot_start.tpl:english:First page loding for hotspot users
-admin_report_day.tpl:russian:Р¤РѕСЂРјР° РґРЅРµРІРЅРѕРіРѕ РѕС‚С‡С‘С‚Р° РїСЂРёС…РѕРґСЏС‰РµРЅР° РЅР° E-mail Р°РґРјРёРЅРёСЃС‚СЂР°С‚РѕСЂСѓ
-admin_report_month.tpl:russian:Р¤РѕСЂРјР° РјРµСЃСЏС‡РЅРѕРіРѕ РѕС‚С‡С‘С‚Р° РїСЂРёС…РѕРґСЏС‰РµРЅР° РЅР° E-mail Р°РґРјРёРЅРёСЃС‚СЂР°С‚РѕСЂСѓ
-form_chg_tp.tpl:russian:Р¤РѕСЂРјР° РёР·РјРёРЅРµРЅРёСЏ С‚Р°СЂРёС„РЅРѕРіРѕ РїР»Р°РЅР°
+admin_report_day.tpl:russian:Форма дневного отчёта приходящена на E-mail администратору
+admin_report_month.tpl:russian:Форма месячного отчёта приходящена на E-mail администратору
+form_chg_tp.tpl:russian:Форма изминения тарифного плана
 form_buy_cards.tpl:english:Buy cards interface
 form_buy_cards_card.tpl:english:Buy cards interface card designe
 
-form_buy_cards.tpl:russian:Р¤РѕСЂРјР° РїРѕРєСѓРїРєРё РєР°СЂС‚РѕС‡РµРє
-form_buy_cards_card.tpl:russian:Р”РёР·Р°Р№РЅ РєР°СЂС‚РѕС‡РєРё РёР· С„РѕСЂРјС‹ РїРѕРєСѓРїРєРё
-form_buy_cards_paysys.tpl:russian:РџР»Р°С‚С‘Р¶РЅС‹Рµ СЃРёСЃС‚РµРјС‹ РґР»СЏ РїРѕРєСѓРїРєРё РєР°СЂС‚РѕС‡РµРє
+form_buy_cards.tpl:russian:Форма покупки карточек
+form_buy_cards_card.tpl:russian:Дизайн карточки из формы покупки
+form_buy_cards_paysys.tpl:russian:Платёжные системы для покупки карточек
 
-form_client_start.tpl:russian:РћР±С‰РёР№ С€Р°Р±Р»РѕРЅ СЃС‚СЂР°РЅРёС†Рё РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ
-form_hotspot_login.tpl:russian:Р¤РѕСЂРјР° Р»РѕРіРёРЅР° РґР»СЏ Hotspot
-cards_card_info.tpl:russian:Р
+form_client_start.tpl:russian:Общий шаблон страници пользователя
+form_hotspot_login.tpl:russian:Форма логина для Hotspot
+cards_card_info.tpl:russian:Информация о карточке
+
+form_payment.tpl:russian:Форма оплаты
+form_fees.tpl:russian:Форма снятия денег
+form_password.tpl:russian:форма изминения пароля
+countries.tpl:russian:список доступных стран
+
+form_buy_cards.tpl:english:Cards buy form
+form_buy_cards_card.tpl:english:Prepaid Cards design blank
+form_buy_cards_paysys.tpl:english:Paysys form
+
+form_client_start.tpl:english:Main user template
+form_hotspot_login.tpl:english:Hotspot login form
+cards_card_info.tpl:english:Cards information template
+
+form_payment.tpl:english:Payments form
+form_fees.tpl:english:Fees form
+form_password.tpl:english:Change password form
+countries.tpl:english:Countries list
+
+form_company.tpl:english:Company add/change template
+form_company.tpl:russian:Шаблон компании

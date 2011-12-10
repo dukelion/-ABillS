@@ -91,9 +91,6 @@ sub docs_invoice_add  {
  	   $html->message('err', $_ERROR, "$_INVOICE $_EXIST");
  	   return 0;
     }
-   elsif(! $attr->{CUSTOMER}) {
-     $html->message('err', "$_ERROR", "$_ORG_NAME");
-    }
    elsif($FORM{PREVIEW}) {
      docs_preview('invoice', { %FORM });
      return 0;
@@ -258,10 +255,10 @@ sub docs_invoice {
       next if ($line->[5]);
       $num++;
       $table->addrow(
-        $html->form_input("ORDER_".$line->[0], "$line->[3]", { TYPE => 'hidden' }).
-        $html->form_input("SUM_".$line->[0], "$line->[4]", { TYPE => 'hidden' }).
-        $html->form_input("FEES_ID_".$line->[0], "$line->[0]", { TYPE => 'hidden' }).
-        $html->form_input("IDS", "$line->[0]", { TYPE => 'checkbox', STATE => 1 }). "$num", 
+        $html->form_input("ORDER_".$line->[0], "$line->[3]", { TYPE => 'hidden', OUTPUT2RETURN => 1 }).
+        $html->form_input("SUM_".$line->[0], "$line->[4]", { TYPE => 'hidden', OUTPUT2RETURN => 1 }).
+        $html->form_input("FEES_ID_".$line->[0], "$line->[0]", { TYPE => 'hidden', OUTPUT2RETURN => 1 }).
+        $html->form_input("IDS", "$line->[0]", { TYPE => 'checkbox', STATE => 1, OUTPUT2RETURN => 1 }). "$num", 
         "$line->[1]",
         "$line->[2]", 
         "$line->[3]", 
@@ -270,24 +267,60 @@ sub docs_invoice {
       $total_sum+=$line->[4]; 
      }
 
-   my $amount_for_pay = 0;
-   if ($users->{DEPOSIT}>0) {
- 	   $amount_for_pay    = $total_sum-$users->{DEPOSIT};
- 	  }
-   else {
-   	 $amount_for_pay    = $total_sum;
-    }
+    #Next period payments
+    if ($FORM{NEXT_PERIOD} && $FORM{NEXT_PERIOD} > 1) {
+ 	    my $cross_modules_return = cross_modules_call('_docs');
+
+      
+ 	    foreach my $module (sort keys %$cross_modules_return) {
+ 	 	   if (ref $cross_modules_return->{$module} eq 'ARRAY') {
+ 	 	 	   next if ( $#{ $cross_modules_return->{$module} } == -1 );
+ 	 	 	   $table->{extra}="colspan='5' class='small'";
+         $table->addrow("$module");
+ 	 	 	   $table->{extra}=undef;
+
+ 	 	 	   foreach my $line ( @{ $cross_modules_return->{$module} } ) {
+ 	 	 	     my ($name, $describe, $sum)=split(/\|/, $line);
+ 	 	 	 	   next if ($sum <= 0);
+ 	 	 	   	 
+ 	 	 	   	 $num++;  	 	 	 	   
+ 	 	 	 	   $sum = sprintf("%.2f", $sum * ($FORM{NEXT_PERIOD}-1));
+ 	 	 	 	   
+ 	 	       $table->addrow($html->form_input('ORDER_'.$num, "$name $describe", { TYPE => 'hidden', OUTPUT2RETURN => 1 }).
+                        $html->form_input('SUM_'.$num, $sum, { TYPE => 'hidden', OUTPUT2RETURN => 1 }).
+ 	 	                    $html->form_input('IDS', "$num", { TYPE => ($user->{UID}) ? 'hidden' : 'checkbox', STATE => 'checked', OUTPUT2RETURN => 1 }). $num, 
+ 	 	                    "$name $describe",
+ 	 	                    '',
+ 	 	                    '',
+ 	 	                    $sum );
+ 	 	       $total_sum	+= $sum;
+ 	 	      } 
+ 	 	    }
+ 	     }
+
+
+    	
+     }
+
+    my $amount_for_pay = 0;
+    if ($users->{DEPOSIT}>0) {
+ 	    $amount_for_pay    = $total_sum-$users->{DEPOSIT};
+ 	   }
+    else {
+   	  $amount_for_pay    = $total_sum;
+     }
 
 
     $table->{extra} = " colspan=4 class=total ";
     $table->addrow("$_COUNT: $num", sprintf("%.2f", $total_sum));
     $table->addrow($html->b("$_AMOUNT_FOR_PAY:"), $html->b(sprintf("%.2f", $amount_for_pay)));
-    $Docs->{ORDERS} = $table->show();
+    $Docs->{ORDERS} = $table->show({ OUTPUT2RETURN => 1 });
 
-    $html->tpl_show(_include('docs_invoice_add', 'Docs'), { %$attr, %$Docs, %$users }) if (! $FORM{pdf});
+    $html->tpl_show(_include('docs_invoice_add', 'Docs'), { %FORM, %$attr, %$Docs, %$users }) if (! $FORM{pdf});
    }
 
   docs_invoice_list();
+  return 0;
 }
 
 #**********************************************************

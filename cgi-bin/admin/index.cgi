@@ -654,13 +654,16 @@ if (! $FORM{step}) {
 elsif ($FORM{back}) {
 	$FORM{step}=$FORM{step}-2;
  }
+elsif ($FORM{update}) {
+	$FORM{step}--;
+	$FORM{back}=1;
+}
 
   if ($FORM{UID}) {
   	$LIST_PARAMS{UID}=$FORM{UID};
   	$users->info($FORM{UID});
   	$users->pi({ UID => $FORM{UID} });
    }
-
   #Make functions
   if($FORM{step} > 1 && ! $FORM{back}) {
       $html->{NO_PRINT}=1;
@@ -714,16 +717,17 @@ elsif ($FORM{back}) {
   	
     my ($fn, $module, $describe)=split(/:/, $steps{$FORM{step}}, 3);
     my @rows = ();
+    $table->{rowcolor}=$_COLORS[1];
     foreach my $i ( sort keys %steps ) {
     	 my ($fn, $module, $describe)=split(/:/, $steps{$i}, 3);
        if ($i<$FORM{step}) {
          push @rows, $table->th($html->button("$_STEP: $i $describe", "index=$index&back=1&UID=$FORM{UID}&step=".($i+2)));
         }
        elsif ($i == $FORM{step}) {
-         push @rows, $table->th("$_STEP: $i $describe", { class => 'small' });
+         push @rows, $table->th("$_STEP: $i $describe", { class => 'table_title' });
         }
        else{
-       	 push @rows, $table->th("$_STEP $i: ".$describe, { class=>'even' });
+       	 push @rows, $table->th("$_STEP $i: ".$describe, { class => 'even' });
         }
      }
     $table->addtd( @rows ); 
@@ -754,7 +758,7 @@ elsif ($FORM{back}) {
  	  	      #USER        => \%FORM,
  	  	      USER_INFO   => ($FORM{UID}) ? $users : undef,
  	  	      LNG_ACTION  => ($steps{$FORM{step}}) ? "$_NEXT " : "$_REGISTRATION_COMPLETE",
- 	  	      BACK_BUTTON => ($FORM{step} > 1) ? $html->form_input('finish', "$_REGISTRATION_COMPLETE", {  TYPE => 'submit' }).' '. $html->form_input('back', "$_BACK", {  TYPE => 'submit' }) : undef,
+ 	  	      BACK_BUTTON => ($FORM{step} > 1) ? $html->form_input('finish', "$_FINISH", {  TYPE => 'submit' }).' '. $html->form_input('back', "$_BACK", {  TYPE => 'submit' }) : undef,
  	  	      UID         => $FORM{UID},
  	  	      SUBJECT     => $_REGISTRATION
  	  	     });
@@ -3782,7 +3786,6 @@ foreach my $k ( sort keys %menu_items ) {
     my $action_index = 0;
     $table->{rowcolor}=undef;
     foreach my $action (@$actions_list) {
-
       $table->addrow("$action_index", "$action", '',
       $html->form_input($k."_$action_index", 1, { TYPE          => 'checkbox',
        	                                          OUTPUT2RETURN => 1,
@@ -5560,7 +5563,8 @@ if ($permissions{1} && $permissions{1}{1}) {
     }
    
   if ($permissions{1}{4}) {
-    $payments->{DATE} = "<tr><td colspan=2>$_DATE:</td><td>". $html->form_input('DATE', "$DATE $TIME"). "</td></tr>\n";
+    my $date_field = $html->date_fld2('DATE', { DATE=>$DATE, TIME => $TIME, MONTHES => \@MONTHES, FORM_NAME => 'user', WEEK_DAYS => \@WEEKDAYS });
+    $payments->{DATE} = "<tr><td colspan=2>$_DATE:</td><td>$date_field</td></tr>\n";
    }
 
   if (in_array('Docs', \@MODULES) ) {
@@ -5903,7 +5907,7 @@ my $output = $table->show({ OUTPUT2RETURN => 1 });
 if ($attr->{ACTION}) {
   my $action = "";
   if ($attr->{ACTION}) {
-	  $action = $html->form_input('finish', "$_REGISTRATION_COMPLETE", {  TYPE => 'submit' }).' '.
+	  $action = $html->br(). $html->form_input('finish', "$_REGISTRATION_COMPLETE", {  TYPE => 'submit' }).' '.
 	  $html->form_input('back', "$_BACK", {  TYPE => 'submit' }).' '.
 	  $html->form_input('next', "$_NEXT", {  TYPE => 'submit' });
    }

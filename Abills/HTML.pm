@@ -1083,7 +1083,7 @@ sub addtd {
      }
    }  
   else {
-  	$class = ($class eq 'odd') ? 'even' : 'odd';
+     $class = ($class eq 'odd') ? 'even' : 'odd';
    }
   
   my $extra=(defined($self->{extra})) ? $self->{extra} : '';
@@ -1104,10 +1104,11 @@ sub addtd {
 # th()
 #*******************************************************************
 sub th {
-	my $self = shift;
-	my ($value, $attr) = @_;
-	
-	return $self->td($value, { TH => 1, ($attr) ?  %$attr  : undef } );
+  my $self = shift;
+  my ($value, $attr) = @_;
+  $attr->{TH}=1;
+
+  return $self->td($value, { %$attr } );
 }
 
 #*******************************************************************
@@ -1560,11 +1561,16 @@ sub date_fld2  {
 
  my $form_name = $attr->{FORM_NAME} || 'FORM';
  my $date = '';
+ my $size = 12;
  
  my ($year, $month, $day);
 
    if ($attr->{DATE}) {
- 	   $date = $attr->{DATE};
+     $date = $attr->{DATE};
+     if ($attr->{TIME}) {
+        $date .= ' '.$attr->{TIME};
+        $size=20;
+       }
     }
    elsif ($FORM{$base_name}) {
  	   $date = $FORM{$base_name};
@@ -1620,7 +1626,7 @@ my $result = qq{
 	'format'     : 'Y-m-d'
 };
 </script>
-<input type=text name='$base_name' value='$date' size=12 rel='tcal' ID='$base_name' $tabindex> 
+<input type=text name='$base_name' value='$date' size=$size rel='tcal' ID='$base_name' $tabindex> 
  };
 
 return $result ;

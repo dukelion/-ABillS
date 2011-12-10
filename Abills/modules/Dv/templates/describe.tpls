@@ -1,19 +1,26 @@
-dv_compensation.tpl:russian:Р¤РѕСЂРјР° РєРѕРјРїРµРЅСЃР°С†РёРё
-dv_errors_search.tpl:russian:РџРѕРёСЃРє РїРѕ Р¶СѓСЂРЅР°Р»Сѓ РѕС€РёР±РѕРє РІС…РѕРґР° РєР»РёРµРЅС‚РѕРІ
-dv_guest_mode.tpl:russian:Р¤РѕСЂРјР° РѕРїРѕРІРµС‰РµРЅРёСЏ Рѕ РіРѕСЃС‚РµРІРѕРј РІС…РѕРґРµ РєР»РёРµРЅС‚Р°
-dv_hold_up.tpl:russian:Р¤РѕСЂРјР° РїСЂРёРѕС‚Р°РЅРѕРІРєРё СЃРµСЂРІРёСЃР° РёР· Р»РёС‡РЅРѕРіРѕ РєР°Р±РёРЅРµС‚Р° РєР»РёРµРЅС‚Р°
-dv_reg_complete.tpl:russian:Р¤РѕСЂРјР° РѕРїРѕРІРµС‰РµРЅРёСЏ Рѕ СѓСЃРїРµС€РЅРѕР№ СЂРµРіРёСЃС‚СЂР°С†РёРё
-dv_registration.tpl:russian:Р¤РѕСЂРјР° СЂРµРіРёСЃС‚СЂР°С†РёРё СЃРµСЂРІРёСЃР°
-dv_session_detail.tpl:russian:Р”РµС‚Р°Р»РёР·Р°С†РёСЏ СЃРµСЃСЃРё
-dv_sessions_search.tpl:russian:Р¤РѕСЂРјР° РїРѕРёСЃРєР° СЃРµСЃСЃРёР№
-dv_tp.tpl:russian:Р¤РѕСЂРјР° Р·Р°РІРµРґРµРЅРёСЏ С‚Р°СЂРёС„РЅРѕРіРѕ РїР»Р°РЅР°
-dv_traffic_class.tpl:russian:Р¤РѕСЂРјР° Р·Р°РІРµРґРµРЅРёСЏ РєР»Р°СЃСЃРѕРІ С‚СЂР°С„С„РёРєР°
-dv_tt.tpl:russian:Р¤РѕСЂРјР° Р·Р°РІРµРґРµРЅРёСЏ С‚Р°СЂРёС„РѕРІ С‚СЂР°С„РёРєР°
-dv_user.tpl:russian:Р¤РѕСЂРјР° СѓРїСЂР°РІР»РµРЅРёСЏ СѓС‡С‘С‚РЅРѕР№ Р·Р°РїРёСЃСЊСЋ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ РґР»СЏ РґР°РЅРЅРѕРі СЃРµСЂРІРёСЃР°
+dv_compensation.tpl:russian:Форма компенсации
+dv_errors_search.tpl:russian:Поиск по журналу ошибок входа клиентов
+dv_guest_mode.tpl:russian:Форма оповещения о гостевом входе клиента
+dv_hold_up.tpl:russian:Форма приотановки сервиса из личного кабинета клиента
+dv_reg_complete.tpl:russian:Форма оповещения о успешной регистрации
+dv_registration.tpl:russian:Форма регистрации сервиса
+dv_session_detail.tpl:russian:Детализация сесси
+dv_sessions_search.tpl:russian:Форма поиска сессий
+dv_tp.tpl:russian:Форма заведения тарифного плана
+dv_traffic_class.tpl:russian:Форма заведения классов траффика
+dv_tt.tpl:russian:Форма заведения тарифов трафика
+dv_user.tpl:russian:Форма управления учётной записью пользователя для данног сервиса
 dv_user_info.dsc:russian:
-dv_user_info.pdf:russian:Р¤РѕСЂРјР° РёРЅС„РѕСЂРјР°С†РёРё Рѕ СЃРµСЂРІРёСЃРµ РІ С„РѕСЂРјР°С‚Рµ pdf
-dv_user_info.tpl:russian:Р¤РѕСЂРјР° РёРЅС„РѕСЂРјР°С†РёРё Рѕ СЃРµСЂРІРёСЃРµ
-dv_user_join_service.tpl:russian:Р¤РѕСЂРјР° СЃРѕРІРјРµСЃС‚РЅРѕРіРѕ СЃРµСЂРІРёСЃР°
-dv_user_speed.tpl:russian:Р¤РѕСЂРјР° TURBO  СЂРµР¶РёРјР°
-dv_users_search.tpl:russian:Р¤РѕСЂРјР° РїРѕРёСЃРєР° РїРѕР»СЊР·РѕРІР°С‚Р»РµР№ СЃРµСЂРІРёСЃР°
-dv_users_warning_messages.tpl:russian:Р¤РѕСЂРјР° РѕРїРѕРІРµС‰РµРЅРёСЏ РЅР° E-mail Рѕ СЂР°СЃС…РѕРґРѕРІР°РЅРѕРј Р±Р°Р»Р°РЅСЃРµ
+dv_user_info.pdf:russian:Форма информации о сервисе в формате pdf
+dv_user_info.tpl:russian:Форма информации о сервисе
+dv_user_join_service.tpl:russian:Форма совместного сервиса
+dv_user_speed.tpl:russian:Форма TURBO  режима
+dv_users_search.tpl:russian:Форма поиска пользоватлей сервиса
+dv_users_warning_messages.tpl:russian:Форма оповещения на E-mail о расходованом балансе
+
+dv_pay_to.tpl:russian:Оплата до определённой даты
+dv_rating_tp.tpl:russian:Тарифный план рейтинга
+dv_reg_complete_mail.tpl:russian:E-mail об успешной регистрации
+dv_stats.tpl:russian:фома статистики
+dv_user_rating.tpl:russian:Форма велдения рейтинга пользователя
+dv_user_rating_pre.tpl:russian:Предварительный просмотр рейтинга

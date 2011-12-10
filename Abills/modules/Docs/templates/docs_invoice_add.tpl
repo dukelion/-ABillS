@@ -12,8 +12,6 @@
 %FORM_ACCT_ID%
 <tr><td>$_DATE:</td><td>%DATE%</td></tr>
 <tr><td>$_PERIOD:</td><td>$_FROM: %FROM_DATE% $_TO: %TO_DATE% </td></tr>
-<tr><td>$_CUSTOMER:</td><td><input type=text name=CUSTOMER value='%CUSTOMER%' size=60></td></tr>
-<tr><td>$_PHONE:</td><td><input type=text name=PHONE value=%PHONE%></td></tr>
 <tr><td>$_NEXT $_PERIOD:</td><td><input type=text name=NEXT_PERIOD value='%NEXT_PERIOD=1%' size=5>$_MONTH</td></tr>
 <tr><td colspan=2>
 

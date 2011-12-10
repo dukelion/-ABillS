@@ -43,7 +43,7 @@ A:hover {text-decoration: none; color: %_COLOR_9%;}
 }
 
 th.small {
-  color: %_COLOR_0%;
+  color: %_COLOR_9%;
   font-size: 12px;
   height: 10;
   background-color: %_COLOR_0%;
@@ -84,7 +84,6 @@ td.menu_cel {
   font-size: 13px;
   background-color: %_COLOR_1%;
 }
-
 
 td.menu_cel_main a {
   text-decoration:none;

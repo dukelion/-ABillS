@@ -1,9 +1,11 @@
-dhcphosts_dhcp_conf_host.tpl:russian:РЎРµРєС†РёСЏ РєРѕРЅС„РёРіСѓСЂР°С†РёРѕРЅРЅРѕРіРѕ С„Р°Р№Р»Р° РґР»СЏ Р·Р°РґР°РЅРёСЏ РїР°СЂР°РјРµС‚СЂРѕРІ С…РѕСЃС‚Р°
-dhcphosts_dhcp_conf_main.tpl:russian:РћСЃРЅРѕРІРЅРѕР№ РєРѕРЅС„РёРіСѓСЂР°С†РёРѕРЅРЅС‹Р№ С„Р°Р№Р» РґР»СЏ dhcp СЃРµСЂРІРµСЂР°
-dhcphosts_dhcp_conf_subnet.tpl:russian:РЎРµРєС†РёСЏ РєРѕРЅС„РёРіСѓСЂР°С†РёРѕРЅРЅРѕРіРѕ С„Р°Р№Р»Р° РґР»СЏ Р·Р°РґР°РЅРёСЏ СЃРµС‚Рё
-dhcphosts_host.tpl:russian:Р¤РѕСЂРјР° РѕРїРёСЃР°РЅРёРµ РїР°СЂР°РјРµС‚СЂРѕРІ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ
-dhcphosts_ipguard.tpl:russian:Р¤РѕСЂРјР° СЃРїРёСЃРєР° IP Guars
-dhcphosts_ipguard_static.tpl:russian:Р¤РѕСЂРјР° Р·Р°РІРµРґРµРЅРёСЏ СЃС‚Р°С‚РёС‡РµСЃРєРёС… Р°РґСЂРµСЃРѕРІ РґР»СЏ IP Guard
-dhcphosts_network.tpl:russian:Р¤РѕСЂРјР° Р·Р°РІРµРґРµРЅРёСЏ СЃРµС‚РµР№
-dhcphosts_routes.tpl:russian:Р¤РѕСЂРјР° Р·Р°РІРµРґРµРЅРёСЏ РјР°СЂС€СЂСѓС‚РѕРІ
-dhcphosts_search.tpl:russian:Р¤РѕСЂРјР° РїРѕРёСЃРєР° РїРѕР»СЊР·РѕРІР°С‚РµР»СЊСЃРєРёС… Р°РєРєР°СѓРЅС‚РѕРІ РІ РјРѕРґСѓР»Рµ
+dhcphosts_dhcp_conf_host.tpl:russian:Секция конфигурационного файла для задания параметров хоста
+dhcphosts_dhcp_conf_main.tpl:russian:Основной конфигурационный файл для dhcp сервера
+dhcphosts_dhcp_conf_subnet.tpl:russian:Секция конфигурационного файла для задания сети
+dhcphosts_host.tpl:russian:Форма описание параметров пользователя
+dhcphosts_ipguard.tpl:russian:Форма списка IP Guars
+dhcphosts_ipguard_static.tpl:russian:Форма заведения статических адресов для IP Guard
+dhcphosts_network.tpl:russian:Форма заведения сетей
+dhcphosts_routes.tpl:russian:Форма заведения маршрутов
+dhcphosts_search.tpl:russian:Форма поиска пользовательских аккаунтов в модуле
+dhcphosts_dhcp_conf_o82_class.tpl:russian:Шаблон Option 82  выражения	
+dhcphosts_log_search.tpl:russian:Поиск в DHCP логе 

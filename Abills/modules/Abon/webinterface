@@ -203,7 +203,7 @@ foreach my $line (@$list) {
 
 my $action = "";
 if ($attr->{ACTION}) {
-	$action = $html->form_input('finish', "$_REGISTRATION_COMPLETE", {  TYPE => 'submit' }).' '.
+	$action = $html->br(). $html->form_input('finish', "$_REGISTRATION_COMPLETE", {  TYPE => 'submit' }).' '.
 	$html->form_input('back', "$_BACK", {  TYPE => 'submit' }). ' '.
 	$html->form_input('next', "$_NEXT", {  TYPE => 'submit' });
  }
