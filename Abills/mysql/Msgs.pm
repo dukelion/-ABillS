@@ -52,7 +52,8 @@ sub messages_new {
  elsif ($attr->{ADMIN_READ}) {
  	 $fields = "sum(if(admin_read='0000-00-00 00:00:00', 1, 0)), 
  	  sum(if(plan_date=curdate(), 1, 0)),
- 	  sum(if(state = 0, 1, 0)), 1,1,1,1
+ 	  sum(if(state = 0, 1, 0)), 
+    1, 1,1,1
  	   ";
    #push @WHERE_RULES, "m.state=0";
   }
@@ -76,7 +77,8 @@ sub messages_new {
  if ($attr->{SHOW_CHAPTERS}) {
    $self->query($db,   "SELECT c.id, c.name, sum(if(admin_read='0000-00-00 00:00:00', 1, 0)), 
  	  sum(if(plan_date=curdate(), 1, 0)),
- 	  sum(if(state = 0, 1, 0)), 1,1,1,1
+ 	  sum(if(state = 0, 1, 0)), 
+ 	   	  sum(if(resposible = $admin->{AID}, 1, 0)),1,1,1
     FROM msgs_chapters c
     LEFT JOIN msgs_messages m ON (m.chapter= c.id AND m.state=0)
     $EXT_TABLE

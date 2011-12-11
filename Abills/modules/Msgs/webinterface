@@ -1774,14 +1774,16 @@ sub msgs_new {
     	$id++;
     	my $count = '';
     	if ($line->[4] > 0) {
-        $count = '('. (($line->[2] > 2) ? $html->color_mark($line->[2], $_COLORS[6], { SKIP_XML => 1 }) : 0) ."/$line->[3]/$line->[4])";
+        $count = '('. (($line->[2] > 2) ? $html->color_mark($line->[2], $_COLORS[6], { SKIP_XML => 1 }) : 0) ."/$line->[3]/$line->[4]/". (($line->[5] > 0) ? $html->color_mark($line->[5], '#F07800', { SKIP_XML => 1 }) : 0) .")";
         $Msgs->{UNREAD} += $line->[2];
         $Msgs->{TODAY}  += $line->[3];
         $Msgs->{OPENED} += $line->[4]; 
+        $Msgs->{RESPOSIBLE} += $line->[5]; 
        }
-    	
     	$FUNCTIONS_LIST{"$id:10:$line->[1] $count:msgs_admin:CHAPTER=$line->[0]"}  = 8;
      }
+    $id++;
+    $FUNCTIONS_LIST{"$id:10:$_RESPOSIBLE ". (($Msgs->{RESPOSIBLE} > 0) ? '('.$html->color_mark($Msgs->{RESPOSIBLE}, '#F07800', { SKIP_XML => 1 }).')': 0) .":msgs_admin:&STATE=8"}  = 8;
     if ($Msgs->{OPENED} && $Msgs->{OPENED} > 0) {
       return '('. (($Msgs->{UNREAD} > 0) ? $html->color_mark($Msgs->{UNREAD}, $_COLORS[6], { SKIP_XML => 1 }) : 0) ."/$Msgs->{TODAY}/$Msgs->{OPENED})";
      }
