@@ -11,7 +11,7 @@
 <tr><td>$_ALLOW_ANSWER:</td><td><input type=checkbox name=ALLOW_ANSWER value='1' %ALLOW_ANSWER%></td></tr>
 <tr><td>$_ALLOW_CALLS:</td><td><input type=checkbox name=ALLOW_CALLS value='1' %ALLOW_CALLS%></td></tr>
 
-<tr><td>$_DISABLE:</td><td bgcolor=%STATUS_COLOR%>%STATUS_SEL%</td></tr>
+<tr><td>$_STATUS:</td><td bgcolor=%STATUS_COLOR%>%STATUS_SEL%</td></tr>
 </table>
 <input type=submit name='%ACTION%' value='%LNG_ACTION%'>
 </form>

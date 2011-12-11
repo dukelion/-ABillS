@@ -701,7 +701,7 @@ elsif ($command eq 'pay') {
   	                       EXT_ID       => "$payment_system:$FORM{txn_id}",
   	                       CHECK_EXT_ID => "$payment_system:$FORM{txn_id}" } ); 
 
-    cross_modules_call('_payments_maked', { USER => $user, QUITE => 1 });
+    cross_modules_call('_payments_maked', { USER_INFO => $user, QUITE => 1 });
 
     #Exists
     if ($payments->{errno} && $payments->{errno} == 7) {
@@ -1000,7 +1000,7 @@ elsif($request_hash{'request-type'} == 2) {
   	                       EXT_ID       => "$payment_system:$transaction_number",
   	                       CHECK_EXT_ID => "$payment_system:$transaction_number" } ); 
 
-    cross_modules_call('_payments_maked', { USER => $user, QUITE => 1 });
+    cross_modules_call('_payments_maked', { USER_INFO => $user, QUITE => 1 });
 
     #Exists
     if ($payments->{errno} && $payments->{errno} == 7) {
@@ -1624,6 +1624,7 @@ sub mk_log {
 sub cross_modules_call  {
   my ($function_sufix, $attr) = @_;
 
+eval {
   my %full_return  = ();
   my @skip_modules = ();
  
@@ -1644,6 +1645,7 @@ sub cross_modules_call  {
      }
     $full_return{$mod}=$return;
    }
+};
 
   return \%full_return;
 }

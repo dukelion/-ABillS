@@ -234,8 +234,7 @@ sub voip_users_list {
   } 
 
 
-my $list = $Voip->user_list( { %LIST_PARAMS } );
-
+my $list  = $Voip->user_list( { %LIST_PARAMS } );
 my @TITLE = ($_LOGIN, $_FIO, $_DEPOSIT, $_CREDIT, $_TARIF_PLANS, $_STATUS, $_NUMBER, '-');
 for(my $i=0; $i<$Voip->{SEARCH_FIELDS_COUNT}; $i++){
 	push @TITLE, '-';
@@ -248,6 +247,9 @@ if ($Voip->{errno}) {
   return 0;
  }
 elsif ($Voip->{TOTAL} == 1) {
+  my $ui          = user_info($list->[0]->[7]);
+  print $ui->{TABLE_SHOW};
+
 	form_users({  USER_INFO => user_info($list->[0]->[7]) });
 	return 0;
 }
@@ -260,7 +262,8 @@ my $table = $html->table( { width      => '100%',
                             title      => \@TITLE,
                             cols_align => ['left', 'left', 'right', 'right', 'left', 'center', 'left', 'center', 'center', 'center'],
                             qs         => $pages_qs,
-                            pages      => $Voip->{TOTAL}
+                            pages      => $Voip->{TOTAL},
+                            ID         => 'VOIP_USERS_LIST'
                          } );
 
 foreach my $line (@$list) {
@@ -3052,7 +3055,6 @@ sub voip_payments_maked {
 
   voip_mk_users_conf();
 }
-
 
 
 1

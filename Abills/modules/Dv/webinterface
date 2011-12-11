@@ -7113,16 +7113,6 @@ sub dv_payments_maked {
 		$Dv->change({ UID     => $attr->{USER_INFO}->{UID},
 			            STATUS  => 0  });
     $Dv->{ACCOUNT_ACTIVATE}=$attr->{USER_INFO}->{ACTIVATE} || '0000-00-00';
-    
-#    if ($Dv->{ACTIVATE} ne '0000-00-00') {
-#      my ($Y, $M, $D)=split(/-/, $Dv->{ACTIVATE}, 3);
-#      my $seltime = POSIX::mktime(0, 0, 0, $D, ($M - 1), ($Y - 1900));
-#
-#      # If activation time less then 30 days  we don't need take month fee    
-#      if (time() - $seltime < 86000* 30 ) {
-#        return ;	
-#       }
-#		 }
 		dv_get_month_fee($Dv, $attr);
 	 }
 }

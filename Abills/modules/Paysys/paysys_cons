@@ -215,7 +215,7 @@ for ( my $i = 0; $i<=$#{ $DATA_ARR }; $i++) {
              $error=1;
             }
            else {
-             cross_modules_call('_payments_maked', { USER => $user, PAYMENT_ID => $payments->{PAYMENT_ID} });	
+             cross_modules_call('_payments_maked', { USER_INFO => $user, PAYMENT_ID => $payments->{PAYMENT_ID} });	
             }
          }
         elsif ($ARGV->{TYPE} eq 'FEES') {

@@ -407,9 +407,9 @@ sub user_list {
   }
 
 
+
  if ($attr->{NUMBER}) {
-   my $value = $self->search_expr("'$attr->{NUMBER}'", 'INT');
-   push @WHERE_RULES, "service.number$value"; 
+    push @WHERE_RULES,  @{ $self->search_expr("$attr->{NUMBER}", 'INT', 'service.number') };
  }
 
  
