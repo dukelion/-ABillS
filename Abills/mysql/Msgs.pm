@@ -231,6 +231,7 @@ sub messages_list {
     }
    elsif ($attr->{STATE} == 8) {
      push @WHERE_RULES, @{ $self->search_expr("$admin->{AID}", 'INT', 'm.resposible')  };
+     push @WHERE_RULES, @{ $self->search_expr("0;6", 'INT', 'm.state')  };
     }
    else {
      push @WHERE_RULES, @{ $self->search_expr($attr->{STATE}, 'INT', 'm.state')  };

@@ -705,7 +705,8 @@ elsif ($acct_status_type == 2) {
             DAY_BEGIN           => $self->{DAY_BEGIN},
             DAY_OF_WEEK         => $self->{DAY_OF_WEEK},
             DAY_OF_YEAR         => $self->{DAY_OF_YEAR},
-            PRICE_UNIT          => 'Min'
+            PRICE_UNIT          => 'Min',
+            TIME_DIVISION       => $self->{TIME_DIVISION}
            });
 
         $sesssion_sum = $Billing->{SUM};
