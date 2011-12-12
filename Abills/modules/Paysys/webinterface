@@ -2139,8 +2139,7 @@ if ($FORM{ipay_transaction}) {
   if($FORM{ipay_transaction} ne 'FALSE') {
     my $list = $payments->list({ INNER_DESCRIBE => $FORM{ipay_transaction}, PAGE_ROWS => 1 });
     if ($list->[0]->[0]) {
-      $html->message('info', $_INFO, "$_ADDED $_TRANSACTION: $FORM{ipay_transact
-ion}");
+      $html->message('info', $_INFO, "$_ADDED $_TRANSACTION: $FORM{ipay_transaction}");
      }
     else {
       $html->message('err', $_ERROR, "$_FAILED");
@@ -2161,14 +2160,12 @@ else {
    }
   $info{amount_with_point} = $FORM{SUM};
   $info{amount} = $sum;
-  my $pay_describe = "Login: $LIST_PARAMS{LOGIN}\n Transaction: $FORM{OPERATION_ID}\n UID: $LIST_PARAMS{UID}";
+  my $pay_describe = "Login: $LIST_PARAMS{LOGIN}, Transaction: $FORM{OPERATION_ID}, UID: $LIST_PARAMS{UID}";
   $info{desc}   = $pay_describe;
   #$conf{PAYSYS_LMI_RESULT_URL} = "http://$ENV{SERVER_NAME}". ( ($ENV{SERVER_PORT}!= 80) ? ":$ENV{SERVER_PORT}" : '' ) ."/paysys_check.cgi" if (! $conf{PAYSYS_LMI_RESULT_URL});
   return $html->tpl_show(_include('paysys_ipay_add', 'Paysys'), \%info,  { OUTPUT2RETURN => $attr->{OUTPUT2RETURN} });
  }
 }
-
-
 
 1
 
