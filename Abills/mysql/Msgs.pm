@@ -153,10 +153,6 @@ sub messages_list {
    push @WHERE_RULES, @{ $self->search_expr($attr->{SUBJECT}, 'STR', 'm.subject') };
   }
 
- if ($attr->{DELIGATION}) {
-   push @WHERE_RULES, @{ $self->search_expr($attr->{DELIGATION}, 'INT', 'm.delegation') };
-  }
-
  if ($attr->{MESSAGE}) {
  	 push @WHERE_RULES, @{ $self->search_expr($attr->{MESSAGE}, 'STR', 'm.message') };
   }
@@ -231,11 +227,17 @@ sub messages_list {
     }
    elsif ($attr->{STATE} == 8) {
      push @WHERE_RULES, @{ $self->search_expr("$admin->{AID}", 'INT', 'm.resposible')  };
-     push @WHERE_RULES, @{ $self->search_expr("0;6", 'INT', 'm.state')  };
+     push @WHERE_RULES, @{ $self->search_expr("0;3;6", 'INT', 'm.state')  };
+     undef $attr->{DELIGATION};
     }
    else {
      push @WHERE_RULES, @{ $self->search_expr($attr->{STATE}, 'INT', 'm.state')  };
     }
+  }
+
+
+ if ($attr->{DELIGATION}) {
+   push @WHERE_RULES, @{ $self->search_expr($attr->{DELIGATION}, 'INT', 'm.delegation') };
   }
 
  if ($attr->{PRIORITY}) {
