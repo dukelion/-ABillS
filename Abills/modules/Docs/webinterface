@@ -1523,10 +1523,9 @@ sub docs_account {
   $Docs->{CUSTOMER}= $self->{COMPANY_NAME} || $users->{FIO} || '-';
   $Docs->{CAPTION} = $_ACCOUNT;  
   if (! $FORM{pdf}) {
+    my ($Y, $M, $D)=split(/-/, $DATE);
 
  if ($attr->{REGISTRATION} || $FORM{ALL_SERVICES}) {
- 	
- 	 my ($Y, $M, $D)=split(/-/, $DATE);
  	 if ($M < 12) {
   	 $M=sprintf("%02d", $M+1);
   	}
@@ -1623,7 +1622,12 @@ sub docs_account {
    print $content;
   }
  else {
-  	$Docs->{ORDERS} = $html->tpl_show(_include('docs_account_orders', 'Docs'), { %$Docs, %$users, %FORM }, { OUTPUT2RETURN => 1 }) ;
+  	$Docs->{ORDERS} = $html->tpl_show(_include('docs_account_orders', 'Docs'), { %$Docs, 
+  		   %$users, 
+  		   MONTH => $MONTHES[int($M-1)], 
+  		   DATE  => $DATE,
+  		   TIME  => $TIME,
+  		   %FORM }, { OUTPUT2RETURN => 1 }) ;
     $html->tpl_show(_include('docs_account_add', 'Docs'), { %$Docs, %$users, %FORM }) ;
   }
 
