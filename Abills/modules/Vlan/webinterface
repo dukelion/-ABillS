@@ -160,7 +160,7 @@ sub vlan_user {
      }
     else {
     	$Vlan->{TOTAL} = 0; 
-    	if ($FORM{IP} ne '0.0.0.0' && (! $FORM{UNNUMBERED} || $FORM{UNNUMBERED} ne '0.0.0.0')) {
+    	if ((! $FORM{UNNUMBERED_IP} || $FORM{UNNUMBERED_IP} eq '0.0.0.0') && $FORM{IP} ne '0.0.0.0') {
     	  #Check dublicate
     	  $list = $Vlan->list({ IP => "$FORM{IP}" });
     	 }
@@ -183,7 +183,7 @@ sub vlan_user {
       $html->message('err', $_ERROR, "Access Deny");  	
   	  return 0;
      }
-    elsif ($FORM{IP} ne '0.0.0.0' && (! $FORM{UNNUMBERED} || $FORM{UNNUMBERED} ne '0.0.0.0')) {
+    elsif ($FORM{IP} ne '0.0.0.0' && (! $FORM{UNNUMBERED_IP} || $FORM{UNNUMBERED_IP} eq '0.0.0.0')) {
       my $INFO = vlan_get_net($FORM{IP}, "$FORM{NETMASK}");
       if ($FORM{IP} ne $INFO->{IF_IP}) {
         print $html->message('info', $_CHANGE, "$_CHANGE IP $FORM{IP} -> $INFO->{IF_IP}");
