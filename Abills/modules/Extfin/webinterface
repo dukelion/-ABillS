@@ -1574,6 +1574,7 @@ $table = $html->table( { width      => '100%',
                          } );
 # остатки+оплаты-переносы|списания| депозит
 my $num = 1;
+$Extfin->{TOTAL_SALDO} = 0;
 foreach my $line (@$list) {
   my $date = $line->[1];
   
@@ -1586,10 +1587,9 @@ foreach my $line (@$list) {
   if ($FORM{TOTAL_ONLY}) {
  	  $name = ($line->[4] == 1) ? "$_TOTAL: $_COMPANIES" : "$_TOTAL: $_USERS"; 
    }
-  
-  $Extfin->{TOTAL_SALDO} = 0;
+
+  my $saldo = sprintf("%2.f", $line->[3]-$line->[4]);
   $table->addrow($num,
-   my $saldo = sprintf("%2.f", $line->[3]-$line->[4]));
    $html->button($line->[1], "index=11&UID=$line->[6]"), 
    $line->[2],
    $line->[3],
