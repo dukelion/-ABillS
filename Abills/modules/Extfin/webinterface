@@ -1588,7 +1588,7 @@ foreach my $line (@$list) {
  	  $name = ($line->[4] == 1) ? "$_TOTAL: $_COMPANIES" : "$_TOTAL: $_USERS"; 
    }
 
-  my $saldo = sprintf("%2.f", $line->[3]-$line->[4]);
+  my $saldo = sprintf("%6.f", $line->[3]-$line->[4]);
   $table->addrow($num,
    $html->button($line->[1], "index=11&UID=$line->[6]"), 
    $line->[2],
