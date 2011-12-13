@@ -1587,13 +1587,16 @@ foreach my $line (@$list) {
  	  $name = ($line->[4] == 1) ? "$_TOTAL: $_COMPANIES" : "$_TOTAL: $_USERS"; 
    }
   
-  $table->addrow($num, 
+  $Extfin->{TOTAL_SALDO} = 0;
+  $table->addrow($num,
+   my $saldo = sprintf("%2.f", $line->[3]-$line->[4]));
    $html->button($line->[1], "index=11&UID=$line->[6]"), 
    $line->[2],
    $line->[3],
    $line->[4] || '0.00',
-   ($line->[3]-$line->[4]),
+   $saldo,
    );
+  $Extfin->{TOTAL_SALDO}+=$saldo ;
   $num++;
 }
 

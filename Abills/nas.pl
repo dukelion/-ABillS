@@ -34,6 +34,13 @@ sub hangup {
  if ($nas_type eq 'exppp') {
    hangup_exppp($NAS, $PORT, $attr);
   }
+ elsif(-f "$lib_path/nas/$nas_type".'.pm') {
+ 	 require "$lib_path/nas/$nas_type".'.pm';
+ 	 my $fn = 'hangup_'.$nas_type;
+ 	 if (defined($fn)) {
+ 	 	 $fn->($NAS, $PORT, $attr);
+ 	  }
+ 	} 
  elsif ($nas_type eq 'pm25') {
    hangup_pm25($NAS, $PORT, $attr);
   }
@@ -90,13 +97,6 @@ sub hangup {
  elsif ($nas_type eq 'lisg_cst') {
    hangup_radius($NAS, $PORT, "$attr->{FRAMED_IP_ADDRESS}", $attr);
   }
- elsif(-f "$lib_path/nas/$nas_type".'.pm') {
- 	 require "$lib_path/nas/$nas_type".'.pm';
- 	 my $fn = 'hangup_'.$nas_type;
- 	 if (defined($fn)) {
- 	 	 $fn->($NAS, $PORT, $attr);
- 	  }
- 	} 
  else {  
    return 1;
   }
