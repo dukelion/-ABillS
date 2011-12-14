@@ -235,9 +235,11 @@ sub vlan_user {
     $Vlan->{UID}=$FORM{UID};
     $Vlan->del();
     if (! $Vlan->{errno}) {
-      $html->message('info', $_INFO, "$_CHANGED");	
+      $html->message('info', $_INFO, "$_DELETED");	
+      vlan_create({ NAS_IDS => $FORM{NAS_ID} });
      }
 	 }
+	 
 
 
   if ($Vlan->{errno}) {
