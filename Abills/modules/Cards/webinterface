@@ -2187,6 +2187,7 @@ else {
   print $html->header();
 }
 
+ $Cards->{debug}=1;
  my $list = $Cards->cards_list({ %LIST_PARAMS, 
   	                              SERIA => $FORM{SERIA} || '' 
  	                              });
@@ -2217,11 +2218,11 @@ else {
      $page_print_hash{'TIME_LIMIT_'.$i} = sprintf("%2.f",$line->[7] / 3600);
     }
    else {
-     $page_print_hash{'SERIAL_'.$i} = "$line->[0]";
-     $page_print_hash{'LOGIN_'.$i}  = "$line->[1]";
+     $page_print_hash{'SERIAL_'.$i} = "$line->[0]$line->[1]";
+     $page_print_hash{'LOGIN_'.$i}  = "$line->[2]";
      $page_print_hash{'PIN_'.$i}    = "$line->[15]";
      $page_print_hash{'TP_'.$i}     = "$line->[3]";
-     $page_print_hash{'SUM_'.$i}    = "$line->[14]";
+     $page_print_hash{'SUM_'.$i}    = "$line->[3]";
      $page_print_hash{'EXPIRE_'.$i} = "$line->[5]";
      $page_print_hash{'AGE_'.$i}    = "$line->[6]";
      $page_print_hash{'TIME_LIMIT_'.$i} = sprintf("%2.f",$line->[7] / 3600);
