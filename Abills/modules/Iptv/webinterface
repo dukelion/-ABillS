@@ -1705,7 +1705,7 @@ sub iptv_user_channels {
       $M =$M + 1;
       if ($M > 12) {
       	$M = '01';
-      	$Y = $Y++;
+      	$Y = $Y+1;
        }
       $M = sprintf("%.2d", $M);
 
