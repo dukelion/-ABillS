@@ -144,7 +144,13 @@ sub vlan_user {
   	  return 0;
      }
 
-    if ($FORM{IP} ne '0.0.0.0') {
+
+    if ($FORM{UNNUMBERED_IP} && $FORM{UNNUMBERED_IP} ne '0.0.0.0') {
+      my $INFO = vlan_get_net($FORM{UNNUMBERED_IP}, "$FORM{NETMASK}");
+      $Vlan->{IP_RANGE} = "$INFO->{FIRST_IP} - $INFO->{LAST_IP}";
+      $Vlan->{CLIENT_IPS_COUNT}=$INFO->{CLIENT_IPS_COUNT};
+     }
+    elsif ($FORM{IP} ne '0.0.0.0') {
       my $INFO = vlan_get_net($FORM{IP}, "$FORM{NETMASK}");
       if ($FORM{IP} ne $INFO->{IF_IP}) {
         print $html->message('info', $_CHANGE, "IP $FORM{IP} -> $INFO->{IF_IP}");
@@ -178,12 +184,15 @@ sub vlan_user {
        }
      }
    }
-	elsif($FORM{set}) {
-		
-		
+	elsif($FORM{set}) {		
     if (! $permissions{0}{4} ) {
       $html->message('err', $_ERROR, "Access Deny");  	
   	  return 0;
+     }
+    if ($FORM{UNNUMBERED_IP} && $FORM{UNNUMBERED_IP} ne '0.0.0.0') {
+      my $INFO = vlan_get_net($FORM{UNNUMBERED_IP}, "$FORM{NETMASK}");
+      $Vlan->{IP_RANGE} = "$INFO->{FIRST_IP} - $INFO->{LAST_IP}";
+      $Vlan->{CLIENT_IPS_COUNT}=$INFO->{CLIENT_IPS_COUNT};
      }
     elsif ($FORM{IP} ne '0.0.0.0' ) {
       my $INFO = vlan_get_net($FORM{IP}, "$FORM{NETMASK}");
@@ -241,7 +250,12 @@ sub vlan_user {
 
   my $user = $Vlan->info($FORM{UID});
 
-  if ($Vlan->{IP} && $Vlan->{IP} ne '0.0.0.0') {
+  if ($Vlan->{UNNUMBERED_IP} && $Vlan->{UNNUMBERED_IP} ne '0.0.0.0') {
+    my $INFO = vlan_get_net($Vlan->{UNNUMBERED_IP}, "$Vlan->{NETMASK}");
+    $Vlan->{IP_RANGE} = "$INFO->{FIRST_IP} - $INFO->{LAST_IP}";
+    $Vlan->{CLIENT_IPS_COUNT}=$INFO->{CLIENT_IPS_COUNT};
+   }
+  elsif ($Vlan->{IP} && $Vlan->{IP} ne '0.0.0.0') {
     my $INFO = vlan_get_net($Vlan->{IP}, "$Vlan->{NETMASK}");
     $Vlan->{IP_RANGE} = "$INFO->{FIRST_IP} - $INFO->{LAST_IP}";
     $Vlan->{CLIENT_IPS_COUNT}=$INFO->{CLIENT_IPS_COUNT};
@@ -368,13 +382,12 @@ foreach my $nas_static (@static_vlans_arr) {
 
 foreach my $line (@$list) {
   my @commands = ();
+  my %INFO     = ( SUBNETS => undef );
   my %client_interfaces = ();
   my @client_interfaces_unused = ();
   my $parent_interface = '';
-  my %INFO     = ( SUBNETS => undef );
-  
+
   $debug_output .= "NAS ID: $line->[0] MNG_INFO: $line->[10]\@$line->[9] $line->[12]\n" if ($debug > 2);
-  
   if ( $line->[12]=~/IP-Interface-Name=\"(.+)\"/)  {
     $parent_interface = $1;
    }
