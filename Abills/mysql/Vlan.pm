@@ -142,7 +142,7 @@ sub add {
         INET_ATON('$DATA{UNNUMBERED_IP}'));", 'do');
 
   return $self if ($self->{errno});
-  $admin->action_add("$DATA{UID}", "ACTIVE");
+  $admin->action_add("$DATA{UID}", "$DATA{VLAN_ID}", { TYPE => 1 });
   return $self;
 }
 
