@@ -1115,7 +1115,7 @@ sub form_period  {
 
  for(my $i=$#periods; $i>-1; $i--) {
  	 my $t = $periods[$i];
-   $form_period .= "<BR/><BR/>";
+   $form_period .= $html->br().$html->br();
    $form_period .= $html->form_input('period', "$i", { TYPE          => "radio", 
    	                                                   STATE         => ($i eq $period) ? 1 : undef, 
    	                                                   OUTPUT2RETURN => 1

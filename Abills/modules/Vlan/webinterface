@@ -8,7 +8,7 @@ my $Nas  = Nas->new($db, \%conf);
 my $SUDO  = 'sudo';
 my $SSH   = '/usr/bin/ssh';
 my $SCP   = '/usr/bin/scp';
-my $debug = 0;
+my $debug = $FORM{VLAN_DEBUG} || 0;
 
 
 $conf{VLAN_IF_CREATE}='if [ `uname` = Linux ]; then /usr/bin/sudo /sbin/vconfig add %PARENT_INTERFACE% %VLAN_ID%; else /usr/local/bin/sudo /sbin/ifconfig vlan%VLAN_ID% create vlan %VLAN_ID% vlandev %PARENT_INTERFACE% up; fi' if (! $conf{VLAN_IF_CREATE});
@@ -179,11 +179,13 @@ sub vlan_user {
      }
    }
 	elsif($FORM{set}) {
+		
+		
     if (! $permissions{0}{4} ) {
       $html->message('err', $_ERROR, "Access Deny");  	
   	  return 0;
      }
-    elsif ($FORM{IP} ne '0.0.0.0' && (! $FORM{UNNUMBERED_IP} || $FORM{UNNUMBERED_IP} eq '0.0.0.0')) {
+    elsif ($FORM{IP} ne '0.0.0.0' ) {
       my $INFO = vlan_get_net($FORM{IP}, "$FORM{NETMASK}");
       if ($FORM{IP} ne $INFO->{IF_IP}) {
         print $html->message('info', $_CHANGE, "$_CHANGE IP $FORM{IP} -> $INFO->{IF_IP}");
@@ -200,13 +202,13 @@ sub vlan_user {
     else {
     	my $list;
     	$Vlan->{TOTAL} = 0;
-    	if ($FORM{IP} ne '0.0.0.0') {
+    	if ((! $FORM{UNNUMBERED_IP} || $FORM{UNNUMBERED_IP} eq '0.0.0.0') &&  $FORM{IP} ne '0.0.0.0') {
     	  $list = $Vlan->list({  IP => "$FORM{IP}", UID => "!$FORM{UID}" });
     	 }
 
     	if ($Vlan->{TOTAL} > 0) {
     		$Vlan->{errno}=8;
-    		$login_button = $html->button($list->[0][0], 'index=15&UID='.$list->[0][11]);
+    		$login_button = $html->button($list->[0][0], 'index=15&UID='.$list->[0][12]);
     	 }
     	else {
     		$FORM{UNNUMBERED_IP}=ip2int($FORM{UNNUMBERED_IP}) if ($FORM{UNNUMBERED_IP});

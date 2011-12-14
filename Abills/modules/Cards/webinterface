@@ -1239,7 +1239,6 @@ sub cards_reseller_face {
      return 0; 	
    }
 
-
   if ($user->{DEPOSIT} + $user->{CREDIT} > 0) {
   	#Generate Cards
   	if (cards_diller_add({ RESELLER => 1 }) > 0) {
@@ -1963,6 +1962,9 @@ sub cards_diller_stats {
 	                         NAME    => 'cards_list'
 	                        });
 
+
+  $LIST_PARAMS{LOGIN}=undef;
+
   my @pin = ();
   @pin = ("PIN") if ($conf{CARDS_SHOW_PINS});
 
@@ -2004,12 +2006,12 @@ if ($FORM{TYPE} eq 'TP') {
 
   $LIST_PARAMS{TYPE}='TP';
 
-if($FORM{print_cards}) {
-	cards_print();
-  exit;
-}
+  if($FORM{print_cards}) {
+	  cards_print();
+    exit;
+   }
 
-if ($FORM{TP_ID}) {
+#if ($FORM{TP_ID}) {
   $table = $html->table( { width       => '200',
                            qs          => $pages_qs,
                            title_plain => [ $html->button("$_PRINT PDF", "qindex=$index&pdf=1&print_cards=1&$pages_qs", { ex_params   => 'target=_new', BUTTON => 1 }),
@@ -2017,7 +2019,7 @@ if ($FORM{TP_ID}) {
                            ID          => 'PRINT_CARDS_LIST',
                          });
   print $table->show();
- }
+# }
  
   my $list = $Cards->cards_list({ %LIST_PARAMS, 
   	                              SERIA => '' 
@@ -2087,6 +2089,20 @@ elsif ($FORM{TYPE} eq 'CARDS') {
     $pages_qs .= "&PAYMENTS=1";
    }
 
+  if($FORM{print_cards}) {
+	  cards_print();
+    exit;
+   }
+
+
+
+  $table = $html->table( { width       => '200',
+                           qs          => $pages_qs,
+                           title_plain => [ $html->button("$_PRINT PDF", "qindex=$index&pdf=1&print_cards=1&$pages_qs", { ex_params   => 'target=_new', BUTTON => 1 }),
+                            $html->button('CSV', "qindex=$index&csv=1&print_cards=1&$pages_qs", { ex_params   => 'target=_new', BUTTON => 1 }) ],
+                           ID          => 'PRINT_CARDS_LIST',
+                         });
+  print $table->show();
 
   my $list = $Cards->cards_list({ %LIST_PARAMS, 
   	                              SERIA => '' 
@@ -2144,7 +2160,7 @@ else {
   		   $line->[2],
   	     $html->button("$_PRINT $_SUM", '#',  {  NEW_WINDOW      => "$_SELF_URL?qindex=$index&print=$line->[0]&sid=$FORM{sid}",
       	                                         NEW_WINDOW_SIZE => "480:640",  
-      	                                         BUTTON => 1
+      	                                         CLASS => 'print'
       	                                 } ),  		
   	    );
     }
