@@ -149,7 +149,7 @@ sub vlan_user {
       my $INFO = vlan_get_net($FORM{UNNUMBERED_IP}, "$FORM{NETMASK}");
       $Vlan->{IP_RANGE} = "$INFO->{FIRST_IP} - $INFO->{LAST_IP}";
       $Vlan->{CLIENT_IPS_COUNT}=$INFO->{CLIENT_IPS_COUNT};
-      $FORM{UNNUMBERED_IP}=$INFO->{NET_IP};
+      $FORM{UNNUMBERED_IP}=$INFO->{NET_IP} if ($FORM{NETMASK} ne '255.255.255.255');
      }
     elsif ($FORM{IP} ne '0.0.0.0') {
       my $INFO = vlan_get_net($FORM{IP}, "$FORM{NETMASK}");
@@ -194,7 +194,7 @@ sub vlan_user {
       my $INFO = vlan_get_net($FORM{UNNUMBERED_IP}, "$FORM{NETMASK}");
       $Vlan->{IP_RANGE} = "$INFO->{FIRST_IP} - $INFO->{LAST_IP}";
       $Vlan->{CLIENT_IPS_COUNT}=$INFO->{CLIENT_IPS_COUNT};
-      $FORM{UNNUMBERED_IP}=$INFO->{NET_IP};
+      $FORM{UNNUMBERED_IP}=$INFO->{NET_IP} if ($FORM{NETMASK} ne '255.255.255.255');
      }
     elsif ($FORM{IP} ne '0.0.0.0' ) {
       my $INFO = vlan_get_net($FORM{IP}, "$FORM{NETMASK}");
@@ -259,7 +259,8 @@ sub vlan_user {
     $Vlan->{IP_RANGE} = "$INFO->{FIRST_IP} - $INFO->{LAST_IP}";
     $Vlan->{CLIENT_IPS_COUNT}=$INFO->{CLIENT_IPS_COUNT};
     
-    $Vlan->{UNNUMBERED_IP}=$INFO->{NET_IP};
+
+    $Vlan->{UNNUMBERED_IP}=$INFO->{NET_IP} if ($Vlan->{NETMASK} ne '255.255.255.255');
    }
   elsif ($Vlan->{IP} && $Vlan->{IP} ne '0.0.0.0') {
     my $INFO = vlan_get_net($Vlan->{IP}, "$Vlan->{NETMASK}");
