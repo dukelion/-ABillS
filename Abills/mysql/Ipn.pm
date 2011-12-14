@@ -167,7 +167,6 @@ sub traffic_recalc_bill {
 sub acct_stop {
   my $self = shift;
   my ($attr) = @_;
-  my $session_id='';
 
   my $WHERE = '';
   if (defined($attr->{SESSION_ID})) {
@@ -201,6 +200,8 @@ sub acct_stop {
       LEFT JOIN dv_main dv ON (u.uid=dv.uid)
     WHERE u.uid=calls.uid and $WHERE;";
 
+
+
   $self->query($db, $sql);
   
   if ($self->{TOTAL} < 1){
@@ -208,6 +209,7 @@ sub acct_stop {
   	 $self->{errstr}='ERROR_NOT_EXIST';
   	 return $self;
    }
+
 
   ($self->{UID},
    $self->{FRAMED_IP_ADDRESS},
@@ -229,15 +231,15 @@ sub acct_stop {
    sum(l.sum),
    l.nas_id
    from ipn_log l
-   WHERE session_id='$session_id'
+   WHERE session_id='$self->{ACCT_SESSION_ID}'
    GROUP BY session_id  ;");  
 
 
   if ($self->{TOTAL} < 1) {
-    $self->{TRAFFIC_IN}=0;
-    $self->{TRAFFIC_OUT}=0;
-    $self->{SUM}=0;
-    $self->{NAS_ID}=0;
+    $self->{TRAFFIC_IN} = 0;
+    $self->{TRAFFIC_OUT}= 0;
+    $self->{SUM}        = 0;
+    $self->{NAS_ID}     = 0;
     $self->query($db, "DELETE from dv_calls WHERE acct_session_id='$self->{ACCT_SESSION_ID}';", 'do');
     return $self;
   }
@@ -299,7 +301,6 @@ sub acct_stop {
        );", 'do');
 
   $self->query($db, "DELETE from dv_calls WHERE acct_session_id='$self->{ACCT_SESSION_ID}';", 'do');
-
 }
 
 
