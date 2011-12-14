@@ -1811,6 +1811,7 @@ sub user_pi {
        }
      }
     else {
+    	$user_pi->{INFO_FIELDS_VAL}->[$i]=~ s/\"/&quot;/g;
     	$input = $html->form_input($field_id, "$user_pi->{INFO_FIELDS_VAL}->[$i]", { SIZE => 40 });
      }
 
