@@ -2187,7 +2187,6 @@ else {
   print $html->header();
 }
 
- $Cards->{debug}=1;
  my $list = $Cards->cards_list({ %LIST_PARAMS, 
   	                              SERIA => $FORM{SERIA} || '' 
  	                              });
@@ -2268,8 +2267,7 @@ elsif (scalar keys %page_print_hash > 0) {
 #**********************************************************
 sub cards_report_payments {
   
-  $self->{debug}=1;
-  
+ 
   my $table = $html->table( { width       => '100%',
 	                       rowcolor    => $_COLORS[0],
                          rows        => [[ "$_FROM: ",  $html->date_fld2('FROM_DATE', { MONTHES => \@MONTHES, FORM_NAME => 'cards_list', WEEK_DAYS => \@WEEKDAYS } ),

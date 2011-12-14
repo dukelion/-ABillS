@@ -29,6 +29,7 @@
   <tr><td>$_FIRST_PERIOD_STEP:</td><td><input type=text name=FIRST_PERIOD_STEP value='%FIRST_PERIOD_STEP%'></td></tr>
   <tr><td>$_NEXT_PERIOD:</td><td><input type=text name=NEXT_PERIOD value='%NEXT_PERIOD%'></td></tr>
   <tr><td>$_NEXT_PERIOD_STEP:</td><td><input type=text name=NEXT_PERIOD_STEP value='%NEXT_PERIOD_STEP%'></td></tr>
+  <tr><td>$_TIME_DIVISION:</td><td><input type=text name=TIME_DIVISION value='%TIME_DIVISION%'></td></tr>
 </table>
 <input type=submit name='%ACTION%' value='%LNG_ACTION%'>
 </form>

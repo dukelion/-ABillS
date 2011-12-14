@@ -1149,6 +1149,7 @@ CREATE TABLE `voip_tps` (
   `next_period` int(10) unsigned NOT NULL default '0',
   `next_period_step` int(10) unsigned NOT NULL default '0',
   `free_time` int(10) unsigned NOT NULL default '0',
+  `time_division` smallint(6) unsigned NOT NULL default '0', 
   PRIMARY KEY  (`id`),
   UNIQUE KEY `id` (`id`)
 ) ;

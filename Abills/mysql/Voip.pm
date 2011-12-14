@@ -40,8 +40,6 @@ sub new {
 }
 
 
-
-
 #**********************************************************
 # User information
 # info()
@@ -169,7 +167,7 @@ sub user_add {
   return $self if ($self->{errno});
   
  
-  $admin->action_add($DATA{UID}, "ADDED");
+  $admin->action_add($DATA{UID}, "ADDED", { TYPE => 1 });
 
 
   return $self;
@@ -830,7 +828,8 @@ sub tp_add {
      first_period_step,
      next_period,
      next_period_step,
-     free_time
+     free_time,
+     time_division
      )
     values ('$tariffs->{TP_ID}', 
   '$DATA{RAD_PAIRS}', 
@@ -844,7 +843,8 @@ sub tp_add {
   '$DATA{FIRST_PERIOD_STEP}',
   '$DATA{NEXT_PERIOD}', 
   '$DATA{NEXT_PERIOD_STEP}', 
-  '$DATA{FREE_TIME}');", 'do');
+  '$DATA{FREE_TIME}',
+  '$DATA{TIME_DIVISION}');", 'do');
 
   return $self;
 }
@@ -876,7 +876,8 @@ sub tp_change {
             FIRST_PERIOD_STEP    => 'first_period_step',
             NEXT_PERIOD          => 'next_period',
             NEXT_PERIOD_STEP     => 'next_period_step',
-            FREE_TIME            => 'free_time'
+            FREE_TIME            => 'free_time',
+            TIME_DIVISION        => 'time_division'
          );   
 
 	$self->changes($admin, { CHANGE_PARAM => 'TP_ID',
@@ -940,7 +941,8 @@ sub tp_info {
      voip.next_period,
      voip.next_period_step,
      voip.free_time,
-     voip.id
+     voip.id,
+     voip.time_division
 
     FROM (voip_tps voip, tarif_plans tp)
     WHERE 
@@ -966,8 +968,8 @@ sub tp_info {
    $self->{NEXT_PERIOD},
    $self->{NEXT_PERIOD_STEP},
    $self->{FREE_TIME},
-   $self->{TP_ID}
-
+   $self->{TP_ID},
+   $self->{TIME_DIVISION}
   ) = @{ $self->{list}->[0] };
 
 
