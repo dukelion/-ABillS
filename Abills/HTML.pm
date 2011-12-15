@@ -1561,7 +1561,7 @@ sub date_fld2  {
 
  my $form_name = $attr->{FORM_NAME} || 'FORM';
  my $date = '';
- my $size = 12;
+ my $size = 10;
  
  my ($year, $month, $day);
 

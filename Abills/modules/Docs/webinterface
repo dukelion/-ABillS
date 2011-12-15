@@ -302,7 +302,6 @@ sub docs_invoice {
     	
      }
 
-    my $amount_for_pay = 0;
     if ($users->{DEPOSIT}>0) {
  	    $amount_for_pay    = $total_sum-$users->{DEPOSIT};
  	   }

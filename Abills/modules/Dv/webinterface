@@ -6570,6 +6570,9 @@ sub dv_get_month_fee {
         my $periods = 0;
         if ($active_m > 0 && $active_m < $m) {
         	$periods = $m - $active_m;
+        	if ($active_d > $d) {
+        		$periods--;
+        	 };
          }
         elsif ($active_m > 0 && ( $active_m >= $m  && $active_y < $y)) {
         	$periods = 12 - $active_m + $m; 
@@ -6586,8 +6589,9 @@ sub dv_get_month_fee {
         	$sum = $sum / ( ($m!=2?(($m%2)^($m>7))+30:(!($y%400)||!($y%4)&&($y%25)?29:28)) );
         	$message .= " - $_ABON_DISTRIBUTION";
          }
-        
-        if ($Dv->{ACCOUNT_ACTIVATE} ne '0000-00-00' && $Dv->{OLD_STATUS} == 5) {
+
+       
+        if ($Dv->{ACCOUNT_ACTIVATE} ne '0000-00-00' && ( $Dv->{OLD_STATUS} == 5)) {
         	#if activation in cure month curmonth
         	if($periods == 0 || ( $periods == 1 && $d < $active_d ) ) {
           	$periods = -1;
@@ -6607,7 +6611,9 @@ sub dv_get_month_fee {
           $m = sprintf("%.2d", $m);
 
           if ( $i > 0 ) {
-  	        $sum     = $Dv->{TP_INFO}->{MONTH_FEE};
+            if ($users->{REDUCTION} > 0 && $Dv->{TP_INFO}->{REDUCTION_FEE}) {
+         	    $sum = $Dv->{TP_INFO}->{MONTH_FEE} * (100 - $users->{REDUCTION}) / 100;
+             }          
             $message = "$_MONTH_FEE: $sum ($Dv->{TP_INFO}->{ID})";
             $DATE    = "$active_y-$m-01";
            }

@@ -2189,7 +2189,7 @@ else {
 
  $LIST_PARAMS{PAGE_ROWS}=$FORM{PAGE_ROWS} if ($FORM{PAGE_ROWS});
  my $list = $Cards->cards_list({ %LIST_PARAMS, 
-  	                              SERIA => $FORM{SERIA} || '' 
+  	                             SERIA => $FORM{SERIA} || '' 
  	                              });
 
  my $i               = 0;
