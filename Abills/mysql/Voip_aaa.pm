@@ -606,14 +606,14 @@ elsif ($acct_status_type == 2) {
       uid,
       reduction,
       bill_id,
-      tp_id,
+      c.tp_id,
       route_id,
-
+      tp.time_division,
       UNIX_TIMESTAMP(),
       UNIX_TIMESTAMP(DATE_FORMAT(FROM_UNIXTIME(UNIX_TIMESTAMP()), '%Y-%m-%d')),
       DAYOFWEEK(FROM_UNIXTIME(UNIX_TIMESTAMP())),
       DAYOFYEAR(FROM_UNIXTIME(UNIX_TIMESTAMP()))
-    FROM voip_calls c, voip_tps  tp
+    FROM voip_calls c, voip_tps tp
       WHERE  c.tp_id=tp.id
       conf_id='$RAD->{H323_CONF_ID}'
       and call_origin='$RAD->{H323_CALL_ORIGIN}';");
@@ -647,7 +647,8 @@ elsif ($acct_status_type == 2) {
      $self->{BILL_ID},
      $self->{TP_ID},
      $self->{ROUTE_ID},
-   
+     $self->{TIME_DIVISION},
+     
      $self->{SESSION_STOP},
      $self->{DAY_BEGIN},
      $self->{DAY_OF_WEEK},
@@ -696,17 +697,26 @@ elsif ($acct_status_type == 2) {
 
        #Id defined time tarif
        if ($self->{PERIODS_TIME_TARIF}) {
+       	 my $duration = $self->{PAID_SESSION_TIME} || $RAD->{ACCT_SESSION_TIME};
+       	 
+       	 if ($self->{TIME_DIVISION}) {
+       	 	  my $periods = $duration / $self->{TIME_DIVISION};
+       	 	  if ($periods != int($periods)) {
+       	 	  	 $duration = $self->{TIME_DIVISION} * (int($periods)+1);
+       	 	   }
+       	  }
+       	 
+       	 
          $Billing->time_calculation({
     	      REDUCTION           => $self->{REDUCTION},
     	      TIME_INTERVALS      => $self->{TIME_PERIODS},
             PERIODS_TIME_TARIF  => $self->{PERIODS_TIME_TARIF},
             SESSION_START       => $self->{SESSION_STOP} - $RAD->{ACCT_SESSION_TIME},
-            ACCT_SESSION_TIME   => $self->{PAID_SESSION_TIME} || $RAD->{ACCT_SESSION_TIME},
+            ACCT_SESSION_TIME   => $duration,
             DAY_BEGIN           => $self->{DAY_BEGIN},
             DAY_OF_WEEK         => $self->{DAY_OF_WEEK},
             DAY_OF_YEAR         => $self->{DAY_OF_YEAR},
             PRICE_UNIT          => 'Min',
-            TIME_DIVISION       => $self->{TIME_DIVISION}
            });
 
          $sesssion_sum = $Billing->{SUM};
