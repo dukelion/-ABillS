@@ -613,8 +613,8 @@ elsif ($acct_status_type == 2) {
       UNIX_TIMESTAMP(DATE_FORMAT(FROM_UNIXTIME(UNIX_TIMESTAMP()), '%Y-%m-%d')),
       DAYOFWEEK(FROM_UNIXTIME(UNIX_TIMESTAMP())),
       DAYOFYEAR(FROM_UNIXTIME(UNIX_TIMESTAMP()))
-    FROM voip_calls 
-      WHERE 
+    FROM voip_calls c, voip_tps  tp
+      WHERE  c.tp_id=tp.id
       conf_id='$RAD->{H323_CONF_ID}'
       and call_origin='$RAD->{H323_CALL_ORIGIN}';");
 
@@ -709,12 +709,12 @@ elsif ($acct_status_type == 2) {
             TIME_DIVISION       => $self->{TIME_DIVISION}
            });
 
-        $sesssion_sum = $Billing->{SUM};
-        if ($Billing->{errno}) {
-   	      $self->{errno}=$Billing->{errno};
-  	      $self->{errstr}=$Billing->{errstr};
-  	      return $self;
-         }  
+         $sesssion_sum = $Billing->{SUM};
+         if ($Billing->{errno}) {
+   	       $self->{errno}=$Billing->{errno};
+  	       $self->{errstr}=$Billing->{errstr};
+  	       return $self;
+          }   
        }
     }
 

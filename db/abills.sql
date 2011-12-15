@@ -1057,7 +1057,9 @@ CREATE TABLE `voip_calls` (
   `tp_id` smallint(5) unsigned NOT NULL default '0',
   `route_id` int(11) unsigned NOT NULL default '0',
   `bill_id` int(11) unsigned NOT NULL default '0',
-  `reduction` double(6,2) unsigned NOT NULL default '0.00'
+  `reduction` double(6,2) unsigned NOT NULL default '0.00',
+   KEY `tp_id` (`tp_id`),
+  KEY `uid` (`uid`)
 ) ;
 
 

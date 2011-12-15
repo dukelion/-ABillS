@@ -2187,6 +2187,7 @@ else {
   print $html->header();
 }
 
+ $LIST_PARAMS{PAGE_ROWS}=$FORM{PAGE_ROWS} if ($FORM{PAGE_ROWS});
  my $list = $Cards->cards_list({ %LIST_PARAMS, 
   	                              SERIA => $FORM{SERIA} || '' 
  	                              });
@@ -2253,7 +2254,7 @@ elsif (scalar keys %page_print_hash > 0) {
                                            { MULTI_DOCS   => \@MULTI_ARR, 
   	                                         #SAVE_AS     => $save_filename,
   	                                         NAME         => 'Cards_',
-  	                                         DOCS_IN_FILE => $docs_in_file || 100,
+  	                                         DOCS_IN_FILE => $docs_in_file || 10000,
   	                                         debug        => $debug
   	                                        }
   	                                       ); 
