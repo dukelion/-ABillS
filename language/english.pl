@@ -486,4 +486,5 @@ $_ACCOUNTANT='Accountant';
 $_NEXT='Next';
 $_STEP='Step';
 $_FINISH='Finish';
+$_HELP='Help';
 

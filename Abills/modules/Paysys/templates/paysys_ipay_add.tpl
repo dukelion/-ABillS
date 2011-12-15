@@ -26,6 +26,9 @@
 	<td>%desc%</td>
 </tr>
 <tr>
+	<th colspan=2><a href=https://ipay.ua/ua/menu/questions_and_answers/>$_HELP</a>&nbsp;</th>
+</tr>
+<tr>
 	<td>&nbsp;</td>
 	<td>&nbsp;</td>
 </tr>
