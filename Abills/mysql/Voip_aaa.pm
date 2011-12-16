@@ -615,7 +615,7 @@ elsif ($acct_status_type == 2) {
       DAYOFYEAR(FROM_UNIXTIME(UNIX_TIMESTAMP()))
     FROM voip_calls c, voip_tps tp
       WHERE  c.tp_id=tp.id
-      conf_id='$RAD->{H323_CONF_ID}'
+      and conf_id='$RAD->{H323_CONF_ID}'
       and call_origin='$RAD->{H323_CALL_ORIGIN}';");
 
 

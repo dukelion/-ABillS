@@ -1076,7 +1076,9 @@ CREATE TABLE `voip_log` (
   `bill_id` int(11) unsigned NOT NULL default '0',
   `sum` double(14,6) NOT NULL default '0.000000',
   `route_id` int(11) unsigned NOT NULL default '0',
-  `terminate_cause` tinyint(4) unsigned NOT NULL default '0'
+  `terminate_cause` tinyint(4) unsigned NOT NULL default '0',
+  `call_origin` tinyint(1) unsigned NOT NULL default '0',
+  KEY `uid` (`uid`) 
 ) ;
 
 CREATE TABLE `voip_main` (
