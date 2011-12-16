@@ -4,6 +4,7 @@
 use vars  qw(%RAD %conf $db %AUTH $DATE $TIME $var_dir);
 
 use strict;
+local $SIG{HUP} = "IGNORE";
 use Sys::Syslog;
 use FindBin '$Bin';
 require $Bin . '/../../../libexec/config.pl';
@@ -64,7 +65,6 @@ $data{'remote_ip'}       = $agi ->get_variable('CHANNEL(peerip)');
 $data{'theoretical_ip'}  = $agi ->get_variable('SIPTHEORETICALIP');
 $data{'return_code'}     = 0;
 $data{'dial_info'}       = '';
-local $SIG{HUP}          = "IGNORE";
 #my $call_origin = "originate";
 #$call_origin = "answer" if $event{'State'} =~ /^Ring$/i;
 
