@@ -84,6 +84,7 @@ sub online {
                           calling_station_id,
                           called_station_id,
                           SEC_TO_TIME(UNIX_TIMESTAMP() - UNIX_TIMESTAMP(c.started)),
+                          c.call_origin,
                           INET_NTOA(c.client_ip_address),
                           c.status,
                           c.nas_id,
@@ -117,7 +118,7 @@ sub online {
     push( @{ $nas_sorted{"$line->[7]"} }, [ $line->[0], $line->[1], $line->[2], $line->[3], $line->[4], $line->[5], $line->[6], $line->[7], $line->[8], 
       
       $line->[9], $line->[10], $line->[11], 
-      $line->[13], $line->[14], $line->[15], $line->[16], $line->[17], $line->[18], $line->[19], $line->[20], $line->[21]]);
+      $line->[13], $line->[14], $line->[15], $line->[16], $line->[17], $line->[18], $line->[19], $line->[20], $line->[21], $line->[22]]);
   }
  
  

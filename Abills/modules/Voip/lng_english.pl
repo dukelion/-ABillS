@@ -16,3 +16,5 @@ $_ALLOW_ANSWER='Allow answer';
 $_ALLOW_CALLS='Allow Calls';
 $_TIME_DIVISION='Time Division';
 $_SECONDS='Seconds';
+$_ORIGIN='Origin';
+$_ANSWER='Answer';

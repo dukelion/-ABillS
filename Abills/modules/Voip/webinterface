@@ -1545,7 +1545,7 @@ my $dub_logins = $sessions->{dub_logins};
  
 my $table = $html->table( { caption    => "$cure",
 	                          width      => '100%',
-                            title      => ["$_USER", "$_FIO", "CALLED_STATION_ID", "CALLING_STATION_ID", "$_DURATION", "CLIENT_IP_ADDRESS",  "-", "-", "-"],
+                            title      => ["$_USER", "$_FIO", "CALLED_STATION_ID", "CALLING_STATION_ID", "$_DURATION", "$_TYPE", "CLIENT_IP_ADDRESS",  "-", "-", "-"],
                             cols_align => ['left', 'left', 'right', 'right', 'right', 'right', 'right', 'right', 'right', 'center'],
                             qs         => $pages_qs,                            
                            });
@@ -1554,7 +1554,7 @@ my $table = $html->table( { caption    => "$cure",
  
 my $online   = $sessions->{nas_sorted};
 my $nas_list = $Nas->list();
-
+my @call_types = ("$_ANSWER", "$_ORIGIN");
 foreach my $nas_row (@$nas_list) {
   next if (! defined($online->{$nas_row->[0]}));
 
@@ -1570,14 +1570,15 @@ foreach my $nas_row (@$nas_list) {
 #    elsif (defined($dub_ports->{$nas_row->[4]}{$line->[2]})) { $bg='#00FF40';    }
     elsif ($line->[9] == 3)                                   { $bg='#FF0000';    }
 
-    my $zap = $html->button('Z', "index=$index&zap=$nas_row->[0]+$line->[9]", { TITLE => 'Zap', CLASS => 'del' });
-    my $hangup = ($FORM{ZAPED}) ? $html->form_input('dellist', "$line->[9]", { TYPE => 'checkbox' } ) : $html->button('H', "index=$index&hangup=$nas_row->[0]+$line->[2]+$line->[9]+$line->[0]", { TITLE => 'Hangup', CLASS => 'off'  } );
+    my $zap = $html->button('Z', "index=$index&zap=$nas_row->[0]+$line->[10]", { TITLE => 'Zap', CLASS => 'del' });
+    my $hangup = ($FORM{ZAPED}) ? $html->form_input('dellist', "$line->[10]", { TYPE => 'checkbox' } ) : $html->button('H', "index=$index&hangup=$nas_row->[0]+$line->[2]+$line->[9]+$line->[0]", { TITLE => 'Hangup', CLASS => 'off'  } );
 
     my $user_info =  ''; 
 
-    $table->addrow($html->button($line->[0], "index=11&UID=$line->[8]", { TITLE => "$user_info"}), 
-      $line->[1], $line->[2],  $line->[3],  $line->[4], $line->[5], 
-     $html->button('P', "index=$index&ping=$line->[3]", { TITLE => 'Ping', BUTTON => 1 }),
+    $call_type = ($line->[5]==0) ? $html->color_mark($call_types[$line->[5]], "$_COLORS[7]" ) : $call_types[$line->[5]] ;
+    $table->addrow($html->button($line->[0], "index=11&UID=$line->[9]", { TITLE => "$user_info"}), 
+      $line->[1], $line->[2],  $line->[3],  $line->[4], $call_type, $line->[6],
+     $html->button('P', "index=$index&ping=$line->[6]", { TITLE => 'Ping', BUTTON => 1 }),
      "$zap",
      "$hangup");
   }
