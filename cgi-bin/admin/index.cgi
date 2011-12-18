@@ -621,12 +621,15 @@ print $table2->show();
 sub form_wizard {
   my ($attr) = @_;
 
+
 # Function name:module:describe
 my %steps = (
   1 =>  "user_form::$_ADD $_USER",
   2 =>  "form_payments::$_PAYMENTS",
   5 =>  "form_fees_wizard::$_FEES",
 );
+
+$index = get_function_index('form_wizard');
 
 $steps{3}= 'dv_user:Dv:Internet' if (in_array('Dv', \@MODULES));
 $steps{4}= "abon_user:Abon:$_ABON" if (in_array('Abon', \@MODULES));
@@ -641,6 +644,7 @@ if ($conf{REG_WIZARD}) {
 		$steps{$i}=$arr[$i];
 	 }
 }
+
 
 
 
@@ -681,7 +685,13 @@ elsif ($FORM{update}) {
          } 
        }
 
- 	    $FORM{add} = 1 if (! $FORM{change});
+      if (! $FORM{change}) {
+ 	      $FORM{add} = 1 ;
+ 	     }
+ 	    else {
+ 	    	$FORM{next} = 1 ;
+ 	     }
+
  	    $FORM{UID} = $LIST_PARAMS{UID} if (! $FORM{UID} && $LIST_PARAMS{UID});
     	#while(my($k, $v)=each %FORM) {
     	#	print "$k, $v<br>";
@@ -730,15 +740,20 @@ elsif ($FORM{update}) {
        	 push @rows, $table->th("$_STEP $i: ".$describe, { class => 'even' });
         }
      }
-    $table->addtd( @rows ); 
+    $table->addtd( @rows );
+    if ($FORM{finish}) {
+    	$reg_output='';;
+     }
     print $table->show().$reg_output; # if (! $return);
-    
 
-    if (! $steps{$FORM{step}} || $FORM{finish}) {
+    if (! $steps{$FORM{step}} || $FORM{finish} || (! $FORM{next} && $FORM{step} == 2)) { # && ! $FORM{back})) {
       $html->message('info', $_INFO, "$_REGISTRATION_COMPLETE");
+      undef $FORM{UID};
+      undef $FORM{LOGIN};
       form_users();
       return 0;
      }
+
 
   	if ($module) {
   		if (in_array($module, \@MODULES)) {
@@ -753,12 +768,13 @@ elsif ($FORM{update}) {
 
 
     $FORM{step}++;
- 	  $fn->({ ACTION      => 'next',
+ 	  $fn->({ %FORM,
+ 	  	      ACTION      => 'next',
  	  	      REGISTRATION=> 1,
  	  	      #USER        => \%FORM,
  	  	      USER_INFO   => ($FORM{UID}) ? $users : undef,
  	  	      LNG_ACTION  => ($steps{$FORM{step}}) ? "$_NEXT " : "$_REGISTRATION_COMPLETE",
- 	  	      BACK_BUTTON => ($FORM{step} > 1) ? $html->form_input('finish', "$_FINISH", {  TYPE => 'submit' }).' '. $html->form_input('back', "$_BACK", {  TYPE => 'submit' }) : undef,
+ 	  	      BACK_BUTTON => ($FORM{step} > 2) ? $html->form_input('finish', "$_FINISH", {  TYPE => 'submit' }).' '. $html->form_input('back', "$_BACK", {  TYPE => 'submit' }) : (! $FORM{back}) ? $html->form_input('add', "$_FINISH", {  TYPE => 'submit' }) : $html->form_input('change', "$_FINISH", {  TYPE => 'submit' }),
  	  	      UID         => $FORM{UID},
  	  	      SUBJECT     => $_REGISTRATION
  	  	     });
@@ -1908,6 +1924,7 @@ sub form_users {
  	 }
 
 
+
 if($attr->{USER_INFO}) {
   my $user_info = $attr->{USER_INFO};
   if ($users->{errno}) {
@@ -2188,6 +2205,7 @@ elsif ($FORM{MULTIUSER}) {
     $html->message('info', $_MULTIUSER_OP, "$_TOTAL: ". $#multiuser_arr+1 ." IDS: $FORM{IDS}");
    }
 }
+
 
 if (! $permissions{0}{2}) {
 	return 0;

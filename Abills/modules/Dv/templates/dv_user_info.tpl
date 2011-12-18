@@ -1,5 +1,6 @@
 <div id=dv_user_info>
 
+<h3>%NEXT_FEES_WARNING%</h3>
 <TABLE width='600' cellspacing='0' cellpadding='0' border='0'>
 <TR><TD bgcolor='#E1E1E1'>
 

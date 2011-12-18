@@ -27,6 +27,6 @@
 
 </TABLE>
 
-%BUTTON_BACK%
+%BACK_BUTTON%
 <input type=submit name='%ACTION%' value='%LNG_ACTION%'>
 </form>

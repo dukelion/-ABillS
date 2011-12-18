@@ -761,6 +761,8 @@ sub dv_user {
  	                                          NO_ID             => 1
  		                                        });
   
+  
+  
   $html->tpl_show(_include('dv_user', 'Dv'), { %$attr, %$Dv }, {  });
   return 0; 
 }
@@ -4201,6 +4203,20 @@ elsif ($conf{DV_IP_DISCOVERY}) {
 
       $Dv->{ABON_DATE} = sprintf("%d-%02d-%02d", $Y,$M,$D);
      }
+
+  print "Content-Type: text/html\n\n";
+  
+  my ($from_year, $from_month, $from_day)=split(/-/, $DATE, 3);
+  my ($to_year, $to_month, $to_day)=split(/-/, $Dv->{ABON_DATE}, 3);
+  my $from_seltime = POSIX::mktime(0, 0, 0, $from_day, ($from_month-1), ($from_year - 1900));
+  my $to_seltime   = POSIX::mktime(0, 0, 0, $to_day, ($to_month-1), ($to_year - 1900));
+  my $days_to_fees = int(($to_seltime - $from_seltime) / 86400);
+
+  $Dv->{NEXT_FEES_WARNING}="$_NEXT_FEES_THROUGHT";
+  $Dv->{NEXT_FEES_WARNING}=~s/\%DAYS\%/$days_to_fees/g;
+  if ($days_to_fees < 5) {
+  	$Dv->{NEXT_FEES_WARNING}=$html->color_mark($Dv->{NEXT_FEES_WARNING}, "red");
+   }
   }
 
   if ($Dv->{STATUS} == 2) {
