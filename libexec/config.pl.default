@@ -50,7 +50,7 @@ $conf{secretkey}="test12345678901234567890";
 $conf{s_detalization}=1; #make session detalization recomended for vpn leathed lines
 $conf{ERROR2DB}=1;
 
-$conf{version}='0.53b'; #05.04.2011
+$conf{version}='0.54b'; #05.04.2011
 
 #Octets direction
 # server - Count octets from server side
@@ -59,6 +59,7 @@ $conf{octets_direction}='user';
 
 #Check web interface brute force
 $conf{wi_bruteforce}=10;
+$conf{user_finance_menu}=1; 
 
 #Minimum session costs
 $conf{MINIMUM_SESSION_TIME}=10; # minimum session time for push session to db

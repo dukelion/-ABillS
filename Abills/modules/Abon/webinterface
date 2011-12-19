@@ -314,13 +314,14 @@ sub abon_tariffs {
     $pages_qs .= "&ABON_ID=$FORM{ABON_ID}";
     $LIST_PARAMS{ABON_ID} = $FORM{ABON_ID};
     my %F_ARGS = ( ABON_ID => $Abon );
+    
     $Abon->{NAME_SEL} = $html->form_main({ CONTENT => $html->form_select('ABON_ID', 
                                           { 
- 	                                          SELECTED          => $FORM{ABON_ID},
+ 	                                          SELECTED          => $Abon->{ID} || $FORM{ABON_ID},
  	                                          SEL_MULTI_ARRAY   => $Abon->tariff_list(),
- 	                                          MULTI_ARRAY_KEY   => 5,
+ 	                                          MULTI_ARRAY_KEY   => 7,
  	                                          MULTI_ARRAY_VALUE => 0,
- 	                                          NO_ID             => 1
+ 	                                          #NO_ID             => 1
  	                                        }),
 	                       HIDDEN  => { index => "$index" },
 	                       SUBMIT  => { show   => "$_SHOW"} 
@@ -328,7 +329,7 @@ sub abon_tariffs {
   
    
     func_menu({ 
-  	       'ID' =>   $Abon->{ID}, 
+  	       'ID'    =>   $Abon->{ID}, 
   	        $_NAME => $Abon->{NAME_SEL}
   	          }, 
   	        { 	 },
@@ -404,7 +405,7 @@ sub abon_tariffs {
   
   my %FEES_METHODS = %{ get_fees_types({ }) };
   
-  $Abon->{FEES_TYPES_SEL} =  $html->form_select('METHOD_'.$i, 
+  $Abon->{FEES_TYPES_SEL} =  $html->form_select('FEES_TYPE', 
                                 { SELECTED     => $Abon->{FEES_TYPE},
  	                                SEL_HASH     => {'' => '', %FEES_METHODS },
  	                                NO_ID        => 1,
