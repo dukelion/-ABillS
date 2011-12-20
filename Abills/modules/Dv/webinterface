@@ -4583,7 +4583,7 @@ sub dv_daily_fees {
             DV_STATUS  => $u->[5],
            );
 
-        if ($user{BILL_ID} > 0 && defined($user{DEPOSIT})) {
+        if (defined($user{BILL_ID}) && $user{BILL_ID} > 0 && defined($user{DEPOSIT})) {
           #If deposit is above-zero or TARIF PALIN is POST PAID or PERIODIC PAYMENTS is POSTPAID
           #Active day fees
           if((($user{DEPOSIT} + $user{CREDIT} > 0 || $line->[4] == 1 || $TP_INFO{POSTPAID_DAILY} == 1) && $active_day_fee==0) || 
@@ -4856,7 +4856,9 @@ sub dv_monthly_next_tp {
  my $days_in_month=($m!=2?(($m%2)^($m>7))+30:(!($y%400)||!($y%4)&&($y%25)?29:28));
  my $date_unixtime =  mktime(0, 0, 0, $d, ($m-1), $y - 1900, 0, 0, 0);
 
-  foreach my $line (@$list) {
+ my %CHANGED_TPS = ();
+
+ foreach my $line (@$list) {
     my %TP_INFO = (
  	     TP_ID       => $line->[0],
        NEXT_TP_ID  => $line->[22]
@@ -4889,7 +4891,7 @@ sub dv_monthly_next_tp {
             EXT_DEPOSIT => ($u->[5 + $extfield_count]) ? $u->[5 + $extfield_count] : 0,
            ); 
        
-       if ($d == $START_PERIOD_DAY || $user{ACTIVATE} ne '0000-00-00') {
+       if (! $CHANGED_TPS{$user{UID}} && ($d == $START_PERIOD_DAY || $user{ACTIVATE} ne '0000-00-00')) {
          if ($user{ACTIVATE} ne '0000-00-00') {
            ($activate_y, $activate_m, $activate_d)=split(/-/, $user{ACTIVATE}, 3);
            $active_unixtime =  mktime(0, 0, 0, $activate_d, $activate_m-1, $activate_y - 1900, 0, 0, 0);
@@ -4900,6 +4902,7 @@ sub dv_monthly_next_tp {
           }
 
          $debug_output .= " Login: $user{LOGIN} ($user{UID}) ACTIVATE $user{ACTIVATE} TP_ID: $TP_INFO{TP_ID} -> $TP_INFO{NEXT_TP_ID}\n";
+         $CHANGED_TPS{$user{UID}}=1;
          $Dv->change({ UID    => $user{UID},
          	             STATUS => 0,
  	                     TP_ID  => $TP_INFO{NEXT_TP_ID} 
@@ -4952,7 +4955,7 @@ sub dv_monthly_fees {
    $m = 12;
    $y--;
   }
-
+ 
  $m = sprintf("%02d", $m);
  my $days_in_pre_month=($m!=2?(($m%2)^($m>7))+30:(!($y%400)||!($y%4)&&($y%25)?29:28));
 
@@ -4970,7 +4973,6 @@ sub dv_monthly_fees {
    my $tp_ext_deposit_op   = $line->[14];
  	 my $small_deposit_block = $line->[19];
    my $fine        = $line->[21];
-
 
    $TP_INFO{POSTPAID_MONTHLY} = $line->[13];
    $TP_INFO{REDUCTION}        = $line->[11];

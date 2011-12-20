@@ -710,6 +710,7 @@ sub debetors_group_create {
     my ($GID, $DEPOSIT, $LAST_PAYMENTS_DAYS, $USER_GID, $LAST_FEES_DAYS) = split(/:/, $line);  
     $USER_GID = -1 if (! defined($USER_GID) || $USER_GID eq '');
     $DEBETORS_GIDS{$GID}="$USER_GID";
+    $LAST_FEES_DAYS = '' if (! defined($LAST_FEES_DAYS));
     $USERS_GIDS{$USER_GID}="$GID:$DEPOSIT:$LAST_PAYMENTS_DAYS:$LAST_FEES_DAYS";
    } 
   

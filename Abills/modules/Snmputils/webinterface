@@ -479,9 +479,15 @@ sub snmputils_chg_vlan {
   my $MNG_PASSWORD = $attr->{MNG_PASSWORD}; # line->[11];
   my $MNG_HOST     = $attr->{MNG_HOST}; # $line->[9];
   my $RAD_PAIRS    = $attr->{RAD_PAIRS}; #$line->[12];
-  my $SNMP_COMMUNITY = "$MNG_PASSWORD\@$MNG_HOST";
   my $version      = '';
   my $debug_output = '';
+  my $SNMP_COMMUNITY = '';
+  
+  if (! $MNG_PASSWORD && ! $MNG_HOST ) {
+    print "Not defined Snmp Community\n";
+    return 0;
+   }  
+
   my $list = $Snmputils->snmputils_nas_ipmac({ NAS_ID    => $NAS_ID,
                                                PG        => 0,
                                                PAGE_ROWS => 1000000 });
@@ -520,6 +526,7 @@ sub snmputils_chg_vlan {
 
 
   $version = snmpget($SNMP_COMMUNITY, ".1.3.6.1.2.1.1.1.0");
+  $version = '' if (! $version);
   print "$version \n" if ($debug > 3);
 
   #  в случае со свичами эджкор 3526, длинк 3526 - 25-26 порты магистральные; эджкор 3528 длинк 3028, длинк 3528 - 25-28 порты магистральные; длинк 3052 - 49-50, длинк 3550 - 49-50 порты магистральные
