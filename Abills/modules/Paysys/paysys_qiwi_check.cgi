@@ -181,4 +181,68 @@ print << "[END]";
 
 }
 
+
+
+#**********************************************************
+# Calls function for all registration modules if function exist
+#
+# cross_modules_call(function_sufix, attr)
+#**********************************************************
+sub cross_modules_call  {
+  my ($function_sufix, $attr) = @_;
+
+eval {
+  my %full_return  = ();
+  my @skip_modules = ();
+ 
+  if ($attr->{SKIP_MODULES}) {
+  	$attr->{SKIP_MODULES}=~s/\s+//g;
+  	@skip_modules=split(/,/, $attr->{SKIP_MODULES});
+   }
+ 
+  foreach my $mod (@MODULES) {
+  	if (in_array($mod, \@skip_modules)) {
+  		next;
+  	 }
+    require "Abills/modules/$mod/webinterface";
+    my $function = lc($mod).$function_sufix;
+    my $return;
+    if (defined(&$function)) {
+     	$return = $function->($attr);
+     }
+    $full_return{$mod}=$return;
+   }
+};
+
+  return \%full_return;
+}
+
+
+
+#**********************************************************
+# load_module($string, \%HASH_REF);
+#**********************************************************
+sub load_module {
+	my ($module, $attr) = @_;
+
+	my $lang_file = '';
+  foreach my $prefix (@INC) {
+    my $realfilename = "$prefix/Abills/modules/$module/lng_$attr->{language}.pl";
+    if (-f $realfilename) {
+      $lang_file =  $realfilename;
+      last;
+     }
+    elsif (-f "$prefix/Abills/modules/$module/lng_english.pl") {
+    	$lang_file = "$prefix/Abills/modules/$module/lng_english.pl";
+     }
+   }
+
+  if ($lang_file ne '') {
+    require $lang_file;
+   }
+
+ 	require "Abills/modules/$module/webinterface";
+
+	return 0;
+}
 1
