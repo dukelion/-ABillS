@@ -87,7 +87,7 @@ my %CONF_OPTIONS = (PAYSYS_WEBMONEY_ACCOUNTS => 41,
                    PAYSYS_TELLCELL_ACCOUNT_KEY  => 71,
                    PAYSYS_IPAY_MERCHANT_ID      => 72,
                    PAYSYS_YANDEX_ID             => 73,
-                   ALFA_PAY_ACCOUNT_KEY         => 74,
+                   PAYSYS_ALFA_PAY_ACCOUNT_KEY  => 74,
                   );
 
 
@@ -103,6 +103,19 @@ my @status = ('UNKNOWN', 'IN PROCCESS', 'COMLETE', 'CANCELED', 'EXPIRED',
 
 #require "modules/Paysys/paysys_cons";
 
+
+if ($conf{PAYSYS_SUCCESSIONS}) {
+	$conf{PAYSYS_SUCCESSIONS} =~ s/[\n\r]+//g;
+  my @systems_arr = split(/;/, $conf{PAYSYS_SUCCESSIONS});
+  # IPS:ID:NAME:SHORT_NAME:MODULE_function;
+  foreach my $line ( @systems_arr ) {
+  	my ($ips, $id, $name, $short_name, $function)=split(/:/, $line);
+  	$PAY_SYSTEMS{$id}=$name;
+  	my $system_conf_name = uc('PAYSYS_'.$short_name);
+  	$CONF_OPTIONS{$system_conf_name}=$id;
+  	$conf{$system_conf_name}=1;
+   }
+}
 
 
 #*******************************************************************

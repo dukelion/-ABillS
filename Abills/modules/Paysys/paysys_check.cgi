@@ -160,7 +160,7 @@ $md5 = new Digest::MD5;
 if ($conf{PAYSYS_SUCCESSIONS}) {
 	$conf{PAYSYS_SUCCESSIONS} =~ s/[\n\r]+//g;
   my @systems_arr = split(/;/, $conf{PAYSYS_SUCCESSIONS});
-  # IPS:ID:NAME:SHORT_NAME:MODULE:function;
+  # IPS:ID:NAME:SHORT_NAME:MODULE_function;
   foreach my $line ( @systems_arr ) {
   	my ($ips, $id, $name, $short_name, $function)=split(/:/, $line);
   	
@@ -176,6 +176,8 @@ if ($conf{PAYSYS_SUCCESSIONS}) {
   	  else {
   		  $function->({ %system_params });
   	   }
+
+  	  exit; 
   	 }
    }
 }
