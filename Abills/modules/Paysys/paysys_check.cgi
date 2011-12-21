@@ -18,6 +18,7 @@ $md5
 $html
 $systems_ips
 %systems_ident_params
+%system_params
 );
 
 BEGIN {
@@ -155,6 +156,31 @@ else {
  }
 
 $md5 = new Digest::MD5;
+
+if ($conf{PAYSYS_SUCCESSIONS}) {
+	$conf{PAYSYS_SUCCESSIONS} =~ s/[\n\r]+//g;
+  my @systems_arr = split(/;/, $conf{PAYSYS_SUCCESSIONS});
+  # IPS:ID:NAME:SHORT_NAME:MODULE:function;
+  foreach my $line ( @systems_arr ) {
+  	my ($ips, $id, $name, $short_name, $function)=split(/:/, $line);
+  	
+  	%system_params = ( SYSTEM_SHORT_NAME => $id, 
+                       SYSTEM_ID         => $short_name
+                      );
+  	
+  	my @ips_arr = split(/,/, $ips);
+  	if (in_array($ENV{REMOTE_ADDR}, \@ips_arr)) {
+  	  if ($function=~/\.pm/) {
+  	    require "$function";
+  	   }
+  	  else {
+  		  $function->({ %system_params });
+  	   }
+  	 }
+   }
+}
+
+
 
 
 my $ip_num   = unpack("N", pack("C4", split( /\./, $ENV{REMOTE_ADDR})));
@@ -777,12 +803,15 @@ exit;
 #
 #**********************************************************
 sub osmp_payments_v4 {
+ my ($attr) = @_;
+ 
  my $version = '0.2';
  $debug      =  1;
  print "Content-Type: text/xml\n\n";
 
- my $payment_system    = 'OSMP';
- my $payment_system_id = 61;
+ my $payment_system    = $attr->{SYSTEM_SHORT_NAME} || 'OSMP';
+ my $payment_system_id = $attr->{SYSTEM_ID} || 61;
+ 
  my $CHECK_FIELD = $conf{PAYSYS_OSMP_ACCOUNT_KEY} || 'UID';
  $FORM{__BUFFER}='' if (! $FORM{__BUFFER});
  $FORM{__BUFFER}=~s/data=//;

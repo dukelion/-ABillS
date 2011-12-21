@@ -145,7 +145,7 @@ sub vlan_user {
      }
 
 
-    if ($FORM{UNNUMBERED_IP} && $FORM{UNNUMBERED_IP} ne '0.0.0.0') {
+    if ($FORM{UNNUMBERED_IP} && $FORM{UNNUMBERED_IP} ne '0.0.0.0' && $FORM{NETMASK} ne '255.255.255.255' ) {
       my $INFO = vlan_get_net($FORM{UNNUMBERED_IP}, "$FORM{NETMASK}");
       $Vlan->{IP_RANGE} = "$INFO->{FIRST_IP} - $INFO->{LAST_IP}";
       $Vlan->{CLIENT_IPS_COUNT}=$INFO->{CLIENT_IPS_COUNT};
@@ -190,7 +190,7 @@ sub vlan_user {
       $html->message('err', $_ERROR, "Access Deny");  	
   	  return 0;
      }
-    if ($FORM{UNNUMBERED_IP} && $FORM{UNNUMBERED_IP} ne '0.0.0.0') {
+    if ($FORM{UNNUMBERED_IP} && $FORM{UNNUMBERED_IP} ne '0.0.0.0' && $FORM{NETMASK} ne '255.255.255.255') {
       my $INFO = vlan_get_net($FORM{UNNUMBERED_IP}, "$FORM{NETMASK}");
       $Vlan->{IP_RANGE} = "$INFO->{FIRST_IP} - $INFO->{LAST_IP}";
       $Vlan->{CLIENT_IPS_COUNT}=$INFO->{CLIENT_IPS_COUNT};
@@ -254,7 +254,7 @@ sub vlan_user {
 
   my $user = $Vlan->info($FORM{UID});
 
-  if ($Vlan->{UNNUMBERED_IP} && $Vlan->{UNNUMBERED_IP} ne '0.0.0.0') {
+  if ($Vlan->{UNNUMBERED_IP} && $Vlan->{UNNUMBERED_IP} ne '0.0.0.0' &&  $Vlan->{NETMASK} ne '255.255.255.255') {
     my $INFO = vlan_get_net($Vlan->{UNNUMBERED_IP}, "$Vlan->{NETMASK}");
     $Vlan->{IP_RANGE} = "$INFO->{FIRST_IP} - $INFO->{LAST_IP}";
     $Vlan->{CLIENT_IPS_COUNT}=$INFO->{CLIENT_IPS_COUNT};
