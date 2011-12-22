@@ -6170,13 +6170,16 @@ sub dv_wizard_user {
     my $field_id   = '';
     if ($line->[0] =~ /ifu(\S+)/) {
     	$field_id = "3.".$1;
-      my($position, $type, $name)=split(/:/, $line->[1]);
+      my($position, $type, $name, $user_portal)=split(/:/, $line->[1]);
 
       my $input = '';
       if ($type == 2) {
+      	my $table_name = $field_id;
+      	$table_name =~ s/3\.//;
+      	
         $input = $html->form_select("$field_id", 
                                 { SELECTED          => $FORM{$field_id},
- 	                                SEL_MULTI_ARRAY   => $users->info_lists_list( { LIST_TABLE => $field_id.'_list' }), 
+ 	                                SEL_MULTI_ARRAY   => $users->info_lists_list( { LIST_TABLE => $table_name.'_list' }), 
  	                                MULTI_ARRAY_KEY   => 0,
  	                                MULTI_ARRAY_VALUE => 1,
  	                                SEL_OPTIONS       => { 0 => '-N/S-'},
