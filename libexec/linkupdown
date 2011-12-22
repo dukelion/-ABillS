@@ -79,8 +79,8 @@ For IPN
  
  For mikrotik (use it as acct external cmd /usr/abills/libexec/acct_ext):
  
-  /usr/abills/libexec/linkupdown mikrotik up INTERFACE USER HISADD NAS_HOST=192.168.1.1 NAS_ADMIN=admin [SSH_CMD=.., PROTO=pptp,pppoe, debug]
-  /usr/abills/libexec/linkupdown mikrotik down INTERFACE USER HISADD NAS_HOST=192.168.1.1 NAS_ADMIN=admin [SSH_CMD=.., PROTO=pptp,pppoe, debug]
+  /usr/abills/libexec/linkupdown mikrotik up INTERFACE USER HISADD NAS_HOST=192.168.1.1 NAS_ADMIN=admin [SSH_CMD=.., debug]
+  /usr/abills/libexec/linkupdown mikrotik down INTERFACE USER HISADD NAS_HOST=192.168.1.1 NAS_ADMIN=admin [SSH_CMD=.., debug]
 
 DEBUG: $debug
 };
@@ -304,17 +304,10 @@ if ($ACTION eq 'up' || $OS eq 'Linux') {
    }
  
   if ($ARGV[0] eq 'mikrotik') {
-    if ($argv->{mikrotik2}) {
-      mikrotik_ext2({ SPEEDS => \%speeds,
-    	              NETS   => \%nets,
-    	              TP_ID  => $user->{TP_NUM} 
-                  });
-     }
-    else {
-      mikrotik_ext({ SPEEDS => \%speeds,
-    	              NETS   => \%nets,
-                  });
-     }
+    mikrotik({ SPEEDS => \%speeds,
+   	           NETS   => \%nets,
+   	           %{ $user }
+             });
   	exit;
    }
 
@@ -401,17 +394,18 @@ if ($ACTION eq 'up' || $OS eq 'Linux') {
      }
 
     #Mikrotik shaper
-    if ($ARGV[0] eq 'mikrotik' ) {
-    	mikrotik_ext2({ 
-    		  SPEED_IN  => $speed_in,
-    		  SPEED_OUT => $speed_out,
-    		  NETS_ID   => undef,
-    		  TRAFFIC_CLASS => $traf_type,
-    		  NETS      => \@nets_arr 
-    		 });
-     }
-    #Linux shaper
-    elsif ($OS eq 'Linux') {    	
+#    if ($ARGV[0] eq 'mikrotik' ) {
+#    	mikrotik_ext2({ 
+#    		  SPEED_IN  => $speed_in,
+#    		  SPEED_OUT => $speed_out,
+#    		  NETS_ID   => undef,
+#    		  TRAFFIC_CLASS => $traf_type,
+#    		  NETS      => \@nets_arr 
+#    		 });
+#     }
+#    #Linux shaper
+    #els
+    if ($OS eq 'Linux') {    	
       my $prefix=10000;
       my $flowid = ($speed_in > 0) ? sprintf("%x", $user->{UID} + $prefix * 2) : '';
       my $drop   = $speed_out > 0 ? "police rate $speed_out"."Kbit burst 12k drop" : '';
@@ -616,7 +610,6 @@ msg %s_%s: setconf { upstream={ cbs=%d ebs=%d cir=%d greenAction=1 yellowAction=
             int($cbs_in),int($ebs_in),$speed_in,
             int($cbs_out),int($ebs_out),$speed_out);
 }
-
 #**********************************************************
 # Manage mikrotik bandwidth
 # 3 type of actions
@@ -624,147 +617,25 @@ msg %s_%s: setconf { upstream={ cbs=%d ebs=%d cir=%d greenAction=1 yellowAction=
 #  down 
 #  check
 #**********************************************************
-sub mikrotik_ext {
-	my ($attr)=@_;
-
-	my $speeds    = $attr->{SPEEDS};
-	my $nets      = $attr->{NETS};
-  my $proto     = $argv->{PROTO} || 'pptp';
-  my $nas_host  = $argv->{NAS_HOST} || '';
-  my $nas_admin = $argv->{NAS_ADMIN}|| 'admin';
-  my $SSH       = $argv->{SSH_CMD}  || "/usr/bin/ssh -i $base_dir/Certs/id_dsa.".$nas_admin;
-
-  my $cmds = "$SSH $nas_admin\@$nas_host '/ppp active print where name=$USER'";
-  open(CMD, "$cmds |") || die "Can't open '$cmds' $!\n";
-    my @check_int = <CMD>;   
-  close(CMD);
-
-  my $protoup = (grep /pppoe/, @check_int) ? "pppoe" : "pptp";
-  $INTERFACE="<$protoup-$USER>";
-
-	my @commands  = ();
-  $INTERFACE="<$proto-$USER>";
-
-  if($ACTION eq 'down') {
-    foreach my $traf_type (sort keys %$speeds) {
-        my $class_list        = 'traffic_class_'.$traf_type;
-        my $address_list_name = "TT_$user->{TP_ID}_".$traf_type."_".$USER;
-        my $mark_name         = $address_list_name. "_mark"; 
-        my $mark_name_in      = $address_list_name. "_mark_in";
-        my $mark_name_out     = $address_list_name. "_mark_out";
-
-        #push  @commands,  "/ip firewall address-list remove [ find list=$address_list_name ]; ";
-        push  @commands,  "/ip firewall mangle remove [ find comment=$mark_name_in ]; ";
-        push  @commands,  "/ip firewall mangle remove [ find comment=$mark_name_out ]; ";
-        push  @commands,  "/queue tree remove [ find name=$mark_name_out ] ";
-        push  @commands,  "/queue tree remove [ find name=$mark_name_in ] ";
-        }
-
-     } 
-    else {
-      foreach my $traf_type (sort keys %$speeds) {
-        my $speed = $speeds->{$traf_type};
-
-        my $speed_in  = (defined($speed->{IN}))  ? $speed->{IN} * 1024 : 0;
-        my $speed_out = (defined($speed->{OUT})) ? $speed->{OUT}* 1024 : 0;
-
-        my @nets_arr = ();                                                                                         
-        if ($nets->{$traf_type}) {
-          $nets->{$traf_type} =~ s/[\r]?\n//g;
-          $nets->{$traf_type} =~ s/;/,/g;
-          $nets->{$traf_type} =~ s/ //g;
-          chop($nets->{$traf_type});
-          @nets_arr = split(/,/, $nets->{$traf_type});
-         }                                                                                                                                                      
-    
-      my $class_list        = 'traffic_class_'.$traf_type;
-      my $address_list_name = "TT_$user->{TP_ID}_".$traf_type."_".$USER;
-      my $mark_name_in      = $address_list_name. "_mark_in";
-      my $mark_name_out     = $address_list_name. "_mark_out";
-      my $priority          = 5 - $traf_type;
-
-      if ($traf_type == 0) {
-        push @commands, qq{ /ip firewall mangle add chain=forward out-interface=$INTERFACE action=mark-packet new-packet-mark=$mark_name_in comment=$mark_name_in passthrough=yes };
-        push @commands, qq{ /ip firewall mangle add chain=forward in-interface=$INTERFACE action=mark-packet new-packet-mark=$mark_name_out comment=$mark_name_out passthrough=yes };
-        push @commands, qq{ /queue tree add name=$mark_name_in parent=$INTERFACE packet-mark=$mark_name_in limit-at=$speed_in max-limit=$speed_in queue=default-small priority=8 burst-limit=0 }; 
-        push @commands, qq{ /queue tree add name=$mark_name_out parent=global-out packet-mark=$mark_name_out limit-at=$speed_out max-limit=$speed_out queue=default-small priority=8 burst-limit=0 }; 
-        next;    
-      }
-
-      foreach my $address (@nets_arr) {
-   	    push @commands, qq{ /ip firewall address-list add list=$class_list address=$address };
-       }
-
-      push @commands, qq{ /ip firewall mangle add chain=forward out-interface=$INTERFACE src-address-list=$class_list action=mark-packet new-packet-mark=$mark_name_in comment=$mark_name_in passthrough=yes };
-      push @commands, qq{ /ip firewall mangle add chain=forward in-interface=$INTERFACE dst-address-list=$class_list action=mark-packet new-packet-mark=$mark_name_out comment=$mark_name_out passthrough=yes };
-      push @commands, qq{ /queue tree add name=$mark_name_in parent=$INTERFACE packet-mark=$mark_name_in limit-at=$speed_in max-limit=$speed_in queue=default-small priority=8 burst-limit=0 }; 
-      push @commands, qq{ /queue tree add name=$mark_name_out parent=global-out packet-mark=$mark_name_out limit-at=$speed_out max-limit=$speed_out queue=default-small priority=8 burst-limit=0 }; 
-
-    # Second way 
-    
-    # /ip firewall mangle add chain=prerouting dst-address=195.222.70.250 action=mark-onnection new-connection-mark=cybernet-connection-up passthrough=yes
-
-    # /ip firewall mangle add chain=forward connection-mark=cybernet-connection-up ction=mark-packet new-packet-mark=cybernet-packet-up passthrough=yes
-
-    #/ip firewall mangle add chain=prerouting src-address=195.222.70.250 action=mark-connection new-connection-mark=cybernet-connection-from passthrough=yes
-
-    #/ip firewall mangle add chain=forward connection-mark=cybernet-connection-from action=mark-packet new-packet-mark=cybernet-packet-from passthrough=yes 
-    
-    #/queue tree add name="queue_$traf_type" parent=global-out packet-mark=$mark_name imit-at=0 queue=default priority=$priority max-limit=$speed_out burst-limit=0 burst-threshold=0  burst-time=0s
-
-    #/queue tree add name="queue_$traf_type" parent=global-in packet-mark=$mark_name_in limit-at=0 queue=default priority=$priority max-limit=$speed_in burst-limit=0 burst-threshold=0s burst-time=0s 
-
-  }
-}
-#else {
-#    #push  @commands,  "/queue tree add name remove [ find1 name=$INTERFACE ];";
-#    push  @commands,  "/queue simple remove \\\"". $INTERFACE.'_IN'. "\\\"";
-#    push  @commands,  "/queue simple remove \\\"". $INTERFACE.'_OUT'. "\\\"";
-#    push  @commands,  "/ip firewall address-list remove [ find list=$address_list_name ]";
-#    push  @commands,  "/ip firewall mangle remove [ find address-list=$address_list_name ]";
-#   push  @commands,  "/queue tree remove $mark_name";
-#}
-
-
-
-#Make ssh command	
-	my $result = '';
-  $result .= `echo "===> Initialising remote commands executing:" >> /var/log/shaper`;
-	foreach my $cmd (@commands)  {
-		print "$cmd\n" if ($debug > 0);
-        $result .= `$SSH $nas_admin\@$nas_host "$cmd"; echo "$cmd" >> /var/log/shaper`;
-	 }
-
-  print $result;
-}
-
-
-#**********************************************************
-# Manage mikrotik bandwidth
-# 3 type of actions
-#  up
-#  down 
-#  check
-#**********************************************************
-sub mikrotik_ext2 {
+sub mikrotik {
 	my ($attr)=@_;
 
   my $nas_host  = $argv->{NAS_HOST} || '';
   my $nas_admin = $argv->{NAS_ADMIN}|| 'admin';
   my $SSH       = $argv->{SSH_CMD}  || "/usr/bin/ssh -o StrictHostKeyChecking=no -i $base_dir/Certs/id_dsa.".$nas_admin;
 
+  my $tp_id     = $attr->{TP_NUM};
+
   my $count;
 	my $speeds    = $attr->{SPEEDS};
 	my $nets      = $attr->{NETS};
-  my $proto     = $argv->{PROTO} || 'pptp';
   my @commands  = ();
 
 # ADD client to address-list
   push @commands, qq{/ip firewall address-list remove [find address=$CLIENT_IP] };  
 
 if($ACTION eq 'up') {
-	my $tp_id = $attr->{TP_ID};
-  push  @commands, qq{/ip firewall address-list add list=CLIENTS_ $tp_id  address=$CLIENT_IP };
+  push  @commands, qq{/ip firewall address-list add list=CLIENTS_$tp_id  address=$CLIENT_IP };
   foreach my $traf_type (sort keys %$speeds) {
     my $speed     = $speeds->{$traf_type};
     my $speed_in  = (defined($speed->{IN}))  ? $speed->{IN} * 1024 : 0;
@@ -775,8 +646,8 @@ if($ACTION eq 'up') {
       if ($traf_type == 0) {
       	my $count = get_mikrotik_value(qq{ /ip firewall mangle print count-only where new-packet-mark=ALLOW_GLOBAL_$tp_id }, $argv);
       	
-      	if ($count->[0]==0) {
-          push @commands, qq{/ip firewall mangle add chain=forward action=mark-packet new-packet-mark=ALLOW_GLOBAL_$tp_id passthrough=yes src-address-list=CLIENTS_ $tp_id  dst-address=0.0.0.0/0};
+      	if (defined($count->[0]) && $count->[0]==0) {
+          push @commands, qq{/ip firewall mangle add chain=forward action=mark-packet new-packet-mark=ALLOW_GLOBAL_$tp_id passthrough=yes src-address-list=CLIENTS_$tp_id  dst-address=0.0.0.0/0};
           push @commands, "/queue tree add name=\"". 'TP_'. $tp_id  ."_in_global\" parent=global-in packet-mark=ALLOW_GLOBAL_$tp_id limit-at=$speed_in queue=default priority=$priority max-limit=$speed_in burst-limit=0 burst-threshold=0 burst-time=0s";
           push @commands, "/queue tree add name=\"". 'TP_'. $tp_id  ."_out_global\" parent=global-out packet-mark=ALLOW_GLOBAL_$tp_id limit-at=$speed_out queue=default priority=$priority max-limit=$speed_out burst-limit=0 burst-threshold=0 burst-time=0s";
          }
@@ -786,15 +657,15 @@ if($ACTION eq 'up') {
       	#Check TP,
       	$count = get_mikrotik_value("/ip firewall mangle print count-only where new-packet-mark=ALLOW_TRAFFIC_CLASS_".  $tp_id .'_'. $traf_type, $argv);
 
-        if ($count->[0]==0) {      	
-      	  push @commands, "/ip firewall mangle add chain=forward action=mark-packet new-packet-mark=ALLOW_TRAFFIC_CLASS_".  $tp_id .'_'. $traf_type ." passthrough=yes src-address-list=CLIENTS_ $tp_id  dst-address-list=TRAFFIC_CLASS_$traf_type ";
+        if (defined($count->[0]) && $count->[0]==0) {      	
+      	  push @commands, "/ip firewall mangle add chain=forward action=mark-packet new-packet-mark=ALLOW_TRAFFIC_CLASS_".  $tp_id .'_'. $traf_type ." passthrough=yes src-address-list=CLIENTS_$tp_id  dst-address-list=TRAFFIC_CLASS_$traf_type ";
           push @commands, "/queue tree add name=\"". 'TP_'. $tp_id  ."_in_traffic_class_". $traf_type ."\" parent=global-in packet-mark=ALLOW_TRAFFIC_CLASS_".  $tp_id .'_'. $traf_type ." limit-at=$speed_in  queue=default priority=$priority max-limit=$speed_in burst-limit=0 burst-threshold=0 burst-time=0s";
           push @commands, "/queue tree add name=\"". 'TP_'. $tp_id  ."_out_traffic_class_". $traf_type ."\" parent=global-out packet-mark=ALLOW_TRAFFIC_CLASS_".  $tp_id .'_'. $traf_type ." limit-at=$speed_out  queue=default priority=$priority max-limit=$speed_out burst-limit=0 burst-threshold=0 burst-time=0s";
          }
 
         #Check Nets
         $count = get_mikrotik_value(qq{/ip firewall address-list print count-only where list=TRAFFIC_CLASS_$traf_type }, $argv);
-        if ($count->[0]==0) {
+        if (defined($count->[0]) && $count->[0]==0) {
           #Add traffic_class nets
           my @nets_arr = (); 
           if ($nets->{$traf_type}) {
