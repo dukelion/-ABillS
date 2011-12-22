@@ -671,11 +671,13 @@ sub msgs_admin {
  	                                          MULTI_ARRAY_VALUE => 1,
  	                                        }); 
 
-    
+
+    $users->pi({ UID => $FORM{UID} });
+
     $Msgs->{MSG_CLOSED_DATE}=$html->form_input('MSG_CLOSED_DATE', "");
     $Msgs->{INNER_MSG_TEXT} = $bool_vals[$Msgs->{INNER_MSG}];
     $Msgs->{EXT_INFO}  = $html->tpl_show(_include('msgs_managment', 'Msgs'), 
-      $Msgs, { OUTPUT2RETURN => 1 } );
+      { %$users, %$Msgs  }, { OUTPUT2RETURN => 1 } );
   
     #$Msgs->{THREADS} = $html->button($Msgs->{SUBJECT}. " ($_DATE: $Msgs->{DATE}) ", "");
     #if ($Msgs->{REPLIES_COUNT} > 0) {

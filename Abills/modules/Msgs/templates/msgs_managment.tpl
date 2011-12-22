@@ -5,10 +5,18 @@
 <a class=link_button href='$SELF_URL?index=$index&deligate=$FORM{chg}&level=%DELIGATED%'>$_UP (%DELIGATED%)</a>
 </TD></TR>
 
-<TR><TD><b>$_USER:</b> </TD></TR>
-<TR><TD>%USER_READ%</TD></TR>
-<TR><TD><b>$_ADMIN:</b> </TD></TR>
-<TR><TD>%ADMIN_READ%</TD></TR>
+<TR><TD>
+<b>$_ADDRESS:</b><br>
+
+%ADDRESS_STREET%, %ADDRESS_BUILD%/%ADDRESS_FLAT%
+
+</TD></TR>
+
+<TR><TD>
+<br><b>$_USER:</b> 
+<br>%USER_READ%</TD></TR>
+<TR><TD><b>$_ADMIN:</b> 
+<br>%ADMIN_READ%</TD></TR>
 
 <TR><TD>&nbsp;</TD></TR>
 
