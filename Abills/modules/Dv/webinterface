@@ -4204,8 +4204,6 @@ elsif ($conf{DV_IP_DISCOVERY}) {
       $Dv->{ABON_DATE} = sprintf("%d-%02d-%02d", $Y,$M,$D);
      }
 
-  print "Content-Type: text/html\n\n";
-  
   my ($from_year, $from_month, $from_day)=split(/-/, $DATE, 3);
   my ($to_year, $to_month, $to_day)=split(/-/, $Dv->{ABON_DATE}, 3);
   my $from_seltime = POSIX::mktime(0, 0, 0, $from_day, ($from_month-1), ($from_year - 1900));

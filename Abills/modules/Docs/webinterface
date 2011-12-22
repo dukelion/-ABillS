@@ -1629,7 +1629,7 @@ sub docs_account {
 	             $html->form_input('make', "$attr->{LNG_ACTION}", {  TYPE => 'submit' });
     }
    else{
-	   $action = $html->form_input('make', "$_CREATE $_ACCOUNT", {  TYPE => 'submit' });
+	   $action = $html->form_input('make', "$_CREATE $_ACCOUNT", {  TYPE => 'submit', OUTPUT2RETURN => 1 });
     }
 
  	 
