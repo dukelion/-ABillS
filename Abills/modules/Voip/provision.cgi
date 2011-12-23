@@ -5,7 +5,7 @@
 
 
 
-use vars qw( $db $DATE $TIME $var_dir %log_levels );
+use vars qw( $db $DATE $TIME $var_dir %log_levels $domain_path $html);
 #use strict;
 
 BEGIN {
@@ -36,8 +36,9 @@ use Abills::Base;
 use Abills::SQL;
 use Abills::HTML;
 use Nas;
+use Voip;
 
-my $html = Abills::HTML->new( { IMG_PATH => 'img/',
+$html = Abills::HTML->new( { IMG_PATH => 'img/',
 	                           NO_PRINT => 1,
 	                           CONF     => \%conf,
 	                           CHARSET  => $conf{default_charset},
@@ -52,8 +53,11 @@ my $sql = Abills::SQL->connect($conf{dbtype},
 $db = $sql->{db};
 
 my $version  = '0.3';
-my $debug    = 6;
+my $debug    = 0;
 my $log_file = $var_dir."log/wrt_configure.log";
+$domain_path = '';
+
+$html->{language}='english';
 
 if ($FORM{test}) {
 	print "Content-Type: text/plain\n\n";
@@ -62,9 +66,46 @@ if ($FORM{test}) {
 }
 
 require "Abills/templates.pl";
-my $Nas = Nas->new($db, \%conf);
+my $Nas  = Nas->new($db, \%conf);
+my $Voip = Voip->new($db, undef, \%conf);
+
+
+
+# номер модели
+#PN =>  $FORM{PN},
+# Mac
+#MAC=> $FORM{MAC},
+# Serial number
+#SN => $FORM{SN}
+
+$Nas->info({ IP             => $FORM{IP} || $ENV{REMOTE_ADDR},
+             NAS_IDENTIFIER => "$FORM{SN}", 
+          });
+
+if (! $Nas->{NAS_INDENTIFIER} || ! $FORM{SN} ) {
+	print "Content-Type: text/plain\n\n";
+	print "Wrong nas\n";
+	exit;
+}
+
 
 print "Content-Type: text/xml\n\n";
+my $list = $Voip->user_list({ PROVISION_NAS_ID => $Nas->{NAS_ID},
+                              PROVISION_PORT   => '>0',
+                              SHOW_PASSWORD    => '*'
+                            });
+
+my %info = ();
+
+foreach my $line (@$list) {
+#  print "\n
+#  <Auth_ID_". $line->[8] ."_>$line->[6]</Auth_ID_". $line->[8] ."_>
+#  <Password_". $line->[8] ."_>$line->[9]</Password_". $line->[8] ."_>
+#  
+#  --->$line->[6] / $line->[7] / $line->[8]\n";
+  $info{'Password_'. $line->[8] .'_'}=$line->[9];
+  $info{'Auth_ID_'. $line->[8] .'_'}=$line->[6];
+}
 
 
-print $html->tpl_show(_include('voip_provision_xml', 'Voip'), \%FORM);
+print $html->tpl_show(_include('voip_provision_xml', 'Voip'), { %FORM, %info });

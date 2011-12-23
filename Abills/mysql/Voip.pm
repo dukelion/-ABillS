@@ -296,13 +296,6 @@ sub user_list {
     push @WHERE_RULES, @{ $self->search_expr($attr->{LOGIN}, 'STR', 'u.id') }; 
   }
 
- if ($attr->{PROVISION_NAS_ID}) {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{PROVISION_NAS_ID}, 'STR', 'service.provision_nas_id') };
-  }
-
- if ($attr->{PROVISION_PORT}) {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{PROVISION_PORT}, 'STR', 'service.provision_port') };
-  }
 
  if ($attr->{IP}) {
    push @WHERE_RULES, @{ $self->search_expr($attr->{IP}, 'IP', 'service.ip') };
@@ -383,9 +376,24 @@ sub user_list {
   }
 
  if ($attr->{NUMBER}) {
-    push @WHERE_RULES,  @{ $self->search_expr("$attr->{NUMBER}", 'INT', 'service.number') };
+   push @WHERE_RULES,  @{ $self->search_expr("$attr->{NUMBER}", 'INT', 'service.number') };
  }
 
+ if ($attr->{PROVISION_NAS_ID}) {
+   push @WHERE_RULES, @{ $self->search_expr($attr->{PROVISION_NAS_ID}, 'INT', 'service.provision_nas_id', { EXT_FIELD => 1 }) };
+  }
+
+ if ($attr->{PROVISION_PORT}) {
+   push @WHERE_RULES, @{ $self->search_expr($attr->{PROVISION_PORT}, 'INT', 'service.provision_port', { EXT_FIELD => 1 }) };
+  }
+ 
+
+ if ($attr->{SHOW_PASSWORD}) {
+   $self->{SEARCH_FIELDS} .= "DECODE(u.password, '$CONF->{secretkey}'), ";
+   $self->{SEARCH_FIELDS_COUNT}++;   
+  }
+ 
+ 
  
  $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
  

@@ -10,5 +10,5 @@
 <Resync_After_Upgrade_Attempt>Yes</Resync_After_Upgrade_Attempt>
 <Resync_Error_Retry_Delay>60</Resync_Error_Retry_Delay>
 <Profile_Rule>tftp://172.17.1.1/linksys.cfg<;/Profile_Rule>
-<Profile_Rule_B>http://172.17.1.1:80/provision/$PN/$MAC/$SN.xml</Profile_Rule_B>
+<Profile_Rule_B>https://10.1.1.1:9443/provision.cgi?PN=$PN&MAC=$MAC&SN=$SN</Profile_Rule_B>
 </flat-profile> 

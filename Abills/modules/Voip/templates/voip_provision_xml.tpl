@@ -140,7 +140,7 @@
 	<Speed_Dial_4_2_></Speed_Dial_4_2_>
 	<Cfwd_No_Ans_Delay_1_></Cfwd_No_Ans_Delay_1_>
 	<Static_IP></Static_IP>
-	<Auth_ID_1_>595051</Auth_ID_1_>
+	<Auth_ID_1_>%Auth_ID_1_%</Auth_ID_1_>
 	<Cfwd_Sel5_Caller_2_></Cfwd_Sel5_Caller_2_>
 	<Cfwd_Sel6_Dest_1_></Cfwd_Sel6_Dest_1_>
 	<FAX_CNG_Detect_Enable_1_>No</FAX_CNG_Detect_Enable_1_>
@@ -219,7 +219,7 @@
 	<Max_RTP_ICMP_Err>0</Max_RTP_ICMP_Err>
 	<Max_Auth>2</Max_Auth>
 	<Block_ANC_Serv_2_>No</Block_ANC_Serv_2_>
-	<Profile_Rule_B>https://$ENV{SERVER_NAME}:$ENV{SERVER_PORT}$ENV{REQUEST_URI}?PN=\$PN&amp;MAU=\$MAU&amp;SN=\$SN</Profile_Rule_B>
+	<Profile_Rule_B>https://$ENV{SERVER_NAME}:$ENV{SERVER_PORT}/provision.cgi?PN=\$PN&amp;MAU=\$MAU&amp;SN=\$SN</Profile_Rule_B>
 	<Cfwd_Last_Dest_1_></Cfwd_Last_Dest_1_>
 	<Speed_Dial_5_1_></Speed_Dial_5_1_>
 	<Profile_Rule_D></Profile_Rule_D>
@@ -450,7 +450,7 @@
 	<Service_Announcement_Serv_2_>No</Service_Announcement_Serv_2_>
 	<Block_ANC_Deact_Code></Block_ANC_Deact_Code>
 	<DHCP>Yes</DHCP>
-	<Password_1_>ignbcrox</Password_1_>
+	<Password_1_>%Password_1_%</Password_1_>
 	<Stats_In_BYE>No</Stats_In_BYE>
 	<DND_Serv_1_>No</DND_Serv_1_>
 	<CWCID_Serv_1_>No</CWCID_Serv_1_>
@@ -498,7 +498,7 @@
 	<CWCID_Setting_1_>Yes</CWCID_Setting_1_>
 	<Service_Annc_Extension_Codes></Service_Annc_Extension_Codes>
 	<DND_Setting_1_>No</DND_Setting_1_>
-	<Password_2_>ykywtxsi</Password_2_>
+	<Password_2_>%Password_2_%</Password_2_>
 	<Network_Jitter_Level_2_>high</Network_Jitter_Level_2_>
 	<Reg_Retry_Intvl>60</Reg_Retry_Intvl>
 	<Ring_On_No_New_VM_1_>Yes</Ring_On_No_New_VM_1_>
@@ -566,7 +566,7 @@
 	<SIT4_RSC></SIT4_RSC>
 	<CID_Serv_1_>Yes</CID_Serv_1_>
 	<Block_Last_Serv_1_>No</Block_Last_Serv_1_>
-	<Auth_ID_2_>595001</Auth_ID_2_>
+	<Auth_ID_2_>%Auth_ID_2_%</Auth_ID_2_>
 	<Ring3_Caller_1_></Ring3_Caller_1_>
 	<FAX_CNG_Detect_Enable_2_>No</FAX_CNG_Detect_Enable_2_>
 	<Cfwd_Sel6_Dest_2_></Cfwd_Sel6_Dest_2_>
