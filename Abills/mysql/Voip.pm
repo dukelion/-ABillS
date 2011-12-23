@@ -93,7 +93,9 @@ sub user_info {
    voip.cid,
    voip.logins,
    voip.registration,
-   tarif_plans.id
+   tarif_plans.id,
+   voip.provision_nas_id,
+   voip.provision_port
      FROM voip_main voip
      LEFT JOIN voip_tps tp ON (voip.tp_id=tp.id)
      LEFT JOIN tarif_plans ON (tarif_plans.tp_id=voip.tp_id)
@@ -117,8 +119,9 @@ sub user_info {
    $self->{CID},
    $self->{SIMULTANEOUSLY},
    $self->{REGISTRATION},
-   $self->{TP_NUM}
-
+   $self->{TP_NUM},
+   $self->{PROVISION_NAS_ID},
+   $self->{PROVISION_PORT},
   )= @{ $self->{list}->[0] };
   
 
@@ -140,6 +143,8 @@ sub defaults {
    DISABLE  => 0, 
    IP       => '0.0.0.0', 
    CID      => '',
+   PROVISION_NAS_ID => 0,
+   PROVISION_PORT   => 0,
   );
 
  
@@ -158,17 +163,18 @@ sub user_add {
   %DATA = $self->get_data($attr); 
 
   $self->query($db,  "INSERT INTO voip_main (uid, number, registration, tp_id, 
-             disable, ip, cid, allow_answer, allow_calls
+             disable, ip, cid, allow_answer, allow_calls,
+             provision_nas_id, provision_port
        )
         VALUES ('$DATA{UID}', '$DATA{NUMBER}', now(),
         '$DATA{TP_ID}', '$DATA{DISABLE}', INET_ATON('$DATA{IP}'), 
-        LOWER('$DATA{CID}'), '$DATA{ALLOW_ANSWER}', '$DATA{ALLOW_CALLS}');", 'do');
+        LOWER('$DATA{CID}'), '$DATA{ALLOW_ANSWER}', '$DATA{ALLOW_CALLS}',
+        '$DATA{PROVISION_NAS_ID}', '$DATA{PROVISION_PORT}');", 'do');
   
   return $self if ($self->{errno});
   
  
   $admin->action_add($DATA{UID}, "ADDED", { TYPE => 1 });
-
 
   return $self;
 }
@@ -192,9 +198,10 @@ sub user_change {
                 UID              => 'uid',
                 FILTER_ID        => 'filter_id',
                 ALLOW_ANSWER     => 'allow_answer',
-                ALLOW_CALLS      => 'allow_calls'                
+                ALLOW_CALLS      => 'allow_calls',
+                PROVISION_NAS_ID => 'provision_nas_id',
+                PROVISION_PORT   => 'provision_port',
              );
-
 
   $attr->{ALLOW_ANSWER} = ($attr->{ALLOW_ANSWER}) ? 1 : 0;
   $attr->{ALLOW_CALLS}  = ($attr->{ALLOW_CALLS})  ? 1 : 0;
@@ -289,53 +296,32 @@ sub user_list {
     push @WHERE_RULES, @{ $self->search_expr($attr->{LOGIN}, 'STR', 'u.id') }; 
   }
 
- 
+ if ($attr->{PROVISION_NAS_ID}) {
+    push @WHERE_RULES, @{ $self->search_expr($attr->{PROVISION_NAS_ID}, 'STR', 'service.provision_nas_id') };
+  }
+
+ if ($attr->{PROVISION_PORT}) {
+    push @WHERE_RULES, @{ $self->search_expr($attr->{PROVISION_PORT}, 'STR', 'service.provision_port') };
+  }
 
  if ($attr->{IP}) {
-    if ($attr->{IP} =~ m/\*/g) {
-      my ($i, $first_ip, $last_ip);
-      my @p = split(/\./, $attr->{IP});
-      for ($i=0; $i<4; $i++) {
-
-         if ($p[$i] eq '*') {
-           $first_ip .= '0';
-           $last_ip .= '255';
-          }
-         else {
-           $first_ip .= $p[$i];
-           $last_ip .= $p[$i];
-          }
-         if ($i != 3) {
-           $first_ip .= '.';
-           $last_ip .= '.';
-          }
-       }
-      push @WHERE_RULES, "(service.ip>=INET_ATON('$first_ip') and service.ip<=INET_ATON('$last_ip'))";
-     }
-    else {
-      my $value = $self->search_expr($attr->{IP}, 'IP');
-      push @WHERE_RULES, "service.ip$value";
-    }
-
-    $self->{SEARCH_FIELDS} = 'INET_NTOA(service.ip), ';
-    $self->{SEARCH_FIELDS_COUNT}++;
+   push @WHERE_RULES, @{ $self->search_expr($attr->{IP}, 'IP', 'service.ip') };
+   $self->{SEARCH_FIELDS} = 'INET_NTOA(service.ip), ';
+   $self->{SEARCH_FIELDS_COUNT}++;
   }
 
  if ($attr->{PHONE}) {
-    my $value = $self->search_expr($attr->{PHONE}, 'INT');
-    push @WHERE_RULES, "u.phone$value";
+     push @WHERE_RULES, @{ $self->search_expr($attr->{PHONE}, 'INT', 'u.phone') };
   }
 
 
  if ($attr->{DEPOSIT}) {
-    my $value = $self->search_expr($attr->{DEPOSIT}, 'INT');
-    push @WHERE_RULES, "u.deposit$value";
+    push @WHERE_RULES, @{ $self->search_expr($attr->{DEPOSIT}, 'INT', 'u.deposit') };
   }
 
 
  if ($attr->{CID}) {
-    $attr->{CID} =~ s/\*/\%/ig;
-    push @WHERE_RULES, "service.cid LIKE '$attr->{CID}'";
+    push @WHERE_RULES, @{ $self->search_expr($attr->{CID}, 'STR', 'service.cid') };
     $self->{SEARCH_FIELDS} .= 'service.cid, ';
     $self->{SEARCH_FIELDS_COUNT}++;
   }
@@ -346,24 +332,16 @@ sub user_list {
   }
 
  if ($attr->{COMMENTS}) {
-   $attr->{COMMENTS} =~ s/\*/\%/ig;
-   push @WHERE_RULES, "pi.comments LIKE '$attr->{COMMENTS}'";
+   push @WHERE_RULES, @{ $self->search_expr($attr->{COMMENTS}, 'STR', 'pi.comments') };
   }
 
-
  if ($attr->{FIO}) {
-    $attr->{FIO} =~ s/\*/\%/ig;
-    push @WHERE_RULES, "pi.fio LIKE '$attr->{FIO}'";
+   push @WHERE_RULES, @{ $self->search_expr($attr->{FIO}, 'STR', 'pi.fio') };
   }
 
  # Show users for spec tarifplan 
  if ($attr->{TP_ID}) {
     push @WHERE_RULES, "service.tp_id='$attr->{TP_ID}'";
-  }
-
- # Show debeters
- if ($attr->{DEBETERS}) {
-    push @WHERE_RULES, "u.id LIKE '$attr->{FIRST_LETTER}%'";
   }
 
  # Show debeters
@@ -392,7 +370,7 @@ sub user_list {
  }
 
 #DIsable
- if ($attr->{DISABLE}) {
+ if (defined($attr->{DISABLE})) {
    push @WHERE_RULES, "u.disable='$attr->{DISABLE}'"; 
  }
 
@@ -403,8 +381,6 @@ sub user_list {
  if (defined($attr->{LOGIN_STATUS})) {
    push @WHERE_RULES, "u.disable='$attr->{LOGIN_STATUS}'"; 
   }
-
-
 
  if ($attr->{NUMBER}) {
     push @WHERE_RULES,  @{ $self->search_expr("$attr->{NUMBER}", 'INT', 'service.number') };

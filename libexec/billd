@@ -2303,6 +2303,9 @@ sub speed_expr {
 sub check_speed_mikrotik {
 	my ($attr)=@_;
 
+  
+
+
   my $result = '';
   #Get TP speed
   my %TARIF_SPEEDS = ();
@@ -2335,6 +2338,15 @@ sub check_speed_mikrotik {
     my $nas_admin          = $NAS{NAS_MNG_USER} || 'admin';
     my $SSH                = $ARGV->{SSH_CMD}  || "/usr/bin/ssh -o StrictHostKeyChecking=no -i $base_dir/Certs/id_dsa.".$nas_admin;
     $NAS{SSH_CMD}          = $SSH;
+
+
+    if ($ARGV->{RECONFIGURE}) {
+  	  push @commands, qq{/ip firewall mangle remove [find new-packet-mark~"^ALLOW_TRAFFIC_CLASS"]},
+       qq{/queue tree remove [find name~"^TP"]},
+       qq{/queue type remove [find name~"^TP"]}
+  	   ;
+     }
+
 
     my $count;
     # Get mikrotik speed
@@ -2485,7 +2497,9 @@ foreach my $line (@$list) {
   $result .= `echo "===> Initialising remote commands executing:" >> /var/log/shaper` if ($debug > 0);
 	foreach my $cmd (@commands)  {
 		print "$cmd\n" if ($debug > 0);
-    $result .= `$SSH $nas_admin\@$nas_host "$cmd"; echo "$cmd" >> /var/log/shaper`;
+		if ($debug < 5) {
+      $result .= `$SSH $nas_admin\@$nas_host "$cmd"; echo "$cmd" >> /var/log/shaper`;
+     }
 	 }
 }
   

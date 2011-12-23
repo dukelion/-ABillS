@@ -4076,7 +4076,9 @@ if ($nas->{errno}) {
   'openvpn'   => 'OpenVPN with RadiusPlugin',
   'vlan'      => 'Vlan managment',
   'qbridge'   => 'Q-BRIDGE',
-  'dhcp'      => 'DHCP FreeRadius in DHCP mode'
+  'dhcp'      => 'DHCP FreeRadius in DHCP mode',
+  'ls_pap2t'  => 'Linksys pap2t',
+  'ls_spa8000'=> 'Linksys spa8000'
  );
 
 

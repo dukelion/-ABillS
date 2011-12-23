@@ -302,6 +302,8 @@ return 0;
 sub voip_user {
  	$Voip->{UID}=$FORM{UID};	  
   
+  voip_provision();
+  
   if ($FORM{add}) {
     if ($FORM{NUMBER} < 1) {
       $html->message('err', $_ERROR, "$ERR_WRONG_DATA $_NUMBER");	
@@ -383,8 +385,24 @@ sub voip_user {
   if ($user->{DISABLE} > 0) { 
     $user->{STATUS_COLOR} = $service_status_colors[$user->{DISABLE}] ;
    }
+  
+  
+  
 
   
+  $user->{NAS_SEL} = $html->form_select('PROVISION_NAS_ID', 
+                                         { 
+ 	                                          SELECTED          => $user->{PROVISION_NAS_ID} || $FORM{PROVISION_NAS_ID},
+ 	                                          SEL_MULTI_ARRAY   => $Nas->list({ TYPE => 'ls_pap2t;ls_spa8000' }),
+ 	                                          MULTI_ARRAY_KEY   => 0,
+ 	                                          MULTI_ARRAY_VALUE => 1,
+ 	                                          MAIN_MENU         => get_function_index('form_nas'),
+ 	                                          MAIN_MENU_AGRV    => "chg=$user->{NAS_ID}"
+ 	                                        });
+
+  
+  $user->{PROVISION} = $html->tpl_show(_include('voip_provision_user', 'Voip'), $user, { OUTPUT2RETURN => 1 });
+
   $html->tpl_show(_include('voip_user', 'Voip'), $user);
 }
 
@@ -3056,6 +3074,47 @@ sub voip_payments_maked {
 
   voip_mk_users_conf();
 }
+
+
+
+
+#**********************************************************
+# Provision 
+#**********************************************************
+sub voip_provision {
+	my ($attr)=@_;
+	
+	my $list = $Nas->list({ TYPE => 'ls_pap2t;ls_spa8000' });
+	
+	my $hosts = '';
+	foreach my $line ( @$list ) {
+		$hosts .= $html->tpl_show(_include('voip_provision_dhcp_host', 'Voip'), 
+		{   NAS_ID   => $line->[0],
+			  HOSTNAME => $line->[1],
+			  MAC      => $line->[15],
+        IP       => $line->[3],
+        ROUTERS  => '',			 
+			 }, 
+		{ OUTPUT2RETURN => 1 });
+	 }
+
+
+  my $conf = $html->tpl_show(_include('voip_provision_dhcp_conf', 'Voip'), 
+    { HOSTS => $hosts }, 
+		{ OUTPUT2RETURN => 1 });
+
+  
+
+if(open(FILE, ">/usr/abills/Abills/templates/provision_dhcp.conf")) {
+  print FILE "$conf\n";
+  close(FILE);
+ }
+else {
+	
+}
+
+}
+
 
 
 1

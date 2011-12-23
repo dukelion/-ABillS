@@ -12,6 +12,7 @@
 <tr><td>$_ALLOW_CALLS:</td><td><input type=checkbox name=ALLOW_CALLS value='1' %ALLOW_CALLS%></td></tr>
 
 <tr><td>$_STATUS:</td><td bgcolor=%STATUS_COLOR%>%STATUS_SEL%</td></tr>
+%PROVISION%
 </table>
 <input type=submit name='%ACTION%' value='%LNG_ACTION%'>
 </form>
