@@ -219,7 +219,7 @@
 	<Max_RTP_ICMP_Err>0</Max_RTP_ICMP_Err>
 	<Max_Auth>2</Max_Auth>
 	<Block_ANC_Serv_2_>No</Block_ANC_Serv_2_>
-	<Profile_Rule_B>http://172.17.1.1:80/provision/\$PN/\$MAU/\$SN.xml</Profile_Rule_B>
+	<Profile_Rule_B>https://$ENV{SERVER_NAME}:$ENV{SERVER_PORT}$ENV{REQUEST_URI}?PN=\$PN&amp;MAU=\$MAU&amp;SN=\$SN</Profile_Rule_B>
 	<Cfwd_Last_Dest_1_></Cfwd_Last_Dest_1_>
 	<Speed_Dial_5_1_></Speed_Dial_5_1_>
 	<Profile_Rule_D></Profile_Rule_D>
