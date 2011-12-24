@@ -746,7 +746,7 @@ elsif ($FORM{update}) {
      }
     print $table->show().$reg_output; # if (! $return);
 
-    if (! $steps{$FORM{step}} || $FORM{finish} || (! $FORM{next} && $FORM{step} == 2)) { # && ! $FORM{back})) {
+    if (! $steps{$FORM{step}} || $FORM{finish} || (! $FORM{next} && $FORM{step} == 2 && ! $FORM{back})) { # && ! $FORM{back})) {
       $html->message('info', $_INFO, "$_REGISTRATION_COMPLETE");
       undef $FORM{UID};
       undef $FORM{LOGIN};
@@ -2124,6 +2124,8 @@ elsif ( $FORM{add}) {
     $html->message('err', $_ERROR, "$ERR_ACCESS_DENY");  	
   	return 0;
    }
+
+  $FORM{REDUCTION}=100 if ($FORM{REDUCTION} && $FORM{REDUCTION} > 100);
 
   my $user_info = $users->add({ %FORM });  
   if ($users->{errno}) {
