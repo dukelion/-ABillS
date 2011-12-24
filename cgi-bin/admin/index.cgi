@@ -1932,6 +1932,7 @@ if($attr->{USER_INFO}) {
     return 0;
    }
 
+	
   print "<table width=\"100%\" border=\"0\" cellspacing=\"1\" cellpadding=\"2\"><tr><td valign=\"top\" align=\"center\">\n";
   #Make service menu
   my $service_menu       = '';
@@ -1986,7 +1987,10 @@ if($attr->{USER_INFO}) {
      	    return 0;
          }
        }
-      #return 0;
+      if ($attr->{REGISTRATION}){
+        print "</td></tr></table>\n";
+        return 0 
+       }
      }
    }
   elsif ($FORM{del_user} && $FORM{is_js_confirmed} && $index == 15 && $permissions{0}{5} ) {
