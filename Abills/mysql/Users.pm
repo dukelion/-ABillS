@@ -1203,9 +1203,9 @@ sub add {
   $DATA{DISABLE} = int($DATA{DISABLE});
   my $registration = ($DATA{REGISTRATION}) ? "'$DATA{REGISTRATION}'" : 'now()';
 
-  $self->query($db,  "INSERT INTO users (id, activate, expire, credit, reduction, 
+  $self->query($db,  "INSERT INTO users (uid, id, activate, expire, credit, reduction, 
            registration, disable, company_id, gid, password, credit_date, reduction_date, domain_id)
-           VALUES ('$DATA{LOGIN}', '$DATA{ACTIVATE}', '$DATA{EXPIRE}', '$DATA{CREDIT}', '$DATA{REDUCTION}', 
+           VALUES ('$DATA{UID}', '$DATA{LOGIN}', '$DATA{ACTIVATE}', '$DATA{EXPIRE}', '$DATA{CREDIT}', '$DATA{REDUCTION}', 
            $registration,  '$DATA{DISABLE}', 
            '$DATA{COMPANY_ID}', '$DATA{GID}', 
            ENCODE('$DATA{PASSWORD}', '$CONF->{secretkey}'), '$DATA{CREDIT_DATE}', '$DATA{REDUCTION_DATE}', '$admin->{DOMAIN_ID}'

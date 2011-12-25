@@ -147,6 +147,11 @@ sub abon_user {
          }
         else {
       	  $html->message('err', "$_ABON : $_ERROR", "$_TARIF_PLAN: [$line->[7]] $line->[0]\n$ERR_SMALL_DEPOSIT");
+      	  $FORM{'error_'.$line->[7]}=1;
+      	  $FORM{'error_comments_'.$line->[7]}=$ERR_SMALL_DEPOSIT;
+      	  if ($attr->{REGISTRATION}) {
+      	  	return 1;
+      	   }
          }
        }
      }
@@ -185,10 +190,18 @@ if ($FORM{step}) {
 foreach my $line (@$list) {
 	my $describe =  $line->[2] || $FORM{'COMMENTS_'.$line->[0]};
 	my $state    = ($#ids > -1) ? in_array($line->[0], \@ids) :  $line->[8];
+	
+	if ($FORM{'error_'.$line->[0]}) {
+		$table->{rowcolor}='red';
+	 }
+	else {
+		$table->{rowcolor} = undef;
+	 }
+	
   $table->addrow($line->[0] . $html->form_input('IDS', "$line->[0]", { TYPE => 'CHECKBOX', 
   	                                                      STATE => ($state == 1) ? 1 : undef   }),
      ($permissions{5}) ? $html->button($line->[1], "index=".get_function_index('abon_tariffs').'&ABON_ID='.$line->[0]) : "$line->[1]",
-     $html->form_input('COMMENTS_'.$line->[0], "$describe", { SIZE => 40 }),
+     $html->form_input('COMMENTS_'.$line->[0], $describe || $FORM{'error_comments_'.$line->[0]}, { SIZE => 40 }),
      "$line->[3]", 
      $PERIODS[$line->[4]], 
      "$line->[5]",
@@ -791,6 +804,9 @@ sub abon_docs {
   foreach my $line (@$list) {
     #print "$line->[0]/$line->[1]<br>";
     if ($line->[5]) {
+    	if ($line->[13] > 0) {
+    		$line->[1] = $line->[1] * ((100 - $line->[13]) / 100);
+    	 }
       push @services, "$line->[1]|$line->[2]|$line->[3]";
      }
    }

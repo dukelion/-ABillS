@@ -12,7 +12,8 @@
 %FORM_ACCT_ID%
 <tr><td>$_DATE:</td><td>%DATE%</td></tr>
 <tr><td>$_PERIOD:</td><td>$_FROM: %FROM_DATE% $_TO: %TO_DATE% </td></tr>
-<tr><td>$_NEXT $_PERIOD:</td><td><input type=text name=NEXT_PERIOD value='%NEXT_PERIOD=1%' size=5>$_MONTH</td></tr>
+<tr><td>$_NEXT $_PERIOD:</td><td><input type=text name=NEXT_PERIOD value='%NEXT_PERIOD=0%' size=5> $_MONTH</td></tr>
+<tr><td>$_SEND E-mail:</td><td><input type=checkbox name=SEND_EMAIL value=1 checked></td></tr>
 <tr><td colspan=2>
 
 %ORDERS%
@@ -23,6 +24,8 @@
 <!-- <tr><td>$_PRE</td><td><input type=checkbox name=PREVIEW value='1'></td></tr> -->
 </table>
 <!-- <input type=submit name=pre value='$_PRE'>  -->
+%BACK%
 <input type=submit name=update value='$_REFRESH'>
 <input type=submit name=create value='$_CREATE'>
+%NEXT%
 </form>

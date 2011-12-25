@@ -103,6 +103,14 @@ sub docs_invoice_add  {
      if(! $Docs->{errno}) {
        if ($conf{DOCS_PDF_PRINT}) {
   	     $html->message('info', "$_INVOICE $_ADDED", "$_INVOICE $_NUM: [$Docs->{DOC_ID}]\n $_DATE: $date\n ". $html->button($_PRINT, "qindex=". get_function_index('docs_invoice_list') ."&print=$Docs->{DOC_ID}&UID=$LIST_PARAMS{UID}&pdf=1", { ex_params => 'target=_new', CLASS => 'print' }));
+
+         $FORM{print} = $Docs->{DOC_ID};
+         $FORM{pdf}   = 1;
+         delete($FORM{create});
+         return  docs_invoice({ GET_EMAIL_INFO    => 1,
+         	                      SEND_EMAIL        => $FORM{SEND_EMAIL},
+            	                  %$attr
+            	                });
    	     return 0;
         }
        else {
@@ -217,6 +225,9 @@ sub docs_invoice {
     docs_invoice_add({ %FORM }); 
     return 0;
    }
+  elsif ($FORM{skip}) {
+  	return 0;
+   }
   elsif (! $FORM{print}) {
     $Docs->{SEL_ORDER} .= $html->form_select('ORDER', 
                                     { 
@@ -281,9 +292,10 @@ sub docs_invoice {
      }
 
     #Next period payments
-    if ($FORM{NEXT_PERIOD} && $FORM{NEXT_PERIOD} > 1) {
+    if ($FORM{NEXT_PERIOD}) {
  	    my $cross_modules_return = cross_modules_call('_docs');
-
+  
+      $FORM{NEXT_PERIOD}++;
       $M+=$FORM{NEXT_PERIOD};
  	    if ($M < 12) {
   	    $M=sprintf("%02d", $M);
@@ -310,7 +322,7 @@ sub docs_invoice {
  	 	 	   	 $num++;
  	 	 	 	   $sum = sprintf("%.2f", $sum * ($FORM{NEXT_PERIOD}-1));
  	 	 	 	   
- 	 	 	 	   if ($users->{REDUCTION}) {
+ 	 	 	 	   if ($users->{REDUCTION} && $module ne 'Abon') {
  	 	 	 	   	 $sum = sprintf("%.2f",  $sum * (100 - $users->{REDUCTION}) / 100);
  	 	 	 	    }
  	 	 	 	   
@@ -335,17 +347,21 @@ sub docs_invoice {
      }
 
 
-    $table->{extra} = " colspan=4 class=total ";
+    $table->{extra}    = " colspan=4 class=total ";
     $table->addrow("$_COUNT: $num", sprintf("%.2f", $total_sum));
     $table->addrow($html->b("$_AMOUNT_FOR_PAY:"), $html->b(sprintf("%.2f", $amount_for_pay)));
-    $Docs->{ORDERS} = $table->show({ OUTPUT2RETURN => 1 });
+    $Docs->{ORDERS}    = $table->show({ OUTPUT2RETURN => 1 });
     $Docs->{FROM_DATE} = $html->date_fld2('FROM_DATE', { MONTHES => \@MONTHES, FORM_NAME => 'invoice_add', WEEK_DAYS => \@WEEKDAYS });
     $Docs->{TO_DATE}   = $html->date_fld2('TO_DATE', { MONTHES => \@MONTHES, FORM_NAME => 'invoice_add', WEEK_DAYS => \@WEEKDAYS });
-
+    if ($attr->{REGISTRATION}) {
+      $Docs->{BACK}      = $html->form_input('back', "$_BACK", {  TYPE => 'submit' });
+      $Docs->{NEXT}      = $html->form_input('skip', "$_NEXT", {  TYPE => 'submit' });
+     }
+    
     $html->tpl_show(_include('docs_invoice_add', 'Docs'), { %FORM, %$attr, %$Docs, %$users }) if (! $FORM{pdf});
    }
 
-  docs_invoice_list();
+  docs_invoice_list($attr);
   return 0;
 }
 
@@ -353,7 +369,7 @@ sub docs_invoice {
 # docs_invoice_list
 #**********************************************************
 sub docs_invoice_list {
-
+  my ($attr)=@_;
 
 push @PAYMENT_METHODS, @EX_PAYMENT_METHODS if (@EX_PAYMENT_METHODS);
 
@@ -452,19 +468,14 @@ elsif($FORM{print}) {
    	 $Docs->{VAT}                  = sprintf("%.2f", $conf{DOCS_VAT_INCLUDE});
    }
 
-#  my $invoice_file = 'invoice';
-#  if ($Docs->{PAYMENT_METHOD_ID})  {
-#    $invoice_file =  'docs_invoice_'.$Docs->{PAYMENT_METHOD_ID};
-#    my $invoice_content = _include($invoice_file, 'Docs', { $FORM{pdf} => 1 });
-#    if (  $invoice_content =~ /No such tem/ || $invoice_content eq ''  ) {
-#      $invoice_file = 'invoice';
-#     }
-#    else {
-#      $invoice_file = 'invoice_'.$Docs->{PAYMENT_METHOD_ID};
-#     }
-#   }
 
-  docs_print('invoice', $Docs);
+  if ($attr->{GET_EMAIL_INFO}) {
+    $attr->{EMAIL_MSG_TEXT}        = "$_INVOICE:  $Docs->{ACCT_ID}\n $_DATE: $Docs->{DATE}\n $_SUM: $Docs->{TOTAL_SUM}\n" if (! $attr->{EMAIL_MSG_TEXT});
+    $attr->{EMAIL_ATTACH_FILENAME} = 'invoice_'. $Docs->{ACCT_ID} .'.pdf' if (! $attr->{EMAIL_ATTACH_FILENAME});
+    $attr->{EMAIL_MSG_SUBJECT}     = "ABillS - $_INVOICE / $Docs->{ACCT_ID}" if (! $attr->{EMAIL_MSG_SUBJECT});
+   }
+
+  docs_print('invoice', { %$Docs, %$attr });
   return 0;
  }
 elsif (! $LIST_PARAMS{UID}) {

@@ -806,6 +806,8 @@ elsif ($FORM{update}) {
 #
 #**********************************************************
 sub form_companies {
+  my ($attr)=@_;
+
   use Customers;	
   my $customer = Customers->new($db, $admin, \%conf);
   my $company = $customer->company();
@@ -915,7 +917,7 @@ elsif($FORM{COMPANY_ID}) {
   	 	} 
   	 );
 
-  #Sub functions
+   #Sub functions
   if (! $FORM{subf}) {
     if ($permissions{0}{4} ) {
       $company->{ACTION}='change';
@@ -926,7 +928,7 @@ elsif($FORM{COMPANY_ID}) {
     if ($conf{EXT_BILL_ACCOUNT} && $company->{EXT_BILL_ID}) {
       $company->{EXDATA} = $html->tpl_show(templates('form_ext_bill'), $company, { OUTPUT2RETURN => 1 });
      }
-
+    
 #Info fields
     my $i=0; 
     foreach my $field_id ( @{ $company->{INFO_FIELDS_ARR} } ) {
@@ -1065,11 +1067,16 @@ sub form_companie_admins {
  my $company = $customer->company();
 
  if ($FORM{change}) {
+ 	  ADD_ADMIN:
     $company->admins_change({ %FORM });
     if (! $company->{errno}) {
       $html->message('info', $_INFO, "$_CHANGED");
      }
+    if ($attr->{REGISTRATION}) {
+    	 return 0;
+     }
    }
+
  if ($company->{errno}) {
    $html->message('err', $_ERROR, "[company->{errno}] $err_strs{$company->{errno}}");	
   }
@@ -1089,7 +1096,16 @@ if (! defined($FORM{sort})) {
 
 
 my $list = $company->admins_list({ COMPANY_ID => $FORM{COMPANY_ID}, 
-	                                 PAGE_ROWS  => 10000 });
+	                                 PAGE_ROWS  => 10000 
+	                                 });
+
+if ($attr->{REGISTRATION})  {
+  if ($FORM{add} && $company->{TOTAL}==1 && ! $list->[0]->[0]) {
+	  $FORM{IDS}=$FORM{UID};
+	  goto ADD_ADMIN;
+	 }
+	return 0;
+}
 
 foreach my $line (@$list) {
   $table->addrow($html->form_input('IDS', "$line->[4]", 
@@ -2162,6 +2178,9 @@ elsif ( $FORM{add}) {
     user_pi({ %$attr, REGISTRATION => 1 });
     #$index=get_function_index('form_payments');
     #form_payments({ USER => $user_info });
+    if ($FORM{COMPANY_ID})  {
+      form_companie_admins($attr);
+     }
     return 0;
    }
 }
@@ -2702,8 +2721,8 @@ sub form_bills {
     use Bills;
     my  $bills = Bills->new($db);
     my $list = $bills->list({  COMPANY_ONLY => 1,
-  	                         UID          => $user->{UID} 
-  	                      });
+  	                           UID          => $user->{UID} 
+  	                        });
 
     my %BILLS_HASH = ();
 
@@ -2723,8 +2742,8 @@ sub form_bills {
  	                               });
 
 
-    $user->{CREATE_BILL}=' checked' if (! $FORM{COMPANY_ID} && $user->{BILL_ID} < 1);
-    $user->{BILL_TYPE} = $_PRIMARY;
+    $user->{CREATE_BILL}      = ' checked' if (! $FORM{COMPANY_ID} && $user->{BILL_ID} < 1);
+    $user->{BILL_TYPE}        = $_PRIMARY;
     $user->{CREATE_BILL_TYPE} = 'CREATE_BILL';
     $html->tpl_show(templates('form_chg_bill'), $user);
   }
@@ -5640,6 +5659,7 @@ elsif($FORM{UID}) {
 	return 0;
  }	
 elsif($index != 7) {
+  $FORM{type} = $FORM{subf};
 	form_search({ HIDDEN_FIELDS => { subf => ($FORM{subf}) ? $FORM{subf} : undef,
 		                               COMPANY_ID => $FORM{COMPANY_ID}  },
 		            ID            => 'SEARCH_PAYMENTS' 
@@ -5880,15 +5900,21 @@ if ($FORM{add}) {
 	while(defined($FORM{'METHOD_'.$i}) && $FORM{'METHOD_'.$i} ne '') {
 		my ($type_describe,$price)=split(/:/, $FEES_METHODS{$FORM{'METHOD_'.$i}}, 2);
 		
-		if (! $FORM{'SUM_'.$i} && $price >0) {
+		if (! $FORM{'SUM_'.$i} && $price > 0) {
 			$FORM{'SUM_'.$i} = $price;
 		 }		
+
+    if ($FORM{'SUM_'.$i} <= 0) {
+      $i++;
+      next   
+     }    
 
     $fees->take($attr->{USER_INFO}, $FORM{'SUM_'.$i}, { DESCRIBE       => $FORM{'DESCRIBE_'.$i},
     	                                     INNER_DESCRIBE => $FORM{'INNER_DESCRIBE_'.$i} } );      
 
 
     $message .= "$type_describe $_SUM: ". sprintf('%.2f', $FORM{'SUM_'.$i}) .", ". $FORM{'DESCRIBE_'.$i}."\n";
+    
     $i++;
 	 }
 	
@@ -5916,7 +5942,7 @@ my $table = $html->table( { width      => '100%',
 for (my $i=0; $i<=6; $i++) {
   my $method =  $html->form_select('METHOD_'.$i, 
                                 { SELECTED     => $FORM{'METHOD_'.$i},
- 	                                SEL_HASH     => {'' => '', %FEES_METHODS },
+ 	                                SEL_HASH     => { %FEES_METHODS },
  	                                NO_ID        => 1,
  	                                SORT_KEY     => 1
  	                               });
@@ -5970,6 +5996,7 @@ sub form_fees  {
  my $fees = Finance->fees($db, $admin, \%conf);
  my %BILL_ACCOUNTS = ();
  
+print "$index / $FORM{subf}";
 
  %FEES_METHODS = %{ get_fees_types() };
 
@@ -6151,10 +6178,10 @@ elsif($FORM{UID}) {
 	return 0;
 }
 elsif($index != 7) {
+  $FORM{type} = $FORM{subf};
 	form_search({ HIDDEN_FIELDS => { subf       => ($FORM{subf}) ? $FORM{subf} : undef,
 		                               COMPANY_ID => $FORM{COMPANY_ID} } });
 }
-
 
 return 0 if (! $permissions{2}{0});
 
