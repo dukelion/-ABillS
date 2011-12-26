@@ -253,6 +253,12 @@ elsif(	$conf{PAYSYS_GAZPROMBANK_ACCOUNT_KEY} &&
 	require "Gazprombank.pm";
 	exit;
  }
+elsif (	($FORM{cmd} && !defined($FORM{merchantid})) &&
+		($FORM{cmd} eq 'pay' || 
+		$FORM{cmd} eq 'check_contract')) {
+	require "Zaplati_sumy.pm";
+ 	exit;
+ } 
 elsif ($ENV{REMOTE_ADDR} =~ /^77\.222\.134\.205$/) {
   require "Ipay.pm";
   exit;
