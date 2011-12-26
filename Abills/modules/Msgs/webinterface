@@ -403,7 +403,7 @@ sub msgs_admin_add {
   	                                                     MONTHES   => \@MONTHES, 
   	                                                     FORM_NAME => (! $FORM{DV_WIZARD})  ? 'add_message' : 'user_form', 
   	                                                     WEEK_DAYS => \@WEEKDAYS,\
-  	                                                     $Msgs->{PLAN_DATE}
+  	                                                     DATE      => ($Msgs->{PLAN_DATE} ne '0000-00-00') ? $Msgs->{PLAN_DATE} : '' 
   	                                                      });
   #$Msgs->{PLAN_TIME}   = "";
   $Msgs->{DISPATCH_SEL}= $html->form_select('DISPATCH_ID', 
@@ -655,7 +655,12 @@ sub msgs_admin {
  	                                          MAIN_MENU_AGRV    => "chg=$Msgs->{CHAPTER}"
  	                                        });    
     
-    $Msgs->{PLAN_DATE} = $html->date_fld2('PLAN_DATE', { NO_DEFAULT_DATE=>1, MONTHES => \@MONTHES, FORM_NAME => 'add_message', WEEK_DAYS => \@WEEKDAYS, DATE => $Msgs->{PLAN_DATE} });
+    $Msgs->{PLAN_DATE} = $html->date_fld2('PLAN_DATE', { NO_DEFAULT_DATE => 1, 
+    	                                                   MONTHES         => \@MONTHES, 
+    	                                                   FORM_NAME       => 'add_message', 
+    	                                                   WEEK_DAYS       => \@WEEKDAYS, 
+    	                                                   DATE            => ($Msgs->{PLAN_DATE} ne '0000-00-00') ? $Msgs->{PLAN_DATE} : ''  
+    	                                                 });
     $Msgs->{RESPOSIBLE}=$html->form_select('RESPOSIBLE', 
                                           { 
  	                                          SELECTED          => $Msgs->{RESPOSIBLE} || 0,

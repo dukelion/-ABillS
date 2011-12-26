@@ -518,13 +518,14 @@ sub accounts_list {
  $WHERE = ($#WHERE_RULES > -1) ? 'WHERE ' . join(' and ', @WHERE_RULES)  : '';
 
  $self->query($db,   "SELECT d.acct_id, d.date, if(d.customer='-' or d.customer='', pi.fio, d.customer),  sum(o.price * o.counts), 
-     d.payment_id, u.id, a.name, d.created, p.method, d.uid, d.id, 
+     d.payment_id, u.id, a.name, d.created, p.method, p.ext_id, g.name, d.uid, d.id, 
      u.company_id, c.name, if(u.company_id=0, concat(pi.contract_sufix,pi.contract_id), concat(c.contract_sufix,c.contract_id))
      $self->{EXT_FIELDS}
     FROM (docs_acct d, docs_acct_orders o)
     LEFT JOIN users u ON (d.uid=u.uid)
     LEFT JOIN admins a ON (d.aid=a.aid)
     LEFT JOIN users_pi pi ON (pi.uid=u.uid)
+    LEFT JOIN groups g ON (g.gid=u.gid)
     LEFT JOIN companies c ON (u.company_id=c.id)
     LEFT JOIN payments p ON (d.payment_id=p.id)
     $WHERE

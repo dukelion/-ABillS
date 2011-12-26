@@ -715,15 +715,15 @@ if ($FORM{print_list}) {
     $D{FROM_DATE_LIT} = "$d ". $MONTHES_LIT[int($m)-1] ." $y $_YEAR";
     $D{DATE_EURO_STANDART} = "$d.$m.$y";
     $D{FIO}           = $line->[2];
-    $D{ADDRESS_FULL}  = "$line->[11], $line->[12], $line->[13]";
+    $D{ADDRESS_FULL}  = "$line->[13], $line->[14], $line->[15]";
     $D{TOTAL_SUM}     = sprintf("%.2f", $line->[3]);
-    $D{CONTRACT_ID}   = $line->[15];
-    $D{CONTRACT_DATE} = "$line->[16]";
-    $D{BILL_ID}         = $line->[17];
-    $D{COMPANY_ID}    = $line->[18];
-    $D{UID}           = $line->[9];
+    $D{CONTRACT_ID}   = $line->[17];
+    $D{CONTRACT_DATE} = "$line->[18]";
+    $D{BILL_ID}         = $line->[19];
+    $D{COMPANY_ID}    = $line->[10];
+    $D{UID}           = $line->[11];
     $D{A_FIO}         = $line->[6];
-    $D{PHONE}         = $line->[14];
+    $D{PHONE}         = $line->[16];
 
     $FORM{COMPANY_ID}=$D{COMPANY_ID};
     
@@ -785,7 +785,7 @@ if ($FORM{print_list}) {
 	return 0;
 }
 
-my @CAPTION = ('#', $_DATE, $_CUSTOMER, $_SUM, $_STATUS, $_USER, $_ADMIN, $_TIME, "$_PAYMENT_METHOD", '-', '-');
+my @CAPTION = ('#', $_DATE, $_CUSTOMER, $_SUM, $_STATUS, $_USER, $_ADMIN, $_TIME, "$_PAYMENT_METHOD", "$_PAYMENTS EXT_ID", "$_GROUP", '-', '-');
 if ( $user->{UID} ) {
 	@CAPTION = ('#', $_DATE, $_CUSTOMER, $_SUM, $_STATUS);
 }
@@ -806,24 +806,26 @@ my $table = $html->table( { width      => '100%',
 my @rows = ();
 
 foreach my $line (@$list) {
-  my $delete = ($permissions{1}{2}) ?  $html->button($_DEL, "index=$index&del=$line->[10]&UID=$line->[9]", { MESSAGE => "$_DEL ID $line->[10] ?", CLASS => 'del' }) : ''; 
+  my $delete = ($permissions{1}{2}) ?  $html->button($_DEL, "index=$index&del=$line->[12]&UID=$line->[11]", { MESSAGE => "$_DEL ID $line->[12] ?", CLASS => 'del' }) : ''; 
 
   @rows = ( "$line->[0]", 
-   $html->button("$line->[1]", "qindex=$index&print=$line->[10]&UID=$line->[9]$pages_qs". ( ($conf{DOCS_PDF_PRINT}) ? '&pdf=1' : '' ), {  ex_params => 'target=_new' }), 
+   $html->button("$line->[1]", "qindex=$index&print=$line->[12]&UID=$line->[11]$pages_qs". ( ($conf{DOCS_PDF_PRINT}) ? '&pdf=1' : '' ), {  ex_params => 'target=_new' }), 
    "$line->[2]", 
    "$line->[3]", 
-   ($line->[4]) ? (($user->{UID}) ? $payments_status[1] : $html->button($payments_status[1], "index=2&UID=$line->[9]&ID=$line->[4]") ) :  $html->color_mark($payments_status[0], $_COLORS[6]) 
+   ($line->[4]) ? (($user->{UID}) ? $payments_status[1] : $html->button($payments_status[1], "index=2&UID=$line->[11]&ID=$line->[4]") ) :  $html->color_mark($payments_status[0], $_COLORS[6]) 
    );  
 
   if ( ! $user->{UID}  ) {
-    push @rows, $html->button($line->[5], "index=11&UID=$line->[9]").(($line->[11]) ? $html->br().
-    $html->button(substr($line->[12], 0,30), "index=13&COMPANY_ID=$line->[11]", { CLASS => 'small' }) : '')
+    push @rows, $html->button($line->[5], "index=11&UID=$line->[11]").(($line->[13]) ? $html->br().
+    $html->button(substr($line->[14], 0,30), "index=13&COMPANY_ID=$line->[13]", { CLASS => 'small' }) : '')
     #.$html->br().$line->[13]
     ,
     "$line->[6]", 
     "$line->[7]", 
     ($PAYMENTS_METHODS{$line->[8]}) ? $PAYMENTS_METHODS{$line->[8]} : $line->[8], 
-    $html->button($_PRINT, "qindex=$index&print=$line->[10]&UID=$line->[9]". ( ($conf{DOCS_PDF_PRINT}) ? '&pdf=1' : '' ), { ex_params => 'target=_new', CLASS => 'print' }), 
+    "$line->[9]", 
+    "$line->[10]", 
+    $html->button($_PRINT, "qindex=$index&print=$line->[12]&UID=$line->[1]". ( ($conf{DOCS_PDF_PRINT}) ? '&pdf=1' : '' ), { ex_params => 'target=_new', CLASS => 'print' }), 
     $delete;
    }
 
