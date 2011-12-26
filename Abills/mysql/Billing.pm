@@ -1255,7 +1255,7 @@ sub remaining_time {
               #Traffic tarif price
               $traf_price = $periods_traf_tarif->{$int_id};
              }
-            if ($price > 0) {
+            if ($price && $price > 0) {
               $int_prepaid = int($deposit / $price * $PRICE_UNIT);
              }
             else {
