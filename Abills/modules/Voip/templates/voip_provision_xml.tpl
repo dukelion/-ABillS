@@ -451,6 +451,7 @@
 	<Block_ANC_Deact_Code></Block_ANC_Deact_Code>
 	<DHCP>Yes</DHCP>
 	<Password_1_>%Password_1_%</Password_1_>
+        <CLID_>%Caller_ID_1_%</CLID_>
 	<Stats_In_BYE>No</Stats_In_BYE>
 	<DND_Serv_1_>No</DND_Serv_1_>
 	<CWCID_Serv_1_>No</CWCID_Serv_1_>
