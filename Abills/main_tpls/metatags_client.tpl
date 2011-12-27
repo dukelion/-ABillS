@@ -629,6 +629,36 @@ div#tcal td:hover {
 	font-size:20px;
 }
 
+table {
+  -webkit-border-radius: 10px 5px 5px 10px; 
+  border: $_COLORS[3] solid 1px;
+  -moz-border-radius: 10px 5px 5px 10px;
+ }
+
+table.list {
+  -webkit-border-radius: 0px 0px 0px 0px; 
+  border: 0px;
+  -moz-border-radius: 0px 0px 0px 0px;
+}
+
+
+table.form {
+  border-spacing:0;
+  padding:5px;
+ }
+
+.tcaption {
+  background-color: %_COLOR_1%;
+  text-align: right;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.cel_border {
+  background-color: %_COLOR_4%;
+}
+
+ 
 </style>
 
 <title>%title%</title>

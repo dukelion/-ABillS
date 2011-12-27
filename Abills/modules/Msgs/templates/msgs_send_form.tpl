@@ -44,7 +44,7 @@ else {
 <input type='hidden' name='PARENT' value='%PARENT%'/>
 <input type='hidden' name='step' value='$FORM{step}'/>
 
-<table>
+<table class=form>
 <tr><th class=form_title colspan=2>$_MESSAGES</th></tr>
 <tr><td>$_DATE:</td><td valign=center>%DATE%  &nbsp; &nbsp; &nbsp; &nbsp; $_INNER: <input type=checkbox name=INNER_MSG value=1 %INNER_MSG%> </td></tr>
 <tr><td>$_CHAPTERS:</td><td>%CHAPTER_SEL%</td></tr>
@@ -73,6 +73,7 @@ else {
 <tr><td>$_SURVEY:</td><td>%SURVEY_SEL%</td></tr>
 %EXTRA_PARAMS%
 <!-- <tr><td>$_LOCK:</td><td><input type=checkbox name=LOCK value=1 %LOCK%></td></tr> -->
+<tr><th class=even colspan=2>%BACK_BUTTON% <input type=submit name='%ACTION%' value='%LNG_ACTION%' id='go' title='Ctrl+C'/></th></tr>
 </table>
-%BACK_BUTTON% <input type=submit name='%ACTION%' value='%LNG_ACTION%' id='go' title='Ctrl+C'/>
+
 </FORM>

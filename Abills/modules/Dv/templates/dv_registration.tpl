@@ -20,11 +20,7 @@
 <input type=hidden name=DOMAIN_ID value=$FORM{DOMAIN_ID}>
 <input type=hidden name=module value=Dv>
 
-<TABLE width=500 cellspacing=0 cellpadding=0 border=0>
-<TR><TD bgcolor=#E1E1E1>
-<TABLE width=100% cellspacing=1 cellpadding=0 border=0>
-<TR><TD bgcolor=#FFFFFF>
-<table width=100%>
+<TABLE width=500 class=form>
 <tr><th colspan=2 class=form_title>$_REGISTRATION - Internet</th></tr>
 <tr><td align=right width=50%>$_LANGUAGE:</td><td  width=50%>%SEL_LANGUAGE%</td></tr>
 <tr><td align=right>$_LOGIN:</td><td><input type=text name='LOGIN' value='%LOGIN%'></td></tr>
@@ -42,8 +38,6 @@
 <tr><td colspan=2 align=center><input type=submit name=reg value='$_REGISTRATION'></td></tr>
 </table>
 
-</td></tr></table>
-</td></tr></table>
 
 
 

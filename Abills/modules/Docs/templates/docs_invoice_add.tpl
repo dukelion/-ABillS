@@ -7,7 +7,7 @@
 <input type=hidden name='OP_SID' value='%OP_SID%'>
 <input type=hidden name='VAT' value='%VAT%'>
 <input type=hidden name='SEND_EMAIL' value='1'>
-<Table width=600>
+<Table width=600 clas=form>
 <tr><th align=right class='form_title' colspan=2>%CAPTION%</th></tr>
 %FORM_ACCT_ID%
 <tr><td>$_DATE:</td><td>%DATE%</td></tr>
@@ -22,10 +22,14 @@
 <!-- <tr><td>$_VAT:</td><td>%COMPANY_VAT%</td></tr> -->
 <tr><td colspan=2>&nbsp;</td></tr>
 <!-- <tr><td>$_PRE</td><td><input type=checkbox name=PREVIEW value='1'></td></tr> -->
-</table>
-<!-- <input type=submit name=pre value='$_PRE'>  -->
+<tr><th colspan=2 class='even'>
 %BACK%
 <input type=submit name=update value='$_REFRESH'>
 <input type=submit name=create value='$_CREATE'>
 %NEXT%
+
+
+</th></tr>
+</table>
+<!-- <input type=submit name=pre value='$_PRE'>  -->
 </form>

@@ -17,7 +17,7 @@ function postthread(param) {
 <input type=hidden name=UID value=%UID%>
 <input type=hidden name=step value=$FORM{step}>
 
-<TABLE>
+<TABLE class='form'>
 <TR><TH class='form_title' colspan=3>$_PAYMENTS</TH></TR>
 <TR><TD colspan=2>$_SUM:</TD><TD><input type=text name=SUM value='$FORM{SUM}'></TD></TR>
 <TR><TD rowspan=2>$_DESCRIBE:</TD><TD>$_USER:</TD><TD><input type=text name=DESCRIBE value='%DESCRIBE%' size=40></TD></TR>
@@ -33,8 +33,8 @@ function postthread(param) {
 
 %DOCS_ACCOUNT_ELEMENT%
 
-
+<TR><TH class='even' colspan=3>%BACK_BUTTON% <input type=submit name=%ACTION% value='%LNG_ACTION%' ID='submitbutton'></TH></TR>
 </TABLE>
-%BACK_BUTTON% <input type=submit name=%ACTION% value='%LNG_ACTION%' ID='submitbutton' >
+
 </form>
 </div>

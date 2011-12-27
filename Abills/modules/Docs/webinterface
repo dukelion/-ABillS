@@ -1605,7 +1605,8 @@ sub docs_account {
                             title_plain=> ['#', $_SERVICE, $_SUM ],
                             cols_align => ['right', 'left', 'right'],
                             qs         => $pages_qs,
-                            ID         => 'DOCS_SERVICE_ACCOUNTS'
+                            ID         => 'DOCS_SERVICE_ACCOUNTS',
+                            class      => 'form',
                           });
 
  	 my $cross_modules_return = cross_modules_call('_docs');
@@ -1670,8 +1671,11 @@ sub docs_account {
 	   $action = $html->form_input('make', "$_CREATE $_ACCOUNT", {  TYPE => 'submit', OUTPUT2RETURN => 1 });
     }
 
+   $table->{rowcolor}='even';
+   $table->{extra}=' colspan=3 align=center';
+   $table->addrow($action);
  	 
- 	 my $content = $html->form_main({ CONTENT => $table->show({ OUTPUT2RETURN => 1 }).$action,
+ 	 my $content = $html->form_main({ CONTENT => $table->show({ OUTPUT2RETURN => 1 }),
 	                 HIDDEN  => { index          => "$index",
 	                 	            UID            => $FORM{UID},
 	                 	            DATE           => $DATE,

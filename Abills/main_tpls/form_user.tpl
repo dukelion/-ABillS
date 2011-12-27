@@ -48,7 +48,7 @@ A_TCALCONF = {
 <input type=hidden name='index' value='$index'>
 <input type=hidden name=COMPANY_ID value='%COMPANY_ID%'>
 <input type=hidden name=step value='$FORM{step}'>
-<TABLE width='450' cellspacing='0' cellpadding='3'>
+<TABLE width='450'  class=form>
 %EXDATA%
 <TR><TD colspan=2>&nbsp;</TD></TR>
 
@@ -66,6 +66,7 @@ $_DATE: <input type=text name='REDUCTION_DATE' value='%REDUCTION_DATE%' ID='REDU
  <TR><TD>%DISABLE_COMMENTS%<input type=text name=ACTION_COMMENTS value='%DISABLE_COMMENTS%'  size=30 style='visibility: hidden;'>%ACTION_COMMENTS%</TD></TR>
 <TR><TD>$_REGISTRATION</TD><TD>%REGISTRATION%</TD></TR>
 <TR><td colspan='2'>%PASSWORD%</TD></TR>
+<TR><th colspan='2' class='even'><input type=submit name='%ACTION%' value='%LNG_ACTION%'></Th></TR>
 </TABLE>
-<input type=submit name='%ACTION%' value='%LNG_ACTION%'>
+
 </form>

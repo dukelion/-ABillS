@@ -1,4 +1,4 @@
-<table width=350>
+<table width=350 class=form>
 <tr><th colspan=2 bgcolor=$_COLORS[0]>$_CARDS $_INFO</th></tr>
 <tr><td>$_LOGIN:</td><td> %LOGIN%      </td></tr>
 <tr><td>$_PASSWD: </td><td> %PASSWORD% </td></tr>

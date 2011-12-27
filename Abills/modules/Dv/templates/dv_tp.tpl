@@ -2,7 +2,7 @@
 <form action='$SELF_URL' METHOD='POST'>
 <input type=hidden name='index' value='$index'>
 <input type=hidden name='TP_ID' value='%TP_ID%'>
-<table border='0' width=600>
+<table border='0' width=600 class=form>
   <tr><th colspan='2' class=form_title>$_TARIF_PLAN</th></tr>
   <tr><th align='left'>#</th><td><input type='text' name='ID' value='%ID%'></td></tr>
   <tr><td>$_NAME:</td><td><input type=text name=NAME value='%NAME%'></td></tr>
@@ -69,9 +69,9 @@
   <tr><th colspan=2><textarea cols=55 rows=5 name=RAD_PAIRS>%RAD_PAIRS%</textarea></th></tr>
   <tr><th colspan=2 class='even'>$_DESCRIBE</th></tr>
   <tr><th colspan=2><textarea cols=55 rows=5 name=COMMENTS>%COMMENTS%</textarea></th></tr>
-  
+  <tr><th colspan=2 class='even'><input type=submit name='%ACTION%' value='%LNG_ACTION%'></th></tr>
 </table>
-<input type=submit name='%ACTION%' value='%LNG_ACTION%'>
+
 </form>
 </div>
 

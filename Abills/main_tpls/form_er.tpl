@@ -8,6 +8,7 @@
 <tr><td>ISO:</td><td><input type=text name=ISO value='%ISO%'></td></tr>
 <tr><td>$_EXCHANGE_RATE:</td><td><input type=text name=ER_RATE value='%ER_RATE%'></td></tr>
 <tr><td>$_CHANGED:</td><td>%CHANGED%</td></tr>
+<tr><th colspan=2 class=even><input type=submit name='%ACTION%' value='%LNG_ACTION%'></th></tr>
 </table>
-<input type=submit name='%ACTION%' value='%LNG_ACTION%'>
+
 </form>

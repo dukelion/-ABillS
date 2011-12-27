@@ -1,7 +1,7 @@
 <form action='$SELF_URL' METHOD='POST' name='company' enctype='multipart/form-data'>
 <input type=hidden name='index' value='13'>
 <input type=hidden name='COMPANY_ID' value='%COMPANY_ID%'>
-<TABLE>
+<TABLE class='form'>
 <TR><TH class='form_title' colspan=2>$_COMPANY</th></tr>
 <TR><TD>$_NAME:</TD><TD><textarea name='COMPANY_NAME' rows='2' cols='45'>%COMPANY_NAME%</textarea></TD></TR>
 <TR class='odd'><TD>$_ADDRESS:</TD><TD><input type='text' name='ADDRESS' value='%ADDRESS%' size='60'></TD></TR>
@@ -41,6 +41,7 @@ A_TCALCONF = {
 
 %INFO_FIELDS%
 
+<TR><TH class=even colspan=2><input type=submit name='%ACTION%' value='%LNG_ACTION%'></TD></TR>
 </TABLE>
-<input type=submit name='%ACTION%' value='%LNG_ACTION%'>
+
 </form>

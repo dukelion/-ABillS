@@ -7,7 +7,7 @@
 
 <input type=hidden name=index value=$index>
 <input type=hidden name=UID value='%UID%'>
-<TABLE width=450 cellspacing=0 cellpadding=3>
+<TABLE width=450 class=form>
 <TR><TD>$_FIO:*</TD><TD><textarea name='FIO' rows=2 cols=45>%FIO%</textarea>
 <TR><TD>$_ACCEPT_RULES:</TD><TD>%ACCEPT_RULES%</TD></TR>
 <TR><TD>$_PHONE:</TD><TD><input type=text name=PHONE value='%PHONE%'></TD></TR>
@@ -24,9 +24,11 @@
 <TR><TD colspan=2 align=right>%ADD_INFO_FIELD%</TD></TR>
 <TR><th colspan=2  class=even>:$_COMMENTS:</th></TR>
 <TR><th colspan=2><textarea name=COMMENTS rows=5 cols=60>%COMMENTS%</textarea></th></TR>
-
-</TABLE>
+<TR><th colspan=3 class='even'>
 
 %BACK_BUTTON%
 <input type=submit name='%ACTION%' value='%LNG_ACTION%'>
+</th></TR>
+</TABLE>
+
 </form>

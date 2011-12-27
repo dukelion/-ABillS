@@ -1,6 +1,6 @@
 <br/>
-<TABLE width='600' cellspacing='0' cellpadding='0' border='0'><TR><TD bgcolor='#E1E1E1'>
-<TABLE width='100%' cellspacing='1' cellpadding='0' border='0'>
+<TABLE width='600' cellspacing='0' cellpadding='0' border='0' class='form'>
+
 <TR class='even'><TD><b>$_LOGIN:</b></TD><TD><b>%LOGIN%</b> <i>(UID: %UID%)</i></TD></TR>
 <TR class='odd'><TD><b>$_DEPOSIT:</b></TD><TD>%DEPOSIT%  &nbsp; %DOCS_ACCOUNT% &nbsp; %PAYSYS_PAYMENTS%</TD></TR>
 %EXT_DATA%
@@ -21,5 +21,5 @@
 <TR class='odd'><TD><b>$_DATE:</b></TD><TD>%PAYMENT_DATE%</TD></TR>
 <TR class='odd'><TD><b>$_SUM:</b></TD><TD>%PAYMENT_SUM%</TD></TR>
 </TABLE>
-</TD></TR></TABLE>
+
 <br/>

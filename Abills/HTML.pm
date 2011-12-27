@@ -935,7 +935,7 @@ sub table {
  
  my $width       = (defined($attr->{width})) ? "width=\"$attr->{width}\"" : '';
  my $border      = (defined($attr->{border})) ? "border=\"$attr->{border}\"" : '';
- my $table_class = (defined($attr->{class})) ? "class=\"$attr->{class}\"" : '';
+ my $table_class = (defined($attr->{class})) ? "class=\"$attr->{class}\"" : 'class=list';
  
  if (defined($attr->{rowcolor})) {
     $self->{rowcolor} = $attr->{rowcolor};
@@ -956,20 +956,30 @@ sub table {
  $self->{table} = "<TABLE $width cellspacing='0' cellpadding='0' border='0'$table_class>\n";
  #Table Caption
  if (defined($attr->{caption})) {
-   $self->{table} .= "<TR><TD bgcolor='$_COLORS[1]' align='right' class='tcaption' colspan='2'><b>$attr->{caption}</b></td></TR>\n";
+   $self->{table} .= "<TR><TD class='tcaption' colspan='3'>$attr->{caption}</td></TR>\n";
   }
 
  my @header_obj = ();
+
+ if ($attr->{MENU}) {
+ 	 my @menu_arr = split(/;/, $attr->{MENU});
+ 	 foreach my $line (@menu_arr) {
+ 	 	 my ($name, $ext_attr, $class) =split(/:/, $line);
+ 	 	 #push @header_obj, $self->button("$name", "$ext_attr", { CLASS => $class  });
+  	 #push @header_obj, 
+   	 $self->{EXPORT_OBJ} .= ' '.$self->button("$name", "$ext_attr", { IMG_BUTTON => "/img/button_$class.png"  });
+ 	  } 
+  }
  
  #Export object
  if ($attr->{EXPORT} && ! $FORM{EXPORT_CONTENT}) {
  	 my($export_name, $params)=split(/:/, $attr->{EXPORT}, 2);
- 	 $self->{EXPORT_OBJ} = $self->button("$export_name", "qindex=$index$attr->{qs}&pg=$PG&sort=$SORT&desc=$DESC&EXPORT_CONTENT=$attr->{ID}&header=1$params", { ex_params => 'target=_export class=export_button' });
+ 	 $self->{EXPORT_OBJ} .= $self->button("$export_name", "qindex=$index$attr->{qs}&pg=$PG&sort=$SORT&desc=$DESC&EXPORT_CONTENT=$attr->{ID}&header=1$params", { ex_params => 'target=_export', IMG_BUTTON => '/img/button_xml.png' });
  	 push @header_obj, $self->{EXPORT_OBJ};
   }
 
  if (defined($attr->{VIEW})) {
-   $self->{table} .= "<TR><TD bgcolor='$_COLORS[1]' align='right' class='tcaption'>$attr->{VIEW}</td></TR>\n";
+   $self->{table} .= "<TR><TD class='tcaption'>$attr->{VIEW}</td></TR>\n";
   }
 
  if( $attr->{header}) {
@@ -977,14 +987,14 @@ sub table {
   }
 
  if ($#header_obj > -1) {
- 	  $self->{table} .= "<tr><td valign=bottom>$self->{EXPORT_OBJ}</td><td><div id='rules'><ul><li class='center'>";
+ 	  $self->{table} .= "<tr><td width=20% valign=bottom>$self->{EXPORT_OBJ}</td><td width=60%><div id='rules'><ul><li class='center'>";
     #foreach my $obj (@header_obj) {
     #   $self->{table} .= $obj. '&nbsp;&nbsp;&nbsp;';   
     # }
-    $self->{table} .= "$attr->{header}</li></ul></div></td></tr>\n";
+    $self->{table} .= "$attr->{header}</li></ul></div></td><td width=20%>&nbsp</td></tr>\n";
   } 
 
- $self->{table} .= "<TR><TD bgcolor='$_COLORS[4]' colspan='2'>
+ $self->{table} .= "<TR><TD class=cel_border colspan='3'>
                <TABLE width='100%' cellspacing='1' cellpadding='0' border='0'>\n";
 
  
@@ -1261,6 +1271,20 @@ sub link_former {
   return $params;
 }
 
+
+#**********************************************************
+#
+# del_button($op, $del, $message, $attr)
+#**********************************************************
+sub img {
+  my $self = shift;
+  my ($img, $name, $attr)=@_;
+
+ 	my $img_path = ($img=~s/^://) ? "$IMG_PATH/" : '';
+	return "<img alt='$name' src='$img_path$img' border='0'>";
+}
+
+
 #**********************************************************
 #
 # del_button($op, $del, $message, $attr)
@@ -1287,7 +1311,11 @@ sub button {
     $params = '#';
    }
   
-  if ($attr->{IMG}) {
+  if ($attr->{IMG_BUTTON}) {
+  	my $img_path = ($attr->{IMG}=~s/^://) ? "$IMG_PATH/" : '';
+  	$name = "<img alt='$attr->{IMG_ALT}' src='$img_path$attr->{IMG_BUTTON}' border='0'>";
+   }
+  elsif ($attr->{IMG}) {
      my $img_path = ($attr->{IMG}=~s/^://) ? "$IMG_PATH/" : '';
      $name = "<img alt='$attr->{IMG_ALT}' src='$img_path$attr->{IMG}' border='0'> $name";
    }
@@ -1348,19 +1376,15 @@ sub message {
  
 my $output = qq{
 <br>
-<TABLE width="400" border="0" cellpadding="0" cellspacing="0" class="noprint">
-<tr><TD bgcolor="$_COLORS[9]">
-<TABLE width="100%" border="0" cellpadding="2" cellspacing="1">
-<tr><TD bgcolor="$_COLORS[1]">
+<TABLE width="400" border="0" cellpadding="0" cellspacing="0" class="form">
+<tr><TD class=even>
 
-<TABLE width="100%">
+<TABLE width="100%" border=0 cellpadding=0 cellspacing=0>
 $head
 <tr><TD class="odd" align="center" width="30">$img</TD>
 <TD class="odd">$message</TD></tr>
 </TABLE>
 
-</TD></tr>
-</TABLE>
 </TD></tr>
 </TABLE>
 <br>

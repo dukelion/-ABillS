@@ -2409,7 +2409,9 @@ function CheckAllINBOX() {
 //-->
 </script>\n
 <a href=\"javascript:void(0)\" onClick=\"CheckAllINBOX();\" class=export_button>$_SELECT_ALL</a>\n$status_bar" : undef,           
-                            #EXPORT  =>  ' XML:&xml=1' 
+                            EXPORT  => ' XML:&xml=1;',
+                            MENU    => "$_ADD:index=".get_function_index('form_wizard').':add'.
+                            ";$_SEARCH:index=".get_function_index('form_search').":search"
                          });
 
 
@@ -2438,7 +2440,8 @@ foreach my $line (@$list) {
                   $table->td($line->[1]), 
                   $table->td( ($line->[2] + $line->[3] < 0) ? $html->color_mark($line->[2], $_COLORS[6]) : $line->[2] ), 
                   $table->td($line->[3]), 
-                  $table->td($status[$line->[4]], { bgcolor => $state_colors[$line->[4]] }), 
+                  $table->td($status[$line->[4]], { bgcolor => $state_colors[$line->[4]], align=>'center' }), 
+                  #$table->td($html->img((($line->[4]) ? '/img/button_off.png' : '/img/button_activate.png'), $status[$line->[4]]), { align=>'center' }),
                   @fields_array, 
                   $table->td($payments),
                   $table->td($fees),
@@ -2463,7 +2466,7 @@ foreach my $line (@$list) {
 
   my $table2 = $html->table({ width      => '100%',
                               cols_align => ['right', 'right'],
-                               rows       => [ @totals_rows ]
+                              rows       => [ @totals_rows ]
                             });
 
 

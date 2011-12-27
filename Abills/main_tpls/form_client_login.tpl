@@ -21,22 +21,18 @@
 <br>
 <br>
 
+
 <form action='$SELF_URL' METHOD='post' name=form_login>
 <input type=hidden name=DOMAIN_ID value='$FORM{DOMAIN_ID}'>
 <input type=hidden ID=REFERRER name=REFERRER value='$FORM{REFERRER}'>
-<TABLE width='400'  cellspacing='0' cellpadding='0' border='0'><TR><TD bgcolor='#BBBBBB'>
-<TABLE width='100%' cellspacing='1' cellpadding='0' border='0'><TR><TD bgcolor='#EFEFEF'>
-<TABLE width='100%' cellspacing='0' cellpadding='0' border='0'>
+<TABLE width='400'  class=form>
 <TR><TH colspan=2 class=form_title>$_USER_PORTAL&nbsp;</TH></TR>
 <TR><TD colspan=2>&nbsp;</TD></TR>
 <TR><TD align=right width=50%>&nbsp;$_LANGUAGE: &nbsp;</TD><TD  width=50%>%SEL_LANGUAGE%</TD></TR>
 <TR><TD align=right>&nbsp;$_USER: &nbsp;</TD><TD><input type='text' name='user'></TD></TR>
 <TR><TD align=right>&nbsp;$_PASSWD: &nbsp;</TD><TD><input type='password' name='passwd'></TD></TR>
-<tr><th colspan='2'><input type='submit' name='logined' value=' $_ENTER ' onclick='set_referrer()'></th></TR>
-<TR><TD colspan=2>&nbsp;</TD></TR>
+<tr><th colspan='2' class=even><input type='submit' name='logined' value=' $_ENTER ' onclick='set_referrer()'></th></TR>
 </TABLE>
-</TD></TR></TABLE>
-</TD></TR></TABLE>
 </form>
 
 <br>

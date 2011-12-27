@@ -2,7 +2,7 @@
 <form action=$SELF_URL METHOD=post name=FORM_NAS>
 <input type=hidden name='index' value='61'>
 <input type=hidden name='NAS_ID' value='%NAS_ID%'>
-<TABLE>
+<TABLE class=form>
 <TR><th class=form_title colspan=2>$_NAS</th></TR>
 <TR><TD>ID</TD><TD><b>%NAS_ID%</b> <i>%CHANGED%</i></TD></TR>
 <TR><TD>IP</TD><TD><input type=text name=NAS_IP value='%NAS_IP%'></TD></TR>
@@ -26,7 +26,8 @@
 %ADDRESS_TPL%
 
 <TR><TD colspan=2>%EXTRA_PARAMS%</TD></TR>
+<TR><TD colspan=2 class=even><input type=submit name=%ACTION% value='%LNG_ACTION%'></TD></TR>
 </TABLE>
-<input type=submit name=%ACTION% value='%LNG_ACTION%'>
+
 </form>
 </div>

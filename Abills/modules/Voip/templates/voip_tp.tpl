@@ -2,7 +2,7 @@
 <form action=$SELF_URL METHOD=POST>
 <input type=hidden name=index value=$index>
 <input type=hidden name=TP_ID value=%TP_ID%>
-<table border=0>
+<table class=form>
   <tr><th>#</th><td><input type=text name=ID value='%ID%'></td></tr>
   <tr><td>$_NAME:</td><td><input type=text name=NAME value='%NAME%'></td></tr>
   <tr><td>$_UPLIMIT:</td><td><input type=text name=ALERT value='%ALERT%'></td></tr>
@@ -30,8 +30,9 @@
   <tr><td>$_NEXT_PERIOD:</td><td><input type=text name=NEXT_PERIOD value='%NEXT_PERIOD%'></td></tr>
   <tr><td>$_NEXT_PERIOD_STEP:</td><td><input type=text name=NEXT_PERIOD_STEP value='%NEXT_PERIOD_STEP%'></td></tr>
   <tr><td>$_TIME_DIVISION ($_SECONDS .):</td><td><input type=text name=TIME_DIVISION value='%TIME_DIVISION%'></td></tr>
+  <tr><th colspan=2 class='even'><input type=submit name='%ACTION%' value='%LNG_ACTION%'></th></tr> 
 </table>
-<input type=submit name='%ACTION%' value='%LNG_ACTION%'>
+
 </form>
 </div>
 

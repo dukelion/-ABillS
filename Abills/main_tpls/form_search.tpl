@@ -3,7 +3,7 @@
 <form action='$SELF_URL' METHOD='POST' name='form_search'>
 <input type='hidden' name='index' value='$index'>
 %HIDDEN_FIELDS%
-<TABLE>
+<TABLE class='form'> 
 
 <TR><TH colspan='2' class='form_title'>$_SEARCH</TH></TR>
 %SEL_TYPE%
@@ -11,7 +11,8 @@
 <TR><TD>$_PERIOD:</TD><TD>$_FROM: %FROM_DATE% $_TO: %TO_DATE% </TD></TR>
 <TR><TD>$_ROWS:</TD><TD><input tabindex=2 type='text' name='PAGE_ROWS' value='$PAGE_ROWS' size=8></TD></TR>
 %SEARCH_FORM%
+<TR><TH colspan='2' class='even'><input type='submit' name='search' value='$_SEARCH'></TH></TR>
 </TABLE>
-<input type='submit' name='search' value='$_SEARCH'>
+
 </form>
 </div>

@@ -17,12 +17,20 @@
 <style type=\"text/css\">
 
 body {
-  background-color: %_COLOR_10%;
+  background-color: $_COLORS[10];
   color: %_COLOR_9%;
   font-family: Arial, Tahoma, Verdana, Helvetica, sans-serif;
   font-size: 14px;
   /* this attribute sets the basis for all the other scrollbar colors (Internet Explorer 5.5+ only) */
 }
+
+html,body{margin:0;padding:0}
+;.table_top{ background:url(/img/css_test/block_ad_top.gif) no-repeat; height:8px; width:735px; font-size:0px;}
+;.table_cont { background:#FFFFFF; width:735px;}
+;.table_cont TABLE{ width:98%; margin:0px 5px 0px 5px}
+;.table_cont td{ border:1px solid #F3F3F3}
+;.table_bot{ background:url(/img/css_test/block_ad_bot.gif) no-repeat; height:8px; width:735px; font-size:0px; margin-bottom:10px }
+
 
 .header {
   background-color: %_COLOR_3%;
@@ -32,10 +40,13 @@ body {
 A:hover {text-decoration: none; color: %_COLOR_9%;}
 
 .MENU_BACK {
-  background:%_COLOR_2%;
+  background:%_COLOR_1%;
   width:18%;
 }
 
+.CONTENT {
+  background:%_COLOR_1%;
+}
 
 .small {
   font-size: 11px;
@@ -119,8 +130,36 @@ th, li {
   font-size: 12px;
 }
 
+table {
+  -webkit-border-radius: 10px 5px 5px 10px; 
+  border: $_COLORS[3] solid 1px;
+  -moz-border-radius: 10px 5px 5px 10px;
+ }
+
+table.list {
+  -webkit-border-radius: 0px 0px 0px 0px; 
+  border: 0px;
+  -moz-border-radius: 0px 0px 0px 0px;
+}
+
+table.form {
+  border-spacing:0;
+  padding:5px;
+ }
+
+.tcaption {
+  background-color: %_COLOR_1%;
+  text-align: right;
+  font-size: 12px;
+  font-weight: bold;
+}
+
 .title_color {
   background-color: %_COLOR_0%;
+}
+
+.cel_border {
+  background-color: %_COLOR_4%;
 }
 
 /* odd items 1,3,5,7,... */
@@ -284,6 +323,16 @@ a.add {
         overflow:hidden;
         text-indent:-90000px;
         font-size: 0px;
+}
+
+a.search {
+        background:url(/img/button_change.png) no-repeat center;
+        padding-left:22px;
+        padding-top:5px;
+        margin:0;
+        display:block;
+        overflow:hidden;
+        text-indent:-9000px;
 }
 
 a.del { 
@@ -958,6 +1007,10 @@ TABLE.border {
 #quick_menu {
 	float:left;
 }
+
+
+
+
 </style>
 
 <title>%title%</title>
