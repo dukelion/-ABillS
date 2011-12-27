@@ -802,11 +802,11 @@ sub abon_docs {
 	my $list = $Abon->user_tariff_list($FORM{UID});
   my @services = ();
   foreach my $line (@$list) {
-    #print "$line->[0]/$line->[1]<br>";
     if ($line->[5]) {
-    	if ($line->[13] > 0) {
-    		$line->[1] = $line->[1] * ((100 - $line->[13]) / 100);
+    	if ($line->[7] > 0) {
+    		$line->[3] = $line->[3] * ((100 - $line->[7]) / 100);
     	 }
+    	# NAME| ID | SUM 
       push @services, "$line->[1]|$line->[2]|$line->[3]";
      }
    }

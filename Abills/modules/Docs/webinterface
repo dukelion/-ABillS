@@ -295,8 +295,8 @@ sub docs_invoice {
     if ($FORM{NEXT_PERIOD}) {
  	    my $cross_modules_return = cross_modules_call('_docs');
   
-      $FORM{NEXT_PERIOD}++;
-      $M+=$FORM{NEXT_PERIOD};
+      my $next_period = $FORM{NEXT_PERIOD}+1;
+      $M+=$next_period;
  	    if ($M < 12) {
   	    $M=sprintf("%02d", $M);
   	   }
@@ -320,7 +320,7 @@ sub docs_invoice {
  	 	 	 	   next if ($sum <= 0);
  	 	 	   	 
  	 	 	   	 $num++;
- 	 	 	 	   $sum = sprintf("%.2f", $sum * ($FORM{NEXT_PERIOD}-1));
+ 	 	 	 	   $sum = sprintf("%.2f", $sum * ($FORM{NEXT_PERIOD}));
  	 	 	 	   
  	 	 	 	   if ($users->{REDUCTION} && $module ne 'Abon') {
  	 	 	 	   	 $sum = sprintf("%.2f",  $sum * (100 - $users->{REDUCTION}) / 100);
@@ -340,7 +340,7 @@ sub docs_invoice {
      }
 
     if ($users->{DEPOSIT}>0) {
- 	    $amount_for_pay    = $total_sum-$users->{DEPOSIT};
+ 	    $amount_for_pay    = ($total_sum<$users->{DEPOSIT}) ? 0 : $total_sum-$users->{DEPOSIT};
  	   }
     else {
    	  $amount_for_pay    = $total_sum;
