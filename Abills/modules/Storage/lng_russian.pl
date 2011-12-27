@@ -71,6 +71,8 @@ $_MANAGER='Руководитель';
 $_POSITION_MANAGER='Должность руководителя';
 $_ACCOUNTANT='Бухгалтер';
 $_GUIDANCE='Руководство';
+$_ADD_ITEM='Добавить товар';
+$_QUANTITY_OF_GOODS = 'Кол-во товара';
 
 
 

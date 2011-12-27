@@ -32,7 +32,7 @@
     <td><input name=\"DATE\" type=\"text\" value=\"%DATE%\" /></td>
   </tr>
    <tr>
-    <td>Кол-во товара: </td>
+    <td>$_QUANTITY_OF_GOODS: </td>
     <td><input name=\"COUNT\" type=\"text\" value=\"%COUNT%\" %DISABLED% /></td>
   </tr>
   <tr>

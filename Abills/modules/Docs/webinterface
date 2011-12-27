@@ -294,7 +294,7 @@ sub docs_invoice {
  	    my $cross_modules_return = cross_modules_call('_docs');
   
       my $next_period = $FORM{NEXT_PERIOD}+1;
-      if ($users->{ACTIVATE} ne '0000-00-00') {      
+      if ($users->{ACTIVATE} ne '0000-00-00') {
   	 	  ($Y, $M, $D)=split(/-/, strftime "%Y-%m-%d", localtime( (mktime(0, 0, 0, $D, ($M-1), ($Y-1900), 0, 0, 0) + 31 * 86400) )); 
         $FORM{FROM_DATE}="$Y-$M-$D";
 

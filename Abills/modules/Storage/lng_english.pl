@@ -71,3 +71,5 @@ $_MANAGER='Manager';
 $_POSITION_MANAGER='POSITION OF A MANAGER';
 $_ACCOUNTANT='Accountant';
 $_GUIDANCE='Guidance';
+$_ADD_ITEM='Add item';
+$_QUANTITY_OF_GOODS='Quantity of goods';
