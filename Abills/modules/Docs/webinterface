@@ -295,10 +295,10 @@ sub docs_invoice {
   
       my $next_period = $FORM{NEXT_PERIOD}+1;
       if ($users->{ACTIVATE} ne '0000-00-00') {      
-  	 	  ($Y, $M, $D)=split(/-/, strftime "%Y-%m-%d", localtime( (mktime(0, 0, 0, $D, ($M-1), ($Y-1900), 0, 0, 0) + 30* 86400) )); 
+  	 	  ($Y, $M, $D)=split(/-/, strftime "%Y-%m-%d", localtime( (mktime(0, 0, 0, $D, ($M-1), ($Y-1900), 0, 0, 0) + 31 * 86400) )); 
         $FORM{FROM_DATE}="$Y-$M-$D";
 
-        ($Y, $M, $D)=split(/-/, strftime "%Y-%m-%d", localtime( (mktime(0, 0, 0, $D, ($M-1), ($Y-1900), 0, 0, 0) + 30 * ($next_period-1)  * 86400) )); 
+        ($Y, $M, $D)=split(/-/, strftime "%Y-%m-%d", localtime( (mktime(0, 0, 0, $D, ($M-1), ($Y-1900), 0, 0, 0) + 31 * ($next_period-1)  * 86400) )); 
         $FORM{TO_DATE}="$Y-$M-$D";
        }
       else { 
