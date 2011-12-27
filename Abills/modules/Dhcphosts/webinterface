@@ -1234,6 +1234,7 @@ foreach my $line (@$list) {
       	$INFO{OPTION82_CLASS_NAME} .= "-$INFO{CLIENT_MAC}";
        }
 
+      # make custom option 82 tpl
       if ($conf{DHCPHOSTS_O82_CLASS_TPL}) {
       	$INFO{OPTION82_CLASS} .=  $html->tpl_show(_include('dhcphosts_dhcp_conf_o82_class', 'Dhcphosts'), \%INFO, { OUTPUT2RETURN => 1 });
        }

@@ -1297,11 +1297,14 @@ sub user_form {
     }
 
    my $main_account = $html->tpl_show(templates('form_user'), { %$user_info, %$attr  }, { OUTPUT2RETURN => 1 });
+   $main_account .= $html->tpl_show(templates('form_password'), { %$user_info, %$attr  }, { OUTPUT2RETURN => 1 });
+
    $main_account =~ s/<FORM.+>//ig;
    $main_account =~ s/<\/FORM>//ig;
    $main_account =~ s/<input.+type=submit.+>//ig;
    $main_account =~ s/<input.+index.+>//ig;
    $main_account =~ s/user_form/users_pi/ig;
+
    user_pi({ MAIN_USER_TPL => $main_account, %$attr });
   }
  else {
@@ -2145,6 +2148,22 @@ elsif ( $FORM{add}) {
   	return 0;
    }
 
+  if ($FORM{newpassword}) {
+    if (length($FORM{newpassword}) < $conf{PASSWD_LENGTH}) {
+      $html->message('err', $_ERROR,  "$ERR_SHORT_PASSWD $conf{PASSWD_LENGTH}");
+     }
+    elsif ($FORM{newpassword} eq $FORM{confirm}) {
+      $FORM{PASSWORD} = $FORM{newpassword};
+     }
+    elsif($FORM{newpassword} ne $FORM{confirm}) {
+      $html->message('err', $_ERROR, "$ERR_WRONG_CONFIRM");
+     }
+    else {
+    	$FORM{PASSWORD}=$FORM{newpassword};
+     }
+   }
+
+
   $FORM{REDUCTION}=100 if ($FORM{REDUCTION} && $FORM{REDUCTION} > 100);
 
   my $user_info = $users->add({ %FORM });  
@@ -2855,13 +2874,22 @@ my $table = $html->table( { width      => '100%',
 foreach my $line (@$list) {
   my $delete = ($permissions{4}{3}) ? $html->button($_DEL, "index=$index$pages_qs&del=$line->[0]", { MESSAGE => "$_DEL [$line->[0]] ?", CLASS => 'del' }) : ''; 
 
+  $table->{rowcolor}=undef;
+  my $color = undef;
+  if (in_array($line->[6], [10, 28, 13])) {
+  	$color='red';
+   }
+  elsif (in_array($line->[6], [1, 7])) {
+  	$table->{rowcolor}=$_COLORS[3];
+   }
+
   $table->addrow($html->b($line->[0]),
-    $line->[1],
-    $line->[2], 
+    $html->color_mark($line->[1], $color),
+    $html->color_mark($line->[2], $color),
     $line->[3], 
     $line->[4], 
     $line->[5], 
-    $action_types{$line->[6]}, 
+    $html->color_mark($action_types{$line->[6]}, $color), 
     $delete);
 }
 
@@ -2965,15 +2993,25 @@ my $table = $html->table( { width      => '100%',
 
 foreach my $line (@$list) {
   my $delete = ($permissions{4}{3}) ? $html->button($_DEL, "index=$index$pages_qs&del=$line->[0]", { MESSAGE => "$_DEL [$line->[0]] ?", CLASS => 'del' }) : ''; 
-
+  
+  my $color = undef;
+  if (in_array($line->[7], [10, 28, 13])) {
+  	$color='red';
+   }
+  elsif (in_array($line->[7], [1, 7])) {
+  	$table->{rowcolor}=$_COLORS[3];
+   }
+  else {
+  	$table->{rowcolor}=undef;
+   }
   $table->addrow($html->b($line->[0]),
     $html->button($line->[1], "index=15&UID=$line->[8]"), 
-    $line->[2], 
-    $line->[3], 
-    $line->[4], 
+    $html->color_mark($line->[2], $color), 
+    $html->color_mark($line->[3], $color), 
+    $line->[4],  
     $line->[5], 
     $line->[6], 
-    $action_types{$line->[7]}, 
+    $html->color_mark($action_types{$line->[7]}, $color), 
     $delete);
 }
 
@@ -4520,6 +4558,7 @@ print $html->form_main({HIDDEN  => { index  => "$index",
 #**********************************************************
 sub form_passwd {
  my ($attr)=@_;
+
  my $password_form; 
  
  if (defined($FORM{AID})) {
@@ -4532,7 +4571,7 @@ sub form_passwd {
 	 $password_form->{HIDDDEN_INPUT} = $html->form_input('UID', "$FORM{UID}", { TYPE => 'hidden',
        	                               OUTPUT2RETURN => 1
        	                               });
-	 $index=15;
+	 $index=15 if (! $attr->{REGISTRATION});
  }
 
 $conf{PASSWD_LENGTH}=8 if (! $conf{PASSWD_LENGTH});
@@ -4554,6 +4593,10 @@ $password_form->{PW_CHARS}  = $conf{PASSWD_SYMBOLS} || "abcdefhjmnpqrstuvwxyz234
 $password_form->{PW_LENGTH} = $conf{PASSWD_LENGTH} || 6;
 $password_form->{ACTION}    = 'change';
 $password_form->{LNG_ACTION}= "$_CHANGE";
+
+$password_form->{ACTION}    = 'change';
+$password_form->{LNG_ACTION}= "$_CHANGE";
+
 $html->tpl_show(templates('form_password'), $password_form);
 
  return 0;
@@ -5659,7 +5702,7 @@ elsif($FORM{UID}) {
 	return 0;
  }	
 elsif($index != 7) {
-  $FORM{type} = $FORM{subf};
+  $FORM{type} = $FORM{subf} if ($FORM{subf});
 	form_search({ HIDDEN_FIELDS => { subf => ($FORM{subf}) ? $FORM{subf} : undef,
 		                               COMPANY_ID => $FORM{COMPANY_ID}  },
 		            ID            => 'SEARCH_PAYMENTS' 
@@ -5996,8 +6039,6 @@ sub form_fees  {
  my $fees = Finance->fees($db, $admin, \%conf);
  my %BILL_ACCOUNTS = ();
  
-print "$index / $FORM{subf}";
-
  %FEES_METHODS = %{ get_fees_types() };
 
 if ($attr->{USER_INFO}) {
@@ -6163,9 +6204,7 @@ if ($attr->{USER_INFO}) {
     
 
     $html->tpl_show(templates('form_fees'), $fees);
-   }	
-
-
+   }
 }
 elsif($FORM{AID} && ! defined($LIST_PARAMS{AID})) {
 	$FORM{subf}=$index;
@@ -6178,7 +6217,7 @@ elsif($FORM{UID}) {
 	return 0;
 }
 elsif($index != 7) {
-  $FORM{type} = $FORM{subf};
+  $FORM{type} = $FORM{subf} if ($FORM{subf});
 	form_search({ HIDDEN_FIELDS => { subf       => ($FORM{subf}) ? $FORM{subf} : undef,
 		                               COMPANY_ID => $FORM{COMPANY_ID} } });
 }
