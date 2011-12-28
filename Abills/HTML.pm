@@ -1376,16 +1376,20 @@ sub message {
  
 my $output = qq{
 <br>
-<TABLE width="400" border="0" cellpadding="0" cellspacing="0" class="form">
-<tr><TD class=even>
+<TABLE width="400" border="0" cellpadding="0" cellspacing="0" class="noprint">
+<tr><TD bgcolor="$_COLORS[9]">
+<TABLE width="100%" border=0 cellpadding="2" cellspacing="1" class="noprint">
+<tr><TD bgcolor="$_COLORS[1]">
 
-<TABLE width="100%" border=0 cellpadding=0 cellspacing=0>
+<TABLE width="100%" border=0 cellpadding=0 cellspacing=0 class="noprint">
 $head
 <tr><TD class="odd" align="center" width="30">$img</TD>
 <TD class="odd">$message</TD></tr>
 </TABLE>
 
-</TD></tr>
+</TD></TR>
+</TABLE>
+</TD></TR>
 </TABLE>
 <br>
 };

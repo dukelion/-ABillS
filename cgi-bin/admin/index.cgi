@@ -5535,7 +5535,9 @@ if ($attr->{USER_INFO}) {
    }
 
 
-  if (defined($FORM{OP_SID1}) and $FORM{OP_SID} eq $COOKIES{OP_SID}) {
+print "// if (defined($FORM{OP_SID}) and $FORM{OP_SID} eq $COOKIES{OP_SID}) { //";
+
+  if (defined($FORM{OP_SID}) and $FORM{OP_SID} eq $COOKIES{OP_SID}) {
  	  $html->message('err', $_ERROR, "$_EXIST");
    }
   elsif ($FORM{add} && $FORM{SUM}) {
