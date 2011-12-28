@@ -1021,6 +1021,9 @@ else {
                               qs         => $pages_qs,
                               ID         => 'COMPANY_ID',
                               EXPORT     => ' XML:&xml=1',
+                              MENU    => "$_ADD:index=".get_function_index('add_company').':add'.
+                            ";$_SEARCH:index=".get_function_index('form_search').":search"
+
                             } );
 
 
