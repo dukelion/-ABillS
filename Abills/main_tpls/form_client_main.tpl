@@ -1,4 +1,4 @@
-<TABLE border='0' WIDTH='100%' style='margin: 0' CELLSPACING='0' CELLPADDING='0'>
+<TABLE WIDTH='100%' class=form>
 <TR class='even' id='statusbar'>
 
 <TD width=33% align='left'><b>$_USER:</b> %LOGIN% <b>IP:</b> %IP%</TD>
