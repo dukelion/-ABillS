@@ -7,21 +7,20 @@
 <input type='hidden' name='INNER_MSG' value='%INNER_MSG%'/>
 
 
-<TABLE width='100%' cellspacing='0' cellpadding='0' border='0'><TR><TD bgcolor='#E1E1E1' valign='top'>
-<TABLE width='100%' cellspacing='1' cellpadding='0' border='0' style='height: 100%'>
-<!-- <tr bgcolor=$_COLORS[1]><TD>%THREADS%</td></tr> -->
+<TABLE width='100%' cellspacing='0' cellpadding='0' border='0'>
 
+<TR><TD bgcolor='#FFFFFF' valign='top'>
+<TABLE width='100%' class=form>
+<!-- <tr bgcolor=$_COLORS[1]><TD>%THREADS%</td></tr> -->
 <tr><th colspan=4 align=left class='even'> > %SUBJECT%</th></tr>
 <tr><td colspan=4>
-
 <table cellspacing='1' cellpadding='0' border='0' width=100%>
 <tr><td  class='odd'>ID:</td><td class='odd'>%ID%</td><td  class='odd'>$_CHAPTERS:</td><td  class='odd'>%CHAPTER_NAME%</td></tr>
 <tr><td  class='odd'>$_STATUS:</td><td class='odd'>%STATE_NAME%</td><td  class='odd'>$_PRIORITY:</td><td  class='odd'>%PRIORITY_TEXT%</td></tr>
 <tr><td  class='odd'>$_CREATED:</td><td class='odd'>%DATE%</td><td  class='odd'>$_UPDATED:</td><td  class='odd'>%UPDATED%</td></tr>
 </table>
-
 </th></tr>
-<tr><th colspan=4 align=left class='odd'>&nbsp;</th></tr>
+<!-- <tr><th colspan=4 align=left class='odd'>&nbsp;</th></tr> -->
 <tr class='total'><td colspan=4> 
 <table cellspacing='1' cellpadding='0' border='0' width=100%>
 <tr><th align=left class=title_color> %LOGIN% </th></tr>
@@ -34,16 +33,19 @@
 </TABLE>
 
 </TD><td width='200' valign='top' class='even'>
-<TABLE width='100%' cellspacing='1' cellpadding='0' border='0'>
+<TABLE width='100%' cellspacing='1' cellpadding='0' border='0' class=form>
 <tr><td>
 
 
 %EXT_INFO%
 
-</td></tr>
-</TABLE>
-</td>
-</TR>
-</TABLE>
+
+</td></tr></TABLE>
+
+
+</td></TR></TABLE>
+
+
+
 
 </form>

@@ -15,8 +15,8 @@ samechanged('STATE');
 </SCRIPT>
 <input type='hidden' name='MAIN_INNER_MESSAGE' value='%MAIN_INNER_MSG%'/>
 <div class='noprint'>
-<table width=100%>
-<tr><th bgcolor='$_COLORS[0]' colspan='2'>$_REPLY</th></tr>
+<table width=100% class=form>
+<tr><th class=form_title colspan='2'>$_REPLY</th></tr>
 <input type='hidden' name='SUBJECT' value='%SUBJECT%' size=50/>
 <tr><td>$_SUBJECT:</td><td><input type='text' name='REPLY_SUBJECT' value='%REPLY_SUBJECT%' size=50/></td></tr>
 <tr><th colspan='2'><textarea name='REPLY_TEXT' cols='90' rows='11' onkeydown='keyDown(event)' onkeyup='keyUp(event)'>%QUOTING% %REPLY_TEXT%</textarea></th></tr>

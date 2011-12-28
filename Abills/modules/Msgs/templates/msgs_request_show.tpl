@@ -4,7 +4,8 @@
 <input type='hidden' name='ID' value='%ID%'/>
 <input type='hidden' name='PARENT' value='%PARENT%'/>
 
-<TABLE width='100%' cellspacing='0' cellpadding='0' border='0'><TR><TD bgcolor='#E1E1E1' valign='top'>
+<TABLE width='100%' class=form>
+<TR><TD class=cel_border valign='top'>
 <TABLE width='100%' cellspacing='1' cellpadding='0' border='0' style='height: 100%'>
 <!-- <tr class='odd'><TD>%THREADS%</td></tr> -->
 
