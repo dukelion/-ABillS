@@ -10,7 +10,7 @@
     <input type='hidden' name='server_url' value='https://$ENV{SERVER_NAME}:$ENV{SERVER_PORT}/paysys_check.cgi' />
 
 
-<table width=400 border=0>
+<table width=400 class=form>
 <tr><th class='form_title' colspan=2>LiqPAY</th></tr>
 <tr><td colspan=2 align=center><img src='https://www.liqpay.com/images/logo_liqpay.png'></td></tr>
 <tr><th colspan=2 align=center>
@@ -27,7 +27,7 @@
 <tr><td>$_TOTAL $_SUM:</td><td>$FORM{TOTAL_SUM}</td></tr>
 <!-- <tr><td>$_PAY_WAY:</td><td>%PAY_WAY_SEL%</td></tr> -->
 
-<tr><th colspan=2><input type=submit name=add value='$_PAY'>
+<tr><th colspan=2 class=even><input type=submit name=add value='$_PAY'>
 </table>
 </form>
 

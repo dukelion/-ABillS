@@ -10,12 +10,7 @@
 <input type='hidden' name='note' value='$FORM{OPERATION_ID}'>
 <input type='hidden' name='service_id' value='$conf{PAYSYS_UKRPAYS_SERVICE_ID}'>
 
-<TABLE width='500'cellspacing='0' cellpadding='0' border='0'><TR><TD bgcolor='#E1E1E1'>
-<TABLE width='100%' cellspacing='1' cellpadding='0' border='0'>
-<tr><td class=odd>
-
-<table width=100%>
-
+<TABLE width='500' class=form>
 
 <tr><th class='form_title' colspan=2>Visa / Mastercard (Ukrpays)</th></tr>
 <tr><th colspan=2><img src='https://ukrpays.com/img/logo.gif'></th></tr>
@@ -33,8 +28,6 @@
 
 </table>
 
-<td></tr></table>
-<td></tr></table>
 </FORM>
 
 <!-- UKRPAYS END -->

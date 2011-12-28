@@ -11,7 +11,7 @@
 <input type='hidden' name='id' value='$conf{PAYSYS_IPAY_MERCHANT_ID}'>
 <input type='hidden' name='amount' value='%amount%'>
 <input type='hidden' name='desc' value='%desc%'>
-<table width=300>
+<table width=300 class=form>
 <tr><th colspan='2' class='form_title'>Ipay</th></tr>
 <tr>
 	<td>ID:</td>
@@ -32,6 +32,7 @@
 	<td>&nbsp;</td>
 	<td>&nbsp;</td>
 </tr>
+<tr><th colspan='2' class='even'><input type='submit' value='$_ADD'></th></tr>
 </table>
-<input type='submit' value='$_ADD'>
+
 </form>
