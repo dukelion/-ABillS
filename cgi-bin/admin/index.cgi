@@ -1598,7 +1598,8 @@ sub user_info {
   	                      rowcolor   => 'even',
   	                      border     => 0,
                           cols_align => ['left:noprint'],
-                          rows       => [ [ "$ext_menu".  $deleted ] ]
+                          rows       => [ [ "$ext_menu".  $deleted ] ],
+                          class      => 'form',
                         });
 
   $user_info->{TABLE_SHOW} = $table->show();
@@ -5981,7 +5982,9 @@ my $table = $html->table( { width      => '100%',
                             cols_align => ['right', 'left', 'left', 'left', 'center:noprint'],
                             qs         => $pages_qs,
                             #pages      => $nas->{TOTAL},
-                            ID         => 'FEES_WIZARD'
+                            ID         => 'FEES_WIZARD',
+                            class      => 'form'
+                            
                        } );
 
 
@@ -6001,7 +6004,6 @@ for (my $i=0; $i<=6; $i++) {
    );
 }
 
-my $output = $table->show({ OUTPUT2RETURN => 1 });
 
 if ($attr->{ACTION}) {
   my $action = "";
@@ -6014,7 +6016,10 @@ if ($attr->{ACTION}) {
 	  $action = $html->form_input('change', "$_CHANGE", {  TYPE => 'submit' });
    }
 
-	print $html->form_main({ CONTENT => $output. $action,
+  $table->{extra}='colspan=5 align=center';
+  $table->{rowcolor}='even';
+  $table->addrow($action);
+	print $html->form_main({ CONTENT => $table->show({ OUTPUT2RETURN => 1 }),
 	                         HIDDEN  => { index    => "$index",
 	                         	            step     => $FORM{step},
 	                         	            UID      => "$FORM{UID}"

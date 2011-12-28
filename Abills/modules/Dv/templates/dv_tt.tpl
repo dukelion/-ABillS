@@ -3,7 +3,7 @@
 <input type=hidden name='index' value='$index'>
 <input type=hidden name='TP_ID' value='%TP_ID%'>
 <input type=hidden name='tt' value='%TI_ID%'>
-<table>
+<table class=form>
 <tr><th colspan=3 class='form_title'>$_TRAFIC_TARIFS</th></tr>
 <tr><td colspan=2>$_INTERVALS:</td><td class='even'>%TI_ID%</td></tr>
 <tr><td colspan=2>$_TARIF ID:</td><td>%SEL_TT_ID%</td></tr>
@@ -17,7 +17,8 @@
 
 <tr><td colspan=2>NETS</td><td>%NETS_SEL%</td></tr>
 <tr><th colspan=3>%DV_EXPPP_NETFILES%</th></tr>
+<tr><th colspan=3 class='even'><input type=submit name='%ACTION%' value='%LNG_ACTION%'></th></tr>
 </table>
-<input type=submit name='%ACTION%' value='%LNG_ACTION%'>
+
 </form>
 </div>

@@ -1,5 +1,5 @@
 <br/>
-<TABLE width='600' cellspacing='0' cellpadding='0' border='0' class='form'>
+<TABLE width='600' class='form'>
 
 <TR class='even'><TD><b>$_LOGIN:</b></TD><TD><b>%LOGIN%</b> <i>(UID: %UID%)</i></TD></TR>
 <TR class='odd'><TD><b>$_DEPOSIT:</b></TD><TD>%DEPOSIT%  &nbsp; %DOCS_ACCOUNT% &nbsp; %PAYSYS_PAYMENTS%</TD></TR>

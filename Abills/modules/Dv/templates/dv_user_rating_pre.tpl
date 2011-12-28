@@ -4,7 +4,7 @@
 <input type=hidden name=sid value=$FORM{sid}>
 <input type=hidden name='UP_RATING' value='%UP_RATING%'>
 
-<table width=400>
+<table width=400 class=form>
 <tr><th colspan=2 class=form_title>$_RATING</th></tr>
 <tr><td colspan=2>
 
@@ -13,7 +13,8 @@ $_CONTINUE ?
 
 
  </td></tr>
+<tr><th colspan=2 class=even><input type=submit name=UP value='$_UP_RATING'></th></tr>
 </table>
-<input type=submit name=UP value='$_UP_RATING'>
+
 
 </form>

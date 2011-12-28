@@ -179,7 +179,8 @@ my $table = $html->table( { width      => '100%',
                               "$_CREATE $_DOCS", "$_SEND_NOTIFICATION"],
                             cols_align => ['left', 'left', 'left', 'right', 'left', 'right', 'right'],
                             qs         => $pages_qs,
-                            ID         => 'USER_ABON'
+                            ID         => 'USER_ABON',
+                            class      => 'form'
                           });
 
 my @ids = ();
@@ -224,7 +225,12 @@ else{
 	$action = $html->form_input('change', "$_CHANGE", {  TYPE => 'submit' });
 }
 
-print $html->form_main({ CONTENT => $table->show(). $action,
+
+$table->{extra}='colspan=10 align=center';
+$table->{rowcolor}='even';
+$table->addrow($action);
+
+print $html->form_main({ CONTENT => $table->show(),
 	                 HIDDEN  => { index  => "$index", 
 	                 	            UID    => $FORM{UID},
 	                 	            step   => $FORM{step}

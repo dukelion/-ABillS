@@ -24,7 +24,7 @@ function check_status(object, text) {
 <input type=hidden name='UID' value='$FORM{UID}'>
 <input type=hidden name='STATUS_DAYS' value='%STATUS_DAYS%'>
 <input type=hidden name='step' value='$FORM{step}'>
-<table cellspacing='0' cellpadding='3' width=450 class='form'>
+<table width=450 class='form'>
 <tr class='even'><td>$_TARIF_PLAN:</td><th  align='left' valign='middle'>[%TP_ID%] %TP_NAME% 
 %CHANGE_TP_BUTTON% <a href='$SELF?index=$index&UID=$FORM{UID}&pay_to=1' class='payments rightAlignText' title='$_PAY_TO'>$_PAY_TO</a></th></tr>
 %JOIN_SERVICE%

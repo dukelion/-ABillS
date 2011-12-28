@@ -1,6 +1,4 @@
-<TABLE width=600 cellspacing=0 cellpadding=0 border=0>
- <TR><TD bgcolor=#E1E1E1>
-<TABLE width=100% cellspacing=1 cellpadding=0 border=0>
+<TABLE width=600 class=form>
 <tr class='odd'><td>$_SESSION_ID:</td><td>%SESSION_ID%</td></tr>
 <tr class='odd'><td>$_BEGIN:</td><td align=right>%START%</td></tr>
 <tr class='odd'><td>$_END:</td><td align=right>%STOP%</td></tr>
@@ -25,4 +23,4 @@
 <tr class='odd'><td>ACCT_TERMINATE_CAUSE</td><td>%ACCT_TERMINATE_CAUSE%</td></tr>
 <tr class='odd'><td align=center colspan=2>%RECALC%</td></tr>
 </table>
-</td></tr></table>
+

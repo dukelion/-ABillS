@@ -22,8 +22,8 @@
 <tr><td colspan='2'>E-Mail (*):</td><td><input  tabindex='19' type='text' name='EMAIL' value='%EMAIL%'/></td><TD class='even'>$_GRANT:</TD><TD><input  tabindex='27' type=text name=PASPORT_GRANT value='%PASPORT_GRANT%'></TD></tr>
 
 <tr><td colspan='2'>$_DISABLE:</td><td>$_YES: <input  tabindex='20' type='radio' name='DISABLE' value='1'/> $_NO<input  tabindex='20' type='radio' name='DISABLE' value='0'/></td></tr>
-<tr><td colspan='3'><table width=100%>
-<tr><th colspan=2 class='title_color'>$_ADDRESS</th></tr>
+<tr><td colspan='3'>
+<table width=100%>
 %ADDRESS_FORM%
 </table></td></tr>
 

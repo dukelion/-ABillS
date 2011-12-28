@@ -1,4 +1,5 @@
-<TABLE width='600' cellspacing='0' cellpadding='0' border='0'><TR><TD bgcolor='#E1E1E1'>
+<TABLE width='600' class=form>
+<TR><TD class=cel_border>
 <TABLE width='100%' cellspacing='1' cellpadding='0' border='0'>
 <TR><TH class='form_title' COLSPAN='2'>$_INFO</TH></TR>
 <TR class='odd'><TD>$_LOGIN:</TD><TD><a href='$SELF_URL?index=15&UID=%UID%'>%LOGIN%</a></TD></TR>
