@@ -5535,8 +5535,6 @@ if ($attr->{USER_INFO}) {
    }
 
 
-print "// if (defined($FORM{OP_SID}) and $FORM{OP_SID} eq $COOKIES{OP_SID}) { //";
-
   if (defined($FORM{OP_SID}) and $FORM{OP_SID} eq $COOKIES{OP_SID}) {
  	  $html->message('err', $_ERROR, "$_EXIST");
    }
