@@ -5534,7 +5534,6 @@ if ($attr->{USER_INFO}) {
     ($DATE, $TIME)=split(/ /, $FORM{DATE});
    }
 
-
   if (defined($FORM{OP_SID}) and $FORM{OP_SID} eq $COOKIES{OP_SID}) {
  	  $html->message('err', $_ERROR, "$_EXIST");
    }

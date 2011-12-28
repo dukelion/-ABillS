@@ -14,7 +14,7 @@
 %EXT_DATA%
 
 <TR><TD colspan=3>%SHEDULE%</TD></TR>
-<TR><TD colspan=3 class='even'><input type=submit name='take' value='$_TAKE'></TD></TR>
+<TR><TH colspan=3 class='even'><input type=submit name='take' value='$_TAKE'></TH></TR>
 </TABLE>
 
 </form>
