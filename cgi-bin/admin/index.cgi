@@ -1022,7 +1022,7 @@ else {
                               ID         => 'COMPANY_ID',
                               EXPORT     => ' XML:&xml=1',
                               MENU    => "$_ADD:index=".get_function_index('add_company').':add'.
-                            ";$_SEARCH:index=".get_function_index('form_search').":search"
+                            ";$_SEARCH:index=".get_function_index('form_search')."&type=13:search"
 
                             } );
 
@@ -3107,6 +3107,7 @@ if(defined($attr->{TP})) {
                               title      => ['#', $_DAYS, $_BEGIN, $_END, $_HOUR_TARIF, $_TRAFFIC, '-', '-',  '-'],
                               cols_align => ['left', 'left', 'right', 'right', 'right', 'center', 'center', 'center', 'center', 'center'],
                               qs         => $pages_qs,
+                              class      => 'form'
                            } );
 
   my $color="AAA000";
@@ -3146,7 +3147,8 @@ if(defined($attr->{TP})) {
        my $table2 = $html->table({ width       => '100%',
                                    title_plain => ["#", "$_TRAFFIC_TARIFF In ", "$_TRAFFIC_TARIFF Out ", "$_PREPAID (Mb)", "$_SPEED IN",  "$_SPEED OUT", "DESCRIBE", "NETS", "-", "-"],
                                    cols_align  => ['center', 'right', 'right', 'right', 'right', 'right', 'left', 'right', 'center', 'center', 'center'],
-                                   caption     => "$_TRAFIC_TARIFS"
+                                   caption     => "$_TRAFIC_TARIFS",
+                                   class       => 'form'
                                   } );
 
        my $list_tt = $tarif_plan->tt_list({ TI_ID => $line->[0] });
@@ -3187,7 +3189,8 @@ if ($tarif_plan->{errno}) {
 $table = $html->table({ width       => '100%',
 	                      title_plain => [$_DAYS, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13,14,15,16,17,18, 19, 20, 21, 22, 23],
                         caption     => "$_INTERVALS",
-                        rowcolor    => 'odd'
+                        rowcolor    => 'odd',
+                        class       => 'form'
                         });
 
 

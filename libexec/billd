@@ -2495,9 +2495,10 @@ foreach my $line (@$list) {
 
 #Make ssh command	
   $result .= `echo "===> Initialising remote commands executing:" >> /var/log/shaper` if ($debug > 0);
-	foreach my $cmd (@commands)  {
-		print "$cmd\n" if ($debug > 0);
-		if ($debug < 5) {
+  foreach my $cmd (@commands)  {
+    $cmd =~ s/\"/\\\"/g;
+    print "$cmd\n" if ($debug > 0);
+    if ($debug < 5) {
       $result .= `$SSH $nas_admin\@$nas_host "$cmd"; echo "$cmd" >> /var/log/shaper`;
      }
 	 }

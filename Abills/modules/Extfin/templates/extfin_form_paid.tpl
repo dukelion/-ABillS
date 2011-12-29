@@ -4,7 +4,7 @@
 <input type=hidden name='OP_SID' value='%OP_SID%'>
 <input type=hidden name='UID' value='$FORM{UID}'>
 <input type=hidden name='ID' value='$FORM{chg}'>
-<TABLE class=form width=550>
+<TABLE class=form width=500>
 <TR><TD>$_SUM:</TD><TD><input type=text name='SUM' value='%SUM%'></TD></TR>
 <TR><TD>$_DESCRIBE:</TD><TD><input type=text name=DESCRIBE value='%DESCRIBE%'></TD></TR>
 <TR><TD>$_TYPE:</TD><TD>%TYPE_SEL%</TD></TR>
