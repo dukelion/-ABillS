@@ -488,7 +488,6 @@ my %HIDDEN = ();
   	        PERIOD_FORM		=> 1,
   	        TIME_FORM     => 1,
   	        FIELDS        => { %CAPTIONS_HASH },
-  	        XML           => 1,
   	        EX_INPUTS     => [ $html->form_select('DIMENSION', { SELECTED   => $FORM{DIMENSION},
  	                                                               SEL_HASH   => {'' => 'Auto', 
  	                                                               	              'Bt' => 'Bt',
@@ -527,7 +526,8 @@ if ($FORM{DATE} || ($FORM{TYPE} && $FORM{TYPE} eq 'DAYS_TCLASS')) {
                                      title      => ["$_DATE", "$_USERS", "$_TRAFFIC_CLASS", "$_NAME", "IN", "OUT", "$_TOTAL", "$_SUM"],
                                      cols_align => ['right', 'left', 'right', 'right', 'right', 'right', 'right'],
                                      qs         => $pages_qs,
-                                     ID         => 'IPN_USERS_STATS'             
+                                     ID         => 'IPN_USERS_STATS',
+                                     EXPORT     => "$_EXPORT XML:&xml=1",
                                } );
 
     my %report = ();
@@ -717,7 +717,8 @@ if ($FORM{DATE} || ($FORM{TYPE} && $FORM{TYPE} eq 'DAYS_TCLASS')) {
                                       title      => ["$_TRAFFIC_CLASS", "$_RECV", "$_SENT", "$_SUM"],
                                       cols_align => ['right', 'right', 'right', 'right' ],
                                       qs         => $pages_qs,
-                                      ID         => 'IPN_TRAFFIC_CLASS_SUM'             
+                                      ID         => 'IPN_TRAFFIC_CLASS_SUM',
+                                      EXPORT     => "$_EXPORT XML:&xml=1",
                                } );
   
   foreach my $class (sort keys %TRAFFIC_CLASS) {
@@ -749,7 +750,8 @@ else {
                                     title      => \@caption,
                                     cols_align => ['right', 'right', 'right', 'right', 'right', 'right'],
                                     qs         => $pages_qs,
-                                    ID         => 'IPN_REPORT'             
+                                    ID         => 'IPN_REPORT',
+                                    EXPORT     => "$_EXPORT XML:&xml=1",             
                                } );
 
   $LIST_PARAMS{INTERVAL_TYPE}=3;
