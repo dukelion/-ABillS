@@ -49,6 +49,7 @@ if [ x"$1" = xADD_VMAIL_USER ]; then
     if /bin/id "${GROUP}" 2>/dev/null; then
        echo "Group Exist";
     else
+      /usr/sbin/groupadd maildrop
       /usr/sbin/groupadd -g ${GID} ${GROUP}
     fi;
 

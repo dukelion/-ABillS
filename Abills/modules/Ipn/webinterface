@@ -486,6 +486,7 @@ my %HIDDEN = ();
   	        	                 GID             => "$_GROUPS",
   	        	                 }, 
   	        PERIOD_FORM		=> 1,
+  	        TIME_FORM     => 1,
   	        FIELDS        => { %CAPTIONS_HASH },
   	        XML           => 1,
   	        EX_INPUTS     => [ $html->form_select('DIMENSION', { SELECTED   => $FORM{DIMENSION},
@@ -1439,7 +1440,7 @@ sub ipn_user_activate {
 
 $HIDDEN{sid}        = $html->{SID} if ($html->{SID});
 
-$html->tpl_show(_include('ipn_form_active', 'Ipn'), { IP             => $ip,
+$html->tpl_show(_include('ipn_form_active', 'Ipn'), { IP             => (! $IP_INPUT) ? $ip : '',
 	                                                    IP_INPUT_FORM  => $IP_INPUT,
 	                                                    NAS_ID         => $nas_id,
 	                                                    UID            => $LIST_PARAMS{UID},

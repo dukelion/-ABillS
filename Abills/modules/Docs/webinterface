@@ -283,10 +283,15 @@ sub docs_invoice {
      }
 
     my ($Y, $M, $D)=split(/-/, $date);
-    if ($users->{ACTIVATE} ne '0000-00-00') {      
+    if ($users->{ACTIVATE} ne '0000-00-00') {
+    	$Docs->{CURENT_BILLING_PERIOD_START}=$users->{ACTIVATE};
+    	$Docs->{CURENT_BILLING_PERIOD_STOP}=strftime "%Y-%m-%d", localtime( (mktime(0, 0, 0, $D, ($M-1), ($Y-1900), 0, 0, 0) + 31 * 86400) );
      }
     else {
     	$D   = '01';
+    	$Docs->{CURENT_BILLING_PERIOD_START}="$Y-$M-$D";
+    	$TO_D=($M!=2?(($M%2)^($M>7))+30:(!($Y%400)||!($Y%4)&&($Y%25)?29:28));
+    	$Docs->{CURENT_BILLING_PERIOD_STOP}="$Y-$M-$TO_D";
      }
 
     #Next period payments
@@ -1392,10 +1397,12 @@ sub docs_account {
      return 0;
     }
    else {
+
+   	
      if ($FORM{VAT} && $FORM{VAT} == 1) {
      	 $FORM{VAT} = $conf{DOCS_VAT_INCLUDE};
       }
-      
+     
      $Docs->account_add({ %FORM, DEPOSIT => $users->{DEPOSIT} });
      if(! $Docs->{errno}) {
        $FORM{ACCOUNT_ID} =$Docs->{DOC_ID};
@@ -1422,6 +1429,7 @@ sub docs_account {
    	         	});
           }
         }
+
 
        if ($conf{DOCS_PDF_PRINT}) {
          if (! $attr->{QUITE}) {
@@ -1474,7 +1482,12 @@ sub docs_account {
        $FORM{'print'}=1;
        return 0;
       }
+     else {
+     	 $html->message('err', "$_DOCS : $_ERROR", "[$Docs->{errno}] $err_strs{$Docs->{errno}}") if (! $FORM{QUICK});
+      }
     }
+  
+ 
   }
  elsif($FORM{print}){
    $Docs->account_info($FORM{print}, { UID => $LIST_PARAMS{UID} });
@@ -1658,7 +1671,7 @@ sub docs_account {
    $table->{extra}="colspan='2' class='odd'";
    $table->addrow($html->b("$_AMOUNT_FOR_PAY:"), $html->b(sprintf("%.2f", $amount_for_pay)));
 
-   if ($user->{DEPOSIT} && $user->{DEPOSIT} > $amount_for_pay) {
+   if ($user->{DEPOSIT} + $user->{DEPOSIT} >= $amount_for_pay) {
   	 return 0;
     }   
   

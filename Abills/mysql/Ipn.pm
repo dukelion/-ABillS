@@ -549,7 +549,7 @@ if ($attr->{INTERVAL}) {
    	 $date = "l.terminate_cause"
     }
    elsif ($attr->{TYPE} eq 'GID') {
-         $date = "u.gid"
+     $date = "u.gid"
     }
 #   elsif ($attr->{GID} eq 'GID') {
 #   	 $date = "u.gid"
@@ -579,7 +579,6 @@ elsif($attr->{HOUR}) {
 	 $date = "DATE_FORMAT(start, '%Y-%m-%d %H'), u.id, l.traffic_class, tt.descr ";
  }
 elsif($attr->{DATE}) {
-
 	 push @WHERE_RULES, "date_format(start, '%Y-%m-%d')='$attr->{DATE}'";
 
    if ($attr->{UID}) {
@@ -603,6 +602,12 @@ else {
  	 $date = "date_format(l.start, '%Y-%m'), count(DISTINCT u.id), "; 
  }
 
+if ($attr->{FROM_TIME} && $attr->{TO_TIME}) {
+	if ($attr->{FROM_TIME}ne'00:00:00' || $attr->{TO_TIME} ne '24:00:00') {
+		push @WHERE_RULES, "(date_format(l.start, '%H-%i')>='$attr->{FROM_TIME}' AND date_format(l.start, '%H-%i')<='$attr->{TO_TIME}' )";
+	 }
+}
+
 # Show groups
  if ($attr->{GIDS}) {
    push @WHERE_RULES, "u.gid IN ($attr->{GIDS})"; 
@@ -610,6 +615,9 @@ else {
  elsif ($attr->{GID}) {
    push @WHERE_RULES, "u.gid='$attr->{GID}'"; 
   }
+
+
+
 
 # Compnay
  if ($attr->{COMPANY_ID}) {

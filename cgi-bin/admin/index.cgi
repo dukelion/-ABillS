@@ -1020,7 +1020,7 @@ else {
                               pages      => $company->{TOTAL},
                               qs         => $pages_qs,
                               ID         => 'COMPANY_ID',
-                              EXPORT     => ' XML:&xml=1',
+                              EXPORT     => "$_EXPORT XML:&xml=1",
                               MENU    => "$_ADD:index=".get_function_index('add_company').':add'.
                             ";$_SEARCH:index=".get_function_index('form_search')."&type=13:search"
 
@@ -4689,12 +4689,21 @@ if ($attr->{FIELDS}) {
 
 
 if ($attr->{PERIOD_FORM}) {
-	my @rows = ("$_FROM: ".  $html->date_fld2('FROM_DATE', { MONTHES => \@MONTHES, FORM_NAME => 'form_reports', WEEK_DAYS => \@WEEKDAYS }) .
-              " $_TO: ".   $html->date_fld2('TO_DATE', { MONTHES => \@MONTHES, FORM_NAME => 'form_reports', WEEK_DAYS => \@WEEKDAYS } ) );
+	my @rows = '&nbsp;'. ("$_DATE: ".  $html->date_fld2('FROM_DATE', { MONTHES => \@MONTHES, FORM_NAME => 'form_reports', WEEK_DAYS => \@WEEKDAYS }) .
+              " - ".   $html->date_fld2('TO_DATE', { MONTHES => \@MONTHES, FORM_NAME => 'form_reports', WEEK_DAYS => \@WEEKDAYS } ) );
+
+  
+  if ($attr->{TIME_FORM}) {
+	  push @rows, '&nbsp;'. ("$_TIME: ".  $html->form_input('FROM_TIME', (($FORM{FROM_TIME}) ? $FORM{FROM_TIME} : '00:00:00' ), { SIZE => 10 }) .
+	                " - ".   $html->form_input('TO_TIME', (($FORM{TO_TIME}) ? $FORM{TO_TIME} : '24:00:00' ), { SIZE => 10 } ));
+
+    $LIST_PARAMS{FROM_TIME}=$FORM{FROM_TIME};
+    $LIST_PARAMS{TO_TIME}=$FORM{TO_TIME};
+   }
 	
 	if (! $attr->{NO_GROUP}) {
-	  push @rows, "$_GROUP:",  sel_groups(),
-                "$_TYPE:",   $html->form_select('TYPE', 
+	  push @rows, "&nbsp; $_GROUP: " .  sel_groups(),
+                "&nbsp; $_TYPE: ".   $html->form_select('TYPE', 
                                                      { SELECTED     => $FORM{TYPE},
  	                                                     SEL_HASH     => { DAYS  => $_DAYS, 
  	                                                                       USER  => $_USERS, 
@@ -4707,7 +4716,7 @@ if ($attr->{PERIOD_FORM}) {
 
   if ($attr->{EX_INPUTS}) {
   	foreach my $line (@{ $attr->{EX_INPUTS} }) {
-       push @rows, $line;
+       push @rows, '&nbsp; '. $line;
      }
    }
 
@@ -4715,10 +4724,10 @@ if ($attr->{PERIOD_FORM}) {
 	                         rowcolor => 'odd',
                            rows     => [[@rows, 
  	                                        ($attr->{XML}) ? 
- 	                                          $html->form_input('NO_MENU', 1, { TYPE => 'hidden' }).
- 	                                          $html->form_input('xml', 1, { TYPE => 'checkbox' })."XML" : '',
+ 	                                          ' &nbsp; '. $html->form_input('NO_MENU', 1, { TYPE => 'hidden' }).
+ 	                                          ' &nbsp; '. $html->form_input('xml', 1, { TYPE => 'checkbox' })."XML" : '',
 
-                                          $html->form_input('show', $_SHOW, { TYPE => 'submit' }) ]
+                                          ' &nbsp;'. $html->form_input('show', $_SHOW, { TYPE => 'submit' }) ]
                                          ],                                   
                       });
  
@@ -4771,9 +4780,9 @@ if (defined($FORM{DATE})) {
        (defined($FORM{UID})) ? "&UID=$FORM{UID}" : '' ), { BUTTON => 1 });
    }
   
-  @rows = ([ "$_YEAR:",  $y ],
-           [ "$_MONTH:", $MONTHES[$m-1] ], 
-           [ "$_DAY:",   $days ]);
+  @rows = ([ " $_YEAR:",  $y ],
+           [ " $_MONTH:", $MONTHES[$m-1] ], 
+           [ " $_DAY:",   $days ]);
   
   if ($attr->{SHOW_HOURS}) {
     my(undef, $h)=split(/ /, $FORM{HOUR}, 2);
@@ -4784,7 +4793,7 @@ if (defined($FORM{DATE})) {
 
  	  $LIST_PARAMS{HOUR}="$FORM{HOUR}";
 
-  	push @rows, [ "$_HOURS", $hours ];
+  	push @rows, [ " $_HOURS ", $hours ];
    }
 
   if ($attr->{EX_PARAMS}) {

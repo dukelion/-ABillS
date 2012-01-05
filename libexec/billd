@@ -280,7 +280,7 @@ sub check_lines {
       my $deposit                 = $line->[15];
       my $credit                  = ($line->[16] && $line->[16] > 0) ? $line->[16] : (( $line->[17] ) ? $TP_CREDITS{$line->[17]} : 0 ); 
       my $tp_num                  = $line->[17];
-      my $state                   = $line->[18]+$line->[19];
+      my $state                   = (defined($line->[18])) ? $line->[18]+$line->[19] : 0;
       my $session_sum             = $line->[20];
       my $calls_tp_id             = $line->[21];
       my $online_state            = $line->[22];
@@ -508,10 +508,11 @@ sub check_lines {
         		print "Less than minimun session trafic and time\n" if ($debug > 2);
         	 }
         	elsif ($Billing->{UID} == -2) {
-        		print "Can't find user account\n";
+        	  print "Can't find user account '$RAD{USER_NAME}'\n";
+                  next;
         	 }
         	elsif ($Billing->{UID} == -3) {
-        		print "Sql error\n";
+        	  print "Sql error '$RAD{USER_NAME}'\n";
         	 }
         	next
          }

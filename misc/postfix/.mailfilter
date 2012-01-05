@@ -6,6 +6,7 @@ VERBOSE=7
 user=`echo $LOGNAME|sed s/\@/\ /| awk '{print $1}'`
 domain=`echo $LOGNAME|sed s/\@/\ /| awk '{print $2}'`
 MAILDIR="$HOME/$domain/$user/"
+MAILDIRMAKE=`which maildirmake`
 
 #Make maildir if not exists
 `test -d $MAILDIR`
@@ -17,7 +18,7 @@ if ($RETURNCODE!=0)
      `mkdir "$HOME/$domain/"` 
     }
 
-  `/usr/local/bin/maildirmake $MAILDIR`
+  `${MAILDIRMAKE} $MAILDIR`
   }
 
 to "$MAILDIR"

@@ -1313,7 +1313,7 @@ sub button {
   
   if ($attr->{IMG_BUTTON}) {
   	my $img_path = ($attr->{IMG}=~s/^://) ? "$IMG_PATH/" : '';
-  	$name = "<img alt='$attr->{IMG_ALT}' src='$img_path$attr->{IMG_BUTTON}' border='0'>";
+  	$name = "<img alt='$name' src='$img_path$attr->{IMG_BUTTON}' border='0'>";
    }
   elsif ($attr->{IMG}) {
      my $img_path = ($attr->{IMG}=~s/^://) ? "$IMG_PATH/" : '';

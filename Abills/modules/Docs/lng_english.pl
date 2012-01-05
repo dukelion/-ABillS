@@ -28,3 +28,5 @@ $_UNPAID='UnPaid account';
 $_VAT_INCLUDE='Vat include';
 $_AMOUNT_FOR_PAY='Amount for pay';
 $_ACTIVATE_NEXT_PERIOD='For next activation period';
+$_CURENT_BILLING_PERIOD='Current Billing Period';
+$_NEXT_PERIODS='Next billing periods';

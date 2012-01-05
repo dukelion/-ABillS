@@ -8,9 +8,10 @@
 <table class=form width=400>
 <tr><th colspan=3 class=title_color> $_LOGON Internet </th></tr>
 <tr><th colspan=3> &nbsp; </th></tr>
-<tr><td>IP: %IP% </td><td>  %IP_INPUT_FORM% ($_NAS: %NAS_ID%) </td>
-<td><input type='submit' name='%ACTION%' value='%ACTION_LNG%' class='button'></td></tr>
-<tr><th colspan=3> &nbsp; </th></tr>
+<tr><td>IP:  </td><td> %IP% %IP_INPUT_FORM% </td></tr>
+<tr><td>$_NAS: </td><td> %NAS_ID%</td></tr>
+
+<tr><th colspan=2 class=even><input type='submit' name='%ACTION%' value='%ACTION_LNG% Internet' class='button'></th></tr>
 <table>
 </form>
 %ONLINE%

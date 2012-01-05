@@ -1,3 +1,4 @@
+004:Афганистан
 031:Azerbaijan
 036:Australia
 040:Austria

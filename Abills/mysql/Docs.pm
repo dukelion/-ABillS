@@ -616,7 +616,7 @@ sub account_add {
 
   	foreach my $id (@ids_arr) {
       $DATA{'COUNTS_'.$id} = 1 if (! $DATA{'COUNTS_'.$id});
-      next if (! $DATA{'ORDER_'.$id});
+      next if (! $DATA{'SUM_'.$id} || $DATA{'SUM_'.$id} <= 0);
 
       $self->query($db, "INSERT INTO docs_acct_orders (acct_id, orders, counts, unit, price)
          values (". $self->{'DOC_ID'}.", \"". $DATA{'ORDER_'. $id}."\", '". $DATA{'COUNTS_'.$id}."', '". $DATA{'UNIT_'.$id} ."',

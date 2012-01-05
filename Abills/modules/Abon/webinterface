@@ -122,6 +122,7 @@ sub abon_user {
 
           if($Abon->{TP_INFO}->{CREATE_ACCOUNT} && $FORM{'CREATE_DOCS_'.$Abon->{TP_INFO}->{TP_ID}}) {
           	#$LIST_PARAMS{UID}= $users->{UID};
+          	delete ($FORM{IDS});
           	$FORM{SUM}       = $Abon->{TP_INFO}->{MONTH_FEE};
           	$FORM{UID}       = $users->{UID};
    	        $FORM{create}    = 1;
@@ -158,8 +159,8 @@ sub abon_user {
 
       delete $FORM{IDS};
       $Abon->user_tariff_change({ %FORM, 
-      	                         IDS => join(', ', @add_arr),
-      	                         DEL => join(', ', @del_arr) 
+      	                          IDS => join(', ', @add_arr),
+      	                          DEL => join(', ', @del_arr) 
       	                        }) ;  
 
       if (! $Abon->{errno}){

@@ -378,7 +378,7 @@ $message .= "--$boundary"."--\n\n";
       print "$message";
      }
     else {
-      open(MAIL, "| $SENDMAIL -t $to") || die "Can't open file '$SENDMAIL' $!\n";
+      open(MAIL, "| $SENDMAIL -t") || die "Can't open file '$SENDMAIL' $!\n";
         print MAIL "To: $to\n";
         print MAIL "From: $from\n";
         print MAIL "Content-Type: text/plain; charset=$charset\n" if (! $attr->{ATTACHMENTS});

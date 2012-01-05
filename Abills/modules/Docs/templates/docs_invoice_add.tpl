@@ -11,8 +11,9 @@
 <tr><th align=right class='form_title' colspan=2>%CAPTION%</th></tr>
 %FORM_ACCT_ID%
 <tr><td>$_DATE:</td><td>%DATE%</td></tr>
+<tr><td><b>$_CURENT_BILLING_PERIOD:</b></td><td><b>%CURENT_BILLING_PERIOD_START% - %CURENT_BILLING_PERIOD_STOP%</b></td></tr>
 <tr><td>$_PERIOD:</td><td>$_FROM: %FROM_DATE% $_TO: %TO_DATE% </td></tr>
-<tr><td>$_NEXT $_PERIOD:</td><td><input type=text name=NEXT_PERIOD value='%NEXT_PERIOD=0%' size=5> $_MONTH</td></tr>
+<tr><td>$_NEXT_PERIODS:</td><td><input type=text name=NEXT_PERIOD value='%NEXT_PERIOD=0%' size=5> $_MONTH</td></tr>
 <tr><td>$_SEND E-mail:</td><td><input type=checkbox name=SEND_EMAIL value=1 checked></td></tr>
 <tr><td colspan=2>
 

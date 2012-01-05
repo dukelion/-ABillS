@@ -1,6 +1,10 @@
 debug_peer_level = 2
 command_directory = /usr/local/sbin
 daemon_directory = /usr/local/libexec/postfix
+#Linux
+#command_directory = /usr/sbin
+#daemon_directory = /usr/lib/postfix/
+
 #mydestination = $myhostname
 alias_maps = hash:/etc/mail/aliases
 
