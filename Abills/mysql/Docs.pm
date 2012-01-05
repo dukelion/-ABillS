@@ -351,7 +351,6 @@ sub docs_invoice_add {
   	return $self;
    }
   
-
   $DATA{DATE}       = ($attr->{DATE})    ? "'$attr->{DATE}'" : 'now()';
   $DATA{INVOICE_ID} = ($attr->{INVOICE_ID}) ? $attr->{INVOICE_ID}  : $self->docs_nextid({ TYPE => 'INVOICE' });
 

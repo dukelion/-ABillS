@@ -144,7 +144,7 @@ sub docs_invoice_add  {
 
    	  $Docs->{'ORDER_NUM_'.$i}   = $i;
       $Docs->{'ORDER_NAME_'.$i}  = $line->[1];
-      $Docs->{'ORDER_COUNT_'.$i} = $count;
+      $Docs->{'ORDER_COUNT_'.$i} = '111111111111'.$line->[3];
       $Docs->{'ORDER_PRICE_'.$i} = $line->[4];
       $Docs->{'ORDER_SUM_'.$i}   = $sum;
       $Docs->{'ORDER_PRICE_WITHOUT_VAT_'.$i} = sprintf("%.2f", ($conf{DOCS_VAT_INCLUDE}) ? $line->[4] - $line->[4] / ((100 + $conf{DOCS_VAT_INCLUDE} ) / $conf{DOCS_VAT_INCLUDE}) : $line->[4]);
@@ -440,7 +440,7 @@ elsif($FORM{print}) {
 		  
    	  $Docs->{'ORDER_NUM_'.$i}   = $i;
       $Docs->{'ORDER_NAME_'.$i}  = $line->[1];
-      $Docs->{'ORDER_COUNT_'.$i} = $line->[2];
+      $Docs->{'ORDER_COUNT_'.$i} = $line->[3];
       $Docs->{'ORDER_PRICE_'.$i} = $line->[4];
       $Docs->{'ORDER_SUM_'.$i}   = $sum;       
       $Docs->{'ORDER_PRICE_WITHOUT_VAT_'.$i} = sprintf("%.2f", ($conf{DOCS_VAT_INCLUDE}) ? $line->[4] - $line->[4] / ((100 + $conf{DOCS_VAT_INCLUDE} ) / $conf{DOCS_VAT_INCLUDE}) : $line->[4]);

@@ -4200,13 +4200,13 @@ if ($nas->{errno}) {
     }
 
   $nas->{NAS_GROUPS_SEL}= sel_nas_groups({ GID => $nas->{GID} });
-  $html->tpl_show(templates('form_nas'), $nas);
+  $html->tpl_show(templates('form_nas'), $nas, { ID => 'form_nas' });
 
 
 
 my $table = $html->table({ width      => '100%',
                         cols_align => ['right', 'right',],
-                        rows       => [ [ "$_GROUPS:", sel_nas_groups(). $html->form_input("1", "$_SHOW", { TYPE => 'submit' })  ] ]
+                        rows       => [ [ " $_GROUPS: ", sel_nas_groups(). $html->form_input("1", "$_SHOW", { TYPE => 'submit' })  ] ]
                       });
 
 print $html->form_main({  CONTENT => $table->show(),
@@ -4720,16 +4720,16 @@ if ($attr->{PERIOD_FORM}) {
      }
    }
 
-	$table = $html->table( { width    => '100%',
-	                         rowcolor => 'odd',
-                           rows     => [[@rows, 
+	$table = $html->table({ width    => '100%',
+	                        rowcolor => 'odd',
+                          rows     => [[@rows, 
  	                                        ($attr->{XML}) ? 
  	                                          ' &nbsp; '. $html->form_input('NO_MENU', 1, { TYPE => 'hidden' }).
  	                                          ' &nbsp; '. $html->form_input('xml', 1, { TYPE => 'checkbox' })."XML" : '',
 
                                           ' &nbsp;'. $html->form_input('show', $_SHOW, { TYPE => 'submit' }) ]
-                                         ],                                   
-                      });
+                                       ],
+                        });
  
   
   print $html->form_main({ CONTENT => $table->show({ OUTPUT2RETURN => 1 }).$FIELDS,

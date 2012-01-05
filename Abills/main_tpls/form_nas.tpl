@@ -26,7 +26,7 @@
 %ADDRESS_TPL%
 
 <TR><TD colspan=2>%EXTRA_PARAMS%</TD></TR>
-<TR><TD colspan=2 class=even><input type=submit name=%ACTION% value='%LNG_ACTION%'></TD></TR>
+<TR><TH colspan=2 class=even><input type=submit name=%ACTION% value='%LNG_ACTION%'></TH></TR>
 </TABLE>
 
 </form>
