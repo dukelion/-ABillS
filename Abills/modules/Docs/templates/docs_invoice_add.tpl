@@ -7,7 +7,7 @@
 <input type=hidden name='OP_SID' value='%OP_SID%'>
 <input type=hidden name='VAT' value='%VAT%'>
 <input type=hidden name='SEND_EMAIL' value='1'>
-<Table width=600 clas=form>
+<Table width=600 class=form>
 <tr><th align=right class='form_title' colspan=2>%CAPTION%</th></tr>
 %FORM_ACCT_ID%
 <tr><td>$_DATE:</td><td>%DATE%</td></tr>

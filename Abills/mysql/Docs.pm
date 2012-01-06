@@ -99,6 +99,14 @@ sub docs_invoice_list {
  if (defined($attr->{PAYMENT_METHOD}) && $attr->{PAYMENT_METHOD} ne '') {
     push @WHERE_RULES, @{ $self->search_expr($attr->{PAYMENT_METHOD}, 'INT', 'p.method') };
   }
+
+ if (defined($attr->{PAYMENT_ID})) {
+    push @WHERE_RULES, @{ $self->search_expr($attr->{PAYMENT_ID}, 'INT', 'd.payment_id') };
+  }
+ 
+ 
+
+ 
  
  #DIsable
  if ($attr->{UID}) {
@@ -120,6 +128,29 @@ sub docs_invoice_list {
 
  $WHERE = ($#WHERE_RULES > -1) ? 'WHERE ' . join(' and ', @WHERE_RULES)  : '';
 
+
+ if ($attr->{ORDERS_LIST}) {
+   $self->query($db, "SELECT  o.invoice_id,  o.orders,  o.unit,  o.counts,  o.price,  o.fees_id
+      FROM  (docs_invoice d, docs_invoice_orders o) 
+     $WHERE;");
+
+    return $self->{list}  if ($self->{TOTAL} < 1);
+    my $list = $self->{list};
+
+# $self->query($db, "SELECT count(*)
+#    FROM (docs_invoice d, docs_invoice_orders o)
+#    LEFT JOIN users u ON (d.uid=u.uid)
+#    LEFT JOIN admins a ON (d.aid=a.aid)
+#    LEFT JOIN payments p ON (d.payment_id=p.id)
+#    $WHERE");
+#
+# ($self->{TOTAL}) = @{ $self->{list}->[0] };
+
+	return $list;
+  }
+  
+  
+  
 
   $self->query($db,   "SELECT d.invoice_id, d.date, if(d.customer='-' or d.customer='', pi.fio, d.customer), sum(o.price * o.counts), u.id, a.name, d.created, p.method, d.uid, d.id $self->{EXT_FIELDS}
     FROM (docs_invoice d, docs_invoice_orders o)

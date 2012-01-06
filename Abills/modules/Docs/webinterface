@@ -257,7 +257,8 @@ sub docs_invoice {
                             title_plain=> ['#', "$_LOGIN", "$_DATE", "$_DESCRIBE", $_SUM ],
                             cols_align => ['right', 'left', 'right', 'right' ],
                             pages      => $Docs->{TOTAL},
-                            ID         => 'DOCS_INVOCE_ORDERS'
+                            ID         => 'DOCS_INVOCE_ORDERS',
+                            class      => 'form'
                            });
 
     my $num       = 0;
@@ -287,8 +288,12 @@ sub docs_invoice {
 
     my ($Y, $M, $D)=split(/-/, $date);
     if ($users->{ACTIVATE} ne '0000-00-00') {
+    	my $start_period_unixtime =  (mktime(0, 0, 0, $D, ($M-1), ($Y-1900), 0, 0, 0) ) ;
+    	
+    	$FORM{NEXT_PERIOD}-- if($start_period_unixtime > time);
+    	
     	$Docs->{CURENT_BILLING_PERIOD_START}=$users->{ACTIVATE};
-    	$Docs->{CURENT_BILLING_PERIOD_STOP}=strftime "%Y-%m-%d", localtime( (mktime(0, 0, 0, $D, ($M-1), ($Y-1900), 0, 0, 0) + 31 * 86400) );
+    	$Docs->{CURENT_BILLING_PERIOD_STOP}=strftime "%Y-%m-%d",  localtime( (mktime(0, 0, 0, $D, ($M-1), ($Y-1900), 0, 0, 0) + 31 * 86400) );
      }
     else {
     	$D   = '01';
@@ -299,14 +304,22 @@ sub docs_invoice {
 
     #Next period payments
     if ($FORM{NEXT_PERIOD}) {
+    	# Get invoces
+    	my %current_invoice = ();
+    	my $list = $Docs->docs_invoice_list({ UID => $FORM{UID}, PAYMENT_ID => 0, ORDERS_LIST => 1 });
+    	
+    	foreach my $line (@$list) {
+    		$current_invoice{$line->[1]}=$line->[0];
+    	 }
+    	
  	    my $cross_modules_return = cross_modules_call('_docs');
   
-      my $next_period = $FORM{NEXT_PERIOD}+1;
+      my $next_period = $FORM{NEXT_PERIOD};
       if ($users->{ACTIVATE} ne '0000-00-00') {
-  	 	  ($Y, $M, $D)=split(/-/, strftime "%Y-%m-%d", localtime( (mktime(0, 0, 0, $D, ($M-1), ($Y-1900), 0, 0, 0) + 31 * 86400) )); 
+  	 	  ($Y, $M, $D)=split(/-/, strftime "%Y-%m-%d", localtime( (mktime(0, 0, 0, $D, ($M-1), ($Y-1900), 0, 0, 0) + (31 *(($FORM{NEXT_PERIOD}==-1)?0:1))  * 86400) )); 
         $FORM{FROM_DATE}="$Y-$M-$D";
 
-        ($Y, $M, $D)=split(/-/, strftime "%Y-%m-%d", localtime( (mktime(0, 0, 0, $D, ($M-1), ($Y-1900), 0, 0, 0) + 31 * ($next_period-1)  * 86400) )); 
+        ($Y, $M, $D)=split(/-/, strftime "%Y-%m-%d", localtime( (mktime(0, 0, 0, $D, ($M-1), ($Y-1900), 0, 0, 0) + (31 * (($FORM{NEXT_PERIOD}==-1) ? 1 : $next_period) )  * 86400) )); 
         $FORM{TO_DATE}="$Y-$M-$D";
        }
       else { 
@@ -320,7 +333,7 @@ sub docs_invoice {
          }
         $FORM{FROM_DATE} = "$Y-$M-$D";
 
-        $M+=$next_period-2;
+        $M+=$next_period-1;
  	      if ($M < 12) {
   	      $M=sprintf("%02d", $M);
   	     }
@@ -339,7 +352,9 @@ sub docs_invoice {
        $FORM{TO_DATE} = "$Y-$M-$TO_D";
       }
 
-     
+
+ 	 	 	my $period_from = $FORM{FROM_DATE};
+      my $period_to   = $FORM{FROM_DATE}; 
       
  	    foreach my $module (sort keys %$cross_modules_return) {
  	 	   if (ref $cross_modules_return->{$module} eq 'ARRAY') {
@@ -352,21 +367,69 @@ sub docs_invoice {
  	 	 	     my ($name, $describe, $sum)=split(/\|/, $line);
  	 	 	 	   next if ($sum <= 0);
  	 	 	   	 
- 	 	 	   	 $num++;
- 	 	 	 	   $sum = sprintf("%.2f", $sum * ($FORM{NEXT_PERIOD}));
+ 	 	 	   	 
+ 	 	 	   	 for (my $i=($FORM{NEXT_PERIOD}==-1) ? -2 : 0; $i<int($FORM{NEXT_PERIOD}); $i++) {
+ 	 	 	 	     $sum = sprintf("%.2f", $sum); # * ($FORM{NEXT_PERIOD}));
  	 	 	 	   
- 	 	 	 	   if ($users->{REDUCTION} && $module ne 'Abon') {
- 	 	 	 	   	 $sum = sprintf("%.2f",  $sum * (100 - $users->{REDUCTION}) / 100);
- 	 	 	 	    }
- 	 	 	 	   
- 	 	       $table->addrow($html->form_input('ORDER_'.$num, "$name $describe", { TYPE => 'hidden', OUTPUT2RETURN => 1 }).
+ 	 	 	 	     if ($users->{REDUCTION} && $module ne 'Abon') {
+ 	 	 	 	   	   $sum = sprintf("%.2f",  $sum * (100 - $users->{REDUCTION}) / 100);
+ 	 	 	 	      }
+ 	 	 	 	     
+
+             my ($Y, $M, $D) = split(/-/, $period_from, 3);
+             if ($users->{ACTIVATE} ne '0000-00-00') {
+  	 	         ($Y, $M, $D)=split(/-/, strftime "%Y-%m-%d", localtime( (mktime(0, 0, 0, $D, ($M-1), ($Y-1900), 0, 0, 0)))); #+ (31 * $i) * 86400) )); 
+               $period_from="$Y-$M-$D";
+
+               ($Y, $M, $D)=split(/-/, strftime "%Y-%m-%d", localtime( (mktime(0, 0, 0, $D, ($M-1), ($Y-1900), 0, 0, 0) + 31 * 86400) )); 
+               $period_to="$Y-$M-$D";
+              }
+             else { 
+               $M+=1 if ($i>0);
+ 	             if ($M < 12) {
+  	             $M=sprintf("%02d", $M);
+  	            }
+               else {
+                 $M = sprintf("%02d", $M-12);
+                 $Y++;
+                } 
+               $period_from = "$Y-$M-01";
+
+               #$M+=1;
+ 	             if ($M < 12) {
+  	             $M=sprintf("%02d", $M);
+  	            }
+               else {
+                 $M = sprintf("%02d", $M-13);
+                 $Y++;
+                }
+      
+               if ($users->{ACTIVATE} eq '0000-00-00') {      
+                 $TO_D=($M!=2?(($M%2)^($M>7))+30:(!($Y%400)||!($Y%4)&&($Y%25)?29:28));
+                }
+               else {
+     	           $TO_D=$D;
+                }
+
+               $period_to = "$Y-$M-$TO_D";
+              }
+ 	 	 	 	     
+ 	 	 	 	     my $order = "$name $describe $_PERIOD: $period_from - $period_to";
+
+ 	 	 	   	   $num++ if (! $current_invoice{$order});
+ 	 	         $table->addrow(((! $current_invoice{$order}) ?
+ 	 	                    $html->form_input('ORDER_'.$num, "$order", { TYPE => 'hidden', OUTPUT2RETURN => 1 }).
                         $html->form_input('SUM_'.$num, $sum, { TYPE => 'hidden', OUTPUT2RETURN => 1 }).
- 	 	                    $html->form_input('IDS', "$num", { TYPE => ($user->{UID}) ? 'hidden' : 'checkbox', STATE => 'checked', OUTPUT2RETURN => 1 }). $num, 
- 	 	                    '',
- 	 	                    '',
- 	 	                    "$name $describe $_PERIOD: $FORM{FROM_DATE} - $FORM{TO_DATE} ",
+ 	 	                    $html->form_input('IDS', "$num", { TYPE => ($user->{UID}) ? 'hidden' : 'checkbox', STATE => 'checked', OUTPUT2RETURN => 1 }). $num : ''  ) 
+ 	 	                    , 
+ 	 	                    $users->{LOGIN},
+ 	 	                    $period_from,
+ 	 	                    $order. (($current_invoice{$order}) ? ' '. $html->color_mark($_EXIST, 'red'): ''),
  	 	                    $sum );
- 	 	       $total_sum	+= $sum;
+
+ 	 	         $total_sum	+= $sum if (! $current_invoice{$order});
+ 	 	         $period_from=$period_to;
+           }
  	 	      } 
  	 	    }
  	     }
@@ -386,6 +449,7 @@ sub docs_invoice {
     $Docs->{ORDERS}    = $table->show({ OUTPUT2RETURN => 1 });
     $Docs->{FROM_DATE} = $html->date_fld2('FROM_DATE', { MONTHES => \@MONTHES, FORM_NAME => 'invoice_add', WEEK_DAYS => \@WEEKDAYS });
     $Docs->{TO_DATE}   = $html->date_fld2('TO_DATE', { MONTHES => \@MONTHES, FORM_NAME => 'invoice_add', WEEK_DAYS => \@WEEKDAYS });
+    $FORM{NEXT_PERIOD} = 0 if ($FORM{NEXT_PERIOD} < 0);
     if ($attr->{REGISTRATION}) {
       $Docs->{BACK}      = $html->form_input('back', "$_BACK", {  TYPE => 'submit' });
       $Docs->{NEXT}      = $html->form_input('skip', "$_NEXT", {  TYPE => 'submit' });

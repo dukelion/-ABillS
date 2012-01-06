@@ -6040,10 +6040,14 @@ if ($attr->{ACTION}) {
                                      },
 	                         #SUBMIT  =>  { $atrr->{ACTION}   => $attr->{LNG_ACTION} } 
 	                       });
+	form_fees($attr);
  }
 else {
   return $output;
  }
+
+
+
 }
 
 
@@ -6225,7 +6229,7 @@ if ($attr->{USER_INFO}) {
 
     
 
-    $html->tpl_show(templates('form_fees'), $fees);
+    $html->tpl_show(templates('form_fees'), $fees) if (! $attr->{REGISTRATION});
    }
 }
 elsif($FORM{AID} && ! defined($LIST_PARAMS{AID})) {

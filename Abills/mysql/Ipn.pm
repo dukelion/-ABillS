@@ -1068,6 +1068,36 @@ sub ipn_log_rotate {
    @rq = ("DELETE FROM ipn_traf_detail WHERE f_time < f_time - INTERVAL $attr->{PERIOD} DAY;");
   }
 
+=comments
+
+DROP TABLE IF EXISTS ipn_log_new;
+CREATE TABLE ipn_log_new LIKE ipn_log;
+DROP TABLE IF EXISTS ipn_log_backup;
+RENAME TABLE ipn_log TO ipn_log_backup, ipn_log_new TO ipn_log;',
+CREATE TABLE ipn_log_2011_12 LIKE ipn_log;
+
+
+INSERT INTO ipn_log_2011_11 (
+uid, 
+start,
+stop,
+traffic_class, 
+traffic_in,
+traffic_out,
+nas_id, ip, 
+interval_id, 
+sum, 
+session_id
+    )
+SELECT 
+uid, DATE_FORMAT(start, '%Y-%m-%d'), DATE_FORMAT(stop, '%Y-%m-%d'), traffic_class, sum(traffic_in), sum(traffic_out), nas_id, ip, interval_id, sum(sum), session_id
+from ipn_log_backup
+WHERE DATE_FORMAT(start, '%Y-%m')<'2011-12'
+GROUP BY 2, traffic_class, ip, session_id
+
+
+=cut
+
  #IPN log rotate
  if ($attr->{LOG} && $version > 4.1) {
    push @rq, 
