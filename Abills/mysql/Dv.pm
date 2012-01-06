@@ -700,9 +700,9 @@ WHERE intv.begin <= DATE_FORMAT( NOW(), '%H:%i:%S' )
  $WHERE
 AND intv.day IN (select if ( intv.day=8, 
 		(SELECT if ((select    count(*) from    holidays where     DATE_FORMAT( NOW(), '%c-%e' ) = day)>0, 8,
-                (select if (intv.day=0, 0, (select intv.day from intervals as intv where DATE_FORMAT( NOW() + INTERVAL 1 DAY, '%w') = intv.day ))))),
+                (select if (intv.day=0, 0, (select intv.day from intervals as intv where intv.tp_id=tp.tp_id AND DATE_FORMAT( NOW() + INTERVAL 1 DAY, '%w') = intv.day ))))),
         (select if (intv.day=0, 0,
-                (select intv.day from intervals as intv where DATE_FORMAT( NOW() + INTERVAL 1 DAY, '%w') = intv.day )))))
+                (select intv.day from intervals as intv where intv.tp_id=tp.tp_id AND DATE_FORMAT( NOW() + INTERVAL 1 DAY, '%w') = intv.day )))))
 GROUP BY tp.tp_id, tt.id
 ORDER by tp.tp_id, tt.id;");
   

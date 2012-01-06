@@ -222,7 +222,11 @@ function CheckAllINBOX() {
 //-->
 </script>\n <a href=\"javascript:void(0)\" onClick=\"CheckAllINBOX();\">$_SELECT_ALL</a> \n". 
 $html->button("$_PRINT PDF", "qindex=$index&pdf=1&print_cards=1&$pages_qs" . (($FORM{SERIA} && $pages_qs !~ /SERIA/)? "&SERIA=$FORM{SERIA}" : '' ), { ex_params   => 'target=_new' }).
-' '.$html->button('CSV', "qindex=$index&csv=1&print_cards=1&$pages_qs". (($FORM{SERIA} && $pages_qs !~ /SERIA/) ? "&SERIA=$FORM{SERIA}" : '' ), { ex_params   => 'target=_new' })
+' '.$html->button('CSV', "qindex=$index&csv=1&print_cards=1&$pages_qs". (($FORM{SERIA} && $pages_qs !~ /SERIA/) ? "&SERIA=$FORM{SERIA}" : '' ), { ex_params   => 'target=_new' }),
+#                          EXPORT     => $_EXPORT .' XML:&xml=1',
+#                          MENU    => "$_PRINT PDF:". "qindex=$index&pdf=1&print_cards=1&$pages_qs" . (($FORM{SERIA} && $pages_qs !~ /SERIA/)? "&SERIA=$FORM{SERIA}" : '' )  .":print".
+#                            ";CSV:". "qindex=$index&csv=1&print_cards=1&$pages_qs". (($FORM{SERIA} && $pages_qs !~ /SERIA/) ? "&SERIA=$FORM{SERIA}" : '' ) .":"
+
                          });
 
 

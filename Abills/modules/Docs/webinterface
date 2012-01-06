@@ -102,7 +102,9 @@ sub docs_invoice_add  {
      my $date = $FORM{DATE} || $DATE;
      if(! $Docs->{errno}) {
        if ($conf{DOCS_PDF_PRINT}) {
-  	     $html->message('info', "$_INVOICE $_ADDED", "$_INVOICE $_NUM: [$Docs->{DOC_ID}]\n $_DATE: $date\n ". $html->button($_PRINT, "qindex=". get_function_index('docs_invoice_list') ."&print=$Docs->{DOC_ID}&UID=$LIST_PARAMS{UID}&pdf=1", { ex_params => 'target=_new', CLASS => 'print' }));
+  	     $html->message('info', "$_INVOICE $_ADDED", "$_INVOICE $_NUM: [$Docs->{DOC_ID}]\n $_DATE: $date\n ". 
+  	     $html->button($_PRINT, "qindex=". get_function_index('docs_invoice_list') ."&sendmail=$Docs->{DOC_ID}&UID=$LIST_PARAMS{UID}", { ex_params => 'target=_new', CLASS => 'sendmail rightAlignText' }).' '.
+  	     $html->button($_PRINT, "qindex=". get_function_index('docs_invoice_list') ."&print=$Docs->{DOC_ID}&UID=$LIST_PARAMS{UID}&pdf=1", { ex_params => 'target=_new', CLASS => 'print rightAlignText' }));
 
          $FORM{print} = $Docs->{DOC_ID};
          $FORM{pdf}   = 1;
@@ -115,6 +117,7 @@ sub docs_invoice_add  {
         }
        else {
          $html->message('info', "$_INVOICE $_ADDED", "$_INVOICE $_NUM: [$Docs->{DOC_ID}]\n $_DATE: $date". 
+           $html->button($_SEND_MAIL, "qindex=". get_function_index('docs_invoice_list') ."&sendmail=$Docs->{DOC_ID}&UID=$LIST_PARAMS{UID}", { ex_params => 'target=_new', CLASS => 'sendmail' }) .' '.
            $html->button($_PRINT, "qindex=". get_function_index('docs_invoice_list') ."&print=$Docs->{DOC_ID}&UID=$LIST_PARAMS{UID}", { ex_params => 'target=_new', CLASS => 'print' }) );
          #$Docs->docs_invoice_info($Docs->{DOC_ID});
         }
@@ -508,6 +511,13 @@ elsif($FORM{print}) {
   docs_print('invoice', { %$Docs, %$attr });
   return 0;
  }
+elsif($FORM{sendmail}) {
+  $FORM{print}= $FORM{sendmail};
+  $FORM{pdf}  = $conf{DOCS_PDF_PRINT};
+	docs_invoice_list({ SEND_EMAIL => 1 });
+  $html->message('info', "$_INFO", "E-Mail $_SENDED ");
+	return 0;
+ }
 elsif (! $LIST_PARAMS{UID}) {
   $info{PAYMENT_METHOD_SEL} = $html->form_select('PAYMENT_METHOD', 
                                 { SELECTED     => (defined($FORM{PAYMENT_METHOD}) && $FORM{PAYMENT_METHOD} ne '') ? $FORM{METHOD} : '',
@@ -604,8 +614,8 @@ my $list = $Docs->docs_invoice_list( { %LIST_PARAMS } );
 my $table = $html->table( { width      => '100%',
                             caption    => "$_INVOICE",
                             border     => 1,
-                            title      => ['#', $_DATE, $_CUSTOMER, $_SUM, $_USER, $_ADMIN, $_TIME, $_PAYMENT_METHOD, '-', '-'],
-                            cols_align => ['right', 'right', 'left', 'right', 'left', 'left', 'right', 'center'],
+                            title      => ['#', $_DATE, $_CUSTOMER, $_SUM, $_USER, $_ADMIN, $_TIME, $_PAYMENT_METHOD, '-', '-', '-'],
+                            cols_align => ['right', 'right', 'left', 'right', 'left', 'left', 'right', 'center', 'center', 'center'],
                             qs         => $pages_qs,
                             pages      => $Docs->{TOTAL},
                             ID         => 'DOCS_INVOCE'
@@ -626,6 +636,7 @@ foreach my $line (@$list) {
    "$line->[5]", 
    "$line->[6]", 
    $PAYMENTS_METHODS{"$line->[7]"}, 
+   $html->button($_SEND_MAIL, "qindex=$index&sendmail=$line->[9]&UID=$line->[8]", { ex_params => 'target=_new', CLASS => 'sendmail' }) ,
    $html->button($_PRINT, "qindex=$index&print=$line->[9]&UID=$line->[8]$pages_qs", { ex_params => 'target=_new', CLASS => 'print' }) ,
    $delete);
 }

@@ -325,6 +325,18 @@ a.add {
         font-size: 0px;
 }
 
+a.sendmail {
+        background:url(/img/button_sendmail.png) no-repeat center;
+        padding-left:22px;
+        padding-top:5px;
+        height: 24;
+        margin:0;
+        display:block;
+        overflow:hidden;
+        text-indent:-90000px;
+        font-size: 0px;
+}
+
 a.search {
         background:url(/img/button_change.png) no-repeat center;
         padding-left:22px;
