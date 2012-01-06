@@ -249,8 +249,6 @@ sub ip_change {
                  DESCR     => 'descr'
                 );   
 
-  $self->{debug}=1;
-
   if ($attr->{IDS}) {
   	my @ids_array = split(/, /, $attr->{IDS});
   	foreach my $a (@ids_array) {
