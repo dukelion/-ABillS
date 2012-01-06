@@ -926,7 +926,6 @@ sub table {
 
 
  $self->{MAX_ROWS}=$parent->{MAX_ROWS};
-
  $self->{prototype} = $proto;
  $self->{NO_PRINT}  = $proto->{NO_PRINT};
 
@@ -1226,11 +1225,12 @@ sub table_title  {
 sub show  {
   my $self = shift;	
   my ($attr) = shift;
+
   
   if ($FORM{EXPORT_CONTENT} && $FORM{EXPORT_CONTENT} ne $self->{ID} ) {
   	return '';
    }
-  
+
   $self->{show} = $self->{table}
   . $self->{rows} 
   . "</TABLE>\n"

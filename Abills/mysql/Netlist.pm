@@ -33,12 +33,18 @@ sub groups_list() {
  $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
  $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
 
-
+ my @list = ();
  $self->query($db, "SELECT ng.name, ng.comments, count(ni.ip), ng.id
     FROM netlist_groups ng
     LEFT JOIN netlist_ips ni ON (ng.id=ni.gid)
     GROUP BY ng.id
     ORDER BY $SORT $DESC;");
+
+
+ if ($self->{errno}) {
+ 	  return \@list;
+  }
+ 
 
  return $self->{list};
 }
@@ -179,13 +185,15 @@ sub ip_list() {
 
 
  my $list = $self->{list};
-
- $self->query($db, "SELECT count(*)
+ 
+ if ($self->{TOTAL} > 0) {
+   $self->query($db, "SELECT count(*)
     FROM netlist_ips ni
     LEFT JOIN netlist_groups ng ON (ng.id=ni.gid)
     $WHERE;");
 
-  ($self->{TOTAL}) = @{ $self->{list}->[0] };
+   ($self->{TOTAL}) = @{ $self->{list}->[0] };
+  }
 
 
  return $list;
@@ -199,7 +207,8 @@ sub ip_add {
   my $self = shift;
   my ($attr) = @_;
 
- 
+  
+
   %DATA = $self->get_data($attr); 
 
   $self->query($db, "INSERT INTO netlist_ips (ip, netmask, hostname, 
@@ -240,6 +249,7 @@ sub ip_change {
                  DESCR     => 'descr'
                 );   
 
+  $self->{debug}=1;
 
   if ($attr->{IDS}) {
   	my @ids_array = split(/, /, $attr->{IDS});

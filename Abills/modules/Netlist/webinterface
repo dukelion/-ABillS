@@ -145,7 +145,7 @@ sub netlist_list {
  	  $FORM{ping} = int2ip($FORM{ping});
  	  if ($FORM{ping} =~ /^(\d){1,3}\.(\d){1,3}\.(\d){1,3}\.(\d){1,3}$/) {
       my $res = `$PING -c 5 $FORM{ping}`;
-      $html->message('info', $_INFO,  "Ping  $FORM{ping}<br>Result:<br><pre>$res</pre>");
+      $html->message('info', $_INFO,  "Ping  $FORM{ping}\nResult:\n". $html->per($res));
      }
     else {
       $html->message('err', $_ERROR,  "_WRONG_DATA");
@@ -207,11 +207,12 @@ sub netlist_list {
 
 $Netlist->{GROUP_SEL}=$html->form_select('GID', 
                                           { 
- 	                                          SELECTED          => $FORM{GID},
- 	                                          SEL_MULTI_ARRAY   => [['', ''], @$groups],
+ 	                                          SELECTED          => $Netlist->{GID} || $FORM{GID},
+ 	                                          SEL_MULTI_ARRAY   => [['', $_ALL], @$groups],
  	                                          MULTI_ARRAY_KEY   => 3,
  	                                          MULTI_ARRAY_VALUE => 0,
- 	                                          NO_ID             => 1
+ 	                                          NO_ID             => 1,
+ 	                                          MAIN_MENU         => get_function_index('netlist_groups'),
  	                                        });
 
   $Netlist->{STATE_SEL}=$html->form_select('STATUS', 
@@ -227,21 +228,31 @@ $html->tpl_show(_include('netlist_ip_search', 'Netlist'), { %$Netlist, %FORM });
 $pages_qs .= "&GID=$FORM{GID}" if ($FORM{GID});
 
 my $list = $Netlist->ip_list( { %LIST_PARAMS, %FORM } );
+
+
+if ($Netlist->{errno}) {
+	$html->message('err', $_ERROR, "[$Netlist->{errno}] $err_strs{$Netlist->{errno}}");	
+	return 0;
+}
+
+
 my $table = $html->table( { width      => '100%',
-                            caption    => "IP",
+                            caption    => "$_LIST IP",
                             border     => 1,
                             title      => ['IP', 'NETMASK', 'HOSTNAME', $_DESCRIBE, $_GROUP, $_STATE,  $_CHANGE, '-', '-', '-'],
                             cols_align => ['right', 'right', 'left', 'left', 'left', 'center', 'right', 
                              'center:noprint', 'center:noprint', 'center:noprint'],
                             qs         => $pages_qs,
-                            pages      => $Netlist->{TOTAL}
+                            pages      => $Netlist->{TOTAL},
+                            ID         => 'NETLIST_LIST',
+                            EXPORT     => "$_EXPORT XML:&xml=1",
                            });
 
 
 
   foreach my $line (@$list) {
-     my $delete = $html->button($_DEL, "index=$index&del=$line->[0]", { MESSAGE => "$_DEL $line->[0]?" }); 
-     my $change = $html->button($_INFO, "index=$index&chg=$line->[0]");
+     my $delete = $html->button($_DEL, "index=$index&del=$line->[0]", { MESSAGE => "$_DEL $line->[0]?", CLASS => 'del' }); 
+     my $change = $html->button($_INFO, "index=$index&chg=$line->[0]", { CLASS => 'show' });
 
      $table->addrow(
      $line->[7].' '.$html->form_input('IDS', "$line->[0]", { TYPE => 'checkbox', EX_PARAMS => 'class="noprint"' } ), 
@@ -252,7 +263,7 @@ my $table = $html->table( { width      => '100%',
      $status[$line->[5]], 
 
      $line->[6], 
-     $html->button("(P)", "index=$index&ping=$line->[0]$pages_qs", { TITLE => 'Ping'}),
+     $html->button("P", "index=$index&ping=$line->[0]$pages_qs", { TITLE => 'Ping', BUTTON => 1 }),
      $change,
      $delete
      );
@@ -271,6 +282,9 @@ my $table2 = $html->table( { width       => '100%',
                      	                     ]
                            });
 
+  if ($FORM{EXPORT_CONTENT}) {
+  	print $table->show();
+   }
 
   print $html->form_main({ CONTENT => $table->show(). $table2->show(),
 	                         HIDDEN  => { index  =>  "$index" },
@@ -280,7 +294,7 @@ my $table2 = $html->table( { width       => '100%',
   $table = $html->table({ width       => '100%',
                           cols_align  => ['left', 'right'],    
                           rows        => [ ["$_TOTAL:", $Netlist->{TOTAL} ]]
-                      });
+                        });
 
   print $table->show();
 
@@ -378,8 +392,8 @@ my $table = $html->table( { width   => '100%',
 
 
   foreach my $line (@$list) {
-     my $delete = $html->button($_DEL, "index=$index&del=$line->[3]", { MESSAGE => "$_DEL $line->[0]?" }); 
-     my $change = $html->button($_INFO, "index=$index&chg=$line->[3]");
+     my $delete = $html->button($_DEL, "index=$index&del=$line->[3]", { MESSAGE => "$_DEL $line->[0]?", CLASS => 'del' }); 
+     my $change = $html->button($_INFO, "index=$index&chg=$line->[3]", { CLASS => 'show' });
 
      $table->addrow($line->[0], 
      $line->[1], 
