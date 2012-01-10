@@ -607,7 +607,7 @@ sub td {
   my $extra='';
   
   while(my($k, $v)=each %$attr ) {
-    $extra.=" $k=\"$v\"";
+    #$extra.=" $k=\"$v\"";
    }
 
   my $td = '';

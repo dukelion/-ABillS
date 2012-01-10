@@ -1,6 +1,7 @@
 <FORM action=$SELF_URL METHOD=POST name='extfin'> 
 <input type=hidden name=index value=$index>
-<table width=500 border=0>
+<table class=form>
+<tr><th colspan=2 class=form_title>$_EXPORT : $_USERS</th></tr>
 <tr><td>$_GROUP:</td><td>%GROUP_SEL%</td></tr>
 <tr><td>$_DATE:</td><td><TABLE width=100%>
 <tr><td>$_FROM:</td><td>%FROM_DATE%</td></tr> 
@@ -18,6 +19,7 @@
 
 <tr><td>XML:</td><td><input type=checkbox name=xml value=1></td></tr>
 <tr><td>$_ROWS:</td><td><input type=text name=PAGE_ROWS value='$PAGE_ROWS'></td></tr>
+<tr><th colspan=2 class=even><input type=submit name=%ACTION% value=%ACTION_LNG%></th></tr>
 </table>
-<input type=submit name=%ACTION% value=%ACTION_LNG%>
+
 </FORM>
