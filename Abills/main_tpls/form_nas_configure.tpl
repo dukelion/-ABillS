@@ -85,7 +85,7 @@ function disableEnterKey(e)
 
 
 <table width=100%>
-<tr><th class=table_title colspan=2>$_SETTINGS</th></tr>
+<tr><th class=table_title colspan=2>Hotspot $_SETTINGS</th></tr>
 <tr><td>Firmware Version:</td><td>
              <select name=\"version\" class=\"selectinput\" id=\"version\"  onchange=\"Process(this.form.version.value, this.form.INTERNAL_SUBNET.value, this.form.wds.value, this.form.CUSTOM_SID.value)\" onKeyPress=\"return disableEnterKey(event)\">
                                  <option value=\"v24\">DD-WRT v24 NoKaid/Standard/Mega/Special</option>
