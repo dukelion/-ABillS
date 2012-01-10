@@ -2414,7 +2414,12 @@ if ($FORM{ACCOUNT_ID}) {
                        });
 
  	if ($Docs->{errno}) {
- 		$html->message('err', "$_ACCOUNT $_ERROR", "[$Docs->{errno}] $err_strs{$Docs->{errno}}");	
+ 		if ($Docs->{errno} == 2) {
+ 		  $html->message('err', "$_ACCOUNT $_ERROR", "$_ACCOUNT $_NOT_EXIST ID: $FORM{ACCOUNT_ID}");	
+ 		 }
+ 		else {
+ 			$html->message('err', "$_ACCOUNT $_ERROR", "[$Docs->{errno}] $err_strs{$Docs->{errno}}");	
+ 		 }
    }
   elsif ($Docs->{TOTAL_SUM} != $FORM{SUM})  {
     $html->message('err', $_ERROR, "$_ACCOUNT $_SUM: $Docs->{TOTAL_SUM} / $_PAYMENTS $_SUM: $FORM{SUM}");

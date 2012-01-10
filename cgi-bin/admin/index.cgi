@@ -5678,7 +5678,7 @@ if ($permissions{1} && $permissions{1}{1}) {
   	my $ACCOUNTS_SEL = $html->form_select("ACCOUNT_ID", 
                                 { SELECTED          => $FORM{ACCOUNT_ID},
  	                                SEL_MULTI_ARRAY   => $Docs->accounts_list({ UID => $user->{UID}, PAYMENT_ID => 0, PAGE_ROWS => 100, SORT => 2, DESC => 'DESC' }), 
- 	                                MULTI_ARRAY_KEY   => 10,
+ 	                                MULTI_ARRAY_KEY   => 9,
  	                                MULTI_ARRAY_VALUE => '0,1,3',
  	                                MULTI_ARRAY_VALUE_PREFIX => "$_NUM: ,$_DATE: ,$_SUM:",
  	                                SEL_OPTIONS       => { 0 => '', create => $_CREATE },
