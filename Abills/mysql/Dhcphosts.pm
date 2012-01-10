@@ -1019,7 +1019,7 @@ sub log_del {
    }
 
   $self->query($db, "DELETE FROM dhcphosts_log where $WHERE", 'do');
-  $admin->system_action_add("DHCPLOG", { TYPE => 10 }); 
+  #$admin->system_action_add("DHCPLOG", { TYPE => 10 }); 
   return $self;
 };
 

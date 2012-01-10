@@ -1047,7 +1047,11 @@ sub ipn_log_rotate {
   my $self = shift;
 	my ($attr) = @_;
   
-  my $DATE = (strftime "%Y_%m_%d", localtime(time - 86400));  
+  my $DATE = (strftime "%Y_%m_%d", localtime(time - 86400));
+  
+  my ($Y, $M, $D)=split(/_/, $DATE);
+  
+   
   $self->query($db, "SHOW TABLES LIKE 'ipn_traf_detail_$DATE';");
   return $self if ($self->{TOTAL} > 0);
   
@@ -1061,68 +1065,80 @@ sub ipn_log_rotate {
     'RENAME TABLE ipn_traf_detail TO ipn_traf_detail_'. $DATE .
     ', ipn_traf_detail_new TO ipn_traf_detail;',
     'DELETE FROM ipn_unknow_ips;',
-    
       );
   }
  else {
    @rq = ("DELETE FROM ipn_traf_detail WHERE f_time < f_time - INTERVAL $attr->{PERIOD} DAY;");
   }
 
-=comments
-
-DROP TABLE IF EXISTS ipn_log_new;
-CREATE TABLE ipn_log_new LIKE ipn_log;
-DROP TABLE IF EXISTS ipn_log_backup;
-RENAME TABLE ipn_log TO ipn_log_backup, ipn_log_new TO ipn_log;',
-CREATE TABLE ipn_log_2011_12 LIKE ipn_log;
-
-
-INSERT INTO ipn_log_2011_11 (
-uid, 
-start,
-stop,
-traffic_class, 
-traffic_in,
-traffic_out,
-nas_id, ip, 
-interval_id, 
-sum, 
-session_id
-    )
-SELECT 
-uid, DATE_FORMAT(start, '%Y-%m-%d'), DATE_FORMAT(stop, '%Y-%m-%d'), traffic_class, sum(traffic_in), sum(traffic_out), nas_id, ip, interval_id, sum(sum), session_id
-from ipn_log_backup
-WHERE DATE_FORMAT(start, '%Y-%m')<'2011-12'
-GROUP BY 2, traffic_class, ip, session_id
-
-
-=cut
-
  #IPN log rotate
  if ($attr->{LOG} && $version > 4.1) {
-   push @rq, 
-    'DROP TABLE IF EXISTS ipn_log_new;',
-    'CREATE TABLE ipn_log_new LIKE ipn_log;',
-
-    'INSERT INTO ipn_log_new (
-         uid,
-         start,
-         stop,
-         traffic_class,
-         traffic_in,
-         traffic_out,
-         session_id,
-         sum
-    ) 
-    SELECT uid, start, start, traffic_class, traffic_in, traffic_out,  session_id, sum FROM ipn_log 
-      WHERE start >= \''. $admin->{DATE} .'\' - INTERVAL '. $attr->{PERIOD} .' DAY; ',
-
-
-    'DROP TABLE IF EXISTS ipn_log_backup;',
-    'RENAME TABLE 
-      ipn_log  TO ipn_log_backup, 
-      ipn_log_new TO ipn_log;',
-    'DELETE FROM ipn_log_backup  WHERE start >= \''. $admin->{DATE}. '\' - INTERVAL '. $attr->{PERIOD} .' DAY; ';
+#   push @rq, 
+#    'DROP TABLE IF EXISTS ipn_log_new;',
+#    'CREATE TABLE ipn_log_new LIKE ipn_log;',
+#
+#    'INSERT INTO ipn_log_new (
+#         uid,
+#         start,
+#         stop,
+#         traffic_class,
+#         traffic_in,
+#         traffic_out,
+#         session_id,
+#         sum
+#    ) 
+#    SELECT uid, start, start, traffic_class, traffic_in, traffic_out,  session_id, sum FROM ipn_log 
+#      WHERE start >= \''. $admin->{DATE} .'\' - INTERVAL '. $attr->{PERIOD} .' DAY; ',
+#
+#
+#    'DROP TABLE IF EXISTS ipn_log_backup;',
+#    'RENAME TABLE 
+#      ipn_log  TO ipn_log_backup, 
+#      ipn_log_new TO ipn_log;',
+#    'DELETE FROM ipn_log_backup  WHERE start >= \''. $admin->{DATE}. '\' - INTERVAL '. $attr->{PERIOD} .' DAY; ';
+   push @rq, 'DROP TABLE IF EXISTS ipn_log_new;',
+             'CREATE TABLE ipn_log_new LIKE ipn_log;',
+             'DROP TABLE IF EXISTS ipn_log_backup;',
+             'RENAME TABLE ipn_log TO ipn_log_backup, ipn_log_new TO ipn_log;',
+             'CREATE TABLE ipn_log_'. $Y .'_'. $M .' LIKE ipn_log;',
+             'INSERT INTO ipn_log_'. $Y .'_'. $M ." (
+        uid, 
+        start,
+        stop,
+        traffic_class, 
+        traffic_in,
+        traffic_out,
+        nas_id, ip, 
+        interval_id, 
+        sum, 
+        session_id
+         )
+       SELECT 
+        uid, DATE_FORMAT(start, '%Y-%m-%d'), DATE_FORMAT(stop, '%Y-%m-%d'), traffic_class, 
+        sum(traffic_in), sum(traffic_out), 
+        nas_id, ip, interval_id, sum(sum), session_id
+        FROM ipn_log_backup
+        WHERE DATE_FORMAT(start, '%Y-%m')<'$Y-$M'
+        GROUP BY 2, traffic_class, ip, session_id;",
+       "INSERT INTO ipn_log (
+        uid, 
+        start,
+        stop,
+        traffic_class, 
+        traffic_in,
+        traffic_out,
+        nas_id, ip, 
+        interval_id, 
+        sum, 
+        session_id
+         )
+       SELECT 
+        uid, DATE_FORMAT(start, '%Y-%m-%d'), DATE_FORMAT(stop, '%Y-%m-%d'), traffic_class, 
+        sum(traffic_in), sum(traffic_out), 
+        nas_id, ip, interval_id, sum(sum), session_id
+        FROM ipn_log_backup
+        WHERE DATE_FORMAT(start, '%Y-%m')='$Y-$M'
+        GROUP BY 2, traffic_class, ip, session_id;";
   }
 
  foreach my $query (@rq) {
