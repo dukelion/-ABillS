@@ -11,12 +11,13 @@ CA_pl='/usr/src/crypto/openssl/apps/CA.pl';
 
 hostname=`hostname`;
 password=whatever;
-VERSION=1.83;
-days=730;
+VERSION=1.84;
+DAYS=730;
 DATE=`date`;
 CERT_TYPE=$1;
 CERT_USER="";
 OPENSSL=`which openssl`
+CERT_LENGTH=2048;
 
 
 if [ w$1 = whelp ]; then
@@ -37,8 +38,8 @@ if [ w$1 = w ] ; then
   echo "                USER - SSH remote user"
   echo " -D [PATH]      - Path for ssl certs"
   echo " -U [username]  - Cert owner (Default: apache=www, postfix=vmail)"
-  echo " -LENGTH        - Cert length (Default: 1024)"
-  echo " -DAYS          - Cert period in days (Default: 730)"
+  echo " -LENGTH        - Cert length (Default: ${CERT_LENGTH})"
+  echo " -DAYS          - Cert period in days (Default: ${DAYS})"
   echo " -PASSSWORD     - Password for Certs (Default: whatever)"
   echo " -HOSTNAME      - Hostname for Certs (default: system hostname)"
   echo " -UPLOAD        - Upload ssh certs to host via ssh (default: )"
@@ -48,7 +49,6 @@ if [ w$1 = w ] ; then
 fi
 
 CERT_PATH=/usr/abills/Certs/
-CERT_LENGTH=1024;
 
 # Proccess command-line options
 #
@@ -65,7 +65,7 @@ for _switch ; do
         -LENGTH) CERT_LENGTH=$3
                 shift; shift
                 ;;
-        -DAYS) CERT_LENGTH=$3
+        -DAYS) DAYS=$3
                 shift; shift
                 ;;
         -PASSWORD) password=$3
@@ -136,7 +136,7 @@ easysoft_cert () {
   ${OPENSSL} genrsa -out easysoft_private.ppk ${CERT_LENGTH} 
   ${OPENSSL} req -new -key easysoft_private.ppk -out easysoft.req 
   #${OPENSSL} ca -in easysoft.req -out easysoft.cer 
-  ${OPENSSL} x509 -req -days 730 -in easysoft.req -signkey easysoft_private.ppk -out easysoft.cer
+  ${OPENSSL} x509 -req -days ${DAYS} -in easysoft.req -signkey easysoft_private.ppk -out easysoft.cer
   ${OPENSSL} rsa -in  ${CERT_PATH}/easysoft_private.ppk -out ${CERT_PATH}/easysoft_public.pem -pubout
 
   chmod u=r,go= ${CERT_PATH}/easysoft.cer
@@ -162,7 +162,7 @@ apache_cert () {
   ${OPENSSL} req -new -key server.key -out server.csr \
   -passin pass:${password} -passout pass:${password}
 
-  ${OPENSSL} x509 -req -days ${days} -in server.csr -signkey server.key -out server.crt \
+  ${OPENSSL} x509 -req -days ${DAYS} -in server.csr -signkey server.key -out server.crt \
    -passin pass:${password}
 
   chmod u=r,go= ${CERT_PATH}/server.key
@@ -323,7 +323,7 @@ postfix_cert () {
   echo "Make POSTFIX TLS sertificats"
   echo "******************************************************************************"
 
-  ${OPENSSL} req -new -x509 -nodes -out smtpd.pem -keyout smtpd.pem -days ${days} \
+  ${OPENSSL} req -new -x509 -nodes -out smtpd.pem -keyout smtpd.pem -days ${DAYS} \
     -passin pass:${password} -passout pass:${password}
 }
 
@@ -354,7 +354,7 @@ if [ w$2 = wclient ]; then
 
   # Request a new PKCS#10 certificate.
   # First, newreq.pem will be overwritten with the new certificate request
-  ${OPENSSL} req -new -keyout newreq.pem -out newreq.pem -days ${days} \
+  ${OPENSSL} req -new -keyout newreq.pem -out newreq.pem -days ${DAYS} \
    -passin pass:${password} -passout pass:${password}
 
 
@@ -408,7 +408,7 @@ extendedKeyUsage = 1.3.6.1.5.5.7.3.1
   # Generate a new self-signed certificate.
   # After invocation, newreq.pem will contain a private key and certificate
   # newreq.pem will be used in the next step
-  ${OPENSSL} req -new -x509 -keyout newreq.pem -out newreq.pem -days ${days} \
+  ${OPENSSL} req -new -x509 -keyout newreq.pem -out newreq.pem -days ${DAYS} \
    -passin pass:${password} -passout pass:${password}
 
 
@@ -453,7 +453,7 @@ echo
 
 # Request a new PKCS#10 certificate.
 # First, newreq.pem will be overwritten with the new certificate request
-${OPENSSL} req -new -keyout newreq.pem -out newreq.pem -days ${days} \
+${OPENSSL} req -new -keyout newreq.pem -out newreq.pem -days ${DAYS} \
 -passin pass:${password} -passout pass:${password}
 
 # Sign the certificate request. The policy is defined in the ${OPENSSL}.cnf file.

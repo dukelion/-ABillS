@@ -227,7 +227,7 @@ sub customers_list {
      LEFT JOIN streets ON (streets.id=builds.street_id)
      
      $WHERE
-     GROUP BY 10
+     GROUP BY 11
      ORDER BY $SORT $DESC 
      LIMIT $PG, $PAGE_ROWS;");
 

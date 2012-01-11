@@ -19,6 +19,8 @@ my $Extfin = Extfin->new($db, $admin, \%conf);
 sub extfin_export_customers {
 	my ($attr) = @_;
 
+  $Extfin->{debug}=1;
+
   $Extfin->{ACTION}='get';
   $Extfin->{ACTION_LNG}=$_SHOW;
   
