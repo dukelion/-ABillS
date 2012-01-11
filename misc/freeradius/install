@@ -12,7 +12,7 @@ clients.conf     > [/usr/local/etc/raddb]/clients.conf
 
 #VERSION 2.xx
 :OS=FREEBSD,FREERADIUS=2,RLM_PERL=0:FILE=v2/users         > [/usr/local/etc/raddb]/users
-:OS=FREEBSD,FREERADIUS=2,RLM_PERL=0:FILE=v2/radiusd.conf  > [/usr/local/etc/raddb]/radiusd.conf
+:OS=FREEBSD,FREERADIUS=2:FILE=v2/radiusd.conf  > [/usr/local/etc/raddb]/radiusd.conf
 :OS=FREEBSD,FREERADIUS=2:FILE=v2/sql.conf  > [/usr/local/etc/raddb]/sql.conf
 :OS=FREEBSD,FREERADIUS=2:FILE=v2/default  > [/usr/local/etc/raddb]/sites-enabled/abills_default
 :OS=FREEBSD,FREERADIUS=2:FILE=v2/perl > [/usr/local/etc/raddb/modules]/perl
