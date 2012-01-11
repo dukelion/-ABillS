@@ -4216,13 +4216,17 @@ print $html->form_main({  CONTENT => $table->show(),
 
 
 $table = $html->table( { width      => '100%',
-                            caption    => "$_NAS",
-                            title      => ["ID", "$_NAME", "NAS-Identifier", "IP", "$_TYPE", "$_AUTH", 
+                         caption    => "$_NAS--",
+                         title      => ["ID", "$_NAME", "NAS-Identifier", "IP", "$_TYPE", "$_AUTH", 
                              "$_STATUS", "$_DESCRIBE", '-', '-', '-'],
-                            cols_align => ['center', 'left', 'left', 'right', 'left', 'left', 'center', 'left', 
+                         cols_align => ['center', 'left', 'left', 'right', 'left', 'left', 'center', 'left', 
                               'center:noprint', 'center:noprint', 'center:noprint'],
-                            ID         => 'NAS_LIST'
-                           });
+                         ID         => 'NAS_LIST',
+                         #MENU       => "$_ADD:index=". get_function_index('form_nas') .':add'
+                         EXPORT     => "$_EXPORT XML:&xml=1",
+                         MENU    => "$_ADD:index=".get_function_index('form_nas').':add'.
+                            ";$_SEARCH:index=".get_function_index('form_nas')."&type=13:search"
+                        });
 
 my $list = $nas->list({ %FORM, %LIST_PARAMS, DOMAIN_ID => $admin->{DOMAIN_ID} });
 foreach my $line (@$list) {
