@@ -1669,7 +1669,13 @@ sub cross_modules_call  {
 eval {
   my %full_return  = ();
   my @skip_modules = ();
- 
+  open($SAVEOUT, ">&", STDOUT) or die "XXXX: $!";
+
+  #Reset out
+  open STDIN, '/dev/null';
+  open STDOUT, '/dev/null';
+  open STDERR, '/dev/null'; 
+
   if ($attr->{SKIP_MODULES}) {
   	$attr->{SKIP_MODULES}=~s/\s+//g;
   	@skip_modules=split(/,/, $attr->{SKIP_MODULES});
@@ -1687,6 +1693,7 @@ eval {
      }
     $full_return{$mod}=$return;
    }
+  open (STDOUT, ">&", $SAVEOUT); 
 };
 
   return \%full_return;
