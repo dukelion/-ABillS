@@ -8,6 +8,8 @@
 :DEFAULT:MPD_CONSOLE_USER=admin:Mpd console user
 :DEFAULT:MPD_CONSOLE_PASSWORD=secretpass:Mpd console password
 :DEFAULT:MPD_NETFLOW_IP=127.0.0.1:IP address port, where NetFlow export datagrams will be sent. 
+:DEFAULT:BILLING_IP=127.0.0.1:Billing server IP for hangup and CoA request
+:DEFAULT:POD_PASSWORD=secretpass:POD and CoA password
 :DEFAULT:MPD_NETFLOW_PORT=9996:port, where NetFlow export datagrams will be sent
 :DEFAULT:MPD_NETFLOW_SOURCE_IP=127.0.0.1:local IP to make NetFlow datagrams originate from a specific source.
 :DEFAULT:MPD_NETFLOW_SOURCE_PORT=9990:port binding to make NetFlow datagrams originate from a specific source.

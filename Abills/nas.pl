@@ -73,7 +73,7 @@ sub hangup {
    hangup_mpd4($NAS, $PORT, $attr);
   }
  elsif ($nas_type eq 'mpd5') {
-   hangup_mpd5($NAS, $PORT, $USER, { USER => $USER, %$attr });
+   hangup_mpd5($NAS, $PORT, { USER => $USER, %$attr });
   }
  elsif ($nas_type eq 'openvpn') {
    hangup_openvpn($NAS, $PORT, $USER);
@@ -180,8 +180,7 @@ sub telnet_cmd {
 
  SH->autoflush(1);
 
-for (my $i=0; $i<=$#commands; $i++) {
-  my $line = $commands[$i];
+foreach my $line (@$commands) {
 
   my ($waitfor, $sendtext)=split(/\t/, $line, 2);
   my $wait_len = length($waitfor);
@@ -193,6 +192,7 @@ for (my $i=0; $i<=$#commands; $i++) {
    }
 
 
+
   do {
      recv($sock, $inbuf, $MAXBUF, 0);
      $input .= $inbuf;
@@ -200,6 +200,8 @@ for (my $i=0; $i<=$#commands; $i++) {
      #return 0;
      alarm 5;
     } while ($len >= $MAXBUF || $len < $wait_len);
+
+
  
   $Log->log_print('LOG_DEBUG', "$USER_NAME", "Get: \"$input\"\nLength: $len", { ACTION => 'CMD' });
   $Log->log_print('LOG_DEBUG', "$USER_NAME", " Wait for: '$waitfor'", { ACTION => 'CMD' });
@@ -207,12 +209,13 @@ for (my $i=0; $i<=$#commands; $i++) {
   if ($input =~ /$waitfor/ig){ # || $waitfor eq '') {
     $text = $sendtext;
     $Log->log_print('LOG_DEBUG', "$USER_NAME", "Send: $text", { ACTION => 'CMD' });
+    #send($sock, "$text\r\n", 0, $dest) or die log_print('LOG_INFO', "Can't send: '$text' $!");
     send($sock, "$text\n", 0, $dest) or die $Log->log_print('LOG_INFO', "$USER_NAME", "Can't send: '$text' $!", { ACTION => 'CMD' });
+    #"Can't send: $!\n";
    };
 
  $res .= "$input\n";
 }
-
 
  close(SH);
  return $res;
@@ -761,13 +764,13 @@ sub hangup_mpd4 {
 # hangup_mpd5($SERVER, $PORT)
 #*******************************************************************
 sub hangup_mpd5 {
-  my ($NAS, $PORT, $USER, $attr) = @_;
+  my ($NAS, $PORT, $attr) = @_;
 
   if (! $NAS->{NAS_MNG_IP_PORT}) {
     print "MPD Hangup failed. Can't find NAS IP and port. NAS: $NAS->{NAS_ID}\n";
     return "Error";
    }
-  
+
   if ($NAS->{NAS_MNG_USER} eq '') {
     return hangup_radius($NAS, $PORT, $USER, $attr);
    }
@@ -778,6 +781,7 @@ sub hangup_mpd5 {
           $ctl_port = $1;
          }
    }
+
 
   $Log->log_print('LOG_DEBUG', $USER_NAME, " HANGUP: SESSION: $ctl_port NAS_MNG: $NAS->{NAS_MNG_IP_PORT} '$NAS->{NAS_MNG_PASSWORD}'", { ACTION => 'CMD' });
 
