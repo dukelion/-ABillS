@@ -3,7 +3,8 @@
 <input type=hidden name=index value=$index>
 <input type=hidden name=UID value=$FORM{UID}>
 <input type=hidden name=ID value=$FORM{chg}>
-<table>
+<input type=hidden name='step' value='$FORM{step}'>
+<table clas=form>
 
 <tr><th class=form_title colspan=2>DHCP</th></tr>			
 <tr><td>$_HOSTS_HOSTNAME:</td><td><input type=text name=HOSTNAME value='%HOSTNAME%'></td></tr>			
@@ -22,7 +23,11 @@
 <tr><td>$_SWITCH:</td><td>%SWITCH_SEL% %NAS_BUTTON%</td></tr>
 
 <tr class=even><td>$_ACTIVATE IPN:</td><td><input type=checkbox name=IPN_ACTIVATE value=1 %IPN_ACTIVATE%>%IPN_ACTIVATE_BUTTON%</td></tr>
+<tr><th class=even colspan=2>
+%BACK_BUTTON%
+<input type=submit name=%ACTION% value='%ACTION_LNG%'></th></tr>			
 </table>
-<input type=submit name=%ACTION% value='%ACTION_LNG%'>
+
 </FORM>
 </div>
+

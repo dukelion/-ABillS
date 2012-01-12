@@ -309,7 +309,8 @@ sub networks_list {
      phone,
      disable,
      net_parent,
-     guest_vlan
+     guest_vlan,
+     static     
      FROM dhcphosts_networks
      $WHERE
      ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;");

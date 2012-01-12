@@ -497,6 +497,8 @@ sub dv_user {
         $html->message('info', $_INFO, "$_ADDED");	
        }
      }
+    
+
    }
 	elsif($FORM{change}) {
     if (! $permissions{0}{4} ) {
@@ -760,9 +762,7 @@ sub dv_user {
  	                                          MULTI_ARRAY_VALUE => '1',
  	                                          NO_ID             => 1
  		                                        });
-  
-  
-  
+
   $html->tpl_show(_include('dv_user', 'Dv'), { %$attr, %$Dv }, {  });
   return 0; 
 }

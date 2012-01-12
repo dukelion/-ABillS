@@ -757,13 +757,23 @@ sub dhcphosts_routes {
 #
 #**********************************************************
 sub dhcphosts_user {
-  $Dhcphosts->{ACTION}='add';
-  $Dhcphosts->{ACTION_LNG}=$_ADD;
+	my ($attr)=@_;
+	
+	
+  if ($attr->{ACTION}) {
+	  $Dhcphosts->{ACTION}    = $attr->{ACTION};
+	  $Dhcphosts->{ACTION_LNG}= $attr->{LNG_ACTION}
+	 }
+	else {
+    $Dhcphosts->{ACTION}='add';
+    $Dhcphosts->{ACTION_LNG}=$_ADD;
+   }
 
 
   if ($FORM{add}) {
     if ($FORM{AUTO_IP} && ! $FORM{NETWORK}) {
     	$html->message('err', $_ERROR, "$ERR_WRONG_DATA: Select network");
+     	return 1 if ($attr->{REGISTRATION});
      }
     elsif (($FORM{IP} eq '0.0.0.0' || $FORM{IP} eq '') && $FORM{AUTO_IP} && $FORM{NETWORK}) {
   	 	$FORM{IP}=dhcphosts_get_static_ip($FORM{NETWORK});
@@ -771,12 +781,15 @@ sub dhcphosts_user {
     
     if ($FORM{IP} eq '0.0.0.0' && ! $FORM{OPTION_82}) {
       $html->message('err', $_ERROR, "$ERR_WRONG_DATA: IP '0.0.0.0' ");
+     	return 1 if ($attr->{REGISTRATION});
      }
     elsif ($FORM{MAC} !~ /[0-9a-f]{2}:[0-9a-f]{2}:[0-9a-f]{2}:[0-9a-f]{2}:[0-9a-f]{2}:[0-9a-f]{2}/i) {
       $html->message('err', $_ERROR, "$ERR_WRONG_DATA: MAC ");
+     	return 1 if ($attr->{REGISTRATION});
      }
     elsif(! $FORM{HOSTNAME}) {
       $html->message('err', $_ERROR, "$ERR_WRONG_DATA: $_HOSTS_HOSTNAME  ");
+      return 1 if ($attr->{REGISTRATION});
      }	
     else {
       if (! $FORM{NETWORK}) {
@@ -800,7 +813,7 @@ sub dhcphosts_user {
       	$FORM{MAC}=uc($FORM{MAC});
         $Dhcphosts->host_add({ %FORM });
         if (! $Dhcphosts->{errno}) {
-	        $html->message('info', $_ADDED, "$_ADDED [$FORM{HOSTNAME}] ");
+	        $html->message('info', "Dhcp : $_ADDED", "$_ADDED [$FORM{HOSTNAME}] ");
           dhcphosts_config({ NETWORKS => $FORM{NETWORK}, 
       	                     reconfig => 1 
       	                    });
@@ -819,6 +832,7 @@ sub dhcphosts_user {
       	    print $html->message('info', $_INFO, $html->pre($return, { OUTPUT2RETURN => 1 }));
       	   }
 	       }
+         return 0 if ($attr->{REGISTRATION});
        }
     }
 	 }
@@ -901,7 +915,7 @@ sub dhcphosts_user {
   
   if ($Dhcphosts->{errno}) {
     if ($Dhcphosts->{errno} == 17) {
-      	$html->message('err', $_ERROR, "# $FORM{NETWORK} $ERR_WRONG_NETWORK");
+      $html->message('err', $_ERROR, "# $FORM{NETWORK} $ERR_WRONG_NETWORK");
      }
     elsif ($Dhcphosts->{errno} == 7) {
     	my $list = $Dhcphosts->hosts_list({ IP => $FORM{IP} });
@@ -920,6 +934,7 @@ sub dhcphosts_user {
     else {
       $html->message('err', $_ERROR, "[$Dhcphosts->{errno}] $err_strs{$Dhcphosts->{errno}}");
      }
+    return 1 if ($attr->{REGISTRATION});
   }
 
   $Dhcphosts->{NETWORKS_SEL} = dhcphosts_network_sel({ AUTOSIGN => 1 });
@@ -976,8 +991,9 @@ sub dhcphosts_user {
 
   $html->tpl_show(_include('dhcphosts_host', 'Dhcphosts'), { %{ $Dhcphosts->host_defaults() }, 
   	    HOSTNAME => $users->{LOGIN} . (($Dhcphosts->{TOTAL}) ? '_'.($Dhcphosts->{TOTAL}+1) : ''),  
-  	    %FORM, 
-  	    %$Dhcphosts,  	    
+  	    %FORM,
+  	    %$attr,
+  	    %$Dhcphosts,
   	    }); 
 
   #dhcphosts_hosts();
@@ -1031,7 +1047,7 @@ sub dhcphosts_get_static_ip {
 #**********************************************************
 sub dhcphosts_network_sel {
 	my ($attr) = @_;
-	
+
   my $list=$Dhcphosts->networks_list({ PAGE_ROWS => 10000, SORT => 2 });
   if ($Dhcphosts->{errno}) {
    	print $html->message('err', $_ERROR, "[$Hosts->{errno}] $err_strs{$Hosts->{errno}}");
@@ -1044,7 +1060,8 @@ sub dhcphosts_network_sel {
   $networks{0} = "$_AUTO" if ($attr->{AUTOSIGN}); 
 
   foreach my $line (@$list) {
-    $networks{$line->[0]}=$line->[1]."(".$line->[2]."/".$line->[3].")";
+  	my $autoselect = ($line->[9]) ? " $_AUTO IP" : '';
+    $networks{$line->[0]}=$line->[1]."(".$line->[2]."/".$line->[3].") $autoselect";
    }; 
 
   return $html->form_select('NETWORK', 	
@@ -1053,6 +1070,7 @@ sub dhcphosts_network_sel {
 		                                 SEL_HASH => \%networks 
 		                                }
 		                        );
+
 }
 
 #**********************************************************

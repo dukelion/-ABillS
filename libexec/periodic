@@ -86,6 +86,7 @@ if ($args->{MODULES}) {
 	@monthly_functions = ();
 	$args->{MODULES}=~s/ //g;
 	@MODULES = split(/,/, $args->{MODULES});
+  $args->{NO_ADM_REPORT}}=1;
 }
 
 #Don't process for this modules
@@ -93,6 +94,7 @@ my @SKIP_MODULES = ();
 if ($args->{SKIP_MODULES}) {
 	$args->{SKIP_MODULES}=~s/ //g;
 	@SKIP_MODULES = split(/,/, $args->{SKIP_MODULES});
+	$args->{NO_ADM_REPORT}}=1;
 }
 
 my $debug = 0;

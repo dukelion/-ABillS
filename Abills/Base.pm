@@ -749,9 +749,9 @@ for ($i = $first_length; $i >=1; $i--) {
 
 
 if ($second ne '') {
- $ret .= " $second  $money_unit_names->[1]\n";
+ $ret .= " $second  $money_unit_names->[1]";
 } else {
- $ret .= "\n";
+ $ret .= "";
 }
 
  use locale;
