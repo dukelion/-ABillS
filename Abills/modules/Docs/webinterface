@@ -2407,6 +2407,8 @@ for (my $year=2009; $year<=$Y; $year++) {
 sub docs_payments_maked {
 	my ($attr) = @_;
 #Add account number 
+
+
 if ($FORM{ACCOUNT_ID}) {
  	$Docs->account_change({ ID         => $FORM{ACCOUNT_ID},
  		                      UID        => $FORM{UID},
