@@ -4,7 +4,7 @@
 <input type=hidden name=UID value=$FORM{UID}>
 <input type=hidden name=ID value=$FORM{chg}>
 <input type=hidden name='step' value='$FORM{step}'>
-<table clas=form>
+<table class=form width=450>
 
 <tr><th class=form_title colspan=2>DHCP</th></tr>			
 <tr><td>$_HOSTS_HOSTNAME:</td><td><input type=text name=HOSTNAME value='%HOSTNAME%'></td></tr>			
