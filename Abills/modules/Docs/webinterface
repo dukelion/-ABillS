@@ -1891,7 +1891,7 @@ sub docs_print {
     if ($users->{GID}) {
        $users->group_info($users->{GID});
        if ($users->{SEPARATE_DOCS}) {
-       	 $attr->{SUFIX}="_$users->{GID}"; 
+       	 $attr->{SUFIX}="$users->{GID}"; 
         }
      }
 

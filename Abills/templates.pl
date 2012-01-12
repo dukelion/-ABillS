@@ -20,7 +20,7 @@ sub _include {
   my $sufix = ($attr->{pdf} || $FORM{pdf}) ? '.pdf' : '.tpl';
   $tpl .= '_'.$attr->{SUFIX} if ($attr->{SUFIX});
 
-  
+
   start:
 
   if ($admin->{DOMAIN_ID}) {
