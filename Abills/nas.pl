@@ -180,7 +180,8 @@ sub telnet_cmd {
 
  SH->autoflush(1);
 
-foreach my $line (@$commands) {
+for (my $i=0; $i<=$#commands; $i++) {
+  my $line = $commands[$i];
 
   my ($waitfor, $sendtext)=split(/\t/, $line, 2);
   my $wait_len = length($waitfor);
@@ -209,9 +210,7 @@ foreach my $line (@$commands) {
   if ($input =~ /$waitfor/ig){ # || $waitfor eq '') {
     $text = $sendtext;
     $Log->log_print('LOG_DEBUG', "$USER_NAME", "Send: $text", { ACTION => 'CMD' });
-    #send($sock, "$text\r\n", 0, $dest) or die log_print('LOG_INFO', "Can't send: '$text' $!");
     send($sock, "$text\n", 0, $dest) or die $Log->log_print('LOG_INFO', "$USER_NAME", "Can't send: '$text' $!", { ACTION => 'CMD' });
-    #"Can't send: $!\n";
    };
 
  $res .= "$input\n";
