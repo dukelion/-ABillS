@@ -73,7 +73,7 @@ sub hangup {
    hangup_mpd4($NAS, $PORT, $attr);
   }
  elsif ($nas_type eq 'mpd5') {
-   hangup_mpd5($NAS, $PORT, { USER => $USER, %$attr });
+   hangup_mpd5($NAS, $PORT, $USER, { USER => $USER, %$attr });
   }
  elsif ($nas_type eq 'openvpn') {
    hangup_openvpn($NAS, $PORT, $USER);
@@ -761,11 +761,15 @@ sub hangup_mpd4 {
 # hangup_mpd5($SERVER, $PORT)
 #*******************************************************************
 sub hangup_mpd5 {
-  my ($NAS, $PORT, $attr) = @_;
+  my ($NAS, $PORT, $USER, $attr) = @_;
 
   if (! $NAS->{NAS_MNG_IP_PORT}) {
     print "MPD Hangup failed. Can't find NAS IP and port. NAS: $NAS->{NAS_ID}\n";
     return "Error";
+   }
+  
+  if ($NAS->{NAS_MNG_USER} eq '') {
+    return hangup_radius($NAS, $PORT, $USER, $attr);
    }
 
   my $ctl_port = "L-$PORT";
@@ -774,7 +778,6 @@ sub hangup_mpd5 {
           $ctl_port = $1;
          }
    }
-
 
   $Log->log_print('LOG_DEBUG', $USER_NAME, " HANGUP: SESSION: $ctl_port NAS_MNG: $NAS->{NAS_MNG_IP_PORT} '$NAS->{NAS_MNG_PASSWORD}'", { ACTION => 'CMD' });
 
