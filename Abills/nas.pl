@@ -193,7 +193,7 @@ for (my $i=0; $i<=$#commands; $i++) {
    }
 
 
-
+eval {
   do {
      recv($sock, $inbuf, $MAXBUF, 0);
      $input .= $inbuf;
@@ -201,7 +201,7 @@ for (my $i=0; $i<=$#commands; $i++) {
      #return 0;
      alarm 5;
     } while ($len >= $MAXBUF || $len < $wait_len);
-
+}
 
  
   $Log->log_print('LOG_DEBUG', "$USER_NAME", "Get: \"$input\"\nLength: $len", { ACTION => 'CMD' });
