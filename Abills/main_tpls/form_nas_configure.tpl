@@ -18,10 +18,10 @@ function Process(version, INTERNAL_SUBNET, wds, SSID){
 
 	
 	
-	if (document.FORM_NAS.LAN_IP.value != '') {
-    var commandsubnet = '\\\\&LAN_IP='+document.FORM_NAS.LAN_IP.value;
-	 }
-	else {
+ 	if (document.FORM_NAS.LAN_IP && document.FORM_NAS.LAN_IP.value != '' ) {
+     var commandsubnet = '\\\\&LAN_IP='+document.FORM_NAS.LAN_IP.value;
+  	 }
+ 	 else {
 	  if (INTERNAL_SUBNET != '20') {
 		  var commandsubnet = '\\\\&INTERNAL_SUBNET='+INTERNAL_SUBNET;
      } 
@@ -29,6 +29,7 @@ function Process(version, INTERNAL_SUBNET, wds, SSID){
 		  var commandsubnet = ''; 
 	   }
 	 }
+
 
 	if (wds != '0') {
 		var commandwds = '\\\\&wds='+wds;
@@ -110,14 +111,14 @@ function disableEnterKey(e)
                             onKeyPress=\"Process(this.form.version.value, this.form.INTERNAL_SUBNET.value, this.form.wds.value, this.form.CUSTOM_SID.value); return disableEnterKey(event)\" />
                                .1
 
+
 <!--
 <br>
 Custom Network: <input name=\"LAN_IP\" class=\"forminput\" type=\"text\"  id=\"LAN_IP\" value=\"\" size=\"16\" maxlength=\"16\"  
                             onchange=\"Process(this.form.version.value, this.form.INTERNAL_SUBNET.value, this.form.wds.value, this.form.CUSTOM_SID.value)\" 
                             onsubmit=\"Process(this.form.version.value, this.form.INTERNAL_SUBNET.value, this.form.wds.value, this.form.CUSTOM_SID.value)\"  
                             onKeyPress=\"Process(this.form.version.value, this.form.INTERNAL_SUBNET.value, this.form.wds.value, this.form.CUSTOM_SID.value); return disableEnterKey(event)\" />
--->                               
-                               
+-->
                                </td>
 </tr>
 <tr><td>SSID:</td><td> <input name=\"CUSTOM_SID\" class=\"forminput\" type=\"text\"  id=\"CUSTOM_SID\" value=\"wifi\" size=\"18\" maxlength=\"14\"  
