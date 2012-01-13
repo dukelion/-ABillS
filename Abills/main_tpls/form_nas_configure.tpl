@@ -2,10 +2,9 @@
 
 <!--
 function Process(version, INTERNAL_SUBNET, wds, SSID){
-	
 	var commandbegin='%PARAM1%';
 	var commandend = '%PARAM2%';
-	
+
 	if (version == 'v24') {
 		var commandversion = '\\\\&version=v24';
   	} else if (version == 'coova') { 
@@ -18,27 +17,35 @@ function Process(version, INTERNAL_SUBNET, wds, SSID){
 	}
 
 	
-	if (INTERNAL_SUBNET != '20') {
-		var commandsubnet = '\\\\&INTERNAL_SUBNET='+INTERNAL_SUBNET;
-  	} else { 
-		var commandsubnet = ''; 
-	}
 	
+	if (document.FORM_NAS.LAN_IP.value != '') {
+    var commandsubnet = '\\\\&LAN_IP='+document.FORM_NAS.LAN_IP.value;
+	 }
+	else {
+	  if (INTERNAL_SUBNET != '20') {
+		  var commandsubnet = '\\\\&INTERNAL_SUBNET='+INTERNAL_SUBNET;
+     } 
+    else { 
+		  var commandsubnet = ''; 
+	   }
+	 }
+
 	if (wds != '0') {
 		var commandwds = '\\\\&wds='+wds;
-  	} else { 
+   } 
+  else { 
 		var commandwds = ''; 
-	}
+	 }
 
 	if (SSID != '') {
 		var commandsid = '\\\\&SSID='+SSID;
-  	} else { 
+   } 
+  else {
 		var commandsid = ''; 
-	}
+	 }
 
 	
 	document.FORM_NAS.tbox.value = commandbegin+ commandversion + commandsid + commandsubnet + commandwds + commandend;
-
 }
 
 function data_change(field) {
@@ -84,7 +91,7 @@ function disableEnterKey(e)
 <input type=hidden name=wds id=wds class=\"selectinput\" value=\"0\">
 
 
-<table width=100%>
+<table width=100% class=form>
 <tr><th class=table_title colspan=2>Hotspot $_SETTINGS</th></tr>
 <tr><td>Firmware Version:</td><td>
              <select name=\"version\" class=\"selectinput\" id=\"version\"  onchange=\"Process(this.form.version.value, this.form.INTERNAL_SUBNET.value, this.form.wds.value, this.form.CUSTOM_SID.value)\" onKeyPress=\"return disableEnterKey(event)\">
@@ -98,16 +105,23 @@ function disableEnterKey(e)
 
 <tr><td>Set router's internal IP to:</td><td>
                              192.168. <input name=\"INTERNAL_SUBNET\" class=\"forminput\" type=\"text\"  id=\"INTERNAL_SUBNET\" value=\"20\" size=\"3\" maxlength=\"3\"  
-                             onchange=\"Process(this.form.version.value, this.form.INTERNAL_SUBNET.value, this.form.wds.value, this.form.CUSTOM_SID.value)\" onkeyup=\"data_change(this)\"
-                            
+                            onchange=\"Process(this.form.version.value, this.form.INTERNAL_SUBNET.value, this.form.wds.value, this.form.CUSTOM_SID.value)\" onkeyup=\"data_change(this)\"
                             onsubmit=\"Process(this.form.version.value, this.form.INTERNAL_SUBNET.value, this.form.wds.value, this.form.CUSTOM_SID.value)\"  
-                            
                             onKeyPress=\"Process(this.form.version.value, this.form.INTERNAL_SUBNET.value, this.form.wds.value, this.form.CUSTOM_SID.value); return disableEnterKey(event)\" />
-                               .1</td>
+                               .1
+
+<!--
+<br>
+Custom Network: <input name=\"LAN_IP\" class=\"forminput\" type=\"text\"  id=\"LAN_IP\" value=\"\" size=\"16\" maxlength=\"16\"  
+                            onchange=\"Process(this.form.version.value, this.form.INTERNAL_SUBNET.value, this.form.wds.value, this.form.CUSTOM_SID.value)\" 
+                            onsubmit=\"Process(this.form.version.value, this.form.INTERNAL_SUBNET.value, this.form.wds.value, this.form.CUSTOM_SID.value)\"  
+                            onKeyPress=\"Process(this.form.version.value, this.form.INTERNAL_SUBNET.value, this.form.wds.value, this.form.CUSTOM_SID.value); return disableEnterKey(event)\" />
+-->                               
+                               
+                               </td>
 </tr>
 <tr><td>SSID:</td><td> <input name=\"CUSTOM_SID\" class=\"forminput\" type=\"text\"  id=\"CUSTOM_SID\" value=\"wifi\" size=\"18\" maxlength=\"14\"  
-                             onchange=\"Process(this.form.version.value, this.form.INTERNAL_SUBNET.value, this.form.wds.value, this.form.CUSTOM_SID.value)\" onkeyup=\"\"
-                            
+                            onchange=\"Process(this.form.version.value, this.form.INTERNAL_SUBNET.value, this.form.wds.value, this.form.CUSTOM_SID.value)\" onkeyup=\"\"
                             onsubmit=\"Process(this.form.version.value, this.form.INTERNAL_SUBNET.value, this.form.wds.value, this.form.CUSTOM_SID.value)\"  
                             onKeyPress=\"Process(this.form.version.value, this.form.INTERNAL_SUBNET.value, this.form.wds.value, this.form.CUSTOM_SID.value); return disableEnterKey(event)\" /></td>
 </tr>

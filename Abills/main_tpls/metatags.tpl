@@ -145,6 +145,7 @@ table.list {
 table.form {
   border-spacing:0;
   padding:5px;
+;  margin-top:2px;
  }
 
 .tcaption {
