@@ -73,6 +73,26 @@ $_ACCOUNTANT='Бухгалтер';
 $_GUIDANCE='Руководство';
 $_ADD_ITEM='Добавить товар';
 $_QUANTITY_OF_GOODS = 'Кол-во товара';
+$_CHOOSE_TYPE = 'Выберите тип';
+$_RENT = 'Аренда';
+$_SOLD = 'Продано';
+$_CANT_DELETE_ERROR4 = 'Невозможно добавить - не выбран товар для добавления';
+$_HOSTS_NETWORKS="Сети";
+$_HOSTS_NETWORKS_NAME="Название сети";
+$_HOSTS_NETWORKS_NET="Адрес сети";
+$_HOSTS_NETWORKS_COORDINATOR="Координатор";
+$_HOSTS_NETWORKS_COORDINATOR_PHONE="Телефон координатора";
+$_HOSTS_MAC="Сетевой адрес";
+$_HOSTS_HOSTNAME="Имя хоста";
+$_AUTO='Автовыбор';
+$_NETWORK='Сеть';
+$_SUBNET='Подсеть';
+$_SELL_PRICE='Цена продажи';
+$_RENT_PRICE='Цена аренды';
+$_SUM_ALL = 'Цена партии';
+$_PAY_FOR_RENT = 'Оплата за аренду оборудования  - ';
+$_PAY_FOR_SELL = 'Оплата за продажу оборудования  - ';
+
 
 
 

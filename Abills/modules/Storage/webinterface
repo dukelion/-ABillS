@@ -1,6 +1,10 @@
 
 use Storage;
+use Fees;
+
 my $Storage = Storage->new($db, $admin, \%conf);
+my $fees = Fees->new($db, $admin, \%conf);
+
 
 
 #***********************************************************
@@ -120,8 +124,8 @@ sub storage_articles {
 						$line->[3], 
 						$line->[4],  
 						$line->[5],
-						$html->button($_INFO, "index=$index&chg=$line->[0]", { BUTTON => 1 }), 
-						(defined($permissions{0}{5})) ? $html->button($_DEL, "index=$index&del=$line->[0]", { MESSAGE => "$_DEL $_ARTICLE $line->[1]?", BUTTON => 1 }) : ''
+						$html->button($_INFO, "index=$index&chg=$line->[0]", { CLASS => 'change' }), 
+						(defined($permissions{0}{5})) ? $html->button($_DEL, "index=$index&del=$line->[0]", { MESSAGE => "$_DEL $_ARTICLE $line->[1]?", CLASS => 'del' }) : ''
 		);
 	}	
 	print $table->show();							
@@ -219,8 +223,8 @@ sub storage_articles_types {
 	foreach my $line ( @$list ) {
 		$table->addrow(	$line->[1],  
 						$line->[2], 
-						$html->button($_INFO, "index=$index&chg=$line->[0]", { BUTTON => 1 }), 
-						(defined($permissions{0}{5})) ? $html->button($_DEL, "index=$index&del=$line->[0]", { MESSAGE => "$_DEL $_TYPE $line->[1]?", BUTTON => 1 }) : ''
+						$html->button($_INFO, "index=$index&chg=$line->[0]", { CLASS => 'change' }), 
+						(defined($permissions{0}{5})) ? $html->button($_DEL, "index=$index&del=$line->[0]", { MESSAGE => "$_DEL $_TYPE $line->[1]?", CLASS => 'del' }) : ''
     				  );
 	}			
 	print $table->show();  
@@ -330,8 +334,8 @@ sub suppliers_main {
 						$line->[16],
 						$line->[8],
 						#$line->[2], DATE
-						$html->button($_INFO, "index=$index&chg=$line->[0]", { BUTTON => 1 }), 
-						(defined($permissions{0}{5})) ? $html->button($_DEL, "index=$index&del=$line->[0]", { MESSAGE => "$_DEL $_SUPPLIER $line->[1]?", BUTTON => 1 }) : ''
+						$html->button($_INFO, "index=$index&chg=$line->[0]", { CLASS => 'change' }), 
+						(defined($permissions{0}{5})) ? $html->button($_DEL, "index=$index&del=$line->[0]", { MESSAGE => "$_DEL $_SUPPLIER $line->[1]?", CLASS => 'del' }) : ''
 		);
 	}
 	print $table->show();
@@ -528,13 +532,13 @@ sub storage_main {
 			$leftover = $list->[0]->[21];
 			if (($leftover - $FORM{COUNT}) > -1 and $FORM{COUNT} ne '' and $FORM{COUNT} != 0 ) {	
 					$Storage->storage_discard ({
-						ARTICLE_ID					=>	$list->[0]->[1],
+						ARTICLE_ID				=>	$list->[0]->[1],
 						COUNT_INCOMING			=>	$list->[0]->[2],
-						SUM_INCOMING				=>	$list->[0]->[3],
-						SN									=>	$list->[0]->[4],
+						SUM_INCOMING			=>	$list->[0]->[3],
+						SN						=>	$list->[0]->[4],
 						MAIN_ARTICLE_ID			=>	$list->[0]->[0],
-						STORAGE_INCOMING_ID	=>	$list->[0]->[5],
-						SUM_TOTAL						=>	$list->[0]->[23], #$list->[0]->[23],
+						STORAGE_INCOMING_ID		=>	$list->[0]->[5],
+						SUM_TOTAL				=>	$list->[0]->[23], #$list->[0]->[23],
 						%FORM,
 								
 					});
@@ -848,7 +852,7 @@ sub storage_main {
 														});	
 		
 		if ($Storage->{errno}) {
-    	$html->message('err', $_ERROR, "[$Storage->{errno}] $err_strs{$Storage->{errno}}");
+    		$html->message('err', $_ERROR, "[$Storage->{errno}] $err_strs{$Storage->{errno}}");
 		}
 
 		foreach my $line ( @$list ) {
@@ -922,13 +926,13 @@ sub storage_main {
 			$list2 = $Storage->storage_accountability_list( { ID => $FORM{ID} });
 			
 			if ($Storage->{errno}) {
-    		$html->message('err', $_ERROR, "[$Storage->{errno}] $err_strs{$Storage->{errno}}");
+    			$html->message('err', $_ERROR, "[$Storage->{errno}] $err_strs{$Storage->{errno}}");
 			}
 			
 			$list = $Storage->storage_incoming_articles_list( { ID => $list2->[0]->[2] });
 			
 			if ($Storage->{errno}) {
-    		$html->message('err', $_ERROR, "[$Storage->{errno}] $err_strs{$Storage->{errno}}");
+    			$html->message('err', $_ERROR, "[$Storage->{errno}] $err_strs{$Storage->{errno}}");
 			}
 			
 			$leftover = $list2->[0]->[3];
@@ -1480,4 +1484,359 @@ sub storage_orders {
 
 
 
+}
+
+#***********************************************************
+# 	Hardware
+#***********************************************************
+sub storage_hardware {
+
+
+
+
+	#$Storage->{debug} = 1;	
+	if ($FORM{message}) {				
+		$html->message('info', $_INFO, "$FORM{message}");	
+	}		
+	$Storage->{ACTION}='add';
+	$Storage->{ACTION_LNG}=$_ADD;
+	$Storage->{DATE}='0000-00-00';
+	#"$_INSTALLED", "$_SOLD", "$_RENT"
+	my @status;
+	
+	
+	$status[0] = "$_INSTALLED";
+	$status[1] = "$_SOLD";
+	$status[2] = "$_RENT";
+	
+	my @storage_storages = ('', split(/,/, $conf{STORAGE_STORAGES}));
+	
+
+	
+
+
+	
+	if($FORM{add} and defined($FORM{UID}) and $FORM{UID} ne '') {
+		
+
+	if(defined($FORM{MAC}) and $FORM{MAC} ne '') {		
+		if (in_array('Dhcphosts', \@MODULES)) {	
+			load_module('Dhcphosts', $html);
+			my $result = dhcphosts_user({ REGISTRATION => 1 });
+			#$FORM{AUTO_IP}=1;
+		}
+	}
+		
+		
+		
+			
+		if($FORM{ARTICLE_ID}) {
+			#$Storage->{debug} = 1;	
+			$list = $Storage->storage_incoming_articles_list({ ID => $FORM{ARTICLE_ID} });
+				
+			if ($Storage->{errno}) {
+				$html->message('err', $_ERROR, "[$Storage->{errno}] $err_strs{$Storage->{errno}}");
+			}
+			
+			$leftover = $list->[0]->[21];
+			
+			my $sell_price = $list->[0]->[29] * $FORM{COUNT};
+			my $rent_price = $list->[0]->[30] * $FORM{COUNT};
+
+			
+			#$fees->{debug}=1;
+						
+			if($FORM{STATUS} == 1) {
+				$fees->take($users, $sell_price, { DESCRIBE => "$_PAY_FOR_SELL $list->[0]->[14]" } );
+			}
+			elsif($FORM{STATUS} == 2) {
+				$fees->take($users, $rent_price, { DESCRIBE => "$_PAY_FOR_RENT $list->[0]->[14]" } );
+			}			
+			
+			if ($leftover == '') {
+				$leftover = 0;
+			} 
+			
+			if (($leftover - $FORM{COUNT}) > -1 and $FORM{COUNT} ne '' and $FORM{COUNT} != 0) {
+								
+				$Storage->storage_installation_user_add({	
+					%FORM,
+					COUNT_INCOMING	=> $list->[0]->[2],
+					SUM_TOTAL		=> $list->[0]->[23],
+					MAIN_ARTICLE_ID		=>	$list->[0]->[0],
+					STORAGE_INCOMING_ARTICLES_ID => $FORM{ARTICLE_ID},
+														
+				});
+				
+				
+				
+				
+							
+				if (! $Storage->{errno}) {
+	
+					$html->tpl_show(_include('storage_redirect', 'Storage'), { 
+											SECTION => '&UID=' . $FORM{UID},
+											MESSAGE => "$_ADDED",
+					});		
+				}	
+				
+			}
+			else {
+					$Storage->{ID}=$FORM{ID}; 
+					$html->message('info', $_INFO, "$_CANT_INSTALL_MAX_VALUE $leftover ");
+					$html->tpl_show(_include('storage_hardware_installation', 'Storage'), { 
+						%$Storage, 
+						%FORM,
+						ARTICLE_ID		=> $Storage->{ARTICLE_ID}, 
+						ARTICLE_TYPES 	=> $Storage->{ARTICLE_TYPES},
+						STATUS 			=> $Storage->{STATUS},	
+						#NAS	=> $NAS, 						
+					});			
+			}
+
+		} else {
+			$Storage->{ID}=$FORM{ID}; 
+			$html->message('info', $_INFO, "$_CANT_DELETE_ERROR4");
+			$html->tpl_show(_include('storage_hardware_installation', 'Storage'), { 
+				%$Storage, 
+				%FORM,
+				ARTICLE_ID		=> $Storage->{ARTICLE_ID}, 
+				ARTICLE_TYPES 	=> $Storage->{ARTICLE_TYPES},
+				STATUS 			=> $Storage->{STATUS},	
+				#NAS	=> $NAS, 						
+			});				
+		}
+		
+	}
+###
+
+
+	elsif ($FORM{return_storage} and defined($FORM{UID}) and $FORM{UID} ne '' ) {
+		
+	#$Storage->{debug}=1;
+	$list = $Storage->storage_installation_list({ ID => $FORM{return_storage}});		
+	
+	if ($Storage->{errno}) {
+		$html->message('err', $_ERROR, "[$Storage->{errno}] $err_strs{$Storage->{errno}}");
+	}	
+	
+	$list2 = $Storage->storage_incoming_articles_list( { ID => $list->[0]->[1] });	
+	
+	if ($Storage->{errno}) {
+    		$html->message('err', $_ERROR, "[$Storage->{errno}] $err_strs{$Storage->{errno}}");
+	}
+	
+		$Storage->storage_installation_return ({
+											COUNT_INCOMING	=> $list2->[0]->[2],
+											SUM_TOTAL		=> $list2->[0]->[23],
+											MAIN_ARTICLE_ID	=> $list2->[0]->[0],
+											COUNT 			=> $list->[0]->[6],
+											ID_INSTALLATION	=> $FORM{return_storage},
+											SUM 			=> $list->[0]->[19]	
+										 });
+										 
+		if (! $Storage->{errno}){
+			
+				$html->tpl_show(_include('storage_redirect', 'Storage'), { 
+					SECTION => "&UID=$FORM{UID}",
+					MESSAGE => "$_RETURNED $list->[0]->[9] $list->[0]->[6] $list2->[0]->[15] $_AT_STORAGE  - $storage_storages[$list2->[0]->[24]]",
+				});
+		}	
+	}
+
+	if ($FORM{change}) {
+
+			#$Storage->{debug}=1;
+			$Storage->storage_installation_change({ %FORM });
+			if (! $Storage->{errno}) {
+				$html->tpl_show(_include('storage_redirect', 'Storage'), { 
+					SECTION => '&UID=' . $FORM{UID},
+					MESSAGE => "$_CHANGED",
+				});			
+			}
+	}
+
+	
+	#$Storage->{debug}=1;
+	if ($FORM{chg} and defined($FORM{UID}) and $FORM{UID} ne '') {		
+		$Storage->{ACTION}='change';
+		$Storage->{ACTION_LNG}=$_CHANGE;
+		$Storage->{DISABLE}="disabled='disabled'";
+		
+		
+		#$Storage->suppliers_info({ ID => $FORM{chg} });
+		$Storage->storage_installation_info({ ID => $FORM{chg} });
+		if (! $Storage->{errno}) {
+			$html->message('info', $_INFO, "$_CHANGING");	
+		}
+
+	}
+	
+	defined($Storage->{DISABLE})  ? $Storage->{DISABLE} : '';
+
+	$Storage->{ARTICLE_TYPES}=$html->form_select("ARTICLE_TYPE_ID", 
+									{	SELECTED          => defined($FORM{ARTICLE_TYPE_ID}) ? $FORM{ARTICLE_TYPE_ID} : $Storage->{ARTICLE_TYPE_ID},
+										SEL_MULTI_ARRAY   => [ @{ $Storage->storage_types_list() } ], 
+										MULTI_ARRAY_KEY   => 0,
+										MULTI_ARRAY_VALUE => 1,
+										NO_ID             => 1,
+										EX_PARAMS			=> 'onchange=autoReload() ' . $Storage->{DISABLE},						
+	});
+	
+
+	
+	$val = $Storage->storage_types_list();
+	$FORM{ARTICLE_TYPE_ID} = defined($FORM{ARTICLE_TYPE_ID}) ? $FORM{ARTICLE_TYPE_ID} : (defined($Storage->{ARTICLE_TYPE_ID}) ? $Storage->{ARTICLE_TYPE_ID} : $val->[0]->[0]);
+
+	$Storage->{ARTICLE_ID}=$html->form_select("ARTICLE_ID", {
+										SELECTED          => defined($FORM{ARTICLE_ID}) ? $FORM{ARTICLE_ID} : $Storage->{ARTICLE_ID},
+										SEL_MULTI_ARRAY   => [ @{  $Storage->storage_incoming_articles_list({ ARTICLE_TYPES => $FORM{ARTICLE_TYPE_ID}, }) } ], 
+										MULTI_ARRAY_KEY   => 0,
+										MULTI_ARRAY_VALUE => '14, 21',
+										NO_ID             => 1,
+										EX_PARAMS => $Storage->{DISABLE}
+	});
+		
+	
+	$FORM{STATUS} = defined($FORM{STATUS}) ? $FORM{STATUS} : (defined($Storage->{STATUS_ID}) ? $Storage->{STATUS_ID} : 1);
+	
+	$Storage->{STATUS} = $html->form_select("STATUS", {
+									SELECTED		=> $FORM{STATUS},
+									SEL_ARRAY		=> [ @status ], 
+									ARRAY_NUM_ID	=> 1,
+									OUTPUT2RETURN	=> 1,	
+	});
+
+ if (in_array('Dhcphosts', \@MODULES)) {
+	
+	
+	load_module('Dhcphosts', $html);
+	#use Dhcphosts;
+	#my $Dhcphosts = Dhcphosts->new($db, $admin, \%conf);
+  	
+  	
+
+	
+	if(defined($Storage->{NETWORK})) {
+		$FORM{NETWORK} = $Storage->{NETWORK};	
+	} 
+
+  	my $network_index = get_function_index('dhcphosts_networks');
+  	if($network_index) {
+  		$Storage->{NETWORK_BUTTON} = $html->button($_INFO, "&index=$network_index&chg=$Storage->{NETWORK}", { CLASS => 'show rightAlignText' });
+   	}	
+	
+
+
+	
+	$Storage->{NETWORKS_SEL} = dhcphosts_network_sel();
+
+
+	
+
+}	
+	if (!$FORM{add} and !$FORM{change}) { 
+		
+		
+		$html->tpl_show(_include('storage_hardware_installation', 'Storage'), {	
+			%$Storage,
+			ARTICLE_ID		=> $Storage->{ARTICLE_ID}, 
+			ARTICLE_TYPES 	=> $Storage->{ARTICLE_TYPES},
+			STATUS 			=> $Storage->{STATUS},		
+		});
+	}
+	
+	if (defined($FORM{UID}) and $FORM{UID} ne '') {
+	
+		my $table = $html->table({	
+			width      => '100%',
+			border     => 1,
+			title      => ['-', '-', $_LOGIN, $_TYPE, $_NAME, 'MAC', IP, $_SERIAL, $_STATUS, $_DATE, $_COMMENTS],
+			cols_align => ['left', 'right', 'right', 'right', 'center', 'center'],
+			pages      => $Storage->{TOTAL},
+			ID         => 'STORAGE_ID',
+			header		=> 
+	((!defined($FORM{SHOW_STATUS}) && $FORM{SHOW_STATUS} != 0) ? $html->b($status[2]) : $html->button($status[2], "index=$index&UID=$FORM{UID}", { BUTTON => 1 })) . ' ' .
+	(($FORM{SHOW_STATUS} == 1 ) ? $html->b($status[1]) : $html->button($status[1], "index=$index&UID=$FORM{UID}&SHOW_STATUS=1", { BUTTON => 1 }))
+	#((defined($FORM{SHOW_STATUS}) && $FORM{SHOW_STATUS} == 0 ) ? $html->b($status[0]) : $html->button($status[0], "index=$index&UID=$FORM{UID}&SHOW_STATUS=0", { BUTTON => 1 }))	
+
+		});			
+		#$Storage->{debug}=1;	
+		
+		
+		#($FORM{SHOW_STATUS} == 2) ? "UID => $FORM{UID}, STATUS => $FORM{SHOW_STATUS}" : "UID => $FORM{UID}, STATUS => 1"
+		
+		$list = $Storage->storage_installation_list({ 
+			UID => $FORM{UID},
+			STATUS => defined($FORM{SHOW_STATUS}) ? $FORM{SHOW_STATUS} : 2,	
+		});
+		
+		if ($Storage->{errno}) {
+			$html->message('err', $_ERROR, "[$Storage->{errno}] $err_strs{$Storage->{errno}}");
+		}
+		
+		
+		
+		foreach my $line ( @$list ) {
+			
+			$line->[26] =~ s/\r\n/<br>/g;
+			$dhcp_index = get_function_index('dhcphosts_user');
+			
+			$table->addrow(	$html->button($_INFO, "index=$index&chg=$line->[0]&UID=$FORM{UID}", { CLASS => 'change' }), 
+				(defined($permissions{0}{5})) ? $html->button($_DEL, "index=$index&return_storage=$line->[0]&UID=" . $FORM{UID}, { MESSAGE => "$_DEL  $line->[1]?", CLASS => 'del' }) : '',
+				$line->[20],  
+				$line->[10], 
+				$line->[9], 
+				"<a href=$SELF_URL?index=$dhcp_index&UID=$FORM{UID}> $line->[21]</a>", 
+				$line->[27],  
+				$line->[26],
+				$status[$line->[25]],
+				$line->[23],
+				$line->[7],
+				#$line->[2], DATE
+	
+			);
+		}
+		
+		
+		print $table->show();
+	}
+}
+
+#***********************************************************
+# 	Hardware
+#***********************************************************
+
+sub storage_monthly_fees {
+	my ($attr) = @_;
+	 		
+	$ADMIN_REPORT{DATE}=$DATE if (! $ADMIN_REPORT{DATE});
+	#$ADMIN_REPORT{DATE} = '2011-12-01';
+	my ($y, $m, $d)=split(/-/, $ADMIN_REPORT{DATE}, 3);
+	
+	if ($d == 01) {
+
+	#$Storage->{debug}=1;	
+	my $list = $Storage->storage_rent_fees({});
+		
+		foreach my $line (@$list) {
+			
+			$users->{BILL_ID} = $line->[4];
+			$users->{UID} = $line->[1];
+					
+			$line->[2] = $line->[2] * $line->[3];
+				
+			#$fees->{debug}=1;
+			$fees->take($users, $line->[2], { DESCRIBE => "$_PAY_FOR_RENT $line->[5]" } );	
+				
+			if ($fees->{errno}) {
+				$html->message('err', $_ERROR, "[$fees->{errno}] $err_strs{$fees->{errno}}");
+			}				
+				
+				
+				
+		}
+	}
+	
+	#print 'ok';
 }

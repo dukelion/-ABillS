@@ -453,11 +453,11 @@ sub action_list {
   elsif($attr->{ADMIN}) {
     push @WHERE_RULES, @{ $self->search_expr($attr->{ADMIN}, 'STR', 'a.id') };
    }
-
  # Start letter 
- if ($attr->{LOGIN}) {
-   push @WHERE_RULES, @{ $self->search_expr($attr->{LOGIN_EXPR}, 'STR', 'u.id') };
-  }
+  elsif ($attr->{LOGIN}) {
+    push @WHERE_RULES, @{ $self->search_expr($attr->{LOGIN}, 'STR', 'u.id') };
+   }
+
   
  if ($attr->{ACTION}) {
  	 push @WHERE_RULES, @{ $self->search_expr($attr->{ACTION}, 'STR', 'aa.actions') };

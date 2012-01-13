@@ -36,9 +36,18 @@
     <td><input name=\"COUNT\" type=\"text\" value=\"%COUNT%\" %DISABLED% /></td>
   </tr>
   <tr>
-    <td>$_SUM: </td>
+    <td>$_SUM_ALL: </td>
     <td><input name=\"SUM\" type=\"text\" value=\"%SUM%\"  %DISABLED% /></td>
   </tr>
+    <tr>
+    <td>$_SELL_PRICE: </td>
+    <td><input name=\"SELL_PRICE\" type=\"text\" value=\"%SELL_PRICE%\"   /></td>
+  </tr>
+    <tr>
+    <td>$_RENT_PRICE: </td>
+    <td><input name=\"RENT_PRICE\" type=\"text\" value=\"%RENT_PRICE%\"   /></td>
+  </tr>
+  
   <tr>
     <td>$_DEPOT_NUM: </td>
     <td>%STORAGE_STORAGES%
