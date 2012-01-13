@@ -104,12 +104,13 @@ if ($FORM{change}) {
          $price = $price / $v;
          push @ORDERS, "$_ICARDS $_SERIAL: $seria |0|$v|$price";
         }
-
- 		   docs_invoice_add({ CUSTOMER  => $Cards->{NAME},
+       
+ 		   docs_invoice_add({ #CUSTOMER  => $Cards->{NAME},
                          	ORDERS    => [ @ORDERS ],
                          	create    => 1,
                          	FROM      => $FROM,
-                         	DATE      => $DATE
+                         	DATE      => $DATE,
+                         	UID       => $Cards->{UID}
                        });
    	 }
     return 0;
