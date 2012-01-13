@@ -1584,14 +1584,14 @@ sub storage_hardware {
 			else {
 					$Storage->{ID}=$FORM{ID}; 
 					$html->message('info', $_INFO, "$_CANT_INSTALL_MAX_VALUE $leftover ");
-					$html->tpl_show(_include('storage_hardware_installation', 'Storage'), { 
-						%$Storage, 
-						%FORM,
-						ARTICLE_ID		=> $Storage->{ARTICLE_ID}, 
-						ARTICLE_TYPES 	=> $Storage->{ARTICLE_TYPES},
-						STATUS 			=> $Storage->{STATUS},	
-						#NAS	=> $NAS, 						
-					});			
+#					$html->tpl_show(_include('storage_hardware_installation', 'Storage'), { 
+#						%$Storage, 
+#						%FORM,
+#						ARTICLE_ID		=> $Storage->{ARTICLE_ID}, 
+#						ARTICLE_TYPES 	=> $Storage->{ARTICLE_TYPES},
+#						STATUS 			=> $Storage->{STATUS},	
+#						#NAS	=> $NAS, 						
+#					});			
 			}
 
 		} else {
@@ -1735,16 +1735,17 @@ sub storage_hardware {
 	
 
 }	
-	if (!$FORM{add} and !$FORM{change}) { 
+	#if (!$FORM{add} and !$FORM{change}) { 
 		
 		
 		$html->tpl_show(_include('storage_hardware_installation', 'Storage'), {	
+			%FORM,
 			%$Storage,
 			ARTICLE_ID		=> $Storage->{ARTICLE_ID}, 
 			ARTICLE_TYPES 	=> $Storage->{ARTICLE_TYPES},
 			STATUS 			=> $Storage->{STATUS},		
 		});
-	}
+	#}
 	
 	if (defined($FORM{UID}) and $FORM{UID} ne '') {
 	
@@ -1804,7 +1805,7 @@ sub storage_hardware {
 }
 
 #***********************************************************
-# 	Hardware
+# 	storage_monthly_fees
 #***********************************************************
 
 sub storage_monthly_fees {

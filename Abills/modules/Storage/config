@@ -6,8 +6,8 @@
                    "05:3:$_ARTICLE:storage_articles:"			=> 5,
                    "06:3:$_TYPE:storage_articles_types:"		=> 5,
                    "07:0:ORDERS:storage_orders"					=> 8,
-                   "01:0:Hardware:storage_main:UID"				=> 20,
-                   "01:0:Hardware:storage_hardware:UID"				=> 1,
+                   "01:0:Hardware:storage_hardware:UID"				=> 20,
+                   "01:0:Hardware:storage_hardware:UID"				=> 15,
 			
                    
                  );

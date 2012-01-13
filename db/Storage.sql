@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS `storage_accountability` (
   `comments` text,
   KEY `id` (`id`),
   KEY `storage_incoming_articles_id` (`storage_incoming_articles_id`)
-);
+) DEFAULT CHARSET=utf8;
 
 
 CREATE TABLE IF NOT EXISTS `storage_articles` (
@@ -21,14 +21,14 @@ CREATE TABLE IF NOT EXISTS `storage_articles` (
   `add_date` date NOT NULL,
   PRIMARY KEY  (`id`),
   KEY `article_type` (`article_type`)
-);
+) DEFAULT CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS `storage_article_types` (
   `id` int(11) unsigned NOT NULL auto_increment,
   `name` varchar(255) default NULL,
   `comments` text,
   PRIMARY KEY  (`id`)
-);
+) DEFAULT CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS `storage_discard` (
   `id` int(10) unsigned NOT NULL auto_increment,
@@ -39,7 +39,7 @@ CREATE TABLE IF NOT EXISTS `storage_discard` (
   `comments` text,
   PRIMARY KEY  (`id`),
   KEY `storage_incoming_articles_id` (`storage_incoming_articles_id`)
-);
+) DEFAULT CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS `storage_incoming` (
   `id` smallint(5) unsigned NOT NULL auto_increment,
@@ -51,7 +51,7 @@ CREATE TABLE IF NOT EXISTS `storage_incoming` (
   `storage_id` tinyint(4) unsigned NOT NULL default '0',
   PRIMARY KEY  (`id`),
   KEY `supplier_id` (`supplier_id`)
-);
+) DEFAULT CHARSET=utf8;
 
 
 CREATE TABLE IF NOT EXISTS `storage_incoming_articles` (
@@ -62,10 +62,12 @@ CREATE TABLE IF NOT EXISTS `storage_incoming_articles` (
   `sn` int(10) unsigned NOT NULL default '0',
   `main_article_id` smallint(5) unsigned NOT NULL default '0',
   `storage_incoming_id` smallint(5) unsigned NOT NULL default '0',
+  `sell_price` int(10) unsigned NOT NULL default '0',
+  `rent_price` int(10) unsigned NOT NULL default '0',
   PRIMARY KEY  (`id`),
   KEY `storage_incoming_id` (`storage_incoming_id`),
   KEY `article_id` (`article_id`)
-);
+) DEFAULT CHARSET=utf8;
 
 
 CREATE TABLE IF NOT EXISTS `storage_installation` (
@@ -77,9 +79,14 @@ CREATE TABLE IF NOT EXISTS `storage_installation` (
   `uid` int(10) unsigned default '0',
   `nas_id` int(10) unsigned default '0',
   `comments` text,
+  `sum` int(10) unsigned NOT NULL default '0',
+  `mac` varchar(40) NOT NULL,
+  `type` smallint(1) NOT NULL,
+  `grounds` varchar(40) NOT NULL,
+  `date` date NOT NULL default '0000-00-00',
   PRIMARY KEY  (`id`),
   KEY `storage_incoming_articles_id` (`storage_incoming_articles_id`)
-);
+) DEFAULT CHARSET=utf8;
 
 
 CREATE TABLE IF NOT EXISTS `storage_log` (
@@ -92,7 +99,7 @@ CREATE TABLE IF NOT EXISTS `storage_log` (
   `action` tinyint(3) unsigned NOT NULL default '0',
   `ip` int(10) unsigned NOT NULL default '0',
   PRIMARY KEY  (`id`)
-);
+) DEFAULT CHARSET=utf8;
 
 
 CREATE TABLE IF NOT EXISTS `storage_reserve` (
@@ -104,7 +111,7 @@ CREATE TABLE IF NOT EXISTS `storage_reserve` (
   `comments` text,
   PRIMARY KEY  (`id`),
   KEY `storage_incoming_articles_id` (`storage_incoming_articles_id`)
-);
+) DEFAULT CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS `storage_suppliers` (
   `id` smallint(6) NOT NULL auto_increment,
@@ -127,4 +134,14 @@ CREATE TABLE IF NOT EXISTS `storage_suppliers` (
   `managment` varchar(150) NOT NULL default '',
   PRIMARY KEY  (`id`),
   UNIQUE KEY `name` (`name`)
-);
+) DEFAULT CHARSET=utf8;
+
+CREATE TABLE IF NOT EXISTS `storage_sn` (
+  `id` int(11) NOT NULL auto_increment,
+  `storage_incoming_articles_id` smallint(6) NOT NULL,
+  `storage_installation_id` smallint(6) NOT NULL,
+  `serial` text character set utf8 NOT NULL,
+  PRIMARY KEY  (`id`)
+) DEFAULT CHARSET=utf8;
+
+
