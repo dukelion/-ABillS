@@ -1056,17 +1056,10 @@ sub messages_reports {
  undef @WHERE_RULES;
 
  # Start letter 
- if ($attr->{FIRST_LETTER}) {
-    push @WHERE_RULES, "u.id LIKE '$attr->{FIRST_LETTER}%'";
+ if ($attr->{LOGIN}) {
+   push @WHERE_RULES, @{ $self->search_expr($attr->{LOGIN}, 'STR', 'u.id') };
   }
- elsif ($attr->{LOGIN}) {
-    push @WHERE_RULES, "u.id='$attr->{LOGIN}'";
-  }
- # Login expresion
- elsif ($attr->{LOGIN}) {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{LOGIN}, 'STR', 'u.id') };
-  }
- 
+
 
  if ($attr->{STATUS}) {
     push @WHERE_RULES, @{ $self->search_expr($attr->{STATE}, 'INT', 'm.status') };

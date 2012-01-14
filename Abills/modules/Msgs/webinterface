@@ -2113,17 +2113,21 @@ sub msgs_reports {
   
   reports({ DATE          => $FORM{DATE}, 
   	        REPORT        => '',
-  	        EX_PARAMS     => { DATE   => "$_DATE",
-  	        	                 USERS  => "$_USERS",
-  	        	                 ADMINS => "$_ADMINS" }, 
+  	        EX_PARAMS     => { DATE       => "$_DATE",
+  	        	                 USERS      => "$_USERS",
+  	        	                 ADMINS     => "$_ADMINS",
+  	        	                 
+  	        	                }, 
   	        PERIOD_FORM		=> 1,
-  	        EXT_TYPE      => { ADMINS => $_ADMINS },
+  	        EXT_TYPE      => { ADMINS     => $_ADMINS,
+  	        	                 RESPOSIBLE => $_RESPOSIBLE
+  	        	                },
   	        FIELDS        => { "1:STATE" => "$_OPEN"                ,
                                "2:STATE" => "$_CLOSED_UNSUCCESSFUL" ,
                                "3:STATE" => "$_CLOSED_SUCCESSFUL"    
                                
                                },
-  	        XML           => 1,
+  	        #XML           => 1,
   	       });
 
 
@@ -2153,7 +2157,8 @@ if ($FORM{DATE}) {
                                     title      => ['#', "$_USER", "$_SUBJECT", "$_CHAPTERS", "$_DATE", "$_STATUS", "IP", 
                                "$_ADMIN", "$_PRIORITY", "$_EXECUTION", "$_RUN_TIME" ],
                                     cols_align => ['right', 'left', 'left', 'left', 'right', 'left', 'center', 'right', 'center:noprint', 'center:noprint'],
-                                    ID         => 'MSGS'
+                                    ID         => 'MSGS',
+                                    EXPORT     => ' XML:&xml=1',
                                   } );
 
   my ($delete, $change);

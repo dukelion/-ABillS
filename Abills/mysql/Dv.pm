@@ -699,10 +699,10 @@ WHERE intv.begin <= DATE_FORMAT( NOW(), '%H:%i:%S' )
  AND tp.module='Dv'
  $WHERE
 AND intv.day IN (select if ( intv.day=8, 
-		(SELECT if ((select    count(*) from    holidays where     DATE_FORMAT( NOW(), '%c-%e' ) = day)>0, 8,
-                (select if (intv.day=0, 0, (select intv.day from intervals as intv where DATE_FORMAT( NOW() + INTERVAL 1 DAY, '%w') = intv.day LIMIT 1))))),
+		(SELECT if ((select count(*) from holidays where     DATE_FORMAT( NOW(), '%c-%e' ) = day)>0, 8,
+                (select if (intv.day=0, 0, (select intv.day from intervals as intv where DATE_FORMAT(NOW(), '%w')+1 = intv.day LIMIT 1))))),
         (select if (intv.day=0, 0,
-                (select intv.day from intervals as intv where DATE_FORMAT( NOW() + INTERVAL 1 DAY, '%w') = intv.day LIMIT 1)))))
+                (select intv.day from intervals as intv where DATE_FORMAT( NOW(), '%w')+1 = intv.day LIMIT 1)))))
 GROUP BY tp.tp_id, tt.id
 ORDER by tp.tp_id, tt.id;");
   

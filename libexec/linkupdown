@@ -722,6 +722,8 @@ sub get_mikrotik_value {
 sub user_info {
 	my ($attr) = @_;
 
+  $Dv->{debug}=1;
+
 	my $list = $Dv->get_speed( $attr );	  
   if($Dv->{errno}) {
     print "Error: User not exist '$USER' IP: $CLIENT_IP ([$Dv->{errno}] $Dv->{errstr})\n";
