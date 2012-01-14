@@ -1079,9 +1079,9 @@ sub messages_reports {
    elsif ($attr->{TYPE} eq 'USER') {
  	   $date = 'u.id';
     }
-   #elsif ($attr->{TYPE} eq 'DATE') { 
-   #  $date = "date_format(m.date, '%Y-%m-%d')";
-   # }
+   elsif ($attr->{TYPE} eq 'RESPOSIBLE') { 
+     $date = "a.id";
+    }
   }
 
  # Show groups
