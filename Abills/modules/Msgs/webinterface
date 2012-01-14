@@ -2201,6 +2201,9 @@ else {
     elsif ($FORM{TYPE} eq 'USER') {
   	  $caption[0]=$_USERS;
      }
+    elsif ($FORM{TYPE} eq 'RESPOSIBLE') {
+  	  $caption[0]=$_RESPOSIBLE;
+     }
    }
   
   $table_sessions = $html->table({ width      => '100%',
@@ -2223,9 +2226,9 @@ else {
       if ($FORM{TYPE} eq 'USER') {
         $firth_field = $html->button($line->[0], "index=15&UID=$line->[6]");   	 	
    	   }
-      elsif($FORM{TYPE} eq 'ADMINS') {
-     	  $firth_field = "$line->[0]";   	 	
-       }
+      elsif($FORM{TYPE} eq 'ADMINS' || $FORM{TYPE} eq 'RESPOSIBLE') {
+     	  $firth_field = $html->button("$line->[0]", "index=$index&RESPOSIBLE=$line->[0]");   	 	
+       }     
      }
 
   	

@@ -1071,7 +1071,7 @@ sub messages_reports {
 
 
  my $date='date_format(m.date, \'%Y-%m-%d\')';
-
+ my $EXT_TABLE = '';
  if($attr->{TYPE}) {
    if($attr->{TYPE} eq 'ADMINS') {
      $date = 'a.id';
@@ -1081,6 +1081,8 @@ sub messages_reports {
     }
    elsif ($attr->{TYPE} eq 'RESPOSIBLE') { 
      $date = "a.id";
+     $self->{debug}=1;
+     $EXT_TABLE='LEFT JOIN  admins a ON (m.resposible=a.aid)';
     }
   }
 
@@ -1119,8 +1121,8 @@ sub messages_reports {
    m.uid
    FROM msgs_messages m
   LEFT JOIN  users u ON (m.uid=u.uid)
-  LEFT JOIN  admins a ON (m.aid=a.aid)
   LEFT JOIN  msgs_reply mr ON (m.id=mr.main_msg)
+  $EXT_TABLE
   $WHERE
   GROUP BY 1
   ORDER BY $SORT $DESC ; ");
@@ -1138,6 +1140,7 @@ sub messages_reports {
       sum(if(m.admin_read = '0000-00-00 00:00:00', 1, 0))
      FROM msgs_messages m
      LEFT JOIN  msgs_reply mr ON (m.id=mr.main_msg)
+     $EXT_TABLE
     $WHERE;");
 
     ($self->{TOTAL}, 

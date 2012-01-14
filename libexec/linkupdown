@@ -722,7 +722,6 @@ sub get_mikrotik_value {
 sub user_info {
 	my ($attr) = @_;
 
-  $Dv->{debug}=1;
 
 	my $list = $Dv->get_speed( $attr );	  
   if($Dv->{errno}) {
