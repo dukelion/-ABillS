@@ -261,6 +261,12 @@ elsif ($ENV{REMOTE_ADDR} =~ /^77\.222\.134\.205$/) {
   require "Ipay.pm";
   exit;
 }
+elsif ($ENV{REMOTE_ADDR} =~ /^192\.168\.1\.102$/) {
+  require "Paynet.pm";
+  exit;
+}
+
+
 
 #Check payment system by IP
 

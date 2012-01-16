@@ -51,7 +51,8 @@ my %PAY_SYSTEMS = (41 => "Webmoney",
                    72 => 'Ipay',
                    73 => 'Yandex',
                    74 => 'Alpha-pay',
-                   75 => 'Zaplati'
+                   75 => 'Zaplati',
+                   76 => 'Paynet',
                   );
 
 my %CONF_OPTIONS = (PAYSYS_WEBMONEY_ACCOUNTS => 41,
@@ -88,6 +89,8 @@ my %CONF_OPTIONS = (PAYSYS_WEBMONEY_ACCOUNTS => 41,
                    PAYSYS_IPAY_MERCHANT_ID      => 72,
                    PAYSYS_YANDEX_ID             => 73,
                    PAYSYS_ALFA_PAY_ACCOUNT_KEY  => 74,
+                   PAYSYS_ZAPLATI_SUMY_ACCOUNT_KEY => 75,
+                   PAYSYS_USMP_ACCOUNT_KEY      => 76,
                   );
 
 
