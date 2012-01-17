@@ -1,0 +1,17 @@
+#DEFAULT_DOMAIN         domain.tld
+MYSQL_CLEAR_PWFIELD     DECODE(mb.password, '%secretkey%')
+MYSQL_DATABASE          %dbname%
+MYSQL_PASSWORD          %dbpasswd%
+MYSQL_USERNAME          %dbuser%
+MYSQL_SERVER            %dbhost%
+MYSQL_GID_FIELD         '1005' 
+MYSQL_HOME_FIELD        CONCAT('/var/spool/virtual/')
+MYSQL_LOGIN_FIELD       CONCAT(mb.username, '@', md.domain)
+MYSQL_MAILDIR_FIELD     CONCAT('/var/spool/virtual/', md.domain,'/',LOWER(mb.username),'/')
+MYSQL_NAME_FIELD        CONCAT(mb.username, '@', md.domain)
+MYSQL_OPT               0
+MYSQL_PORT              3306
+MYSQL_QUOTA_FIELD       CONCAT(mb.box_size * 1048576,'S')
+MYSQL_UID_FIELD         '1005'
+MYSQL_USER_TABLE        mail_boxes mb, mail_domains md
+MYSQL_WHERE_CLAUSE      mb.status='0'

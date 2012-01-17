@@ -1,0 +1,1010 @@
+#http://www.osix.net/modules/article/?id=156
+
+
+my $sysinfo_hash = ();
+my $os = sysinfo_get_os();
+
+#*******************************************************************
+# Show system info
+#*******************************************************************
+sub sysinfo_conf {
+  my ($attr) = @_;
+
+   my %CONFIG_HASH = ();
+
+
+  my $table = $html->table( { caption     => "$_CONFIG",
+	                          width       => '100%',
+                            title_plain => [$_PARAMS, $_VALUE,  '-', '-' ],
+                            cols_align  => ['left', 'left', 'center', 'center' ],
+                           } );
+
+  print $table->show();
+}
+
+#*******************************************************************
+# Show system info
+#*******************************************************************
+sub sysinfo_perl {
+  my ($attr) = @_;
+
+  #use ExtUtils::Installed;
+  #my ($inst) = ExtUtils::Installed->new();
+  my (@modules) = &list_perl_modules(); # $inst->modules();
+
+
+  if ($FORM{MODULE}) {
+    my @mods = (); 
+    my $mod  = '';
+
+
+    if ($FORM{'idx'}) {
+      @mods = &list_perl_modules();
+      $mod = $mods[$FORM{'idx'}];
+     }
+    elsif ($FORM{MODULE}) {
+      @mods = &list_perl_modules($FORM{MODULE});
+      $mod = $mods[0];
+     }
+
+  	my $INFO = ();
+  	$midx = $FORM{'midx'} ? $FORM{'midx'} : 0;
+  	
+    my @m = @{ $mod->{'mods'} };
+
+  	($INFO{DESCRIBE}, $INFO{VERSION}) = &module_desc($mod, $midx);
+
+  	$INFO{NAME}    = $FORM{MODULE};
+  	$INFO{DATE}    = $mod->{'date'};
+  	$INFO{FILES}   = $mod->{'files'}->[$midx];
+  	$INFO{INSTALL} = $mod->{'pkg'} ? $mod->{'pkgtype'} : 'Manual Perl module install';
+
+    if ($midx == $mod->{'master'} && @m > 1) {
+        for(my $i=0; $i<@m; $i++) {
+          $INFO{SUBMODULES} .= $html->button("$m[$i]", "index=$index&MODULE=$m[$i]&midx=$i&idx=$FORM{'idx'}")."  " if ($i != $mod->{'master'});
+         }
+     }
+
+
+    
+    my $perl_doc = '/usr/local/bin/perldoc'; #`which perldoc`;
+   
+    open(DOC, "$perl_doc -t '$m[$midx]' 2>/dev/null |");
+      while(<DOC>) { $INFO{DOC} .= $_; }
+    close(DOC);
+
+    $INFO{DOC} = $html->link_former($INFO{DOC}, { SKIP_SPACE => 1 });
+    
+  	$html->tpl_show(_include('sysinfo_pmodule_info', 'Sysinfo'), \%INFO);
+
+  	return 0;
+   }
+
+ 
+
+
+my $table = $html->table( { caption     => "$_MODULES",
+                            width       => '100%',
+                            title_plain => [$_NAME, "SUBMODULES", "$_DESCRIBE", "_VERSION", $_DATE ],
+                            cols_align  => ['left', 'right', 'left',  'right',  'right' ],
+                        } );
+
+
+foreach $module (sort { lc($a->{'mods'}->[$a->{'master'}]) cmp
+                        lc($b->{'mods'}->[$b->{'master'}]) } @modules) {
+
+    my $mi = $mmodule->{'master'};
+    my @cols;
+    my $name = $module->{'mods'}->[$mi];
+    my ($desc, $ver) = &module_desc($module, $mi);
+    my $date = strftime "%Y-%m-%d %H-%M-%S", localtime($module->{'time'});
+
+  	$table->addrow(
+  	    $html->button($name, "index=$index&MODULE=$name&idx=$module->{'index'}"), 
+  	    $#{$module->{'mods'}},
+  	    $html->link_former($desc, { SKIP_SPACE => 1 }),
+  	    $ver || 0,
+  	    $date
+
+  	  );
+   }
+
+
+  print $table->show();
+}
+
+
+#*******************************************************************
+# Show system info
+#*******************************************************************
+sub sysinfo_os {
+  my ($attr) = @_;
+
+  my %INFO_HASH = ();
+
+  my $full_info = sysinfo_get_os({ FULL_INFO => 1 });
+
+  if ($os eq 'FreeBSD') {
+  	if($full_info =~ /(\S+) (\S+) (\S+).+#\d:(.+) (\S+\@\S+) +(\S+)/) {
+  		$INFO_HASH{OS}      = $1;
+  		$INFO_HASH{HOST}    = $2;
+  		$INFO_HASH{VERSION} = $3;
+  		$INFO_HASH{DATE}    = $4;
+  		$INFO_HASH{KERNEL}  = $5;
+  		$INFO_HASH{PLATFORM}= $6;
+  	 }
+  	
+  	if ($os eq 'FreeBSD') {
+  		if($INFO_HASH{KERNEL}=~/\/(\w+)$/) {
+  			my $file = $1;
+  			$INFO_HASH{KERNEL_FILE} = "/usr/src/sys/i386/conf/". $file if (-f "/usr/src/sys/i386/conf/". $file) ;
+  		 }
+  	 }
+   }
+  
+  if ($FORM{KERNEL}) {
+  	my $kern_file = '';
+  	open(FILE, "<$INFO_HASH{KERNEL_FILE}") || print $html->messages('err', $_ERROR, "Can't open '$INFO_HASH{KERNEL_FILE}' $!");
+  		while(<FILE>) {
+  			$kern_file .= $_;
+  		 } 
+    close(FILE);
+    
+    $kern_file =~ s/\n/<br>\n/g;
+
+    my $table = $html->table( { caption     => "$INFO_HASH{KERNEL_FILE}",
+	                              width       => '100%'
+                            } );
+    
+    my @division = ('device', 'options', 'machine', 'cpu', 'ident');
+    foreach my $s (@division) {
+      $kern_file =~ s/$s |$s\t/<b>$s<\/b> /ig;
+     }
+    $kern_file =~ s/ /&nbsp;/g;
+    $kern_file =~ s/#(.+)\n/<font color=#0000FF># $1<\/font>/g;
+   
+    $table->addtd(  
+                   $table->td($kern_file)
+                     );
+
+    print $table->show();
+   }
+  
+  
+  
+
+  my $table = $html->table( { caption     => "Operation System",
+	                            width       => '100%',
+                              title_plain => [$_PARAMS, $_VALUE ],
+                              cols_align  => ['left', 'left' ],
+                           } );
+
+  $table->addrow(OS,        $INFO_HASH{OS});
+  $table->addrow(HOST,      $INFO_HASH{HOST});
+  $table->addrow(VERSION,   $INFO_HASH{VERSION});
+  $table->addrow($_DATE,    $INFO_HASH{DATE});
+  $table->addrow(KERNEL,    ($INFO_HASH{KERNEL_FILE}) ? $html->button($INFO_HASH{KERNEL}, "index=$index&KERNEL=1") : $INFO_HASH{KERNEL});
+  $table->addrow(PLATFORM,  $INFO_HASH{PLATFORM});
+  
+  
+  print $table->show();
+  
+  
+  
+
+  
+  
+  
+}
+
+
+#*******************************************************************
+# Show system info
+#*******************************************************************
+sub sysinfo_get_os {
+  my ($attr) = @_;
+
+  my $os_name = 'UNKNOWN';
+  my $os_full = `/usr/bin/uname -a`;
+
+  if ($attr->{FULL_INFO}) {
+  	$os_name = $os_full;
+   }
+  elsif ($os_full =~ /(\S+)/ ) {
+  	 $os_name = $1;
+   }
+
+  return $os_name;
+}
+
+
+#*******************************************************************
+# Show system info
+#*******************************************************************
+sub sysinfo_globals {
+  
+#Canonical Hostname localhost 
+#Listening IP 217.73.128.3 
+#Kernel Version 2.6.20.7 
+#Distro Name  CentOS release 4.4 (Final) 
+#Uptime 2 days 44 minutes 
+#Current Users 0 
+#Load Averages 
+}
+
+#*******************************************************************
+# Show system info
+#*******************************************************************
+sub sysinfo_main {
+  my ($attr) = @_;
+
+#OS version
+sysinfo_os();
+
+
+# Network Usage
+
+# Memory Usage
+$sysinfo_hash{$os}{memory}->({ SHORT => 1 });
+# Mounted Filesystems
+sysinfo_disk();
+#Network
+sysinfo_network();
+
+# Check Running proccess
+
+
+# System Vital
+
+# Hardware Information
+
+}
+
+#*******************************************************************
+# Show system info
+#*******************************************************************
+sub sysinfo_memory {
+  $sysinfo_hash{$os}{memory}->();
+}
+
+
+#*******************************************************************
+# Show system info
+#*******************************************************************
+sub sysinfo_cpu {
+
+
+}
+
+
+#*******************************************************************
+# Show system info
+#*******************************************************************
+sub sysinfo_disk {
+
+my $table = $html->table( { caption     => "Disk usage",
+	                          width       => '100%',
+                            title_plain => ['Filesystem', 'Size',  'Used', 'Avail', 'Capacity', 'Mounted' ],
+                            cols_align  => ['left', 'right', 'right', 'right', 'left', 'left' ],
+                           } );
+
+my $info =  $sysinfo_hash{$os}{'disk'}->();
+my $i=0;
+my $total_size = 0;
+my $total_used = 0;
+foreach my $line ( @{ $info->{Filesystem} } ) {
+  if ($line =~ /^\//) {
+    $total_size += $info->{Size}->[$i];
+    $total_used += $info->{Used}->[$i];
+    my $width = 100;
+    if ($info->{Capacity}->[$i] =~ /(\d+)/) {
+    	$width = $1;
+     }
+
+    $table->addrow($line, 
+     int2byte($info->{Size}->[$i]),
+     int2byte($info->{Used}->[$i]),
+     int2byte($info->{Avail}->[$i]),
+     "<img src='../img/gorgreen.gif' height=10 width=$width> ". $info->{Capacity}->[$i],
+     $info->{Mounted}->[$i]
+    );
+   }
+  $i++;
+}
+$table->{rowcolor}=$_COLORS[4];
+$table->addrow("$_TOTAL:", int2byte($total_size), 
+ int2byte($total_used), 
+ int2byte($total_size - $total_used),
+ sprintf("<img src='../img/gorgreen.gif' height=10 width=%> %3d%%", ($total_used / $total_size) * 100, ($total_used / $total_size) * 100 ), ''  );
+print $table->show();
+}
+
+
+#*******************************************************************
+# Show system info
+#*******************************************************************
+sub sysinfo_network {
+
+my $table = $html->table( { caption     => "$_NETWORK",
+	                          width       => '100%',
+                            title       => ['INTERFACE', $_STATE, $_ADDRESS, $_RECV,  $_SENT, $_ERROR],
+                            cols_align  => ['left', 'right', 'right', 'right', 'right', 'right' ],
+                           } );
+
+my $info =  $sysinfo_hash{$os}{'network'}->();
+my @states = ('Up', 'Down');
+
+my $sorted_arr = multi_hash_sort($info, $SORT-1, { ACTIVE_FIELDS => [
+  		'IF_NAME', 'STATE', 'NETWORK', 'IN', 'OUT', 'IN_ERROR', 'OUT_ERROR', 
+  	'COLL'] } );
+
+
+#while(my ($k, $v) = each %{ $info } ) {
+foreach my $iface ( @$sorted_arr ) {
+    my $v = $info->{$iface};
+    $table->addrow($iface, 
+      $states[$v->{STATE}],
+      $v->{ADDRESS}.'/'. $v->{IP},
+      int2byte($v->{IN} || 0),
+      int2byte($v->{OUT} || 0),
+      "$v->{IN_ERROR} / $v->{OUT_ERROR}"
+    );
+}
+
+print $table->show();
+}
+
+
+#*******************************************************************
+# Show system info
+#*******************************************************************
+sub sysinfo_processes {
+
+
+#watch section
+
+	
+#all 
+my $table = $html->table( { caption     => "$_PROCESSES",
+	                          width       => '100%',
+                            title       => ['USER', 'PID', '%CPU', '%MEM', 'VSZ', 'RSS', 'TT', 'STAT', 'STARTED', 'TIME',
+                             'COMMAND', '-' ],
+                            cols_align  => ['right', 'right', 'right', 'right', 'right' ],
+                           } );
+
+my $info =  $sysinfo_hash{$os}{'processes'}->();
+
+my @active_fields = ('USER', 
+                       'PID', 
+                       'CPU', 
+                       'MEM', 
+                       'VSZ', 
+                       'RSS', 
+                       'TT', 
+                       'STAT', 
+                       'STARTED', 
+                       'TIME',
+                       'COMMAND');
+
+
+my $sorted = arr_hash_sort($info, $SORT - 1, 
+                                            { ACTIVE_FIELDS => \@active_fields });
+
+foreach my $line ( @$sorted ) {
+  $table->addrow(
+     $line->{USER},
+     $line->{PID},
+     $line->{CPU},
+     $line->{MEM}, 
+     $line->{VSZ}, 
+     $line->{RSS},
+     $line->{TT},
+     $line->{STAT},
+     $line->{STARTED},
+     $line->{TIME},
+     $line->{COMMAND},
+     '-'
+   );
+
+}
+print $table->show();
+	
+}
+
+$sysinfo_hash{'FreeBSD'}{'processes'} = sub { 
+	
+	#USER       PID %CPU %MEM   VSZ   RSS  TT  STAT STARTED      TIME COMMAND
+	my $total_info  = `env COLUMNS=1000 /bin/ps aux`;
+ 
+  my @arr = split(/\n/, $total_info);
+  my @result_array = ();
+  
+  foreach my $line (@arr) {
+
+    if ($line =~ /(\S+) +(\d+) +(\S+) +(\S+) +(\d+) +(\d+) +(\S+) +(\S+) +(\S+) +(\S+) +(.+)/) {
+      my %info  = ();
+    	# print "$1, $2, $3, $4, $5 <br>";
+   	  $info{USER} =  $1;     
+   	  $info{PID}  =  $2;     
+
+   	  $info{CPU}    = $3;
+   	  $info{MEM}    = $4;     
+   	  $info{VSZ}    = $5;     
+   	  $info{RSS}    = $6;     
+
+  		$info{TT}     = $7;    
+  		$info{STAT}   = $8;
+  		$info{STARTED}= $9;
+  		$info{TIME}   = $10;
+  		$info{COMMAND}= $11;
+
+      push @result_array, \%info;
+     }
+
+    
+   }
+
+  return \@result_array;
+};
+
+$sysinfo_hash{'FreeBSD'}{'network'} = sub {
+	my $total_info  = `/usr/bin/netstat -in`;
+
+  my @arr = split(/\n/, $total_info);
+  my %info  = ();
+	
+	  foreach my $line (@arr) {
+  	if ($line =~ /(\S+) +(\S+) +(\S+) +(\S+) +(\d+) +(\d+) +(\d+) +(\d+) +(\d+)/) {
+  		my $iface = $1;
+  		$info{$iface}{MTU}      = $2;     
+  	  $info{$iface}{NETWORK}  = $3;     
+  		$info{$iface}{ADDRESS}  = $4;    
+  		$info{$iface}{IN}       = $5;
+  		$info{$iface}{IN_ERROR} = $6;
+  		$info{$iface}{OUT}      = $7;
+  		$info{$iface}{OUT_ERROR}= $8;
+  		$info{$iface}{COLL}     = $9;
+  		
+  		$info{$iface}{IF_NAME}  = $iface; 
+  		$info{$iface}{STATE}    = ($iface =~ /\*$/) ? 1 : 0;
+  	 }
+    elsif ($line =~ /(tun\d+[*]{0,1}) +(\d+) +<Link#\d+> +(\d+) +(\d+) +(\d+) +(\d+) +(\d+)/) {
+      my $iface = $1;
+  		$info{$iface}{MTU}      = $2;     
+  		$info{$iface}{IN}       += $3;
+  		$info{$iface}{IN_ERROR} += $4;
+  		$info{$iface}{OUT}      += $5;
+  		$info{$iface}{OUT_ERROR}+= $6;
+  		$info{$iface}{COLL}     += $7;
+  		
+  		$info{$iface}{IF_NAME}  = $iface; 
+  		$info{$iface}{STATE}    = ($iface =~ /\*$/) ? 1 : 0;
+     }
+    elsif ($line =~ /(\S+) +(\S+) +(\S+) +(\S+) +(\d+) +- +(\d+) +- +-/) { 
+  		my $iface = $1;
+  		$info{$iface}{MTU}      = $2;     
+  	  $info{$iface}{MASK}     = $3;     
+  		$info{$iface}{IP}       = $4;    
+  		$info{$iface}{IP_IN}    = $5;
+  		$info{$iface}{IP_OUT}   = $6;
+  		
+  		$info{$iface}{IF_NAME}  = $iface; 
+  		$info{$iface}{STATE}    = ($iface =~ /\*$/) ? 1 : 0;
+    }
+   }
+
+  return \%info;
+};
+
+$sysinfo_hash{'FreeBSD'}{'disk'} = sub {
+	my $total_info  = `/bin/df `;
+
+  my @arr = split(/\n/, $total_info);
+  my %info  = ();
+  my $block = 1024;
+  
+  if ($total_info =~ /(\d+)-blocks/ ) {
+  	$block = $1;
+   }
+  
+  foreach my $line (@arr) {
+  	if ($line =~ /(\S+) +(\S+) +(\S+) +(\S+) +(\S+) +(\S+)/) {
+  		#print "$1; $2; $3; $4; $5";
+  	  push @{ $info{Filesystem} },$1;     
+  		push @{ $info{Size} },      $2 * $block;    
+  		push @{ $info{Used} },      $3 * $block;
+  		push @{ $info{Avail} },     $4 * $block;
+  		push @{ $info{Capacity}  }, $5;
+  		push @{ $info{Mounted}  },  $6;
+  	 }
+   }
+  return \%info;
+};
+
+
+
+#*******************************************************************
+# Show system info
+#*******************************************************************
+$sysinfo_hash{'FreeBSD'}{'memory'} = sub {
+  my ($attr) = @_;
+
+my $sysctl = {};
+my $sysctl_output = `/sbin/sysctl -a`;
+foreach my $line (split(/\n/, $sysctl_output)) {
+    if ($line =~ m/^([^:]+):\s+(.+)\s*$/s) {
+        $sysctl->{$1} = $2;
+    }
+}
+
+#   determine the individual known information
+#   NOTICE: forget hw.usermem, it is just (hw.physmem - vm.stats.vm.v_wire_count).
+#   NOTICE: forget vm.stats.misc.zero_page_count, it is just the subset of
+#           vm.stats.vm.v_free_count which is already pre-zeroed.
+my $mem_hw        = &mem_rounded_freebsd($sysctl->{"hw.physmem"});
+my $mem_phys      = $sysctl->{"hw.physmem"};
+my $mem_all       = $sysctl->{"vm.stats.vm.v_page_count"}      * $sysctl->{"hw.pagesize"};
+my $mem_wire      = $sysctl->{"vm.stats.vm.v_wire_count"}      * $sysctl->{"hw.pagesize"};
+my $mem_active    = $sysctl->{"vm.stats.vm.v_active_count"}    * $sysctl->{"hw.pagesize"};
+my $mem_inactive  = $sysctl->{"vm.stats.vm.v_inactive_count"}  * $sysctl->{"hw.pagesize"};
+my $mem_cache     = $sysctl->{"vm.stats.vm.v_cache_count"}     * $sysctl->{"hw.pagesize"};
+my $mem_free      = $sysctl->{"vm.stats.vm.v_free_count"}      * $sysctl->{"hw.pagesize"};
+
+#   determine the individual unknown information
+my $mem_gap_vm    = $mem_all - ($mem_wire + $mem_active + $mem_inactive + $mem_cache + $mem_free);
+my $mem_gap_sys   = $mem_phys - $mem_all;
+my $mem_gap_hw    = $mem_hw   - $mem_phys;
+
+#   determine logical summary information
+my $mem_total = $mem_hw;
+my $mem_avail = $mem_inactive + $mem_cache + $mem_free;
+my $mem_used  = $mem_total - $mem_avail;
+
+#   information annotations
+my $info = {
+    "mem_wire"     => 'Wired: disabled for paging out',
+    "mem_active"   => 'Active: recently referenced',
+    "mem_inactive" => 'Inactive: recently not referenced',
+    "mem_cache"    => 'Cached: almost avail. for allocation',
+    "mem_free"     => 'Free: fully available for allocation',
+    "mem_gap_vm"   => 'Memory gap: UNKNOWN',
+    "mem_all"      => 'Total real memory managed',
+    "mem_gap_sys"  => 'Memory gap: Kernel?!',
+    "mem_phys"     => 'Total real memory available',
+    "mem_gap_hw"   => 'Memory gap: Segment Mappings?!',
+    "mem_hw"       => 'Total real memory installed',
+    "mem_used"     => 'Logically used memory',
+    "mem_avail"    => 'Logically available memory',
+    "mem_total"    => 'Logically total memory',
+};
+
+
+my $table = $html->table( { caption     => "SYSTEM MEMORY INFORMATION",
+	                          width       => '100%',
+                            #title_plain => ["$_TRAFF $_TYPE", "$_BEGIN", "$_END", "$_START", "$_TOTAL (MB)", "$_REST (MB)", "$_OVERQUOTA (MB)"],
+                            cols_align  => ['left', 'right', 'right', 'left', 'left' ],
+                           } );
+
+
+if ( ! $attr->{SHORT}) {
+$table->{rowcolor}=$_COLORS[0];
+$table->{extra}="colspan='5' class='small'";
+$table->addrow("&nbsp;" );
+$table->{rowcolor}=undef;
+$table->{extra}=undef;
+
+$table->addrow("mem_wire:",       $mem_wire,     int2byte($mem_wire),     sprintf("%3d%%", ($mem_wire / $mem_all) * 100),     $info->{"mem_wire"}     );
+$table->addrow("mem_active:",     $mem_active,   int2byte($mem_active),   sprintf("%3d%%", ($mem_active   / $mem_all) * 100), $info->{"mem_active"}   );
+$table->addrow("mem_inactive:",   $mem_inactive, int2byte($mem_inactive), sprintf("%3d%%", ($mem_inactive / $mem_all) * 100), $info->{"mem_inactive"} );
+$table->addrow("mem_cache: ",     $mem_cache,    int2byte($mem_cache),    sprintf("%3d%%", ($mem_cache    / $mem_all) * 100), $info->{"mem_cache"}    );
+$table->addrow("mem_free:  ",     $mem_free,     int2byte($mem_free),     sprintf("%3d%%", ($mem_free     / $mem_all) * 100), $info->{"mem_free"}     );
+$table->addrow("mem_gap_vm:",     $mem_gap_vm,   int2byte($mem_gap_vm),   sprintf("%3d%%", ($mem_gap_vm   / $mem_all) * 100), $info->{"mem_gap_vm"}   );
+
+
+
+$table->{rowcolor}=$_COLORS[0];
+$table->{extra}="colspan='5' class='small'";
+$table->addrow("&nbsp;" );
+$table->{rowcolor}=undef;
+$table->{extra}=undef;
+$table->addrow("mem_all:",     $mem_all,      int2byte($mem_all),  '100%', $info->{"mem_all"});
+$table->addrow("mem_gap_sys:", $mem_gap_sys,  int2byte($mem_gap_sys), '',  $info->{"mem_gap_sys"});
+
+
+$table->{rowcolor}=$_COLORS[0];
+$table->{extra}="colspan='5' class='small'";
+$table->addrow("&nbsp;" );
+$table->{rowcolor}=undef;
+$table->{extra}=undef;
+
+$table->addrow("mem_phys:",    $mem_phys,     int2byte($mem_phys),   '', $info->{"mem_phys"});
+$table->addrow("mem_gap_hw:",  $mem_gap_hw,   int2byte($mem_gap_hw), '', $info->{"mem_gap_hw"});     
+
+$table->{rowcolor}=$_COLORS[0];
+$table->{extra}="colspan='5' class='small'";
+$table->addrow("&nbsp;" );
+$table->{rowcolor}=undef;
+$table->{extra}=undef;
+$table->addrow("mem_hw:",      $mem_hw,       int2byte($mem_hw),     '', $info->{"mem_hw"});
+}
+
+
+$table->{rowcolor}=$_COLORS[0];
+$table->{extra}="colspan='5' class='small'";
+$table->addrow("SYSTEM MEMORY SUMMARY:" );
+$table->{rowcolor}=undef;
+$table->{extra}=undef;
+$table->addrow("mem_used:",  $mem_used,  int2byte($mem_used),   sprintf("<img src='../img/gorred.gif' height=10 width=%3d> %3d%%", ($mem_used  / $mem_total) * 100, ($mem_used  / $mem_total) * 100), $info->{"mem_used"});
+$table->addrow("mem_avail:", $mem_avail, int2byte($mem_avail),  sprintf("<img src='../img/gorgreen.gif' height=10 width=%3d> %3d%%",  ($mem_avail / $mem_total) * 100, ($mem_avail / $mem_total) * 100), $info->{"mem_avail"});
+
+$table->{rowcolor}=$_COLORS[0];
+$table->{extra}="colspan='5' class='small'";
+$table->addrow("&nbsp;" );
+$table->{rowcolor}=undef;
+$table->{extra}=undef;
+$table->addrow("mem_total:", $mem_total, int2byte($mem_total),  '100%', $info->{"mem_total"});
+
+
+print $table->show();
+
+
+};
+
+
+
+
+
+#   round the physical memory size to the next power of two which is
+#   reasonable for memory cards. We do this by first determining the
+#   guessed memory card size under the assumption that usual computer
+#   hardware has an average of a maximally eight memory cards installed
+#   and those are usually of equal size.
+sub mem_rounded_freebsd {
+    my ($mem_size) = @_;
+    my $chip_size  = 1;
+    my $chip_guess = ($mem_size / 8) - 1;
+    while ($chip_guess != 0) {
+        $chip_guess >>= 1;
+        $chip_size  <<= 1;
+    }
+    my $mem_round = (int($mem_size / $chip_size) + 1) * $chip_size;
+    return $mem_round;
+}
+
+
+
+#**********************************************************
+#
+#**********************************************************
+sub multi_hash_sort {
+	my ($hash, 
+	    $sort,
+	    $attr) = @_;
+  my $ACTIVE_FIELDS = ($attr->{ACTIVE_FIELDS}) ? $attr->{ACTIVE_FIELDS} : [0]; 
+
+
+  my %SORT_HASH = ();
+  while(my ($k, $v) = each %{ $hash } ) {
+    #print $k, $v->{$ACTIVE_FIELDS->[$sort]} . "// $ACTIVE_FIELDS->[$sort] / $sort]<br>";
+    $SORT_HASH{$k}=$v->{$ACTIVE_FIELDS->[$sort]};
+  }
+  
+
+  #print $sorted[0]->{$ACTIVE_FIELDS[$FORM{sort}-1]} ;
+  my @sorted_ids = sort { 
+     	length($SORT_HASH{$a}) <=> length($SORT_HASH{$b})
+       ||
+  	  $SORT_HASH{$a} cmp $SORT_HASH{$b}
+ 	 } keys %SORT_HASH;  
+  
+  return \@sorted_ids;
+}
+
+#**********************************************************
+#
+#**********************************************************
+sub arr_hash_sort {
+	my ($array, 
+	    $sort,
+	    $attr) = @_;
+	
+	
+  my $ACTIVE_FIELDS = ($attr->{ACTIVE_FIELDS}) ? $attr->{ACTIVE_FIELDS} : [0]; 
+
+
+  my %SORT_HASH = ();
+  my $i=0;
+  
+  foreach my $line (@{ $array }) {
+ 	  $SORT_HASH{$i}=$SORT_HASH{$i}=$line->{$ACTIVE_FIELDS->[$sort]};
+  	$i++;
+   }
+
+  #print $sorted[0]->{$ACTIVE_FIELDS[$FORM{sort}-1]} ;
+  my @sorted_ids = sort { 
+     	length($SORT_HASH{$a}) <=> length($SORT_HASH{$b})
+       ||
+  	   $SORT_HASH{$a} cmp $SORT_HASH{$b}
+ 	 } keys %SORT_HASH;  
+
+  my @sorted=();
+  foreach my $line (@sorted_ids) {
+    push @sorted, $array->[$line];
+   }
+
+	return \@sorted;
+}
+
+
+#Taken from Webmin
+#*************************************************************************
+# list_perl_modules([master-name])
+# Returns a list of all installed perl modules, by reading .packlist files
+sub list_perl_modules {
+local ($limit) = @_;
+local (@rv, %done, $d, %donedir, %donemod);
+
+my %Config = ( 'sitelib'    => '/usr/local/lib/perl5/site_perl/5.8.8',
+               'sitearch' => '/usr/local/lib/perl5/site_perl/5.8.8/mach'
+              );
+
+
+foreach $d (&expand_usr64($Config{'privlib'}),
+	    &expand_usr64($Config{'sitelib_stem'} ? $Config{'sitelib_stem'} :
+				      		    $Config{'sitelib'}),
+	    &expand_usr64($Config{'sitearch_stem'} ? $Config{'sitearch_stem'} :
+				      		    $Config{'sitearch'}),
+	    &expand_usr64($Config{'vendorlib_stem'} ? $Config{'vendorlib_stem'} :
+				        	      $Config{'vendorlib'}),
+	    &expand_usr64($Config{'installprivlib'})) {
+
+	next if (!$d);
+
+	next if ($donedir{$d});
+	local $f;
+	open(FIND, "find '$d' -name .packlist -print |");
+	while($f = <FIND>) {
+		chop($f);
+		local @st = stat($f);
+		next if ($done{$st[0],$st[1]}++);
+		local @st = stat($f);
+		local $mod = { 'date' => scalar(localtime($st[9])),
+			       'time' => $st[9],
+			       'packfile' => $f,
+			       'index' => scalar(@rv) };
+		$f =~ /\/(([A-Z][^\/]*\/)*[^\/]+)\/.packlist$/;
+		$mod->{'name'} = $1;
+		$mod->{'name'} =~ s/\//::/g;
+		next if ($limit && $mod->{'name'} ne $limit);
+		next if ($donemod{$mod->{'name'}}++);
+
+		# Add the files in the .packlist
+		local (%donefile, $l);
+		open(FILE, $f);
+		while($l = <FILE>) {
+			chop($l);
+			$l =~ s/^\/tmp\/[^\/]+//;
+			$l =~ s/^\/var\/tmp\/[^\/]+//;
+			next if ($donefile{$l}++);
+			if ($l =~ /\/((([A-Z][^\/]*\/)([^\/]+\/)?)?[^\/]+)\.pm$/) {
+				local $mn = $1;
+				$mn =~ s/\//::/g;
+				push(@{$mod->{'mods'}}, $mn);
+				push(@{$mod->{'files'}}, $l);
+				}
+			elsif ($l =~ /^([^\/]+)\.pm$/) {
+				# Module name only, with no path! Damn redhat..
+				local @rpath;
+				open(FIND2, "find '$d' -name '$l' -print |");
+				while(<FIND2>) {
+					chop;
+					push(@rpath, $_);
+					}
+				close(FIND2);
+				@rpath = sort { length($a) cmp length($b) } @rpath;
+				if (@rpath) {
+					$rpath[0] =~ /\/(([A-Z][^\/]*\/)*[^\/]+)\.pm$/;
+					local $mn = $1;
+					$mn =~ s/\//::/g;
+					push(@{$mod->{'mods'}}, $mn);
+					push(@{$mod->{'files'}}, $rpath[0]);
+					$mod->{'noremove'} = 1;
+					$mod->{'noupgrade'} = 1;
+					}
+				}
+			push(@{$mod->{'packlist'}}, $l);
+			}
+		close(FILE);
+		local $mi = &indexof($mod->{'name'}, @{$mod->{'mods'}});
+		$mod->{'master'} = $mi < 0 ? 0 : $mi;
+		push(@rv, $mod) if (@{$mod->{'mods'}});
+		}
+	close(FIND);
+	}
+
+## Look for RPMs or Debs for Perl modules
+#if (&foreign_check("software") && $config{'incpackages'}) {
+#	&foreign_require("software", "software-lib.pl");
+#	if ($software::config{'package_system'} eq "rpm") {
+#		local $n = &software::list_packages();
+#		local $i;
+#		for($i=0; $i<$n; $i++) {
+#			# Create the module object
+#			next if ($software::packages{$i,'name'} !~
+#				 /^perl-([A-Z].*)$/ &&
+#				 $software::packages{$i,'name'} !~
+#				 /^([A-Z].*)-[pP]erl$/i);
+#			local $mod = { 'index' => scalar(@rv),
+#				       'pkg' => $software::packages{$i,'name'},
+#				       'pkgtype' => 'rpm',
+#				       'noupgrade' => 1,
+#				       'version' =>
+#					  $software::packages{$i,'version'} };
+#			$mod->{'name'} = $1;
+#			$mod->{'name'} =~ s/\-/::/g;
+#			next if ($limit && $mod->{'name'} ne $limit);
+#			next if ($donemod{$mod->{'name'}}++);
+#
+#			# Add the files in the RPM
+#			local $fn = &software::check_files(
+#				$software::packages{$i,'name'},
+#				$software::packages{$i,'version'});
+#			local $fi;
+#			for($fi=0; $fi<$fn; $fi++) {
+#				local $l = $software::files{$fi,'path'};
+#				if ($l =~ /\/((([A-Z][^\/]*\/)([^\/]+\/)?)?[^\/]+)\.pm$/) {
+#					local $mn = $1;
+#					$mn =~ s/\//::/g;
+#					push(@{$mod->{'mods'}}, $mn);
+#					push(@{$mod->{'files'}}, $l);
+#					}
+#				push(@{$mod->{'packlist'}}, $l);
+#				if (!$mod->{'date'}) {
+#					local @st = stat($l);
+#					$mod->{'date'} = scalar(localtime($st[9]));
+#					$mod->{'time'} = $st[9];
+#					}
+#				}
+#
+#			local $mi = &indexof($mod->{'name'}, @{$mod->{'mods'}});
+#			$mod->{'master'} = $mi < 0 ? 0 : $mi;
+#			push(@rv, $mod) if (@{$mod->{'mods'}});
+#			}
+#		}
+#	elsif ($software::config{'package_system'} eq "debian") {
+#		# Look for Debian packages of Perl modules
+#		local $n = &software::list_packages();
+#		local $i;
+#		for($i=0; $i<$n; $i++) {
+#			# Create the module object
+#			next if ($software::packages{$i,'name'} !~
+#				 /^lib(\S+)-perl$/);
+#			local $mod = { 'index' => scalar(@rv),
+#				       'pkg' => $software::packages{$i,'name'},
+#				       'pkgtype' => 'debian',
+#				       'noupgrade' => 1,
+#				       'version' =>
+#					  $software::packages{$i,'version'} };
+#
+#			# Add the files in the RPM
+#			local $fn = &software::check_files(
+#				$software::packages{$i,'name'},
+#				$software::packages{$i,'version'});
+#			local $fi;
+#			for($fi=0; $fi<$fn; $fi++) {
+#				local $l = $software::files{$fi,'path'};
+#				if ($l =~ /\/((([A-Z][^\/]*\/)([^\/]+\/)?)?[^\/]+)\.pm$/) {
+#					local $mn = $1;
+#					$mn =~ s/\//::/g;
+#					push(@{$mod->{'mods'}}, $mn);
+#					push(@{$mod->{'files'}}, $l);
+#					}
+#				push(@{$mod->{'packlist'}}, $l);
+#				if (!$mod->{'date'}) {
+#					local @st = stat($l);
+#					$mod->{'date'} = scalar(localtime($st[9]));
+#					$mod->{'time'} = $st[9];
+#					}
+#				}
+#			next if (!@{$mod->{'mods'}});
+#
+#			# Work out the name
+#			foreach my $m (@{$mod->{'mods'}}) {
+#				local $pn = lc($m);
+#				$pn =~ s/::/-/g;
+#				$pn = "lib".$pn."-perl";
+#				if ($pn eq $mod->{'pkg'}) {
+#					$mod->{'name'} = $m;
+#					last;
+#					}
+#				}
+#			$mod->{'name'} ||= $mod->{'mods'}->[0];
+#			next if ($limit && $mod->{'name'} ne $limit);
+#			next if ($donemod{$mod->{'name'}}++);
+#
+#			local $mi = &indexof($mod->{'name'}, @{$mod->{'mods'}});
+#			$mod->{'master'} = $mi < 0 ? 0 : $mi;
+#			push(@rv, $mod) if (@{$mod->{'mods'}});
+#			}
+#
+#		}
+#	}
+
+return @rv;
+}
+
+
+# expand_usr64(dir)
+# If a directory is like /usr/lib and /usr/lib64 exists, return them both
+sub expand_usr64
+{
+if ($_[0] =~ /^(\/usr\/lib\/|\/usr\/local\/lib\/)(.*)$/) {
+	local ($dir, $dir64, $rest) = ($1, $1, $2);
+	$dir64 =~ s/\/lib\//\/lib64\//;
+	return -d $dir64 ? ( $dir.$rest, $dir64.$rest ) : ( $dir.$rest );
+	}
+else {
+	return ( $_[0] );
+	}
+}
+
+# module_desc(&mod, index)
+# Returns a one-line description for some module, and a version number
+sub module_desc
+{
+local ($in_name, $desc);
+local $f = $_[0]->{'files'}->[$_[1]];
+local $pf = $f;
+local $ver = $_[0]->{'version'};
+$pf =~ s/\.pm$/\.pod/;
+local ($got_version, $got_name);
+open(MOD, $pf) || open(MOD, $f);
+while(<MOD>) {
+	if (/^=head1\s+name/i && !$got_name) {
+		$in_name = 1;
+		}
+	elsif (/^=/ && $in_name) {
+		$got_name++;
+		$in_name = 0;
+		}
+	elsif ($in_name) {
+		$desc .= $_;
+		}
+	if (/^\s*(our\s+)?\$VERSION\s*=\s*"([0-9\.]+)"/ ||
+	    /^\s*(our\s+)?\$VERSION\s*=\s*'([0-9\.]+)'/ ||
+	    /^\s*(our\s+)?\$VERSION\s*=\s*([0-9\.]+)/) {
+		$ver = $2;
+		$got_version++;
+		}
+	last if ($got_version && $got_name);
+	}
+close(MOD);
+local $name = $_[0]->{'mods'}->[$_[1]];
+$desc =~ s/^\s*$name\s+\-\s+// ||
+$desc =~ s/^\s*\S*<$name>\s+\-\s+//;
+
+return wantarray ? ($desc, $ver) : $desc;
+}
+
+# download_packages_file(&callback)
+sub download_packages_file
+{
+$config{'packages'} =~ /^http:\/\/([^\/]+)(\/.*)$/ ||
+	&error($text{'download_epackages'});
+local ($host, $page, $port) = ($1, $2, 80);
+if ($host =~ /^(.*):(\d+)$/) { $host = $1; $port = $2; }
+&http_download($host, $port, $page, $packages_file, undef, $_[0]);
+}
+
+
+# indexof(string, array)
+# Returns the index of some value in an array, or -1
+sub indexof {
+  local($i);
+  for($i=1; $i <= $#_; $i++) {
+    if ($_[$i] eq $_[0]) { return $i - 1; }
+  }
+  return -1;
+}
+
+1

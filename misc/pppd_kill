@@ -1,0 +1,45 @@
+#!/bin/sh 
+# 
+# HangUp pppd 
+# 
+# usage: 
+#      pppd_kill IP_address 
+# 
+# Add next string to /etc/sudoers: 
+# 
+# apache   ALL = NOPASSWD: /usr/abills/misc/pppd_kill 
+# 
+# For remote hangup 
+# /etc/inetd.conf
+# hangup    stream  tcp     nowait  root    /usr/abills/misc/ppp_kill ppp_kill server 
+# /etc/services
+# hangup	30000/tcp
+
+if [ w$1 = wserver ] ; then
+  read IP_ADDR
+else if [ w$1 = w ] ; then
+  echo "Linux pppd kill script"
+  echo "pppd_kill [IP_ADDRESS]";
+  exit;
+else
+  IP_ADDR=$1 
+fi
+fi
+
+IP_STRIP=`echo "$IP_ADDR" | /usr/bin/tr -d '\r'` 
+
+# only one from following two strings must be uncommented 
+INTERFACE=`/sbin/ifconfig | /usr/bin/awk -v RS='\n\n'  "/$IP_STRIP / {print \\$1}"` 
+
+# INTERFACE=`/sbin/ip a | /bin/grep $IP_STRIP/32 | /usr/bin/tr -s ' ' | /bin/cut -f 8 -d ' '` 
+
+if [ -f /var/run/$INTERFACE.pid ]; then 
+  PPP_PID=`cat /var/run/$INTERFACE.pid` 
+  kill -1 $PPP_PID 
+else
+  echo "Can't find PID file '/var/run/$INTERFACE.pid'"
+fi;
+
+echo "killed PID: $PPP_PID INTERFACE: $INTERFACE  IP: $IP_STRIP" 
+
+

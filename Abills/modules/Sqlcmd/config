@@ -1,0 +1,16 @@
+
+$web_interface    = 1;
+
+#Iner_ID : Main or Sub or if -1 user menu func list
+%FUNCTIONS_LIST = ("01:0:SQL Commander:sqlcmd:"      => 5,
+                   "02:1:Tables:sqlcmd_tables:"      => 5,
+                   "03:1:$_INFO:sqlcmd_info:"        => 5,
+                   "04:1:$_PROCESSES:sqlcmd_procs:"  => 5
+                   );
+
+
+%USER_FUNCTION_LIST = ();
+
+
+
+1

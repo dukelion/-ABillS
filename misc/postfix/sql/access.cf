@@ -1,0 +1,10 @@
+user = %dbuser%
+password = %dbpasswd%
+dbname = %dbname%
+hosts = %dbhost%
+query = SELECT action FROM mail_access WHERE pattern='%s'
+# < 2.2.0
+#table = mail_access
+#select_field = action
+#where_field = access
+

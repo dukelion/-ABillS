@@ -1,0 +1,12 @@
+user = %dbuser%
+password = %dbpasswd%
+dbname = %dbname%
+hosts = %dbhost%
+query = SELECT CONCAT(md.domain,'/',mb.username,'/') FROM mail_boxes mb, mail_domains md WHERE CONCAT(mb.username, '@', md.domain)='%s' and mb.domain_id=md.id and mb.status = '0' and (mb.expire = '0000-00-00' or mb.expire > curdate())
+# < 2.2.0
+#table = mail_boxes mb, mail_domains md
+#select_field = CONCAT(md.domain,'/',mb.username,'/')
+#where_field = CONCAT(mb.username, '@', md.domain)
+#additional_conditions = and mb.domain_id=md.id and mb.status = '0' and ( mb.expire = '0000-00-00' or mb.expire > curdate())
+
+

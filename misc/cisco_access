@@ -1,0 +1,41 @@
+#!/bin/sh
+# Cisco allow/deny access script
+# Maked by kir (kir@gorsv.ru)
+
+ 
+
+#Server ip address
+NAS_IP=213.24.219.xxx
+
+ACTION=$1
+IP=$2
+
+if [ w${ACTION} = w ]; then
+  echo "No action";
+  echo "cisco_access [ACTION] [IP] [debug]";
+  echo " ACTION - Allow/Deny";
+  echo " IP     - Client IP";
+  echo " debug  - Make debug log";
+  exit;
+fi
+
+if [ w${IP} = w ]; then
+  echo "No client IP address";
+  exit;
+fi
+
+if [ w${ACTION} = wAllow ]; then
+  command="/usr/bin/rsh -l firewall ${NAS_IP} access-template 100 ABILS host $IP any"
+  `${command}`;
+else 
+if [ w${ACTION} = wDeny ]; then
+  command="/usr/bin/rsh -l firewall ${NAS_IP} clear access-template 100 ABILS host $IP any";
+  `${command}`
+fi;
+fi;
+
+#Make log
+if [ w$3 = wdebug ]; then
+  DATE=`/bin/date "+%Y-%m-%d %H:%M:%S"`
+  echo "${DATE} ${ACTION} ${command} " >> /tmp/cisco_${NAS_IP}
+fi

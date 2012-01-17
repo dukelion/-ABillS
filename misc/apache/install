@@ -1,0 +1,7 @@
+:PARAMS=FREEBSD:apache22_enable="YES"  >> [/etc/]/rc.conf
+:PARAMS=FREEBSD:Include etc/apache22/abills_httpd.conf >> [/usr/local/etc/apache22]/httpd.conf 
+:PARAMS=FREEBSD:exec:chown www /usr/abills/cgi-bin /usr/abills/cgi-bin/admin
+::exec:/usr/abills/misc/sslcerts.sh apache
+::exec:mkdir /var/log/httpd
+abills_httpd.conf > [/usr/local/etc/apache22]/abills_httpd.conf
+

@@ -1,0 +1,18 @@
+#ABillS pppd config
+# for ppp using patch from http://www.koptev.ru/docs/mppe_mppc/
+# DATE: %DATE% %TIME%
+plugin radius.so
+plugin radattr.so
+logfile /var/log/pptpd
+debug
+require-mschap-v2
+refuse-mschap
+refuse-chap
+refuse-pap
+#noccp
+nodeflate
+novj
+novjccomp
+#require mppe
+#mppe-stateful
+#ms-dns ***.***.***.***

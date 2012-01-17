@@ -1,0 +1,160 @@
+#/usr/bin/perl
+# Dialup vpn web functions
+
+
+
+use Bonus;
+use Finance;
+use Tariffs;
+
+
+my $Bonus = Bonus->new($db, $admin, \%conf);
+my $Fees = Fees->new($db, $admin, \%conf);
+my $Tariffs = Tariffs->new($db, \%conf, $admin);
+
+
+
+#*******************************************************************
+# Change user variant form
+# form_chg_vid()
+#*******************************************************************
+sub bonus_main {
+ my ($attr) = @_;
+
+
+ $Bonus->{ACTION}='add';
+ $Bonus->{LNG_ACTION}=$_ADD;
+
+
+ if ($FORM{add}) {
+   if ($FORM{RANGE_BEGIN}) {
+   	 $Bonus->add({ %FORM });
+     if(! $Bonus->{errno}) {
+       $html->message('info', $_INFO, "$_ADDED");
+      }
+    }
+
+
+   $html->tpl_show(_include('bonus_setup', 'Bonus'), $Bonus);
+  }
+ elsif ($FORM{change}) {
+
+   $Bonus->change({ %FORM });
+   
+   if(! $Bonus->{errno}) {
+     $html->message('info', $_INFO, "$_CHANGED ID: $FORM{ID}");
+    }
+  }
+ elsif ($FORM{chg}) {
+   $Bonus->info($FORM{chg});
+   $Bonus->{ACTION}='change';
+   $Bonus->{LNG_ACTION}=$_CHANGE;
+
+   if(! $Bonus->{errno}) {
+     $html->message('info', $_INFO, "$_CHANGING");
+    }
+
+   $html->tpl_show(_include('bonus_setup', 'Bonus'), $Bonus);
+ 	}
+ elsif ($FORM{del}  && $FORM{is_js_confirmed}) {
+   $Bonus->del({ ID => $FORM{del} });
+
+   if(! $Bonus->{errno}) {
+     $html->message('info', $_INFO, "$_DELETED ID: $FORM{del}");
+    }
+  }
+
+ if($Bonus->{errno}) {
+   $html->message('err', $_ERROR, "[$Bonus->{errno}] $err_strs{$Bonus->{errno}}");	
+  }
+
+
+
+my %bonus_hash = ();
+
+my $list = $Bonus->list();
+foreach my $line (@$list) {
+	push @{ $bonus_hash{$line->[0]} }, "$line->[1]|$line->[2]|$line->[3]|$line->[4]|$line->[5]";
+}
+
+
+$list = $Tariffs->list({ %LIST_PARAMS });
+my $table = $html->table( { width      => '100%',
+                            caption    => "$_TARIF_PLANS",
+                            border     => 1,
+                            #title      => ['#', $_NAME, "$_BONUS"],
+                            cols_align => ['right', 'left', 'center', 'center:noprint', 'center:noprint'],
+                          } );
+
+my ($add);
+foreach my $line (@$list) {
+  if ($permissions{4}{1}) {
+    $add = $html->button($_ADD, "index=$index&TP_ID=$line->[0]&add=$line->[0]");
+   }
+  
+  if($FORM{TP_ID} eq $line->[0]) {
+  	$table->{rowcolor}=$_COLORS[0];
+   }
+  else {
+  	undef($table->{rowcolor});
+   }
+
+  
+  my $bonus_count = (defined($bonus_hash{$line->[0]})) ? $#{ $bonus_hash{$line->[0]} } + 2 : 1;
+ 
+  $table->addtd(
+               $table->td("<b>$line->[0]</b>", { rowspan => $bonus_count } ),
+               $table->td("<b>$line->[1]</b>", { colspan => 5 }), 
+               $table->td($add, { colspan => 2 })
+    );
+
+
+  #Bonus recs
+  if (defined($bonus_hash{$line->[0]})) {
+    #$table->{extra}=undef;
+
+    foreach my $bonus_line (@{ $bonus_hash{$line->[0]} }) {
+    	my ($period, $begin, $end, $sum, $comments, $id)=split(/\|/, $bonus_line);
+
+      $table->addrow($period, $begin, $end, $sum, $comments,  
+       $html->button($_CHANGE, "index=$index&TP_ID=$line->[0]&chg=$line->[0]"),
+       $html->button($_DEL, "index=$index&del=$id", { MESSAGE => "$_DEL $id?" }) 
+       );
+     }
+   }
+}
+
+print $table->show();
+
+$table = $html->table( { width      => '100%',
+                         cols_align => ['right', 'right'],
+                         rows       => [ [ "$_TOTAL:", "<b>$Tariffs->{TOTAL}</b>" ] ]
+                      } );
+
+print $table->show();
+}
+
+
+
+#**********************************************************
+#
+#**********************************************************
+sub bonus_periodic {
+	my $REPORT = '';
+	
+  return $REPORT;
+}
+
+
+#**********************************************************
+#
+#**********************************************************
+sub bonus_report {
+	my $REPORT = '';
+	
+	return $REPORT;
+}
+
+
+1
+

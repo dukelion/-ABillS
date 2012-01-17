@@ -1,0 +1,2955 @@
+# Dialup vpn web functions
+
+
+
+use Dv;
+use Finance;
+use Fees;
+use Dv_Sessions;
+use Shedule;
+use Tariffs;
+
+
+my $Dv       = Dv->new($db, $admin, \%conf);
+my $fees     = Fees->new($db, $admin, \%conf);
+my $tariffs  = Tariffs->new($db, \%conf, $admin);
+my $sessions = Dv_Sessions->new($db, $admin, \%conf);
+
+my %FORM_BASE = ();
+
+
+#*******************************************************************
+# Change user variant form
+# form_chg_vid()
+#*******************************************************************
+sub dv_chg_tp {
+ my ($attr) = @_;
+
+ my $user;
+
+ if(defined($attr->{USER})) {
+   $user = $attr->{USER};
+   $user = $Dv->info($user->{UID});
+   if($user->{TOTAL} < 1) {
+ 	   $html->message('info', $_INFO, "$_NOT_ACTIVE");
+ 	   return 0;
+    }
+  }
+ else {
+ 	 $html->message('err', $_ERROR, "$_USER_NOT_EXIST");
+ 	 return 0;
+  }
+
+ my $TARIF_PLAN = $FORM{tarif_plan} || $_DEFAULT_TARIF_PLAN;
+ my $period = $FORM{period} || 0;
+
+ my $shedule = Shedule->new($db, $admin, \%conf);
+
+if ($FORM{set}) {
+
+  if ($period == 1) {
+
+ 	  use POSIX;
+
+    my $seltime = POSIX::mktime(0, 0, 0, $FORM{date_D}, $FORM{date_M}, ($FORM{date_Y} - 1900));
+    
+    if ($seltime <= time()) {
+      $html->message('info', $_INFO, "$ERR_WRONG_DATA ($FORM{date_D}, $FORM{date_M}, $FORM{date_Y}  )/". $seltime . "-" . time());
+      return 0;
+     }
+
+    $FORM{date_M}++;
+    $shedule->add( {UID     => $user->{UID},
+                   TYPE     => 'tp',
+                   ACTION   => $FORM{TP_ID},
+    	             D        => $FORM{date_D},
+                   M        => $FORM{date_M},
+                   Y        => $FORM{date_Y},
+                   DESCRIBE => "$message<br>
+                   $_FROM: '$FORM{date_Y}-$FORM{date_M}-$FORM{date_D}'",
+                   MODULE   => 'Dv'
+                    });
+
+    if ($shedule->{errno}) {
+      $html->message('err', $_ERROR, "[$shedule->{errno}] $err_strs{$shedule->{errno}}");	
+     }
+    else {
+      $html->message('info', $_CHANGED, "$_CHANGED");
+      $user->info($user->{UID});
+    }
+   }
+  else {
+    $user->change({ %FORM });
+
+    if ($user->{errno}) {
+      $html->message('err', $_ERROR, "[$user->{errno}] $err_strs{$user->{errno}}");	
+     }
+    else {
+      $html->message('info', $_CHANGED, "$_CHANGED");
+      $user->info($user->{UID});
+    }
+
+  }
+}
+elsif($FORM{del}) {
+  $shedule->del( { UID => $user->{UID},
+   	               ID  => $FORM{SHEDULE_ID}  } 
+   	            );
+
+  $html->message('info', $_DELETED, "$_DELETED [$FORM{SHEDULE_ID}]");
+}
+
+  $shedule->info( {UID      => $user->{UID},
+                   TYPE     => 'tp',
+                   DESCRIBE => "$message\n$_FROM: '$FORM{date_y}-$FORM{date_m}-$FORM{date_d}'",
+                   MODULE   => 'Dv'
+                   });
+
+
+  if ($shedule->{TOTAL} > 0) {
+  	$table = $html->table( { width      => '100%',
+  		                       caption    => "$_SHEDULE",
+                             cols_align => ['left', 'left'],
+                             rows       => [ [ "$_TARIF_PLAN:", "$shedule->{ACTION}"   ],
+                                             [ "$_DATE:",   "$shedule->{D}-$shedule->{M}-$shedule->{Y}" ],
+                                             [ "$_ADMIN:",  "$shedule->{ADMIN_NAME}"   ],
+                                             [ "$_ADDED:",  "$shedule->{DATE}"         ],
+                                             [ "ID:",       "$shedule->{SHEDULE_ID}"   ]  
+                                            ]
+                               } );
+  	$tariffs->{TARIF_PLAN_SEL} = $table->show(). $html->form_input('SHEDULE_ID', "$shedule->{SHEDULE_ID}", {TYPE => 'HIDDEN' });
+  	$tariffs->{ACTION}='del';
+  	$tariffs->{LNG_ACTION}=$_DEL;
+  }
+ else {
+   $tariffs->{TARIF_PLAN_SEL}=$html->form_select('TP_ID', 
+                                          { 
+ 	                                          SELECTED          => $user->{TP_ID},
+ 	                                          SEL_MULTI_ARRAY   => $tariffs->list(),
+ 	                                          MULTI_ARRAY_KEY   => 0,
+ 	                                          MULTI_ARRAY_VALUE => 1,
+ 	                                        });
+
+   $tariffs->{PARAMS} .= form_period($period);	
+   $tariffs->{ACTION}='set';
+   $tariffs->{LNG_ACTION}=$_CHANGE;
+  }
+
+ 
+
+my $tp_index = $index + 4;
+
+$tariffs->{UID}=$attr->{USER}->{UID};
+$tariffs->{m}=$m;
+$tariffs->{TP_ID} = $user->{TP_ID};
+$tariffs->{TP_NAME} = "$user->{TP_ID}:$user->{TP_NAME} [". $html->button("$_TARIF_PLANS", "index=$tp_index&TP_ID=$user->{TP_ID}", { TITLE => "$_TP" } ). "]";
+
+
+print $html->tpl_show(templates('chg_tp'), $tariffs);
+
+
+}
+
+
+#**********************************************************
+# user_dv
+#**********************************************************
+sub dv_users_list {
+ my ($attr)=@_;
+
+ if ($attr->{TP}) {
+   $LIST_PARAMS{TP_ID} = $FORM{TP_ID};
+   #$pages_qs .= "&TP_ID=$FORM{TP_ID}";
+  }
+ elsif($FORM{TP_ID}) {
+   $FORM{subf}=$index;
+   dv_tp();
+   return 0;
+  }
+ 
+ my $group_sel = sel_groups();
+ form_search({ SEARCH_FORM =>  	
+ 	"<tr><td colspan=2><hr></td></tr>
+   <tr><td>$_GROUP:</td><td>$group_sel</td></tr>
+   <tr><td>IP (>,<):</td><td><input type='text' name='IP' value='%IP%'></td></tr>
+   <tr><td>CID:</td><td><input type='text' name='CID' value='%CID%'></td></tr>
+   <tr><td>$_PORT (>,<):</td><td><input type='text' name='PORT' value='%PORT%'></td></tr>
+   \n"
+  });
+
+
+ print $html->letters_list({ pages_qs => $pages_qs  }); 
+
+ if ($FORM{letter}) {
+   $LIST_PARAMS{FIRST_LETTER} = $FORM{letter};
+   $pages_qs .= "&letter=$FORM{letter}";
+  } 
+
+
+
+
+
+my $list = $Dv->list( { %LIST_PARAMS } );
+
+my @TITLE = ($_LOGIN, $_FIO, $_DEPOSIT, $_CREDIT, $_TARIF_PLANS, $_STATUS, '-', '-');
+for(my $i=0; $i<$Dv->{SEARCH_FIELDS_COUNT}; $i++){
+	push @TITLE, '-';
+	$TITLE[6+$i] = "$_SEARCH";
+}
+
+if ($Dv->{errno}) {
+  $html->message('err', $_ERROR, "[$Dv->{errno}] $err_strs{$Dv->{errno}}");	
+  return 0;
+ }
+elsif ($Dv->{TOTAL} == 1) {
+	form_users({  USER => user_info($list->[0]->[6+$Dv->{SEARCH_FIELDS_COUNT}]) });
+	return 0;
+}
+
+
+
+my $table = $html->table( { width      => '100%',
+                            caption    => "Dialup / VPN",
+                            border     => 1,
+                            title      => \@TITLE,
+                            cols_align => ['left', 'left', 'right', 'right', 'left', 'center', 'center:noprint', 'center:noprint'],
+                            qs         => $pages_qs,
+                            pages      => $Dv->{TOTAL}
+                           });
+
+foreach my $line (@$list) {
+  my $payments = ($permissions{1}) ?  $html->button("$_PAYMENTS", "index=2&UID=". $line->[6+$Dv->{SEARCH_FIELDS_COUNT}]) : ''; 
+  
+  my @fields_array  = ();
+  for(my $i=0; $i<$Dv->{SEARCH_FIELDS_COUNT}; $i++){
+     push @fields_array, $line->[6+$i];
+   }
+  
+  $table->addrow(
+   $html->button("$line->[0]", "index=15&UID=$line->[6+$Dv->{SEARCH_FIELDS_COUNT}]"), 
+   "$line->[1]",
+   "$line->[2]", 
+   "$line->[3]", 
+   "$line->[4]", 
+   "$status[$line->[5]]",
+   @fields_array, 
+   $payments, 
+   $html->button("$_STATS", "index=". ($index + 3) ."&UID=". $line->[6+$Dv->{SEARCH_FIELDS_COUNT}])
+
+   );
+}
+print $table->show();
+
+$table = $html->table( { width      => '100%',
+                         cols_align => ['right', 'right'],
+                         rows       => [ [ "$_TOTAL:", "<b>$Dv->{TOTAL}</b>" ] ]
+                        } );
+print $table->show();
+
+  return 0;
+}
+
+
+#**********************************************************
+# user_dv
+#**********************************************************
+sub dv_user {
+ 	$Dv->{UID}=$FORM{UID};	  
+  
+  if ($FORM{add}) {
+    $Dv->add({ %FORM });
+    if (! $Dv->{errno}) {
+      $html->message('info', $_INFO, "$_ADDED");	
+     }
+   }
+	elsif($FORM{set}) {
+    $Dv->change({ %FORM });
+    if (! $Dv->{errno}) {
+      $html->message('info', $_INFO, "$_CHANGED");	
+     }
+   }
+	elsif($FORM{del}) {
+    $Dv->del();
+    if (! $Dv->{errno}) {
+      $html->message('info', $_INFO, "$_CHANGED");	
+     }
+	 }
+
+  if ($Dv->{errno}) {
+    $html->message('err', $_ERROR, "[$Dv->{errno}] $err_strs{$Dv->{errno}}");
+   }
+
+  my $user = $Dv->info($FORM{UID});
+
+  if($user->{TOTAL} < 1) {
+	  $html->message('info', $_INFO, $_NOT_ACTIVE);
+	  $Dv = $Dv->defaults();
+	  
+	  
+    $Dv->{TP_ID}=$html->form_select('TP_ID', 
+                                         { 
+ 	                                          SELECTED          => $user->{TP_ID},
+ 	                                          SEL_MULTI_ARRAY   => $tariffs->list(),
+ 	                                          MULTI_ARRAY_KEY   => 0,
+ 	                                          MULTI_ARRAY_VALUE => 1,
+ 	                                        });
+
+	  
+	  
+	  $Dv->{ACTION}='add';
+	  $Dv->{LNG_ACTION}=$_ACTIVATE;
+	 }
+	else {
+	  $Dv->{ACTION}='set';
+	  $Dv->{LNG_ACTION}=$_CHANGE;
+	  $Dv->{CHANGE_TP_BUTTON}='['. $html->button($_CHANGE, 'UID='.$FORM{UID}.'&index='. ($index + 1)) .']';
+	} 
+
+  $user->{DISABLE}=($user->{DISABLE} == 1) ? ' checked' : '';
+  $user->{CALLBACK}=($user->{CALLBACK} == 1) ? ' checked' : '';
+ 
+  
+  
+  $html->tpl_show(_include('dv_user', 'Dv'), $Dv);
+}
+
+
+
+#**********************************************************
+# Tarif plans
+# form_tp
+#**********************************************************
+sub dv_tp {
+ 
+ my $tarif_info;
+
+ my @Octets_Direction = ("$_RECV + $_SEND", $_RECV, $_SEND);
+ my @Payment_Types    = ($_PREPAID, $_POSTPAID); 
+
+ $tarif_info = $tariffs->defaults();
+ $tarif_info->{LNG_ACTION}=$_ADD;
+ $tarif_info->{ACTION}='ADD_TP';
+
+
+if($FORM{ADD_TP}) {
+  $FORM{TP_ID} = $FORM{CHG_TP_ID};
+  
+  if ($FORM{TP_ID} < 1) {
+  	$html->message('err', $_ERROR, "$_ERROR ID = 0");
+   }
+  else {
+   $tariffs->add( { %FORM });
+   if (! $tariffs->{errno}) {
+     $html->message('info', $_ADDED, "$_ADDED $tariffs->{TP_ID}");
+    }
+  }
+ }
+elsif (defined($FORM{TP_ID})) {
+ 
+  $tarif_info = $tariffs->info( $FORM{TP_ID} );
+
+  if ($tariffs->{errno}) {
+    $html->message('err', $_ERROR, "[$tariffs->{errno}] $err_strs{$tariffs->{errno}}");	
+    return 0;
+   }
+
+  $pages_qs .= "&TP_ID=$FORM{TP_ID}&subf=$FORM{subf}";
+  $LIST_PARAMS{TP} = $FORM{TP_ID};
+  %F_ARGS = ( TP => $tariffs );
+  
+  $tariffs->{NAME_SEL} = $html->form_main({ CONTENT => $html->form_select('TP_ID', 
+                                          { 
+ 	                                          SELECTED          => $FORM{TP_ID},
+ 	                                          SEL_MULTI_ARRAY   => $tariffs->list({ %LIST_PARAMS }),
+ 	                                          MULTI_ARRAY_KEY   => 0,
+ 	                                          MULTI_ARRAY_VALUE => 1,
+ 	                                        }),
+	                                          HIDDEN  => { index => "$index" },
+	                                          SUBMIT  => { show  => "$_SHOW" } 
+	                        });
+  
+  func_menu({ 
+  	         'ID' =>   $tariffs->{TP_ID}, 
+  	         $_NAME => $tariffs->{NAME_SEL}
+  	       }, 
+  	{ 
+#  	 $_INFO          => ":TP_ID=$tariffs->{TP_ID}",
+#     $_USERS         => "11:TP_ID=$tariffs->{TP_ID}",
+#     $_INTERVALS     => "73:TP_ID=$tariffs->{TP_ID}",
+#     $_NAS           => "72:TP_ID=$tariffs->{TP_ID}"
+  	 },
+  	{
+  		f_args => { %F_ARGS }
+  	 });
+
+  if ($FORM{subf}) {
+
+  	return 0;
+   }
+  elsif($FORM{change}) {
+    $tariffs->change( $FORM{TP_ID}, { %FORM  } );  
+     
+    if (! $tariffs->{errno}) {
+       $html->message('info', $_CHANGED, "$_CHANGED $tariffs->{TP_ID}");
+     }
+   }
+
+  $tarif_info->{LNG_ACTION}=$_CHANGE;
+  $tarif_info->{ACTION}='change';
+
+ }
+elsif(defined($FORM{del}) && $FORM{is_js_confirmed}) {
+  $tariffs->del($FORM{del});
+
+  if (! $tariffs->{errno}) {
+    $html->message('info', $_DELETE, "$_DELETED $FORM{del}");
+   }
+}
+
+
+if ($tariffs->{errno}) {
+    $html->message('err', $_ERROR, "[$tariffs->{errno}] $err_strs{$tariffs->{errno}}");	
+ }
+
+my $i=0;
+$tarif_info->{SEL_OCTETS_DIRECTION} = "<select name=OCTETS_DIRECTION>\n";
+foreach my $line (@Octets_Direction) {
+  $tarif_info->{SEL_OCTETS_DIRECTION} .= "<option value=$i";
+  $tarif_info->{SEL_OCTETS_DIRECTION} .= ' selected' if ($tarif_info->{OCTETS_DIRECTION} eq $i);
+  $tarif_info->{SEL_OCTETS_DIRECTION} .= ">$Octets_Direction[$i]\n";
+  $i++;
+}
+$tarif_info->{SEL_OCTETS_DIRECTION} .= "</select>\n";
+
+
+
+
+$i=0;
+
+$tarif_info->{PAYMENT_TYPE_SEL} = "<select name=PAYMENT_TYPE>\n";
+foreach my $line (@Payment_Types) {
+  $tarif_info->{PAYMENT_TYPE_SEL} .= "<option value=$i";
+  $tarif_info->{PAYMENT_TYPE_SEL} .= ' selected' if ($tarif_info->{PAYMENT_TYPE} eq $i);
+  $tarif_info->{PAYMENT_TYPE_SEL} .= ">$Payment_Types[$i]\n";
+  $i++;
+}
+$tarif_info->{PAYMENT_TYPE_SEL} .= "</select>\n";
+
+$tarif_info->{REDUCTION_FEE} = ($tarif_info->{REDUCTION_FEE}) ? 'checked' : '';
+$tarif_info->{POSTPAID_FEE} = ($tarif_info->{POSTPAID_FEE}) ? 'checked' : '';
+
+$tarif_info->{GROUPS_SEL} = $html->form_select('TP_GID', 
+                                          { 
+ 	                                          SELECTED          => $tarif_info->{TP_GID},
+ 	                                          SEL_MULTI_ARRAY   => [[ '', ''],  @{ $tariffs->tp_group_list( ) } ],
+ 	                                          MULTI_ARRAY_KEY   => 0,
+ 	                                          MULTI_ARRAY_VALUE => 1,
+ 	                                        });
+
+
+$html->tpl_show(_include('dv_tp', 'Dv'), $tarif_info);
+
+
+
+my $list = $tariffs->list({ %LIST_PARAMS });	
+# Time tariff Name Begin END Day fee Month fee Simultaneously - - - 
+my $table = $html->table( { width      => '100%',
+                            caption    => "$_TARIF_PLANS",
+                            border     => 1,
+                            title      => ['#', $_NAME,  $_HOUR_TARIF, $_TRAFIC_TARIFS, $_PAYMENT_TYPE, $_DAY_FEE, $_MONTH_FEE, $_SIMULTANEOUSLY, 
+                             $_AGE, $_GROUP,
+                                    '-', '-', '-'],
+                            cols_align => ['right', 'left', 'center', 'center', 'center', 'right', 'right', 'right', 'right', 'center:noprint', 'center:noprint', 'center:noprint'],
+                                  } );
+
+my ($delete, $change);
+foreach my $line (@$list) {
+  if ($permissions{4}{1}) {
+    $delete = $html->button($_DEL, "index=$index&del=$line->[0]", { MESSAGE => "$_DEL $line->[0]?" }); 
+    $change = $html->button($_CHANGE, "index=$index&TP_ID=$line->[0]");
+   }
+  
+  if($FORM{TP_ID} eq $line->[0]) {
+  	$table->{rowcolor}=$_COLORS[0];
+   }
+  else {
+  	undef($table->{rowcolor});
+   }
+  
+  $table->addrow("<b>$line->[0]</b>", 
+   $html->button($line->[1], "index=$index&TP_ID=$line->[0]"),
+   $bool_vals[$line->[2]], $bool_vals[$line->[3]], $Payment_Types[$line->[4]], 
+   $line->[5], 
+   $line->[6], 
+   $line->[7], 
+   $line->[8], 
+   $line->[9],
+   $html->button($_INTERVALS, "index=". ($index+2) ."&subf=73&TP_ID=$line->[0]"),
+   $change,
+   $delete);
+}
+
+print $table->show();
+
+$table = $html->table( { width      => '100%',
+                         cols_align => ['right', 'right'],
+                         rows       => [ [ "$_TOTAL:", "<b>$tariffs->{TOTAL}</b>" ] ]
+                     } );
+print $table->show();
+
+}
+
+
+
+
+#*******************************************************************
+# online users
+#*******************************************************************
+sub dv_online {
+
+my $nas = Nas->new($db, \%conf);
+
+my $message;
+if ($FORM{ping}) {
+  if ($FORM{ping} =~ /^(\d){1,3}\.(\d){1,3}\.(\d){1,3}\.(\d){1,3}$/) {
+    my $res = `/sbin/ping -c 5 $FORM{ping}`;
+    $html->message('info', $_INFO,  "Ping  $FORM{ping}<br>Result:<br><pre>$res</pre>");
+   }
+  else {
+    $html->message('err', $_ERROR,  "$ERR_WRONG_DATA");
+   }
+ }
+elsif ($FORM{hangup}) {
+  my ($nas_id, $nas_port_id, $acct_session_id, $user_name) = split(/ /, $FORM{hangup}, 4);
+  $nas->info({ NAS_ID => $nas_id });
+  
+  if ($nas->{errno}) {
+    $html->message('err', $_NAS, "$nas->{errstr}");
+  	return 0;
+   }
+
+  require "Abills/nas.pl";
+  
+  my $ret = hangup($nas, "$nas_port_id", "$user_name", { ACCT_SESION_ID    => "$acct_session_id",
+  	                                                     FRAMED_IP_ADDRESS => "$FORM{FRAMED_IP_ADDRESS}" });
+
+  if ($ret == 0) {
+    my $table = $html->table( { width   => '100%',
+                                caption => $_HANGUPED,
+                                rows    => [ 
+                                            [ "$_NAS ID",   $nas_id          ],
+                                            [ "$_NAS IP",   $nas->{NAS_IP}   ],
+                                            [ "$_PORT",     $nas_port_id     ],
+                                            [ "SESSION_ID", $acct_session_id ],
+                                            [ "",           $ret             ] 
+                                           ]
+                               } );
+
+
+     $message = $table->show();
+     sleep 3;
+     
+     weblog('hangup', "$user_name");
+   }
+  elsif ($ret == 1) {
+   	$message = 'NAS NOT supported yet';
+   }
+
+  $html->message('info', $_INFO, "$message");
+ }
+if ($FORM{zapall}) {
+  $sessions->zap(0, 0, 0, { ALL => 'y' });
+  $html->message('info', $_INFO, "Zapped all sessions");
+ }
+elsif($FORM{zap}) {
+  
+  
+  
+  my($nas_id, $nas_port_id, $acct_session_id)=split(/ /, $FORM{zap}, 3);
+  $sessions->zap($nas_id, $nas_port_id, $acct_session_id);
+
+  if ($sessions->{errno}) {
+  	 $html->message('err', $_ERROR, "[$sessions->{errno}] $err_strs{$sessions->{errno}}");
+  	 return 0;
+   }
+
+  $nas->info({NAS_ID => $nas_id });
+
+  my $table = $html->table( { width   => '100%',
+                              caption => $_CLOSED,
+                              rows    => [ 
+                                          [ "$_NAS ID",   $nas_id],
+                                          [ "$_NAS IP",   $nas->{NAS_IP} ],
+                                          [ "$_PORT",     $nas_port_id   ],
+                                          [ "SESSION_ID", $acct_session_id ],
+                                        ]
+                               } );
+
+  $message = $table->show();
+
+  
+  $sessions->list({ ACCT_SESSION_ID => $acct_session_id, 
+  	                NAS_PORT        => $nas_port_id,
+  	                NAS_ID          => $nas->{NAS_ID} });  
+  
+  if ($sessions->{TOTAL} < 1) {
+    $message .= "<p align=center>[".
+    $html->button('Add To log', "index=$index&tolog=$acct_session_id&nas_id=$nas_id&nas_port_id=$nas_port_id&ZAPED=yes"). 
+    "] [".
+    $html->button($_DEL, "index=$index&del=$acct_session_id&nas_id=$nas_id&nas_port_id=$nas_port_id&ZAPED=yes"). "]</p>\n";
+   }
+  else {
+  	$message .= "$_EXIST";
+  	$sessions->online_del({ NAS_ID          => $nas_id,
+                            NAS_PORT        => $nas_port_id,
+                            ACCT_SESSION_ID => $acct_session_id
+                          });
+
+    #my ($sum, $variant, $time_t, $traf_t) = session_sum("$RAD{USER_NAME}", $ACCT_INFO{LOGIN}, $ACCT_INFO{ACCT_SESSION_TIME}, \%ACCT_INFO);
+   }
+
+  $html->message('info', $_INFO, $message);
+}
+elsif($FORM{tolog}) {
+  my $ACCT_INFO = $sessions->online_info({ NAS_ID          => $FORM{nas_id},
+                                           NAS_PORT        => $FORM{nas_port_id},
+                                           ACCT_SESSION_ID => $FORM{tolog}
+                                       });
+
+  if ($ACCT_INFO->{TOTAL} < 1) {
+    $html->message('err', $_ERROR, "$_NOT_EXIST");	
+    return 0;
+   }
+
+  $nas->info({ NAS_ID => $FORM{nas_id} });
+
+  require Acct;
+  $ACCT_INFO->{INBYTE}           = $ACCT_INFO->{ACCT_INPUT_OCTETS};
+  $ACCT_INFO->{OUTBYTE}          = $ACCT_INFO->{ACCT_OUTPUT_OCTETS},;
+  $ACCT_INFO->{INBYTE2}          = $ACCT_INFO->{ACCT_EX_INPUT_OCTETS} ;
+  $ACCT_INFO->{OUTBYTE2}         = $ACCT_INFACCT_INFO->{ACCT_OUTPUT_OCTETS},;
+  $ACCT_INFO->{INBYTE2}          = $ACCT_INFO->{ACCT_EX_INPUT_OCTETS} ;
+  $ACCT_INFO->{OUTBYTE2}         = $ACCT_INFACCT_INFO->{ACCT_OUTPUT_OCTETS},;
+  $ACCT_INFO->{INBYTE2}          = $ACCT_INFO->{ACCT_EX_INPUT_OCTETS} ;
+  $ACCT_INFO->{OUTBYTE2}         = $ACCT_INFACCT_INFO->{ACCT_OUTPUT_OCTETS},;
+  $ACCT_INFO->{INBYTE2}          = $ACCT_INFO->{ACCT_EX_INPUT_OCTETS} ;
+  $ACCT_INFO->{OUTBYTE2}         = $ACCT_INFO->{ACCT_EX_OUTPUT_OCTETS};
+  $ACCT_INFO->{ACCT_STATUS_TYPE} = 'Stop';
+  $ACCT_INFO->{ACCT_TERMINATE_CAUSE} = 3;
+
+
+  # Exppp VENDOR params           
+  Acct->import();
+  my $Acct = Acct->new($db, \%conf);
+  my $r = $Acct->accounting($ACCT_INFO, $nas);
+  
+
+  if ($Acct->{errno}) {
+    $html->message('err', $_ERRNO, "$Acct->{errno} $Acct->{errstr}");	
+   }
+  else {
+  	my $table = $html->table( { width => '100%'} );
+  	foreach my $k (sort keys %$ACCT_INFO) {
+ 		    $table->addrow($k, $ACCT_INFO->{$k});
+  	  }
+
+    $table->addrow('-', '-');
+  	foreach my $k (sort keys %$Acct) {
+ 		    $table->addrow($k, $Acct->{$k});
+  	  }
+
+  	$html->message('info', $_ADDED, $table->show());	
+   }
+  
+  $sessions->online_del({ NAS_ID          => $ACCT_INFO->{NAS_ID},
+                          NAS_PORT        => $ACCT_INFO->{NAS_PORT},
+                          ACCT_SESSION_ID => $ACCT_INFO->{ACCT_SESSION_ID}
+                        });
+ }
+elsif($FORM{del} || $FORM{dellist}) {
+  if ($FORM{dellist}) {
+    my @sessions_list = split(/, /, $FORM{dellist});
+    $sessions->online_del({ SESSIONS_LIST => \@sessions_list });
+    $FORM{del} = $FORM{dellist};
+   }
+  else {
+    $sessions->online_del({
+   	            NAS_ID          => $FORM{nas_id},
+                NAS_PORT        => $FORM{nas_port_id},
+                ACCT_SESSION_ID => $FORM{del}
+                           });
+   }
+
+  if (! $sessions->{errno}) {
+    my $table = $html->table( { width => '100%',
+                                rows => [ [ "NAS_ID",          $FORM{nas_id}     ],
+                                          [ "NAS_PORT",        $FORM{nas_port_id}],
+                                          [ "ACCT_SESSION_ID", $FORM{del}        ]
+                                        ]
+                               } );
+    
+    $html->message('info', $_DELETED, $table->show());	
+   }
+
+}
+
+
+
+#Field formed section
+
+my @FIELDS_ALL = ("$_USER", "$_FIO", "$_PORT", "IP", "$_DURATION", "$_RECV", "$_SENT",
+                             "Ex_IN", "Ex_OUT", 
+                             "CID",  "SESSION_ID", "$_TARIF_PLAN", "CONNECT_INFO", 
+                             "$_SPEED",
+                             "$_SUM",
+                             "$_STATUS");
+
+
+my @CAPTION = (); 
+my @ACTIVE_FIELDS = (0,1,2,3,4,5,6,7,8);
+
+if ($FORM{'fields'}) {
+ @ACTIVE_FIELDS = split(/, /, $FORM{'fields'});
+ $FORM{'fields'}=~s/ //g;
+ $admin->{WEB_OPTIONS} =~ s/;DV_MONITOR=(.+);//g;
+ $admin->change({ AID => $admin->{AID}, WEB_OPTIONS => "$admin->{WEB_OPTIONS};DV_MONITOR=$FORM{'fields'};"})
+}
+elsif ($admin->{WEB_OPTIONS} =~ /DV_MONITOR=(.+);/) {
+	@ACTIVE_FIELDS = split(/,/, $1);
+}
+
+foreach my $field_id (@ACTIVE_FIELDS) {
+	push @CAPTION, $FIELDS_ALL[$field_id];
+}
+
+
+
+
+
+
+$form_link = '';
+my $cure = '';
+if($FORM{ZAPED}) {
+	$LIST_PARAMS{ZAPED}='yes';
+	$form_link = $html->button("On line", "index=$index");
+	$cure = 'Zap';
+ } 
+else {
+ 	$sessions->online( { ZAPED => 'yes' } );	
+ 	$form_link = $html->button("$_ZAPED", "index=$index&ZAPED=yes"). " ($sessions->{TOTAL})";
+ 	$cure='Online';
+}
+
+
+if (defined($FORM{FILTER})) {
+	$LIST_PARAMS{FILTER_FIELD}=$FORM{FILTER_FIELD};
+	$LIST_PARAMS{FILTER}=$FORM{FILTER};
+}
+
+
+$sessions->online( { %LIST_PARAMS, FIELDS => \@ACTIVE_FIELDS } );	
+my $dub_ports = $sessions->{dub_ports};
+my $dub_logins = $sessions->{dub_logins};
+ 
+my $table = $html->table( { width      => '100%',
+                            caption    => "$cure",
+                            border     => 1,
+                            title      => [ @CAPTION, '-', '-', '-' ],
+                            cols_align => ['left', 'left', 'right', 'right', 'right', 'right', 'right', 'right', 'right', 'center:noprint', 'center:noprint', 'center:noprint'],
+                            qs         => $pages_qs,
+                         } );
+
+my $online = $sessions->{nas_sorted};
+my $nas_list = $nas->list();
+
+foreach my $nas_row (@$nas_list) {
+
+  next if (! defined($online->{$nas_row->[0]}));
+
+
+  my $l = $online->{$nas_row->[0]};
+  my $total = $#{@$l} + 1;  
+  $table->{rowcolor}=$_COLORS[0];
+  $table->{extra}="colspan='". ($#CAPTION +1 ) . "' class='small'";
+  $table->addrow("$nas_row->[0]:<b>$nas_row->[1]</b>:$nas_row->[3]:$_TOTAL: $total" );
+  
+  
+
+  
+  foreach my $line (@$l) {
+    undef($table->{rowcolor});
+    undef($table->{extra});
+
+    my @rows  = ();
+    for(my $i=0; $i<=$#ACTIVE_FIELDS; $i++) {
+    	  my $value=$line->[$i]; 
+    	  
+    	  if ($ACTIVE_FIELDS[$i]==5 || $ACTIVE_FIELDS[$i] == 6 
+    	     ||  $ACTIVE_FIELDS[$i]==7 || $ACTIVE_FIELDS[$i] ==8) {
+    	  	$value = int2byte($line->[$i]);
+    	   }
+    	  elsif ($ACTIVE_FIELDS[$i] == 0) {
+          my $user_info =  "$_FIO: $line->[1]\n$_PHONE: $line->[$#ACTIVE_FIELDS+1]\n".
+                           "$_TARIF_PLAN: $line->[$#ACTIVE_FIELDS+15]\n".
+                           "$_DEPOSIT: $line->[$#ACTIVE_FIELDS+5]\n".
+                           "$_CREDIT: $line->[$#ACTIVE_FIELDS+6]\n".
+                           "$_SPEED: \n".
+                           "SESSION_ID: $line->[$#ACTIVE_FIELDS+13]\n".
+                           "CID: $line->[$#ACTIVE_FIELDS+14]\n".
+                           "CONNECT_INFO: \n".
+                           "UPDATES: $line->[$#ACTIVE_FIELDS+8]";
+
+    	  	$value = "<acronym title='$user_info'>".$html->button($line->[0], "index=15&UID=$line->[$#ACTIVE_FIELDS+3]")."</acronym>";
+          #Dublicate logins
+ 	  	    if (defined($dub_logins->{$line->[0]}) && $dub_logins->{$line->[0]} > 1) { $table->{rowcolor}='#FFFF00'; }
+    	   }	
+    	  elsif ($ACTIVE_FIELDS[$i] == 2) {
+           if (defined($dub_ports->{$nas_row->[0]}{$line->[$i]}) && $dub_ports->{$nas_row->[0]}{$line->[$i]} > 1) { $table->{rowcolor}='#00FF40';    }    	  	
+    	   }
+    	  elsif ($ACTIVE_FIELDS[$i] == 3) {
+    	  	$value = int2ip($line->[$i]);
+    	   }
+    	  
+    	  push @rows, $value;
+      }
+
+
+    if ($line->[$#ACTIVE_FIELDS + 9] > 3)  { $table->{rowcolor}='#FF0000';    }
+    my $zap = "(". $html->button('Z', "index=$index&zap=$nas_row->[0]+".$line->[$#ACTIVE_FIELDS + 12]."+". $line->[($#ACTIVE_FIELDS + 13)], { TITLE => 'Zap' }) . ")";
+    my $hangup = ($FORM{ZAPED}) ? $html->form_input('dellist', "$line->[$#ACTIVE_FIELDS + 13]", { TYPE => 'checkbox' } ) : "(". $html->button('H', "index=$index&FRAMED_IP_ADDRESS=$line->[$#ACTIVE_FIELDS+2]&hangup=$nas_row->[0]+$line->[$#ACTIVE_FIELDS + 12]+$line->[$#ACTIVE_FIELDS + 13]+$line->[$#ACTIVE_FIELDS + 11]", { TITLE => 'Hangup' }). ")";
+
+
+    $table->addrow(@rows,
+     "(". $html->button('P', "index=$index&ping=$line->[$#ACTIVE_FIELDS+2]", { TITLE => 'ping' }) .")",
+     "$zap",
+     "$hangup");
+
+  }
+}
+
+my $table2 = $html->table( { width      => '100%',
+                             cols_align => ['left', 'right', 'right', 'right']
+                         } );
+
+$table2->addtd(   $table->td($_TOTAL, { bgcolor => $_COLORS[0] }), 
+                  $table->td($sessions->{TOTAL}, { bgcolor => $_COLORS[0] }), 
+                  $table->td($form_link) 
+               );
+
+
+my $total = $table2->show();
+my $output = $total . $table->show();
+
+
+
+$table2 = $html->table({ width => '100%' });
+my @arr = ();
+my $i=0;
+foreach my $name ( @FIELDS_ALL ) {
+  my $ex_info = ($attr->{OIDS_EXINFO}->{$name}{DESCRIBE}) ?  " ($attr->{OIDS_EXINFO}->{$name}{ACCESS})<br>$attr->{OIDS_EXINFO}->{$name}{DESCRIBE}" : '';
+  push @arr, $html->form_input('fields', "$i", { TYPE => 'checkbox', STATE => (in_array($i, \@ACTIVE_FIELDS)) ? 1 : undef  }). " <b>$name</b>$ex_info";
+
+  if ($#arr > 2) {
+    $table2->addrow(@arr);
+    @arr = ();
+  }
+$i++;
+}
+
+
+if ($#arr > -1 ) {
+  $table2->addrow(@arr);
+ }
+
+
+my $FIELDS_SEL = $html->form_select('FILTER_FIELD', 
+                                { SELECTED      => $FORM{FILTER_FIELD},
+ 	                                SEL_ARRAY     => \@FIELDS_ALL,
+ 	                                ARRAY_NUM_ID  => 1
+ 	                               });
+
+$table = $html->table( { width       => '100%',
+                         title_plain => [ 
+                                           " $_FILTERS: ". $html->form_input('FILTER', $FORM{FILTER}) .
+                                           " $_FIELDS: $FIELDS_SEL".
+                                           " $_REFRESH (sec): ".   $html->form_input('REFRESH', int($FORM{REFRESH}), { SIZE => 4 } ),
+                                           $html->form_input('SHOW',  $_SHOW, { TYPE => 'SUBMIT'})  
+                                         ],
+                          cols_align => ['center:noprint', 'center:noprint'],
+                           });
+
+if ($FORM{ZAPED}) {
+  $output = $html->form_main({ CONTENT => $output,
+	                             HIDDEN  => { index => "$index",
+	                       	                  ZAPED => 1 },
+	                             SUBMIT  => { go    => "$_DEL" },
+	                             METHOD  => 'GET'
+                            });
+ }
+else {
+  $output .= $html->form_main({ CONTENT => $table2->show(). $table->show(),
+	                              HIDDEN  => { index =>  "$index" },
+	                              METHOD  => 'GET'
+                              });
+
+  $output .= $html->button('Zap All', "index=$index&zapall=y", { MESSAGE => "Do you realy want zap all sessions ?" });
+ }
+
+
+print  $output;
+	
+}
+
+
+
+
+#**********************************************************
+# Whow sessions from log
+# dv_sessions()
+#**********************************************************
+sub dv_sessions {
+  my ($list, $sessions) = @_;
+#Session List
+
+if (! $list) {
+  if (! defined($FORM{sort})) {
+	  $LIST_PARAMS{SORT} = 2;
+	  $LIST_PARAMS{DESC} = 'DESC';
+  }
+
+  my $nas = Nas->new($db, \%conf);
+  my $SEL_NAS = $html->form_select('NAS_ID', 
+                                          { 
+ 	                                          SELECTED          => $FORM{NAS_ID},
+ 	                                          SEL_MULTI_ARRAY   => [['', $_ALL], @{ $nas->list({ %LIST_PARAMS }) } ],
+ 	                                          MULTI_ARRAY_KEY   => 0,
+ 	                                          MULTI_ARRAY_VALUE => 1,
+ 	                                        });
+
+  my $TERMINATE_CAUSE_SEL = $html->form_select('TERMINATE_CAUSE', 
+                                          { 
+ 	                                          SELECTED          => $FORM{TERMINATE_CAUSE},
+ 	                                          SEL_HASH          => {
+                      '' => '',
+                      0  => 'Unknown',
+                      1  => 'User-Request',
+                      2  => 'Lost-Carrier',
+                      3  => 'Lost-Service',
+                      4  => 'Idle-Timeout',
+                      5  => 'Session-Timeout',
+                      6  => 'Admin-Reset',
+                      7  => 'Admin-Reboot',
+                      8  => 'Port-Error',
+                      9  => 'NAS-Error',
+                      10 => 'NAS-Request',
+                      11 => 'NAS-Reboot',
+                      12 => 'Port-Unneeded',
+                      13 => 'Port-Preempted',
+                      14 => 'Port-Suspended',
+                      15 => 'Service-Unavailable',
+                      16 => 'Callback',
+                      17 => 'User-Error',
+                      18 => 'Host-Request',
+                      19 => 'Supplicant-Restart',
+                      20 => 'Reauthentication-Failure',
+                      21 => 'Port-Reinit',
+                      22 => 'Port-Disabled'
+                    }
+
+ 	                                        });
+
+
+  form_search({ SEARCH_FORM =>  	
+  	"<tr><td colspan=2><hr></td></tr>
+     <tr><td>SUM (>,<)</td><td><input type=text name=SUM value='%SUM%'></td></tr>
+     <tr><td>IP (>,<)</td><td><input type=text name=IP value='%IP%'></td></tr>
+     <tr><td>CID</td><td><input type=text name=CID value='%CID%'></td></tr>
+     <tr><td>NAS</td><td>$SEL_NAS</td></tr>
+     <tr><td>NAS Port</td><td><input type=text name=NAS_PORT value='%NAS_PORT%'></td></tr>
+  	 <tr><td>$_HANGUP $_STATUS:</td><td>$TERMINATE_CAUSE_SEL</td></tr>\n"
+ });
+
+  $sessions = Dv_Sessions->new($db, $admin, \%conf);
+  $list = $sessions->list({ %LIST_PARAMS });	
+}
+
+
+return 0 if ($sessions->{TOTAL} < 1);
+
+
+
+my $table = $html->table( { width   => '100%',
+                            caption    => "$_SESSIONS",
+                            border     => 1,
+                            title      => ["$_USER", "$_START", "$_DURATION", "$_TARIF_PLAN", "$_SENT", "$_RECV", 
+                             "CID", "NAS", "IP", "$_SUM", "-", "-"],
+                            cols_align => ['left', 'right', 'right', 'RIGHT', 'right', 'right', 'right', 'right', 'right', 'right', 'center:noprint', 'center:noprint'],
+                            qs         => $pages_qs,
+                            pages      => $sessions->{TOTAL},
+                            recs_on_page => $LIST_PARAMS{PAGE_ROWS},
+                            ID         => 'DV_SESSIONS'
+                         } );
+
+my $delete = '';
+
+use Billing;
+my $Billing = Billing->new($db, \%conf);	
+
+
+
+foreach my $line (@$list) {
+  if ($permissions{3}{1}) {
+    $delete = $html->button($_DEL, "index=". $index ."$pages_qs&del=$line->[12]+$line->[11]+$line->[7]+$line->[1]+$line->[9]+$line->[0]", 
+       { MESSAGE => "$_DEL Session SESSION_ID $line->[11]?" }
+      );
+   }
+
+#  my($UID, 
+#     $SUM, 
+#     $BILL_ID, 
+#     $TARIF_PLAN, 
+#     $TIME_TARIF, 
+#     $TRAF_TARIF) = $Billing->session_sum("$line->[0]", 
+#                                            $line->[13], 
+#                                            $line->[14], 
+#                                            {  OUTBYTE  =>  $line->[4],
+#                                               INBYTE   =>  $line->[5],
+#                                               OUTBYTE2 =>  $line->[15],
+#                                               INBYTE2  =>  $line->[16]
+#                                             });
+  
+# = $Billing->session_sum("$RAD->{USER_NAME}", 
+#                                                 $RAD->{SESSION_START}, 
+#                                                 $RAD->{ACCT_SESSION_TIME}, 
+#                                                 $RAD);
+#
+  
+  $SUM = ''; #sprintf("%.6f", $SUM);
+  #my $n = ($SUM != $line->[9])  ? '!!!' : '';
+  #my $test = "<br>$n <b>$SUM</b>";
+#  , 
+#     $BILL_ID, 
+#     $TARIF_PLAN, 
+#     $TIME_TARIF, 
+#     $TRAF_TARIF\n";
+
+  $table->addrow(
+     $html->button("$line->[0]", "index=11&UID=$line->[12]"),
+     $line->[1], 
+     $line->[2],  
+     $line->[3],  
+     int2byte($line->[4], { DIMENSION => $FORM{DIMENSION} }), 
+     int2byte($line->[5], { DIMENSION => $FORM{DIMENSION} }), 
+     $line->[6],
+     $line->[7], 
+     $line->[10], 
+     "$line->[9]", 
+     "(". 
+        $html->button("D", "index=$index&UID=$line->[12]&SESSION_ID=$line->[11]", { TITLE => "$_DETAIL" } )
+      . ")", 
+     $delete);
+}
+
+print $table->show();
+}
+
+
+#**********************************************************
+# dv_use_all_monthes();
+#**********************************************************
+sub dv_use_allmonthes {
+
+  $FORM{allmonthes}='y';
+  dv_use();
+}
+
+
+#**********************************************************
+# dv_use();
+#**********************************************************
+sub dv_use {
+
+my %CAPTIONS_HASH = ('1:DATE'            => $_DATE,  	
+                     '2:USERS'           => $_USERS,
+                     '3:SESSIONS'        => $_SESSIONS,
+                     '4:TRAFFIC_RECV'    => "$_TRAFFIC $_RECV",
+                     '5:TRAFFIC_SENT'    => "$_TRAFFIC $_SENT",
+                     '8:TRAFFIC_SUM'     => $_TRAFFIC,
+                     '9:TRAFFIC_2_SUM'   => $_TRAFFIC." 2",
+                     '6:DURATION'        => $_DURATION,
+                     '7:SUM'             => $_SUM);
+
+  reports({ DATE          => $FORM{DATE}, 
+  	        REPORT        => '',
+  	        EX_PARAMS     => { HOURS => "$_HOURS",
+  	        	                 USERS => "$_USERS" }, 
+  	        PERIOD_FORM		=> 1,
+  	        FIELDS        => { %CAPTIONS_HASH },
+  	        XML           => 1
+  	       });
+
+
+my ($tables_sessions);
+my $output = '';
+
+my %DATA_HASH = ();
+my %CHART = ();
+my %AVG = (MONEY    => 0,
+           TRAFFIC  => 0,
+           DURATION => 0);
+
+my $graph_type='';
+
+
+#Day reposrt
+if (defined($FORM{DATE})) {
+  #Used Traffic
+  $table_sessions = $html->table({ width      => '100%',
+	                                 caption    => "$_SESSIONS", 
+                                   title      => ["$_DATE", "$_USERS", "$_SESSIONS", "$_TRAFFIC ", "$_TRAFFIC 2", $_DURATION, $_SUM],
+                                   cols_align => ['right', 'left', 'right', 'right', 'right', 'right', 'right'],
+                                   qs         => $pages_qs             
+                               } );
+
+  if ($FORM{EX_PARAMS} && $FORM{EX_PARAMS} eq 'HOURS') {
+
+ 	  my $list = $sessions->reports({ %LIST_PARAMS });
+    foreach my $line (@$list) {
+      $table_sessions->addrow("<b>$line->[0]</b>", 
+        $line->[1], 
+        $line->[2], 
+        int2byte($line->[3]),  
+        int2byte($line->[4]),  
+        $line->[5], 
+        "<b>$line->[6]</b>" );
+
+      $AVG{USERS}    = $line->[1] if ($AVG{USERS} < $line->[1]);
+      $AVG{TRAFFIC}  = $line->[3] if ($AVG{TRAFFIC} < $line->[3]);
+
+      $AVG{DURATION} = time2sec($line->[5]) if ($AVG{DURATION} < time2sec($line->[5]));
+      $AVG{MONEY}    = $line->[6] if ($AVG{MONEY} < $line->[6]);
+
+      if ($line->[0] =~ /(\d+)-(\d+)-(\d+) (\d+)/) {
+      	 $num = $4+1;
+        }
+      elsif ($line->[0] =~ /(\d+)-(\d+)/) {
+      	 $CHART{X_LINE}[$num]=$line->[0];
+       	 $num++;
+       }
+     
+      $DATA_HASH{USERS}[$num]     = $line->[1];      
+      $DATA_HASH2{TRAFFIC}[$num]  = $line->[3];
+      $DATA_HASH2{DURATION}[$num] = time2sec($line->[5]);
+      $DATA_HASH{MONEY}[$num]     = $line->[6];
+
+     }
+
+    $graph_type='day_stats';
+    $output = $html->make_charts({  
+	        PERIOD     => $graph_type,
+	        DATA       => \%DATA_HASH2,
+	        AVG        => \%AVG,
+	        TYPE       => ['area', 'area'],
+	        TRANSITION => 1,
+          OUTPUT2RETURN => 1	 
+       });
+
+   }
+  else {
+    my $list = $sessions->reports({ %LIST_PARAMS });
+    foreach my $line (@$list) {
+      $table_sessions->addrow("<b>$line->[0]</b>", 
+        $html->button("$line->[1]", "index=15&UID=$line->[7]&DATE=$line->[0]"), 
+        $line->[2], 
+        int2byte($line->[3]),  
+        int2byte($line->[4]),  
+        $line->[5], 
+        "<b>$line->[6]</b>" );
+     }
+  }
+
+ }
+else {
+  #Used Traffic
+  my @caption = ();  
+  
+  
+  my %fields_hash = (); 
+  if ($FORM{FIELDS}) {
+  	my @fields_arr = split(/, /, $FORM{FIELDS});
+   	foreach my $line (@fields_arr) {
+   		$fields_hash{$line}=1;
+   	 }
+
+    foreach my $line (sort keys %CAPTIONS_HASH) {
+      my($k, $val)=split(/:/, $line);
+
+      if ($fields_hash{$val}) {
+  	    push @caption, $CAPTIONS_HASH{$line};
+  	   }
+     }
+   }
+  else {
+  	@caption = ("$_DATE", "$_USERS", "$_SESSIONS", "$_TRAFFIC ", "$_TRAFFIC 2", $_DURATION, $_SUM); 
+    if ($FORM{TYPE} eq 'USER') {
+    	$caption[0]="$_USER";
+  	  $caption[1]="$_LOGINS";
+     }
+   }
+
+  
+  
+
+  
+  $table_sessions = $html->table({ width      => '100%',
+	                                 caption    => "$_SESSIONS", 
+                                   title      => \@caption,
+                                   cols_align => ['right', 'right', 'right', 'right', 'right', 'right', 'right'],
+                                   qs         => $pages_qs             
+                               } );
+
+
+  $graph_type='month_stats';
+  my $num = 0;
+  
+  my $list = $sessions->reports({ %LIST_PARAMS });
+  
+  
+  foreach my $line (@$list) {
+    my @rows = ();
+    
+    if ($FORM{FIELDS}) {
+      for(my $i=0; $i<=$#caption; $i++) {
+        push @rows, $line->[$i];
+        #print $fields_hash{}
+      }
+     }
+    else {
+    	 @rows = ($html->button("$line->[0]", 
+       ($FORM{TYPE} eq 'USER') ? "index=11&UID=$line->[7]" : "index=$index&$type=$line->[0]$pages_qs"), 
+       $line->[1], 
+       $line->[2], 
+       int2byte($line->[3]),  
+       int2byte($line->[4]),  
+       $line->[5], 
+       "<b>$line->[6]</b>" );
+
+      $AVG{USERS}    = $line->[1] if ($AVG{USERS} < $line->[1]);
+      $AVG{TRAFFIC}  = $line->[3] if ($AVG{TRAFFIC} < $line->[3]);
+
+      $AVG{DURATION} = time2sec($line->[5]) if ($AVG{DURATION} < time2sec($line->[5]));
+      $AVG{MONEY}    = $line->[6] if ($AVG{MONEY} < $line->[6]);
+
+
+
+      if ($line->[0] =~ /(\d+)-(\d+)-(\d+)/) {
+      	 $num = $3;
+        }
+      elsif ($line->[0] =~ /(\d+)-(\d+)/) {
+      	 $CHART{X_LINE}[$num]=$line->[0];
+       	 $num++;
+       }
+     
+      $DATA_HASH{USERS}[$num]     = $line->[1];      
+      $DATA_HASH2{TRAFFIC}[$num]  = $line->[3];
+      $DATA_HASH2{DURATION}[$num] = time2sec($line->[5]);
+      $DATA_HASH{MONEY}[$num]     = $line->[6];
+     }
+
+    $table_sessions->addrow(@rows);
+
+
+   }
+
+
+$output = $html->make_charts({  
+	 PERIOD     => $graph_type,
+	 DATA       => \%DATA_HASH2,
+	 AVG        => \%AVG,
+	 TYPE       => ['area', 'area'],
+	 TRANSITION => 1,
+   OUTPUT2RETURN => 1
+  });
+
+
+}
+
+
+
+$table = $html->table( { width      => '100%',
+                         cols_align => ['right', 'right', 'right', 'right', 'right', 'right'],
+                         rows       => [ [ "$_USERS: <b>$sessions->{USERS}</b>",
+                                           "$_SESSIONS: <b>$sessions->{SESSIONS}</b>", 
+                                           "$_TRAFFIC: <b>". int2byte($sessions->{TRAFFIC}) ."</b><BR>".
+                                           "$_TRAFFIC IN: <b>". int2byte($sessions->{TRAFFIC_IN}) ."</b><BR>".
+                                           "$_TRAFFIC OUT: <b>". int2byte($sessions->{TRAFFIC_OUT}) ."</b>"
+                                           , 
+                                           
+                                           "$_TRAFFIC 2: <b>". int2byte($sessions->{TRAFFIC_2}) ."</b><br>".
+                                           "$_TRAFFIC 2 IN: <b>". int2byte($sessions->{TRAFFIC_2_IN}) ."</b><BR>".
+                                           "$_TRAFFIC 2 OUT: <b>". int2byte($sessions->{TRAFFIC_2_OUT}) ."</b>"
+                                           , 
+                                           
+                                           "$_DURATION: <b>$sessions->{DURATION}</b>", 
+                                           "$_SUM: <b>$sessions->{SUM}</b>" ] ],
+                         rowcolor   => $_COLORS[2]
+                               } );
+print $table_sessions->show() . $table->show(). $output;
+
+
+$html->make_charts({  
+	 PERIOD     => $graph_type,
+	 DATA       => \%DATA_HASH,
+	 AVG        => \%AVG,
+	 TYPE       => ['column', 'line'],
+	 TRANSITION => 1
+  });
+
+
+
+}
+
+
+
+#**********************************************************
+# dv_error
+#**********************************************************
+sub dv_error {
+	my ($attr) = @_;
+  my $PAGE_ROWS = 100;
+  my $login  = ''; 
+
+if ($attr->{USER}) {
+  my $user = $attr->{USER};
+  $login = $user->{LOGIN};
+}
+elsif ($FORM{LOGIN_EXPR}) {
+  $login = $FORM{LOGIN_EXPR};
+  $pages_qs .= "&LOGIN_EXPR=$FORM{LOGIN_EXPR}";
+ }
+elsif($FORM{UID}) {
+  dv_users();
+  return 0;
+}
+
+
+
+if (! -f $conf{LOGFILE}) {
+	$html->message('info', $_INFO, "'$conf{LOGFILE}' $_NOT_EXIST");
+	return 0;
+}
+
+
+if (defined($FORM{LOG_TYPE})) {
+	$pages_qs .= "&LOG_TYPE=$FORM{LOG_TYPE}";
+}
+
+my ($list, $types, $totals) = show_log("$login", "$conf{LOGFILE}", { DATE      => $FORM{DATE},
+	                                                                   LOG_TYPE  => $FORM{LOG_TYPE},
+	                                                                   PG        => $PG,
+	                                                                   PAGE_ROWS => $PAGE_ROWS
+	                                                                 });
+	                                                                   
+
+print $html->form_main({ CONTENT => "$_LOGIN (*): " . $html->form_input('LOGIN_EXPR', "$FORM{LOGIN_EXPR}"),
+	                       HIDDEN  => { sid   => "$sid",
+	                                    index => "$index",
+	                                    UID   => "$UID"   },
+	                       SUBMIT  => { show  => "$_SHOW" }
+	                      });
+	                                                                   
+
+	                                                                   
+my $table = $html->table( { caption => "$_LOG",
+	                          width   => '100%',
+	                          pages   => $totals,
+	                          qs      => $pages_qs
+	                         } );
+
+foreach my $line (@$list) {
+  if ($line =~ m/LOG_WARNING/i) {
+     $line = "<font color='#FF0000'>$line</font>";
+   }
+
+#  if ($line =~ m/LOG_WARNING/i) {
+#    $table->{rowcolor}='#FF0000';
+#   } 
+#  else {
+#  	$table->{rowcolor}=undef;
+#   }  
+
+  $table->addrow($line);
+}
+print $table->show();
+
+
+$table = $html->table( { 
+	                      width      => '100%',
+	                      cols_align => ['right', 'right'] } );
+
+$table->addrow($html->button("$_TOTAL", "index=$index&$pages_qs"), $totals);
+while(my($k,$v)=each %$types) {
+  $table->addrow($html->button($k, "index=$index&LOG_TYPE=$k$pages_qs"), $v);
+}
+
+
+$table->addrow($_SIZE, int2byte((-s $conf{LOGFILE}))) if ($login eq '');
+
+print $table->show();
+
+}
+
+
+#**********************************************************
+# stats
+#**********************************************************
+sub dv_stats {
+	my ($attr) = @_;
+ 
+if (defined($attr->{USER}))	{
+	my $user = $attr->{USER};
+
+	$UID = $user->{UID};
+	$LIST_PARAMS{UID} = $UID;
+	if (! defined($FORM{sort})) {
+	  $LIST_PARAMS{SORT}=2;
+	  $LIST_PARAMS{DESC}=DESC;
+   }
+
+  if (defined($FORM{OP_SID}) and $FORM{OP_SID} eq $COOKIES{OP_SID}) {
+ 	  $html->message('err', $_ERROR, "$_EXIST $FORM{OP_SID} eq $COOKIES{OP_SID}");
+   }
+  elsif ($FORM{bm}) {
+    use Bills;
+    my $Bill = Bills->new($db);
+    $Bill->action('add', "$FORM{BILL_ID}", $FORM{sum});
+    if($bill->{errno}) {
+      $html->message('err', $_ERROR, "[$bill->{errno}] $err_strs{$bill->{errno}}");
+     }
+    else {
+      $html->message('info', $_INFO, "$_ADDED: SUM $FORM{sum}, BILL_ID: $FORM{BILL_ID}");  	
+     }
+   }
+  elsif($FORM{SESSION_ID}) {
+  	$pages_qs .= "&SESSION_ID=$FORM{SESSION_ID}";
+  	dv_session_detail({ USER => $attr->{USER} });
+  	
+  	return 0;
+  }
+}
+#elsif($FORM{UID}) {
+#	form_users();
+#	return 0;
+#}	
+
+
+if ($FORM{del} && $FORM{is_js_confirmed}) {
+	if(! defined($permissions{3}{1})) {
+     $html->message('err', $_ERROR, 'ACCESS DENY');
+     return 0;
+	 } 
+
+	my ($UID, $session_id, $nas_id, $session_start_date, $session_start_time, $sum, $login)=split(/ /, $FORM{del}, 7);
+	$sessions->del($UID, $session_id, $nas_id, "$session_start_date $session_start_time");
+  if (! $sessions->{errno})	 {
+  	my $table = $html->table( { 
+	                          width => '100%',
+                            rows  => [["$_LOGIN",        $login ],
+                                     ['SESSION_ID',      $session_id ],
+                                     ['NAS_ID',          $nas_id ],
+                                     ['SESSION_START',   "$session_start_date $session_start_time" ],
+                                     [$_SUM, $sum]
+                                    ]
+                           } );
+  	
+  	$html->message('info', $_DELETED, $table->show());
+    form_back_money('log', $sum, { UID => $UID }); #
+    return 0;
+   }
+}
+
+if ($sessions->{errno})	 {
+	$html->message('err', $_ERROR, "[$sessions->{errno}] $err_strs{$sessions->{errno}}");
+ }
+
+
+if ($FORM{rows}) {
+  $LIST_PARAMS{PAGE_ROWS}=$FORM{rows};
+  $conf{list_max_recs}=$FORM{rows};
+  $pages_qs .= "&rows=$conf{list_max_recs}";
+ }
+
+
+if (! $LIST_PARAMS{UID} && $FORM{LOGIN_EXPR}) {
+  my $users = Users->new($db, $admin, \%conf); 
+  my $list = $users->list( { LOGIN_EXPR => $FORM{LOGIN_EXPR} } );
+  if ($users->{TOTAL} == 1) {
+	  $LIST_PARAMS{UID}=$list->[0]->[5+$users->{SEARCH_FIELDS_COUNT}];
+	  $FORM{UID}=$LIST_PARAMS{UID};
+	  $UID = $LIST_PARAMS{UID};
+	  $LIST_PARAMS{ACTIVATE}=$list->[0]->[8+$users->{SEARCH_FIELDS_COUNT}];
+   }
+  else {
+  	$html->message('err', $_ERROR, "'$FORM{LOGIN_EXPR}' $_NOT_EXIST");
+  	return 0;
+   }
+
+  $pages_qs .= "&UID=$LIST_PARAMS{UID}";
+}
+
+
+
+
+my $list = $sessions->periods_totals({ %LIST_PARAMS });
+my $table = $html->table( { caption     => "$_PERIOD",
+	                          width       => '100%',
+                            title_plain => ["$_PERIOD", "$_DURATION", "$_SEND", "$_RECV", "$_SUM"],
+                            cols_align  => ['left', 'right', 'right', 'right', 'right'],
+                            rowcolor    => $_COLORS[1]
+                           } );
+
+
+for(my $i = 0; $i < 5; $i++) {
+	$table->addrow($html->button("$PERIODS[$i]", "index=$index&PERIOD=$i$pages_qs"), 
+	  "$sessions->{'duration_'. $i}",
+	  int2byte($sessions->{'sent_'. $i}), 
+	  int2byte($sessions->{'recv_'. $i}), 
+	  int2byte($sessions->{'sum_'. $i})
+	 );
+ }
+
+print $table->show();
+
+
+$table = $html->table( { width       => '100%',
+	                       rowcolor    => $_COLORS[0],
+                         rows        => [[ "$_FROM: ",  $html->date_fld('from', { MONTHES => \@MONTHES} ),
+                                          "$_TO: ",    $html->date_fld('to', { MONTHES => \@MONTHES } ),
+                                          $html->form_select('DIMENSION', { SELECTED   => $FORM{DIMENSION},
+ 	                                                                          SEL_ARRAY  => ['Auto', 'Kb', 'Mb', 'Gb']
+                              	                                           }
+                              	                             ),
+                                          "$_ROWS: ",  $html->form_input('rows', int($conf{list_max_recs}), { SIZE => 4 } ),
+                                          $html->form_input('show', $_SHOW, { TYPE => 'submit' })
+                                         ]],                                   
+                      });
+
+
+
+print $html->form_main({ CONTENT => $table->show({ OUTPUT2RETURN => 1 }),
+	                       HIDDEN  => { sid   => "$sid",
+	                                    index => "$index",
+	                                    UID   => "$UID" }});
+
+
+
+if (defined($FORM{show})) {
+  $pages_qs .= "&show=y&fromD=$FORM{fromD}&fromM=$FORM{fromM}&fromY=$FORM{fromY}&toD=$FORM{toD}&toM=$FORM{toM}&toY=$FORM{toY}";
+  $FORM{fromM} = sprintf("%.2d", $FORM{fromM}+1);
+  $FORM{toM}   = sprintf("%.2d", $FORM{toM}+1);
+  $LIST_PARAMS{INTERVAL} = "$FORM{fromY}-$FORM{fromM}-$FORM{fromD}/$FORM{toY}-$FORM{toM}-$FORM{toD}";
+ }
+elsif (defined($FORM{PERIOD})) {
+	$LIST_PARAMS{PERIOD} = $FORM{PERIOD}; 
+	$pages_qs .= "&PERIOD=$FORM{PERIOD}";
+}
+elsif($FORM{DATE}) {
+	$LIST_PARAMS{DATE} = $FORM{DATE}; 
+	$pages_qs .= "&DATE=$FORM{DATE}";
+}
+
+#Show rest of prepaid traffic
+if ($sessions->prepaid_rest({ UID => $LIST_PARAMS{UID} })) {
+	#Prepaid: period, traffic_type
+  
+
+  my $list = $sessions->{INFO_LIST};
+
+  my $table = $html->table( { caption     => "$_PREPAID",
+	                          width       => '100%',
+                            title_plain => ["$_TRAFF $_TYPE", "$_BEGIN", "$_END", "$_START", "$_TOTAL (MB)", "$_REST (MB)", "$_OVERQUOTA (MB)"],
+                            cols_align  => ['left', 'right', 'right', 'right', 'right', 'right', 'right'],
+                            rowcolor    => $_COLORS[1]
+                           } );
+	
+	foreach my $line  (@$list) {
+	  $table->addrow(
+	    $line->[0], 
+      $line->[1], 
+      $line->[2], 
+      $line->[3], 
+      $line->[4],
+      ($line->[4] > 0 && $sessions->{REST}->{$line->[0]} > 0) ? $sessions->{REST}->{$line->[0]} : 0,
+      ($line->[4] > 0 && $sessions->{REST}->{$line->[0]} < 0) ? abs($sessions->{REST}->{$line->[0]}) : 0
+     );
+   }
+
+  print $table->show();	 
+}
+
+
+
+$pages_qs .= "&DIMENSION=$FORM{DIMENSION}"  if ($FORM{DIMENSION});
+
+if (! defined($FORM{sort})) {
+  $LIST_PARAMS{SORT}=2;
+  $LIST_PARAMS{DESC}=DESC;
+ }
+
+dv_stats_calculation($sessions);
+
+#Session List
+$list = $sessions->list({ %LIST_PARAMS });	
+
+$table = $html->table( { caption     => "$_SUM",
+	                       width       => '100%',
+	                       rowcolor    => $_COLORS[1],
+                         title_plain => ["$_SESSIONS", "$_DURATION", "$_TRAFFIC $_SENT", "$_TRAFFIC $_RECV", "$_TRAFFIC $_SUM",
+                           "$_TRAFFIC 2 $_SENT", "$_TRAFFIC 2 $_RECV",  "$_TRAFFIC $_SUM", "$_SUM"],
+                         cols_align  => ['right', 'right', 'right', 'right', 'right', 'right', 'right', 'right', 'right'],
+                         rows        => [ [ $sessions->{TOTAL}, $sessions->{DURATION}, 
+                                            int2byte($sessions->{TRAFFIC_IN}, { DIMENSION => $FORM{DIMENSION} }), 
+                                            int2byte($sessions->{TRAFFIC_OUT}, { DIMENSION => $FORM{DIMENSION} }), 
+                                            int2byte($sessions->{TRAFFIC_OUT}+$sessions->{TRAFFIC_IN}, { DIMENSION => $FORM{DIMENSION} }), 
+                                            int2byte($sessions->{TRAFFIC2_IN}, { DIMENSION => $FORM{DIMENSION} }),
+                                            int2byte($sessions->{TRAFFIC2_OUT}, { DIMENSION => $FORM{DIMENSION} }),
+                                            int2byte($sessions->{TRAFFIC2_OUT}+$sessions->{TRAFFIC2_IN}, { DIMENSION => $FORM{DIMENSION} }), 
+                                            $sessions->{SUM} ] ],
+                     } );
+print $table->show();
+
+dv_sessions($list, $sessions);
+}
+
+
+#*******************************************************************
+# WHERE period
+# base_state($where, $period);
+#*******************************************************************
+sub dv_stats_calculation  {
+ my ($sessions) = @_;
+
+$sessions->calculation({ %LIST_PARAMS }); 
+
+
+my $table = $html->table( { width       => '640',
+	                          rowcolor    => $_COLORS[1],
+                            title_plain => ["-", "$_MIN", "$_MAX", "$_AVG", "$_TOTAL"],
+                            cols_align  => ['left', 'right', 'right', 'right', 'right'],
+                            rows        => [ [ $_DURATION,  $sessions->{min_dur}, $sessions->{max_dur}, $sessions->{avg_dur},  $sessions->{total_dur} ],
+                                             [ "$_TRAFFIC $_RECV", int2byte($sessions->{min_recv}), int2byte($sessions->{max_recv}), int2byte($sessions->{avg_recv}),  int2byte($sessions->{total_recv})],
+                                             [ "$_TRAFFIC $_SENT", int2byte($sessions->{min_sent}), int2byte($sessions->{max_sent}), int2byte($sessions->{avg_sent}), int2byte($sessions->{total_sent})],
+                                             [ "$_TRAFFIC $_SUM",  int2byte($sessions->{min_sum}),  int2byte($sessions->{max_sum}),  int2byte($sessions->{avg_sum}),  int2byte($sessions->{total_sum})]
+                                           ]
+                        } );
+
+print $table->show();
+}
+
+#**********************************************************
+# form_stats
+#**********************************************************
+sub dv_user_stats {
+
+	if (! defined($FORM{sort})) {
+	  $LIST_PARAMS{SORT}=2;
+	  $LIST_PARAMS{DESC}=DESC;
+   }
+
+  if(defined($FORM{SESSION_ID})) {
+  	$pages_qs .= "&SESSION_ID=$FORM{SESSION_ID}";
+  	dv_session_detail({ LOGIN => $LIST_PARAMS{LOGIN} });
+  	return 0;
+  }
+
+
+if ($sessions->{errno})	{
+	$html->message('err', $_ERROR, "[$sessions->{errno}] $err_strs{$sessions->{errno}}");
+ }
+
+
+if ($FORM{rows}) {
+  $LIST_PARAMS{PAGE_ROWS}=$FORM{rows};
+  $conf{list_max_recs}=$FORM{rows};
+  $pages_qs .= "&rows=$conf{list_max_recs}";
+ }
+
+#online sessions
+
+my $list = $sessions->online( { USER_NAME => $LIST_PARAMS{LOGIN}, 
+	                              FIELDS    => [0, 3, 9, 4, 5, 6 ] } );
+
+if ($sessions->{TOTAL} > 0) {
+  my $table = $html->table( { caption     => "Online",
+	                            width       => '100%',
+                              title_plain => ["$_LOGIN", "IP", "CID", "$_DURATION", "$_SEND", "$_RECV"],
+                              cols_align  => ['left', 'right', 'right', 'right', 'right', 'right' ],
+                              rowcolor    => $_COLORS[1]
+                            } );
+
+  foreach my $line (@$list) {
+    $table->addrow($line->[0], 
+                   int2ip($line->[1]), 
+                   $line->[2], 
+                   $line->[3], 
+                   int2byte($line->[4]), 
+                   int2byte($line->[5])
+                  );  	
+   }
+  print $table->show();
+}
+
+
+#PEriods totals
+$list = $sessions->periods_totals({ %LIST_PARAMS });
+my $table = $html->table( { caption     => "$_PERIOD",
+	                          width       => '100%',
+                            title_plain => ["$_PERIOD", "$_DURATION", "$_SEND", "$_RECV", "$_SUM"],
+                            cols_align  => ['left', 'right', 'right', 'right', 'right'],
+                            rowcolor    => $_COLORS[1],
+                            ID          => 'DV_STATS_PERIOD'
+                          } );
+
+for(my $i = 0; $i < 5; $i++) {
+	  $table->addrow($html->button("$PERIODS[$i]", "index=$index&PERIOD=$i$pages_qs"), "$sessions->{'duration_'. $i}",
+	  int2byte($sessions->{'sent_'. $i}), int2byte($sessions->{'recv_'. $i}), int2byte($sessions->{'sum_'. $i}));
+ }
+print $table->show();
+
+
+
+
+$table = $html->table({ width       => '100%',
+	                      rowcolor    => $_COLORS[0],
+                        rows        => [[ "$_FROM: ", $html->date_fld('from', { MONTHES => \@MONTHES} ),
+                                         "$_TO: ",   $html->date_fld('to', { MONTHES => \@MONTHES } ),
+                                          $html->form_select('DIMENSION', { SELECTED   => $FORM{DIMENSION},
+ 	                                                                          SEL_ARRAY  => ['Auto', 'Kb', 'Mb', 'Gb']
+                              	                                           }
+                              	                             ),
+                                         "$_ROWS: ", $html->form_input('rows', int($conf{list_max_recs}), { SIZE => 4, OUTPUT2RETURN => 1 } ),
+                                         $html->form_input('show', $_SHOW, { TYPE => 'submit', OUTPUT2RETURN => 1 })
+                                        ]],                                   
+                        } );
+
+
+
+
+#if (! defined($UID)) {
+#	$UID=$FORM{UID};
+#}
+
+print $html->form_main({ CONTENT => $table->show({ OUTPUT2RETURN => 1 }),
+	                       HIDDEN  => { sid   => "$sid",
+	                                    index => "$index",
+	                                    UID   => "$UID" }});
+
+
+
+#dv_stats_calculation($sessions);
+
+if (defined($FORM{show})) {
+  $pages_qs .= "&show=y&fromD=$FORM{fromD}&fromM=$FORM{fromM}&fromY=$FORM{fromY}&toD=$FORM{toD}&toM=$FORM{toM}&toY=$FORM{toY}";
+  $FORM{fromM} = sprintf("%.2d", $FORM{fromM}+1);
+  $FORM{toM} = sprintf("%.2d", $FORM{toM}+1);
+  $LIST_PARAMS{INTERVAL} = "$FORM{fromY}-$FORM{fromM}-$FORM{fromD}/$FORM{toY}-$FORM{toM}-$FORM{toD}";
+ }
+elsif (defined($FORM{PERIOD})) {
+	$LIST_PARAMS{PERIOD} = int($FORM{PERIOD}); 
+	$pages_qs .= "&PERIOD=$FORM{PERIOD}";
+}
+
+#Show rest of prepaid traffic
+if ($sessions->prepaid_rest({ UID => $LIST_PARAMS{UID} })) {
+	#Prepaid: period, traffic_type
+  
+
+  my $list = $sessions->{INFO_LIST};
+
+  my $table = $html->table( { caption     => "$_PREPAID",
+	                            width       => '100%',
+                              title_plain => ["$_TRAFF $_TYPE", "$_BEGIN", "$_END", "$_START", "$_TOTAL (MB)", "$_REST (MB)", "$_OVERQUOTA (MB)"],
+                              cols_align  => ['left', 'right', 'right', 'right', 'right', 'right', 'right'],
+                              rowcolor    => $_COLORS[1],
+                              ID          => 'DV_STATS_PREPAID'
+                           } );
+	
+	foreach my $line  (@$list) {
+	  $table->addrow($line->[0], 
+      $line->[1], 
+      $line->[2], 
+      $line->[3], 
+      $line->[4],
+      ($line->[4] > 0 && $sessions->{REST}->{$line->[0]} > 0) ? $sessions->{REST}->{$line->[0]} : 0,
+      ($line->[4] > 0 && $sessions->{REST}->{$line->[0]} < 0) ? abs($sessions->{REST}->{$line->[0]}) : 0
+     );
+   }
+
+  print $table->show();	 
+}
+
+
+$pages_qs .= "&DIMENSION=$FORM{DIMENSION}"  if ($FORM{DIMENSION});
+
+#Session List
+$list = $sessions->list({ %LIST_PARAMS });	
+
+$table = $html->table( {  caption     => "$_SUM",
+	                        width       => '100%',
+	                        rowcolor    => $_COLORS[1],
+                         title_plain => ["$_SESSIONS", "$_DURATION", "$_TRAFFIC $_SENT", "$_TRAFFIC $_RECV",  "$_TRAFFIC $_SUM",
+                           "$_TRAFFIC 2 $_SENT", "$_TRAFFIC 2 $_RECV",  "$_TRAFFIC $_SUM", "$_SUM"],
+
+                          cols_align  => ['right', 'right', 'right', 'right'],
+                          rows        => [ [ $sessions->{TOTAL}, $sessions->{DURATION}, 
+                                            int2byte($sessions->{TRAFFIC_IN}, { DIMENSION => $FORM{DIMENSION} }), 
+                                            int2byte($sessions->{TRAFFIC_OUT}, { DIMENSION => $FORM{DIMENSION} }), 
+                                            int2byte($sessions->{TRAFFIC_OUT}+$sessions->{TRAFFIC_IN}, { DIMENSION => $FORM{DIMENSION} }), 
+                                            int2byte($sessions->{TRAFFIC2_IN}, { DIMENSION => $FORM{DIMENSION} }),
+                                            int2byte($sessions->{TRAFFIC2_OUT}, { DIMENSION => $FORM{DIMENSION} }),
+                                            int2byte($sessions->{TRAFFIC2_OUT}+$sessions->{TRAFFIC2_IN}, { DIMENSION => $FORM{DIMENSION} }), 
+                                            $sessions->{SUM} ] ]                               
+                             } );
+print $table->show();	
+
+dv_sessions($list, $sessions) if ( $sessions->{TOTAL} > 0);
+
+
+}
+
+
+
+#**********************************************************
+# dv_session_detail
+#**********************************************************
+sub dv_session_detail {
+	my ($attr) = @_;
+  my $user;
+
+ 
+if (defined($attr->{USER}))	{
+	$user = $attr->{USER};
+	$LIST_PARAMS{LOGIN}=$user->{LOGIN};
+}
+elsif (defined($LIST_PARAMS{LOGIN}))	{
+
+}
+elsif($FORM{UID}) {
+	dv_user();
+	return 0;
+}	
+
+
+my %ACCT_TERMINATE_CAUSES = (
+                      'Unknown'             =>     0,
+                      'User-Request'        =>     1,
+                      'Lost-Carrier'        =>     2,
+                      'Lost-Service'        =>     3,
+                      'Idle-Timeout'        =>     4,
+                      'Session-Timeout'     =>     5,
+                      'Admin-Reset'         =>     6,
+                      'Admin-Reboot'        =>     7,
+                      'Port-Error'          =>     8,
+                      'NAS-Error'           =>     9,
+                      'NAS-Request'         =>     10,
+                      'NAS-Reboot'          =>     11,
+                      'Port-Unneeded'       =>     12,
+                      'Port-Preempted'      =>     13,
+                      'Port-Suspended'      =>     14,
+                      'Service-Unavailable' =>     15,
+                      'Callback'            =>     16,
+                      'User-Error'          =>     17,
+                      'Host-Request'        =>     18,
+                      'Supplicant-Restart'  =>     19,
+                      'Reauthentication-Failure' => 20,
+                      'Port-Reinit'         =>     21,
+                      'Port-Disabled'       =>     22       
+                    );
+
+my %ACCT_TERMINATE_CAUSES_VALUE = reverse %ACCT_TERMINATE_CAUSES;
+
+
+$sessions->session_detail({ %FORM });
+
+
+$sessions->{ACCT_TERMINATE_CAUSE} = "$sessions->{ACCT_TERMINATE_CAUSE} : ". $ACCT_TERMINATE_CAUSES_VALUE{$sessions->{ACCT_TERMINATE_CAUSE}};
+
+$sessions->{_SENT}=int2byte($sessions->{SENT}); 
+$sessions->{_RECV}=int2byte($sessions->{RECV}); 
+$sessions->{_SENT2}=int2byte($sessions->{SENT2});
+$sessions->{_RECV2}=int2byte($sessions->{RECV2});
+
+$html->tpl_show(_include('dv_session_detail', 'Dv'), $sessions);
+
+my %ORDERS = (hours    => $_HOURS,
+              days     => $_DAYS,
+              sessions => $_SESSIONS  );
+
+
+print $html->form_main({ CONTENT => $html->form_select('PERIOD', 
+                                          { 
+ 	                                          SELECTED  => $FORM{PERIOD},
+ 	                                          SEL_HASH  => \%ORDERS,
+ 	                                          NO_ID     => 'y'
+ 	                                        }) .
+ 	                                                                                                                                                                                                                                                "SESSION_ID:".
+ 	                                        
+ 	                                        $html->form_select('SESSION_ID', 
+                                          { 
+                                          	SELECTED    => "$FORM{SESSION_ID}",
+ 	                                          SEL_OPTIONS => { $FORM{SESSION_ID} => "$FORM{SESSION_ID}",
+ 	                                          	                             '0' => "$_ALL" },
+ 	                                          NO_ID       => 'y'
+ 	                                        })
+ 	                                        
+ 	                                        
+ 	                                        ,
+	                       HIDDEN  => { index => "$index",
+	                       	            UID   => "$UID"
+	                       	           },
+	                       SUBMIT  => { SHOW   => "$_SHOW"} 
+	                        });
+
+$pages_qs .= "&PERIOD=$FORM{PERIOD}" if (defined($FORM{PERIOD})); 
+
+
+
+#Log intervals
+my $list = $sessions->list_log_intervals({ ACCT_SESSION_ID =>  $FORM{SESSION_ID} });
+if ($sessions->{TOTAL} > 0) {
+  my $table = $html->table({ width      => '100%',
+                             caption    => "$_INTERVALS",
+                             border     => 1,
+                             title      => ["$_INTERVAL", "$_TRAFFIC", "$_SENT", "$_RECV", "$_DURATION", "$_SUM"],
+                             cols_align => ['right', 'right', 'right', 'right', 'right', 'right'],
+                             qs         => $pages_qs
+                          } );
+
+  foreach my $line (@$list) {
+    $table->addrow($line->[0],  
+       $line->[1],
+       int2byte($line->[2]), 
+       int2byte($line->[3]),  
+       $line->[4], 
+       $line->[5] 
+    );
+  }
+
+  print $table->show();
+
+}
+
+
+
+#Log detail list
+$list = $sessions->detail_list({ %LIST_PARAMS, %FORM });
+my $table = $html->table({ width      => '100%',
+                           border     => 1,
+                           title      => ["LAST_UPDATE", "$_SESSION_ID", "NAS_ID", "SENT", "RECV", "SENT2", "RECV2"],
+                           cols_align => ['right', 'right', 'right', 'right', 'right', 'right', 'right'],
+                           pages      => $sessions->{TOTAL},
+                           qs         => $pages_qs
+                           } );
+
+ foreach my $line (@$list) {
+    $table->addrow($line->[0],  
+    $html->button($line->[1], "index=$index&UID=$UID&SESSION_ID=$line->[1]"), 
+    $line->[2], 
+    int2byte($line->[3]),  
+    int2byte($line->[4]), 
+    int2byte($line->[5]), 
+    int2byte($line->[6]));
+  }
+ print $table->show();
+
+
+$table = $html->table( { width      => '100%',
+                         cols_align => ['right', 'right'],
+                         rows       => [ ["$_TOTAL:", "<b>$sessions->{TOTAL}</b>" ] ]
+                       } );
+print $table->show();
+
+}
+
+
+
+#**********************************************************
+# dv_user_info
+#**********************************************************
+sub dv_user_chg_tp {
+
+ my $user;
+ my $shedule = Shedule->new($db, $admin, \%conf);
+ my $period = $FORM{period} || 0;
+ 
+ if (! $conf{DV_USER_CHG_TP}) {
+    $html->message('err', $_ERROR, "$_NOT_ALLOW");
+    return 0;
+  }
+
+ if(defined($LIST_PARAMS{UID})) {
+   $user = $attr->{USER};
+   $user = $Dv->info($LIST_PARAMS{UID});
+   if($user->{TOTAL} < 1) {
+ 	   $html->message('info', $_INFO, "$_NOT_ACTIVE");
+ 	   return 0;
+    }
+  }
+ else {
+ 	 $html->message('err', $_ERROR, "$_USER_NOT_EXIST");
+ 	 return 0;
+  }
+
+ #Get TP groups
+ $tariffs->tp_group_info($user->{TP_GID});
+ 
+ if (! $tariffs->{USER_CHG_TP}) {
+ 	  $html->message('err', $_ERROR, "$_NOT_ALLOW");
+ 	  return 0;
+  }
+
+
+if ($FORM{set}) {
+  if ($conf{DV_USER_CHG_TP_NPERIOD}) {
+  	 # Get next month
+  	 my ($Y, $M,$D)=split(/-/, $DATE, 3);
+     $M++;
+     if ($M == 13) {
+       $M = 1;
+       $Y++;
+      }
+
+    $FORM{date_M}++;    
+    $shedule->add( {UID     => $LIST_PARAMS{UID},
+                   TYPE     => 'tp',
+                   ACTION   => $FORM{TP_ID},
+    	             D        => '01',
+                   M        => $M,
+                   Y        => $Y,
+                   DESCRIBE => "$message<br>
+                   $_FROM: '$Y-$M-$D'",
+                   MODULE   => 'Dv'
+                 } );
+  	
+   }
+  elsif ($period == 1 && $conf{DV_USER_CHG_TP_SHEDULE}) {
+  	use POSIX;
+    
+    my $seltime = POSIX::mktime(0, 0, 0, $FORM{date_D}, $FORM{date_M}, ($FORM{date_Y} - 1900));
+    
+    if ($seltime <= time()) {
+      $html->message('info', $_INFO, "$ERR_WRONG_DATA");
+      return 0;
+     }
+
+    $FORM{date_M}++;    
+    $shedule->add( {UID     => $LIST_PARAMS{UID},
+                   TYPE     => 'tp',
+                   ACTION   => $FORM{TP_ID},
+    	             D        => $FORM{date_D},
+                   M        => $FORM{date_M},
+                   Y        => $FORM{date_Y},
+                   DESCRIBE => "$message<br>
+                   $_FROM: '$FORM{date_Y}-$FORM{date_M}-$FORM{date_D}'",
+                   MODULE   => 'Dv'
+                 } );
+
+    if ($shedule->{errno}) {
+      $html->message('err', $_ERROR, "[$shedule->{errno}] $err_strs{$shedule->{errno}}");	
+     }
+    else {
+      $html->message('info', $_CHANGED, "$_CHANGED");
+      $user->info($user->{UID});
+    }
+   }
+  else {
+    $FORM{UID}=$LIST_PARAMS{UID};
+    $user->change({ %FORM });
+
+    if ($user->{errno}) {
+      $html->message('err', $_ERROR, "[$user->{errno}] $err_strs{$user->{errno}}");
+     }
+    else {
+      $html->message('info', $_CHANGED, "$_CHANGED");
+      $user->info($user->{UID});
+    }
+  }
+}
+elsif($FORM{del}) {
+  $shedule->del( { UID => $LIST_PARAMS{UID},
+   	               ID  => $FORM{SHEDULE_ID}  } 
+   	            );
+
+  $html->message('info', $_DELETED, "$_DELETED [$FORM{SHEDULE_ID}]");
+}
+
+
+
+  $shedule->info( {UID      => $user->{UID},
+                   TYPE     => 'tp',
+                   DESCRIBE => "$message\n$_FROM: '$FORM{date_y}-$FORM{date_m}-$FORM{date_d}'",
+                   MODULE   => 'Dv'
+                   });
+
+
+  if ($shedule->{TOTAL} > 0) {
+  	$tariffs->info($shedule->{ACTION});
+  	
+  	$table = $html->table( { width      => '100%',
+  		                       caption    => "$_SHEDULE",
+                             cols_align => ['left', 'left'],
+                             rows       => [ [ "$_TARIF_PLAN:", "$shedule->{ACTION} : $tariffs->{NAME}"   ],
+                                             [ "$_DATE:",   "$shedule->{Y}-$shedule->{M}-$shedule->{D}" ],
+                                             [ "$_ADDED:",  "$shedule->{DATE}"         ],
+                                             [ "ID:",       "$shedule->{SHEDULE_ID}"   ]  
+                                            ]
+                               } );
+  	$tariffs->{TARIF_PLAN_SEL} = $table->show({ OUTPUT2RETURN => 1 }). $html->form_input('SHEDULE_ID', "$shedule->{SHEDULE_ID}", { TYPE => 'HIDDEN', OUTPUT2RETURN => 1 });
+  	$tariffs->{ACTION}='del';
+  	$tariffs->{LNG_ACTION}=$_DEL;
+  }
+ else {
+   $tariffs->{TARIF_PLAN_SEL}=$html->form_select('TP_ID', 
+                                          { 
+ 	                                          SELECTED          => $user->{TP_ID},
+ 	                                          SEL_MULTI_ARRAY   => $tariffs->list({ TP_GID => $user->{TP_GID} }),
+ 	                                          MULTI_ARRAY_KEY   => 0,
+ 	                                          MULTI_ARRAY_VALUE => 1,
+ 	                                        });
+
+   $tariffs->{PARAMS} .= form_period($period) if ($conf{DV_USER_CHG_TP_SHEDULE} && ! $conf{DV_USER_CHG_TP_NPERIOD});	
+   $tariffs->{ACTION}='set';
+   $tariffs->{LNG_ACTION}=$_CHANGE;
+  }
+
+   $tariffs->{UID}=$attr->{USER}->{UID};
+   $tariffs->{m}=$m;
+   $tariffs->{TP_ID}   = $user->{TP_ID};
+   $tariffs->{TP_NAME} = "$user->{TP_ID}:$user->{TP_NAME}";
+
+   $html->tpl_show(templates('chg_tp'), $tariffs);
+}
+
+
+#**********************************************************
+# dv_user_info
+#**********************************************************
+sub dv_user_info {
+  my $user = $Dv->info($LIST_PARAMS{UID});
+  
+  if ($user->{TOTAL} < 1) {
+  	$html->message('info', $_INFO, "$_NOT_ACTIVE");
+    return 0;	
+  }
+  
+  $Dv->{STATUS}    = $status[$Dv->{DISABLE}];
+  if ($conf{DV_USER_CHG_TP}) {
+    $Dv->{TP_CHANGE} = $html->button("$_CHANGE", 'index='. ($index+2).'&sid='.$sid );
+   }
+  $html->tpl_show(_include('dv_user_info', 'Dv'), $Dv);
+}
+
+
+#**********************************************************
+# dv_periodic_ppp_clean
+# Kill ppp deamons fot down interfaces 
+#**********************************************************
+sub dv_periodic_ppp_clean {
+  #my $a = `count=\`ifconfig -d | grep PID | wc -l\`; if [ \${count} != 0 ]; thenecho \${count}; ifconfig -d | grep PID | awk '{ print \$4 }' | xargs kill -1; fi;`;
+}
+
+#**********************************************************
+# dv_periodic_logrotate
+#**********************************************************
+sub dv_periodic_logrotate {
+	my ($attr) = @_;
+  my $debug = $attr->{DEBUG} || 0;
+
+  # Clean s_detail table
+  my ($y, $m, $d)=split(/-/, $ADMIN_REPORT{DATE}, 3);
+
+  if ($d == 1 && $conf{DV_LOG_CLEAN_PERIOD}) {
+    $DEBUG .= "Make log rotate\n" if ($debug > 0);
+
+    $sessions->log_rotate({ TYPES  => [ 'SESSION_DETAILS', 'SESSION_INTERVALS'],
+  	                        PERIOD => $conf{DV_LOG_CLEAN_PERIOD} });
+   }
+}
+
+#**********************************************************
+# daily_fees
+#**********************************************************
+sub dv_daily_fees {
+  my ($attr) =@_;
+
+	my $debug = $attr->{DEBUG} || 0;
+  my $debug_output = '';
+
+ $debug_output .= "Daily pariodic payments\n" if ($debug > 1);
+
+ my $list = $tariffs->list({ %LIST_PARAMS });
+ $ADMIN_REPORT{DATE}=$DATE if (! $ADMIN_REPORT{DATE});
+
+ foreach my $line (@$list) {
+ 	 if ($line->[5] > 0) {
+ 	   $debug_output .= "TP ID: $line->[0] DF: $line->[5] MF: $line->[6] POSTPAID: $line->[12] REDUCTION: $line->[11] \n" if ($debug > 1);
+ 	   $LIST_PARAMS{TP}=$line->[0];
+ 	   my $ulist = $Dv->list({
+         ACTIVATE  => "<='$ADMIN_REPORT{DATE}'",
+         EXPIRE    => ">'$ADMIN_REPORT{DATE}'",
+         DISABLE   => 0,
+         TP_ID     => $line->[0],
+         SORT      => 1,
+         PAGE_ROWS => 100000
+ 	   	 });
+
+#     .id, u.fio, if(acct.id IS NULL, u.deposit, acct.deposit), u.credit, tp.name, u.disable, 
+#      u.uid, u.account_id, u.email, u.tp_id
+     foreach my $u (@$ulist) {
+        if ($u->[12] > 0 && defined($u->[2])) {
+          my %user = (
+             ACCOUNT_ID => $u->[7],
+             UID        => $u->[6],
+             BILL_ID    => $u->[12],
+             REDUCTION  => $u->[13]  
+           );
+          
+
+          #print "  UID: $u->[0] / $line->[5] / DEPOSIT: $u->[2] / $u->[3] / BILL_ID: $u->[12]\n"; 	
+          #If deposit is above-zero or TARIF PALIN is POST PAID or PERIODIC PAYMENTS is POSTPAID
+          if($u->[2] + $u->[3] > 0 || $line->[4] == 1 || $line->[12] == 1 ) {
+             #print "  UID: $u->[0] / $line->[5] / DEPOSIT: $u->[2] / $u->[3] / BILL_ID: $u->[12]\n"; 	
+             my $sum = $line->[5];
+             # IF TP have PARIODIC PAYMENTS USER reduction
+             if ($line->[11] == 1 && $u->[13] > 0) {
+               $sum = $sum * (100 - $u->[13]) / 100;
+              }
+
+             my %PARAMS = ( DESCRIBE => "$_DAY_FEE" );
+             $PARAMS{DATE}=$DATE if ($DATE ne '');
+
+             if ($debug > 4) {
+                $debug_output .= " UID: $user{UID} SUM: $sum REDUCTION: $u->[13]\n";
+              }
+             else {
+               $fees->take(\%user, $sum, { %PARAMS } );
+              }
+           }
+        }
+       else {
+       	  print "[ $u->[6] ] $u->[0] - Don't have money account\n";
+        }
+
+      }
+ 	  }
+  }
+
+
+  $DEBUG .= $debug_output;
+  return $debug_output;
+}
+
+
+
+
+
+#**********************************************************
+# monthly_fees
+#**********************************************************
+sub dv_monthly_fees {
+ my ($attr) = @_;
+
+ my $debug = $attr->{DEBUG} || 0;
+ my $debug_output = '';
+ $debug_output .= "Daily pariodic payments\n" if ($debug > 1);
+
+ use Users;
+ my $users = Users->new($db, $admin, \%conf); 
+ my $list = $tariffs->list({ %LIST_PARAMS });
+
+
+ $ADMIN_REPORT{DATE}=$DATE if (! $ADMIN_REPORT{DATE});
+ my ($y, $m, $d)=split(/-/, $ADMIN_REPORT{DATE}, 3);
+ $m--;
+ 
+ my $date_unixtime =  mktime(0, 0, 0, $d, $m, $y - 1900, 0, 0, 0);
+
+
+ foreach my $line (@$list) {
+ 	 if ($line->[6] > 0) {
+ 	   $debug_output .= "TP ID: $line->[0] MF: $line->[6] POSTPAID: $line->[12] REDUCTION: $line->[11]\n" if ($debug > 1);
+
+	   my $ulist = $Dv->list({ 
+         ACTIVATE   => ">=$ADMIN_REPORT{DATE}",
+         EXPIRE     => "<$ADMIN_REPORT{DATE}",
+         DISABLE    => '0',
+         TP_ID      => $line->[0],
+         SORT       => 1,
+         PAGE_ROWS  => 100000
+ 	   	 });
+
+#u.id, u.fio, if(acct.id IS NULL, u.deposit, acct.deposit), u.credit, tp.name, u.disable, 
+#      u.uid, u.account_id, u.email, u.tp_id, u.activate, u.expire
+
+     foreach my $u (@$ulist) {
+       print " Login: $u->[0] TP_ID: $u->[9] Fees: $line->[6] REDUCTION: $u->[13]  $u->[2] $u->[3] $u->[10] - $u->[11]\n" if ($debug > 4); 	
+       
+       if ($u->[12] > 0 && defined($u->[2])) {
+          my %user = (
+            ACCOUNT_ID => $u->[7],
+            UID        => $u->[6],
+            BILL_ID    => $u->[12]   
+           );
+          
+          #Make sum 
+          my $sum = $line->[6];
+
+          if ($line->[11] == 1 && $u->[13] > 0) {
+            $sum = $sum * (100 - $u->[13]) / 100;
+           }
+
+          
+          
+          #If deposit is above-zero or TARIF PALIN is POST PAID or PERIODIC PAYMENTS is POSTPAID
+          if($line->[4] == 1 || $u->[2] + $u->[3] > 0 || $line->[12] == 1) {
+#                print " $u->[0] $line->[6] $u->[2] $u->[3] $u->[10] - $u->[11] /$DATE $d == 1\n"; 	
+            #take fees in first day of month
+            if ($u->[10] eq '0000-00-00' and $d == 1) {
+              if ($debug > 4) {
+                $debug_output .= " UID: $user{UID} SUM: $sum REDUCTION: $u->[13]\n";
+               }
+              else {
+                $fees->take(\%user, $sum, { DESCRIBE => "$_MONTH_FEE" } );  
+               }
+             }
+            # If activation set to monthly fees taken throught 30 days
+            elsif($u->[10] ne '0000-00-00') {
+              my ($activate_y, $activate_m, $activate_d)=split(/-/, $u->[10], 3);
+              $activate_m--;
+              my $active_unixtime =  mktime(0, 0, 0, $activate_d, $activate_m, $activate_y - 1900, 0, 0, 0);
+              if ($date_unixtime - $active_unixtime > 30 * 86400) {
+                if ($debug > 4) {
+                  $debug_output .= " UID: $user{UID} SUM: $sum REDUCTION: $u->[13]\n";
+                 }
+                else {
+                  $fees->take(\%user, $sum, { DESCRIBE => "$_MONTH_FEE" } );
+                  $users->change($u->[6], { 
+                	                        UID      => $u->[6],
+                	                        ACTIVATE => $ADMIN_REPORT{DATE} } 
+                 	             );
+                 }
+               }
+               #print "   $u->[0] $line->[6] $u->[2] $u->[3] $u->[10] - $u->[11]\n"; 	
+             }
+           }
+        }
+       else {
+      	 print "[ $u->[6] ] $u->[0] - Don't have money account\n";
+        }
+ 	  }
+  }
+}
+
+  $DEBUG .= $debug_output;
+  return $debug_output;
+}
+
+#**********************************************************
+# user_warnings
+# 
+#**********************************************************
+sub dv_users_warning_messages {
+
+ $ADMIN_REPORT{USERS_WARNINGS} = sprintf("%-14s| %4s|%-20s| %9s| %8s|\n", $_LOGIN, 'TP', $_TARIF_PLAN, $_DEPOSIT, $_CREDIT).
+   "---------------------------------------------------------------\n";
+ if (defined($ADMIN_REPORT{NO_USERS_WARNINGS})) {
+    return 0;
+  }
+
+
+my %LIST_PARAMS = (USERS_WARNINGS => 'y' ) ;
+my $list = $Dv->list( { %LIST_PARAMS } );
+
+return 0 if ($Dv->{TOTAL} < 1);
+my %USER_INFO = ();
+
+foreach my $line (@$list) {
+  #u.id, u.email, u.tp_id, u.credit, u.deposit, tp.name, tp.uplimit
+
+  $USER_INFO{LOGIN}=$line->[0];
+  $USER_INFO{TP_NAME}=$line->[5];
+  $USER_INFO{TP_ID}=$line->[2];
+  $USER_INFO{DEPOSIT}=$line->[4];
+  $USER_INFO{CREDIT}=$line->[3];
+  
+  my $email = ((! defined($line->[1])) || $line->[1] eq '') ? "$line->[0]\@$conf{USERS_MAIL_DOMAIN}" : "$line->[1]";
+  
+ 
+  $ADMIN_REPORT{USERS_WARNINGS} .= sprintf ("%-14s| %4d|%-20s| %9.4f| %8.2f|\n", 
+  $USER_INFO{LOGIN}, $USER_INFO{TP_ID}, $USER_INFO{TP_NAME},  $USER_INFO{DEPOSIT}, $USER_INFO{CREDIT});
+  
+  my $message = $html->tpl_show(_include('dv_users_warning_messages', 'Dv'), \%USER_INFO, { notprint => 'yes' });
+
+  sendmail("$conf{ADMIN_MAIL}", "$email", "Попередження сервера статистики.", 
+              "$message", "$conf{MAIL_CHARSET}", "2 (High)");
+}
+
+$ADMIN_REPORT{USERS_WARNINGS} .= "---------------------------------------------------------------
+$_TOTAL: $Dv->{TOTAL}\n";
+
+
+}
+
+
+
+#**********************************************************
+# form_traf_tarifs()
+#**********************************************************
+sub dv_traf_tarifs {
+  my ($attr) = @_;
+  my $tarif_plan;
+
+  
+if (defined($FORM{tt})) {
+  $tarif_plan = $attr->{TP};
+  $tarif_plan->tt_defaults();
+  $tarif_plan->{TI_ID} = $FORM{tt};
+
+
+
+  if($FORM{add}) {
+    $tarif_plan->tt_add({ %FORM });
+    if(! $tarif_plan->{errno}) {
+      $html->message('info', $_INFO, "$_ADDED");
+     }
+   }
+  elsif($FORM{change}) {
+    $FORM{TI_ID}=$FORM{tt};
+    $tarif_plan->tt_change({ %FORM });
+    
+    if(! $tarif_plan->{errno}) {
+      $html->message('info', $_INFO, "$_CHANGED"); 
+     }
+   }
+ 	elsif(defined($FORM{chg})) {
+    $tarif_plan->tt_info({ TI_ID => $FORM{tt}, TT_ID => $FORM{chg} });
+    if(! $tarif_plan->{errno}) {
+      $html->message('info', $_INFO, "$_CHANGING");  	
+     }
+    $tarif_plan->{ACTION}='change';
+    $tarif_plan->{LNG_ACTION}=$_CHANGE;
+   }
+  elsif(defined($FORM{del}) && defined($FORM{is_js_confirmed}) ) {
+    $tarif_plan->tt_del({ TI_ID => $FORM{tt}, TT_ID => $FORM{del} });
+    if(! $tarif_plan->{errno}) {
+    	$html->message('info', $_INFO, "$_DELETED"); 
+     }
+  }
+
+
+  if ($tarif_plan->{errno}) {
+    my $messages = "($tarif_plan->{errstr})" if($tarif_plan->{errstr});
+    $html->message('err', $_ERROR, "[$tarif_plan->{errno}] $err_strs{$tarif_plan->{errno}} $messages");	
+   }
+
+
+  my $list = $tarif_plan->tt_list({ TI_ID => $FORM{tt}, form => 'yes' });
+  $tarif_plan->{TT_ID}=$tarif_plan->{TOTAL} if (! defined($FORM{chg}));
+  
+ 
+   
+ }
+elsif($attr->{TP}) {
+  $tarif_plan = $attr->{TP};
+  $tarif_plan->tt_defaults();
+
+  if ($FORM{change}) {
+
+    
+    $tarif_plan->tt_change( { 
+    	TT_DESCRIBE_0  => $FORM{TT_DESCRIBE_0},
+      TT_PRICE_IN_0  => $FORM{TT_PRICE_IN_0},
+      TT_PRICE_OUT_0 => $FORM{TT_PRICE_OUT_0},
+      TT_NETS_0      => $FORM{TT_NETS_0},
+      TT_PREPAID_0   => $FORM{TT_PREPAID_0},
+      TT_SPEED_0     =>     $FORM{TT_SPEED_0},
+
+      TT_DESCRIBE_1  => $FORM{'TT_DESCRIBE_1'},
+      TT_PRICE_IN_1  => $FORM{TT_PRICE_IN_1},
+      TT_PRICE_OUT_1 => $FORM{TT_PRICE_OUT_1},
+      TT_NETS_1      => $FORM{TT_NETS_1},
+      TT_PREPAID_1   => $FORM{TT_PREPAID_1},
+      TT_SPEED_1     => $FORM{TT_SPEED_1},
+
+      TT_DESCRIBE_2 => $FORM{TT_DESCRIBE_2},
+      TT_NETS_2     => $FORM{TT_NETS_2},
+      TT_SPEED_2    => $FORM{TT_SPEED_2},
+
+      EX_FILE_PATH  => "$conf{DV_EXPPP_NETFILES}"
+    });
+
+
+    if ($tarif_plan->{errno}) {
+      my $messages = "($tarif_plan->{errstr})" if($tarif_plan->{errstr});
+      $html->message('err', $_ERROR, "[$tarif_plan->{errno}] $err_strs{$tarif_plan->{errno}} $messages");	
+     }
+    else {
+      $html->message('info', $_INFO, "$_INTERVALS");
+     }
+   }
+
+   my $list = $tarif_plan->tt_list($FORM{ti});
+ }
+  
+
+
+}
+
+#***********************************************************
+# dv_sheduler
+#***********************************************************
+sub dv_sheduler {
+	my ($type, $action, $uid)=@_;
+
+  my $user = $Dv->info($uid);  	
+  if ($type eq 'tp') {
+    $Dv->change({UID   => $uid, 
+    	           TP_ID => $action });
+   }
+
+}
+
+
+#***********************************************************
+# dv_report
+#***********************************************************
+sub dv_report {
+	my ($type, $attr)=@_;
+  my $REPORT = "Module: DV\n";
+  
+  %LIST_PARAMS = %{$attr->{LIST_PARAMS}} if (defined($attr->{LIST_PARAMS}));
+
+  
+if ($type eq 'daily') {
+	$REPORT .= sprintf ("%-14s| %5s| %9s| %9s| %10s| %9s|\n", $_LOGIN, $_SESSIONS, 
+    $_TRAFFIC, "$_TRAFFIC 2", $_DURATION, $_SUM);
+  $REPORT .= "---------------------------------------------------------\n";
+
+  $list = $sessions->reports( { %LIST_PARAMS } );
+  foreach my $line (@$list) {
+   $REPORT .= sprintf ("%-14s| %5d| %9s| %9s| %8s| %9.4f|\n", 
+     $line->[1], 
+     $line->[2], 
+     int2byte($line->[3]), 
+     int2byte($line->[4]), 
+     $line->[5], 
+     $line->[6]);
+   }
+
+  $REPORT .= "---------------------------------------------------------\n";
+  $REPORT .= sprintf("%-14s| %20s|\n%-14s| %20s|\n%-14s| %20s|\n%-14s| %20s|\n%-14s| %20s|\n%-14s| %20s|\n", 
+   $_USERS,       $sessions->{USERS}, 
+   $_SESSIONS,    $sessions->{SESSIONS}, 
+   $_TRAFFIC,     int2byte($sessions->{TRAFFIC}), 
+   "$_TRAFFIC 2", int2byte($sessions->{TRAFFIC_2}), 
+   $_DURATION,    $sessions->{DURATION}, 
+   $_SUM,         $sessions->{SUM});
+
+ }
+elsif ($type eq 'monthly') {
+  $REPORT .= sprintf (" %12s| %5s| %5s| %10s| %10s| %12s| %9s|\n", $_DATE, $_USERS, $_SESSIONS, 
+    $_TRAFFIC, "$_TRAFFIC 2", $_DURATION, $_SUM);
+  $REPORT .= "---------------------------------------------------------\n";
+ 
+  my $list = $sessions->reports( { %LIST_PARAMS } );
+
+  foreach my $line (@$list) {
+#   u.id, count(l.id), sum(l.sent + l.recv), sum(l.sent2 + l.recv2), sec_to_time(sum(l.duration)), sum(l.sum), l.id
+    $REPORT .= sprintf (" %12s| %5s| %5s| %10s| %10s| %12s| %9.4f|\n", 
+     $line->[0], 
+     $line->[1], 
+     $line->[2], 
+     int2byte($line->[3]), 
+     int2byte($line->[4]), 
+     $line->[5], 
+     $line->[6]);
+   }
+
+  $REPORT .= "---------------------------------------------------------\n";
+  $REPORT .= sprintf("%-14s| %20s|\n%-14s| %20s|\n%-14s| %20s|\n%-14s| %20s|\n%-14s| %20s|\n%-14s| %20s|\n", 
+    $_USERS,       $sessions->{USERS}, 
+    $_SESSIONS,    $sessions->{SESSIONS}, 
+    $_TRAFFIC,     int2byte($sessions->{TRAFFIC}), 
+    "$_TRAFFIC 2", int2byte($sessions->{TRAFFIC_2}), 
+    $_DURATION,    $sessions->{DURATION}, 
+    $_SUM,         $sessions->{SUM});
+}
+
+ 
+  return $REPORT;
+}
+
+
+
+
+
+
+
+
+
+
+#*******************************************************************
+# Make cards
+#*******************************************************************
+sub dv_cards {
+	require "Abills/modules/Cards/webinterface";
+
+  my $dv_tpl = dv_wizard_user({ OUTPUT2RETURN => 1,
+  	                            NO_EXTRADATA  => 1,
+  	                            TPLS          => { '2:' => '',
+                                                   '3:' => '' } 
+                              });
+
+	my $return = cards_users_add({ EXTRA_TPL => $dv_tpl  });
+  
+
+  $FORM{add}=1;
+  if (scalar keys %FORM_BASE < 1) {
+  	%FORM_BASE=%FORM;
+   }
+
+  my $CREATED = '';
+  my $added_count = 0;
+
+
+  my $table = $html->table({ width      => '100%',
+                             border     => 1,
+                             title      => ["$_LOGIN", "ID", "$_INFO"],
+                             cols_align => ['left', 'right', 'right'],
+                            });
+
+
+
+  if (ref($return) eq 'ARRAY') {
+  	 foreach my $line (@$return) {
+        %FORM = ();
+     	  %FORM = %FORM_BASE;
+
+  	 	  while(my($k, $v)= each %$line) {
+  	 	  	 $FORM{$k}=clearquotes($v);
+  	 	    }
+
+  	 	  $FORM{'1.LOGIN'}=$line->{LOGIN};
+  	 	  $FORM{'1.PASSWORD'}=$line->{PASSWORD};
+  	 	  $FORM{'1.CREATE_BILL'}=1;
+        
+        $line->{UID} = dv_wizard_user({ SHORT_REPORT => 1 });
+       
+  	 	  if ( $line->{UID} < 1) {
+  	 	  	 $html->message('err', "$_ERROR", "$_LOGIN: '$line->{LOGIN}'");
+  	 	  	 last;
+  	 	   }
+  	 	  else {
+  	 	    #Confim card creation
+  	 	    $added_count++;
+  	 	    print " .";
+  	 	    $table->addrow("$FORM{'1.LOGIN'}", "$UID", "$FORM{ex_message}");
+  	 	  	if(cards_users_gen_confim({ %$line, SUM => ($FORM{'5.SUM'}) ? $FORM{'5.SUM'} : 0  }) == 0) {
+  	 	  		 return 0;
+  	 	  		}
+  	 	   }
+  	  }
+
+   }
+  
+
+if ($added_count > 0) {
+  $html->message('info', $_INFO, "$_ADDED:  $added_count");
+  print $table->show();
+}
+
+}
+
+
+#*******************************************************************
+#
+#*******************************************************************
+sub dv_wizard_user {
+	my ($attr) = @_;
+
+  my $fees     = Finance->fees($db, $admin, \%conf);
+  my $payments = Finance->payments($db, $admin, \%conf);
+  my $users    = Users->new($db, $admin, \%conf); 
+
+  my %add_values = ();
+
+  if ($FORM{add}) {
+
+  	foreach my $k ( sort %FORM) {
+      if ($k =~ m/[A-Z]+/ && $k !~ /__|[a-z]/) {
+        $k =~ s/%22//g;
+        my ($id, $main_key)=split(/\./, $k, 2);
+        $add_values{$id}{$main_key}=$FORM{$k};
+       }
+  	 }
+
+    #print $table->show();
+    # Password
+    $add_values{1}{GID} = $admin->{GID} if ($admin->{GID});
+    my $user=$users->add({ %{$add_values{1}} });
+    my $message = '';
+    if (! $user->{errno}) {
+   	  $UID = $user->{UID};
+   	  $user = $user->info($UID);
+      
+      #2 
+      if (defined($FORM{'2.newpassword'}) && $FORM{'2.newpassword'} ne '') {
+        if (length($FORM{'2.newpassword'}) < $conf{PASSWD_LENGTH}) {
+          $html->message('err', "$_PASSWD : $_ERROR", "$err_strs{6}");
+         }
+        elsif ($FORM{'2.newpassword'} eq $FORM{'2.confirm'}) {
+          $add_values{2}{PASSWORD}=$FORM{'2.newpassword'};
+          $add_values{2}{UID}=$UID;
+          $add_values{2}{DISABLE}=$FORM{'1.DISABLE'};
+         }
+        elsif($FORM{'2.newpassword'} ne $FORM{'2.confirm'}) {
+          $html->message('err', "$_PASSWD : $_ERROR", "$err_strs{5}");
+         }
+
+        $user->change($UID, { %{$add_values{2}} });
+        
+        if ($conf{external_useradd}) {
+          if (! _external($conf{external_useradd}, { LOGIN => $add_values{1}{LOGIN}, %{$add_values{2}} }) ) {
+       	    return 0;
+           }
+         }
+       }
+      
+      #3 personal info
+      $user->pi_add({ UID => "$UID", %{$add_values{3}} });
+
+      #5 Payments section
+      if ($FORM{'5.SUM'}) {
+        if($FORM{'5.SUM'} + 0 > 0) {
+          my $er = ($FORM{'5.ER'}) ? $payments->exchange_info($FORM{'5.ER'}) : { ER_RATE => 1 } ;  
+          $payments->add($user, { %{$add_values{5}}, ER => $er->{ER_RATE} } );  
+          if ($payments->{errno}) {
+            $html->message('err', "-- $_PAYMENTS : $_ERROR", "[$payments->{errno}] $err_strs{$payments->{errno}}");	
+            return 0;
+           }
+          else {
+            $message = "$_SUM: $FORM{'5.SUM'} $er->{ER_SHORT_NAME}";
+           }
+         }
+        elsif($FORM{'5.SUM'} + 0 < 0) {
+          my $er = ($FORM{'5.ER'}) ? $payments->exchange_info($FORM{'5.ER'}) : { ER_RATE => 1 } ;  
+          
+          
+          $fees->take($user, abs($FORM{'5.SUM'}), { DESCRIBE => 'MIGRATION',  ER => $er->{ER_RATE} } );  
+
+          if ($fees->{errno}) {
+            $html->message('err', "$_ERROR : $_FEES", "[$fees->{errno}] $err_strs{$fees->{errno}}");	
+            return 0;
+           }
+          else {
+            $message = "$_SUM: $FORM{'5.SUM'} $er->{ER_SHORT_NAME}";
+           }
+         }
+       }
+
+      #4 Dv
+   	  $Dv->add({ UID => $UID, %{$add_values{4}} });
+      if ($Dv->{errno}) {
+        $html->message('err', "Dv:$_ERROR", "Dv Modules [$Dv->{errno}] $err_strs{$Dv->{errno}}");	
+        return 0;
+       }
+      
+      # Add E-Mail account
+      if (in_array('Mail', \@MODULES) && $FORM{'6.USERNAME'}) {
+        require "Abills/modules/Mail/webinterface";
+        my $Mail = Mail->new($db, $admin, \%conf);
+        
+        $FORM{'6.newpassword'} = $FORM{'6.PASSWORD'} if ($FORM{'6.PASSWORD'});
+
+        $Mail->mbox_add({ UID => "$UID", 
+        	                %{$add_values{6}}, 
+        	                PASSWORD => $FORM{'6.newpassword'} 
+        	             });
+
+        if ($Mail->{errno}) {
+          $html->message('err', "E-MAIL : $_ERROR", "[$Mail->{errno}] $err_strs{$Mail->{errno}}");	
+          return 0;
+         }
+       }
+      
+      # Info
+      my $dv = $Dv->info($UID);
+      my $pi = $user->pi({ UID => $UID });
+      $user  = $user->info($UID);
+      
+      
+      if (! $attr->{SHORT_REPORT}) {
+        $FORM{ex_message}=$message;
+        $html->message('info', $_ADDED, "LOGIN: $add_values{1}{LOGIN} UID: $UID  $message");
+        $html->tpl_show(templates('user_info'), { %$user, %$pi } );
+        $html->tpl_show(_include('dv_user_info', 'Dv'), $dv);
+       }
+
+      return $UID;
+    }
+   else {
+     $html->message('err', "[$users->{errno}] $err_strs{$users->{errno}}", "$_LOGIN: '$add_values{1}{LOGIN}'");	
+     return 0 if ($attr->{SHORT_REPORT});
+    }
+   
+  } 
+
+
+  my $users_defaults = $users->defaults();
+  $users_defaults->{DISABLE}=($users_defaults->{DISABLE} == 1) ? ' checked' : '';
+  $users_defaults->{GID} = sel_groups();
+  if (! $attr->{NO_EXTRADATA}) {
+    $users_defaults->{EXDATA}=$html->tpl_show(templates('form_user_exdata'), 
+       { CREATE_BILL  => ' checked' }, 
+       { notprint => 'y' });
+   }
+  
+  my $dv_defaults = $Dv->defaults();
+  $dv_defaults->{DISABLE}=($dv_defaults->{DISABLE} == 1) ? ' checked' : '';
+  
+  $payments->{SEL_METHOD} =  $html->form_select('METHOD', 
+                                { SELECTED      => $day_id,
+ 	                                SEL_ARRAY     => \@PAYMENT_METHODS,
+ 	                                ARRAY_NUM_ID  => 'y'
+ 	                               });
+  $payments->{SUM} = '0.00';
+
+  my $er = $payments->exchange_list();
+  $payments->{SEL_ER} = "<select name=ER>\n";
+  $payments->{SEL_ER} .= "<option value=''>\n";
+  foreach my $line (@$er) {
+    $payments->{SEL_ER} .= "<option value=$line->[4]";
+    $payments->{SEL_ER} .= ">$line->[1] : $line->[2]\n";
+   }
+  $payments->{SEL_ER} .= "</select>\n";
+
+  $dv_defaults->{TP_ID} = $html->form_select('TP_ID', 
+                                         { 
+ 	                                         SELECTED  => $user->{TP_ID},
+ 	                                         SEL_MULTI_ARRAY   => $tariffs->list(),
+ 	                                         MULTI_ARRAY_KEY   => 0,
+ 	                                         MULTI_ARRAY_VALUE => 1,
+ 	                                        });
+  $dv_defaults->{CALLBACK} = '';
+ 	             
+ my $password_form;                           
+ $password_form->{GEN_PASSWORD}=mk_unique_value(8);
+ my %tpls = (
+	            "1:$_LOGIN::"    => $html->tpl_show(templates('form_user'), $users_defaults, { notprint => 'y' }),  
+	            "2:$_PASSWD::"   => $html->tpl_show(templates('form_password'), $password_form, { notprint => 'y' }),
+	            "3:$_INFO::"     => templates('form_pi'), 
+	            "4:Dialup/VPN::" => $html->tpl_show(_include('dv_user', 'Dv'), $dv_defaults, { notprint => 'y' }),
+ 	            "5:$_PAYMENTS::" => $html->tpl_show(templates('form_payments'), $payments, { notprint => 'y' }),
+             );
+ 
+ #If mail module added
+ if (in_array('Mail', \@MODULES)) {
+   require "Abills/modules/Mail/webinterface";
+   my $Mail = Mail->new($db, $admin, \%conf);
+
+   $Mail->{PASSWORD} = qq{  
+	<tr><td>$_PASSWD:</td><td><input type="password" id="text_pma_pw_mail" name="newpassword" title="$_PASSWD" onchange="pred_password.value = 'userdefined';" /></td></tr>
+  <tr><td>$_CONFIRM_PASSWD:</td><td><input type="password" name="confirm" id="text_pma_pw2_mail" title="$_CONFIRM" onchange="pred_password.value = 'userdefined';" /></td></tr>
+  <tr><td>  <input type="button" id="button_generate_password_mail" value="$_GET $_USER $_PASSWD" onclick="CopyInputField('text_pma_pw', 'generated_pw_mail');" />
+          <input type="button" id="button_copy_password_mail" value="Copy" onclick="CopyInputField('generated_pw_mail', 'text_pma_pw_mail'); CopyInputField('generated_pw_mail', 'text_pma_pw2_mail')" />
+    </td><td><input type="text" name="generated_pw" id="generated_pw_mail" /></td></tr>
+     };
+
+   $Mail->{DOMAINS_SEL}=$html->form_select('DOMAIN_ID', 
+                                { 
+ 	                                SELECTED          => $Mail->{DOMAIN_ID},
+ 	                                SEL_MULTI_ARRAY   => $Mail->domain_list(),
+ 	                                MULTI_ARRAY_KEY   => 8,
+ 	                                MULTI_ARRAY_VALUE => 0,
+ 	                                SEL_OPTIONS       => { 0 => '-N/S-'},
+ 	                                NO_ID             => 1
+ 	                               });
+
+
+    $tpls{"6:E-Mail::"}=$html->tpl_show(_include('mail_box', 'Mail'), $Mail,  { notprint => 'y' });
+  } 
+ 
+ if ($attr->{TPLS}) {
+   while(my($k, $v)=each %{ $attr->{TPLS} } ) {
+   	  $tpls{$k}=$v;
+   	  #print "$k, $v<br>";   	
+     }
+  }
+
+	my $wizard;
+	
+  my $template='';
+  my @sorted_templates = sort keys %tpls;;
+ 
+ foreach my $key (@sorted_templates) {
+     my($n, $descr, $pre, $post)=split(/:/, $key, 4);
+
+     $template .= "<tr bgcolor=\"$_COLORS[0]\"><th>$descr</th></tr>\n";
+     #$wizard = $pre;
+     my $sub_tpl .= $html->tpl_show($tpls{"$key"}, $wizard, { notprint => 'y' });
+     $sub_tpl =~ s/(<input .*?UID.*?>)//gi;
+     $sub_tpl =~ s/(<input .*?index.*?>)//gi;
+     $sub_tpl =~ s/name=([A-Z_]+)/name=$n.$1/gi;
+     $sub_tpl =~ s/name="([A-Z_]+)"/name=$n.$1/gi;
+     $sub_tpl =~ s/name='([A-Z_]+)'/name=$n.$1/gi;
+
+     $template .= "<tr><th align=\"center\">". $sub_tpl . "</th></tr>\n";
+   }
+
+
+
+  $template =~ s/(<form .*?>)//gi;
+  $template =~ s/<\/form>//ig;
+  $template =~ s/(<input .*?type=submit.*?>)//gi;
+  $template =~ s/<hr>//gi;
+  
+#  print "<textarea cols=120 rows=3>$1 / $2 / $3</textarea><br>\n";
+
+
+
+  $template = "<table width=\"100%\">$template</table>";
+  if ($attr->{OUTPUT2RETURN}) {
+    return $template;	
+   }
+
+  print $html->form_main({ CONTENT => $template,
+  	                       HIDDEN  => { index => "$index" },
+	                         SUBMIT  => { add   => "$_ADD"  } 
+	                        });
+	
+}
+
+
+#**********************************************************
+#
+#**********************************************************
+sub dv_registration  {
+	my ($attr) = @_;
+	if ($FORM{registration}) {
+		
+		
+	 }
+	else {
+		$html->message('info', $_INFO, "$_REGISTRATION");
+
+		#$html->message('err', $_ERROR, "$_REGISTRATION");
+	 }
+	
+  $html->tpl_show(_include('dv_registration', 'Dv'), $Dv);
+	return 0;
+}
+
+
+
+1
+

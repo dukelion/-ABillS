@@ -1,0 +1,10 @@
+#:DEFAULT:RADIUS_AUTH_SERVER=127.0.0.1:Radius auth server ip
+#:DEFAULT:RADIUS_AUTH_PORT=1812:Radius auth port
+#:DEFAULT:RADIUS_ACCT_SERVER=127.0.0.1:Radius accounting ip
+#:DEFAULT:RADIUS_ACCT_PORT=1813:Radius accounting port
+#:DEFAULT:PPP_CONTROL_PASSWORD=secret:PPP control password 
+#
+ip-up.local        > [/etc/ppp]/ip-up.local
+pptpd.conf         > [/etc]/pptpd.conf
+pptpd.options      > [/etc/ppp]/pptpd.options
+

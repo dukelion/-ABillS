@@ -1,0 +1,11 @@
+user_scores_dsn                 DBI:mysql:%dbname%:%dbhost%
+user_scores_sql_username        %dbuser%
+user_scores_sql_password        %dbpasswd%
+user_scores_sql_custom_query     SELECT preference, value FROM mail_spamassassin WHERE username = _USERNAME_ OR username = '$GLOBAL' OR username = CONCAT('%',_DOMAIN_) ORDER BY username ASC
+
+# Autowhite list
+auto_whitelist_factory Mail::SpamAssassin::SQLBasedAddrList
+user_awl_dsn                DBI:mysql:%dbname%:%dbhost%
+user_awl_sql_username       %dbuser%
+user_awl_sql_password       %dbpasswd%
+user_awl_sql_table          mail_awl

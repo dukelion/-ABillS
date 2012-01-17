@@ -1,0 +1,54 @@
+$web_interface    = 1;
+#@useraccount_menu = ('Dialup_VPN');
+
+#Iner_ID : Main or Sub or if -1 user menu func list
+%FUNCTIONS_LIST = ("01:0:VoIP $_LIST:voip_users_list:"       => 11,
+                   "02:0:VoIP:voip_user:UID"                 => 20,
+                   "03:2:$_TARIF_PLANS:voip_chg_tp:UID"      => 11,
+                   "04:2:$_STATS:voip_stats:UID"             => 11,
+                   "05:2:$_ERROR:voip_error:UID"             => 11,
+                   "06:0:VoIP:null:"                         => 5,
+                   "07:6:$_TARIF_PLANS:voip_tp:"             => 5,
+                   "08:7:$_ADD:voip_tp:"                     => 5,
+                   "09:7:$_INTERVALS:voip_intervals:TP_ID"   => 5,
+                   "10:7:$_NASS:voip_nas:TP_ID"              => 5,
+                   "11:6:$_ROUTES:voip_routes:"              => 5,
+                   "12:7:$_ROUTES:voip_tp_routes:TP_ID"      => 5,
+                   "13:7:$_USERS:voip_users_list:TP_ID"      => 5,
+                   "14:0:VoIP:null:"                         => 4,
+                   "15:14:$_ERROR:voip_error:"               => 4,
+                   "16:14:$_LAST:voip_sessions:"             => 4,
+                   "17:14:$_USED:voip_use:"                  => 4,
+                   "18:16:$_MONTH:voip_use_allmonthes:"      => 4,
+                   "19:0:VoIP:voip_online:"                  => 8,
+                   "20:19:Gatekeeper:voip_gk_console:"       => 8,
+
+                   );
+
+%USER_FUNCTION_LIST = ("01:0:VoIP:voip_user_info:"           => 0,
+                       "02:1:$_STATS:voip_user_stats:"       => 0,
+                       "03:1:$_ROUTES:voip_user_routes:"     => 0
+                      );
+
+%PERIODIC = ( report  => [ 'voip_report' ]);
+
+#daily   => [ 'voip_daily_fees' ],
+#monthly => [ 'voip_monthly_fees' ],
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+1

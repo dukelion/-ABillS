@@ -1,0 +1,85 @@
+#!/usr/bin/perl
+# DUNEs   Windows Dialup User Network Errors
+
+
+
+require "Dunes.pm";
+Dunes->import();
+my $Dunes = Dunes->new($db, $admin, $conf);
+
+#**********************************************************
+# dunes_list
+#**********************************************************
+sub dunes_list {
+ my ($attr)=@_;
+
+
+
+print $html->form_main({ CONTENT => "ID: " . $html->form_input('ID', "$FORM{ID}"),
+                   HIDDEN  => { index => "$index"
+                                     },
+                   SUBMIT  => { show   => "$_SHOW"
+	                      	           } 
+	                 });
+
+$LIST_PARAMS{ID}=$FORM{ID} if ($FORM{ID});
+my $list = $Dunes->list( { %LIST_PARAMS } );
+
+if ($Dunes->{errno}) {
+  $html->message('err', $_ERROR, "[$Dv->{errno}] $err_strs{$Dv->{errno}}");	
+  return 0;
+ }
+
+if ($Dunes->{TOTAL} == 1) {
+  my $table = $html->table({ width      => '400',
+                            caption     => "Error: $list->[0]->[0]",
+                            title_plain => [ "($list->[0]->[0]) $list->[0]->[3] " ],
+                            border      => 1,
+                            rows        => [[ $list->[0]->[2] ],
+                                     [ $list->[0]->[4] ],
+                                     [ $list->[0]->[2] ]
+                                    ]
+                           });
+  print $table->show();	
+}
+
+
+
+my $table = $html->table( { width        => '100%',
+                            caption      => "Dunes",
+                            border       => 1,
+                            title_plain  => ["$_NUMBER", 'win_err_handle', "$_TEXT"],
+                            cols_align   => ['left', 'left'],
+                            qs           => $pages_qs,
+                            pages        => $Dunes->{TOTAL}
+                           });
+
+foreach my $line (@$list) {
+  $table->addrow(
+    $html->button("$line->[0]",  "index=$index&ID=$line->[0]"),
+    "$line->[3]", 
+    "$line->[2]", 
+   );
+
+}
+print $table->show();
+
+$table = $html->table( { width      => '100%',
+                         cols_align => ['right', 'right'],
+                         rows       => [ [ "$_TOTAL:", "<b>$Dunes->{TOTAL}</b>" ] ]
+                        } );
+print $table->show();
+
+}
+
+#<table width=100%>
+#<tr><th bgcolor=$_BG0><b>($err_id)</b> $error_text<hr size=1>$translate</th></tr
+#>
+#<tr><td bgcolor=FFFFFF>$en_err</td></tr>
+#<tr><td bgcolor=FFFFFF>$solution</td></tr>
+#</table>
+
+
+
+1
+

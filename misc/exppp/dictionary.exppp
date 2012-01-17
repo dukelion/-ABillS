@@ -1,0 +1,27 @@
+# Атрибуты переносим в VENDOR-Specific
+VENDOR		Exppp				1976
+ATTRIBUTE	Exppp-Traffic-Shape		1	integer Exppp
+ATTRIBUTE	Exppp-Traffic-Limit		2	integer Exppp
+ATTRIBUTE	Exppp-Traffic-In-Limit		3	integer Exppp
+ATTRIBUTE	Exppp-Traffic-Out-Limit		4	integer Exppp
+
+ATTRIBUTE	Exppp-LocalTraffic-Limit	5	integer Exppp
+ATTRIBUTE	Exppp-LocalTraffic-In-Limit	6	integer Exppp
+ATTRIBUTE	Exppp-LocalTraffic-Out-Limit	7	integer Exppp
+
+ATTRIBUTE	Exppp-Local-IP-Table		8	string	Exppp
+
+ATTRIBUTE	Exppp-Input-Pipe		15	integer Exppp
+ATTRIBUTE	Exppp-Output-Pipe		16	integer Exppp
+
+ATTRIBUTE       Exppp-Acct-LocalInput-Octets  		100	integer Exppp
+ATTRIBUTE       Exppp-Acct-LocalOutput-Octets 		101	integer Exppp
+ATTRIBUTE       Exppp-Acct-IteriumIn-Octets   		102	integer Exppp
+ATTRIBUTE       Exppp-Acct-IteriumOut-Octets  		103	integer Exppp
+ATTRIBUTE	Exppp-Acct-LocalIteriumIn-Octets	104	integer Exppp
+ATTRIBUTE	Exppp-Acct-LocalIteriumOut-Octets 	105	integer Exppp
+
+ATTRIBUTE       Exppp-Acct-IteriumTime			106	integer Exppp
+ATTRIBUTE	Exppp_Acct-Stat				250	string  Exppp
+
+VALUE		Service-Type			VPN	11

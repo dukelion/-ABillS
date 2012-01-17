@@ -1,0 +1,22 @@
+body {
+	background: #FFFFFF;
+	font-size: 12pt;
+     }
+
+.tcaption {
+  background-color: #100000;
+  border: 0px solid #000000;
+}
+
+.table_title {
+  border: 1px solid #555555;
+}
+
+.with_border {
+  border: 2px solid #999999;
+}
+
+
+.menu, .header, .button, .noprint {display:none}
+
+

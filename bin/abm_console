@@ -1,0 +1,96 @@
+#!/usr/bin/perl -w
+
+
+
+use vars  qw(%RAD %conf $db %AUTH
+ %RAD_REQUEST %RAD_REPLY %RAD_CHECK 
+ %auth_mod
+ $begin_time
+ $nas);
+
+use strict;
+use FindBin '$Bin';
+require $Bin . '/../libexec/config.pl';
+unshift(@INC, $Bin . '/../', $Bin . "/../Abills/$conf{dbtype}");
+
+require Abills::Base;
+Abills::Base->import();
+$begin_time = check_time();
+
+
+if ($#ARGV == -1) {
+	help();
+	exit 0; 
+}
+
+my $args = parse_arguments(\@ARGV);
+
+ppp_log_parser( $args );
+
+
+#************************************************
+#
+#************************************************
+sub ppp_log_parser {
+ my ($attr) = @_;
+ my $logfile = $attr->{LOGFILE} || '/var/log/ppp.log';
+
+ my $file_content = ''; 
+ open(FILE, "< $logfile") || die "Can't open file '/var/log/ppp.log' $!\n";   
+  while(<FILE>) {
+    $file_content .= $_;
+   }
+ close(FILE);
+ my @content_arr = split(/\n/, $file_content);
+
+
+ if ($attr->{USER}) {
+   my %pid_list = ();
+   foreach my $line (@content_arr) {
+      # If pap auth
+      # Phase: Pap Input: REQUEST (lemn)
+      if ($line =~ /.+ppp\[(\d+)\].+REQUEST \($attr->{USER}\)/) {
+         push @{ $pid_list{$1} }, $line;
+       }
+      #CHAP AUTH
+      # Phase: Chap Input: RESPONSE (16 bytes from kolyan)
+      elsif ($line =~ /.+ppp\[(\d+)\].+RESPONSE \(16 bytes from $attr->{USER}\)/) {
+         push @{ $pid_list{$1} }, $line;
+       }
+      elsif ($line =~ /.+ppp\[(\d+)\]/) {
+        if (defined($pid_list{$1}) ) {
+           push @{ $pid_list{$1} }, $line;
+         }
+       }
+    }
+
+   print "User: $attr->{USER}\n";
+   while( my ($pid, $line_arr) = each %pid_list) {
+      print "PID: $pid ============================================\n";
+      foreach my $line (@$line_arr) {
+        print "$line\n";
+       }
+    }
+
+  }
+ elsif($attr->{PID}) {
+ 	 foreach my $line (@content_arr) {
+     if ($line =~ /ppp\[$attr->{PID}\]/) {
+       print "$line\n";
+      }
+    }
+  }
+
+
+}
+
+#
+sub help {
+print << "[END]";
+abm_console console ABillS managment
+  USER - Get session info from /var/log/ppp.log for user USER
+  PID  - Get INfo for PID
+
+[END]
+
+}

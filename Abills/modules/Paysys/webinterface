@@ -1,0 +1,399 @@
+#!/usr/bin/perl
+# Paysys System
+
+
+
+
+#use Paysys;
+
+eval { require Paysys; };
+if (! $@) {
+   Paysys->import();
+  }
+else {
+   print "Can't load 'Paysys'. Purchase this module http://abills.net.ua";
+   return 0;
+ }
+
+
+
+
+my $Paysys = Paysys->new($db, $admin, \%conf);
+my %PAY_SYSTEMS = (1 => "Webmoney",
+                   2 => "RUpay");
+
+
+my @status = ('ENABLE', 'DISABLE', 'USED');
+
+
+
+#**********************************************************
+#
+#**********************************************************
+sub paysys_payment {
+  
+  if ($FORM{PAYMENT_SYSTEM} == 1) {
+   	 paysys_webmoney();
+	 }
+	elsif($FORM{PAYMENT_SYSTEM} == 2) {
+     paysys_rupay();
+	 }
+	else {
+	  my %info = ();
+	  $info{OPERATION_ID}   = mk_unique_value(8, {  SYMBOLS => '0123456789' });
+	  my %PAY_SYSTEM_ACCOUNTS = (1 => 'PAYSYS_WEBMONEY_ACCOUNTS',
+	                             2 => 'PAYSYS_RUPAY_ID' );
+	  
+	  while(my($k, $v) = each %PAY_SYSTEMS) {
+	  	delete $PAY_SYSTEMS{$k} if (! $conf{$PAY_SYSTEM_ACCOUNTS{$k}});
+	   }
+	  
+	  
+	  $info{PAY_SYSTEM_SEL} = $html->form_select('PAYMENT_SYSTEM', 
+                                          { 
+ 	                                          SELECTED  => $FORM{PAYMENT_SYSTEM},
+ 	                                          SEL_HASH  => \%PAY_SYSTEMS,
+ 	                                          NO_ID     => 1
+ 	                                        });
+
+	  $html->tpl_show(_include('paysys_main', 'Paysys'), \%info);
+	 }
+}
+
+#**********************************************************
+#
+#**********************************************************
+sub paysys_log {
+ 	
+
+if ($FORM{info}) {
+	$Paysys->info($FORM{info});
+  
+  my @info_arr = split(/\n/, $Paysys->{INFO});
+  my $table = $html->table( { width => '100%' });
+  foreach my $line (@info_arr) {
+    my($k, $v)=split(/,/, $line, 2);
+    $table->addrow($k, $v);
+   }
+
+  $Paysys->{INFO}=$table->show();
+
+  $table = $html->table( { width => '500',
+                           rows => [ [ "ID",            $Paysys->{ID}       ],
+                                     [ "$_LOGIN",       $Paysys->{LOGIN}    ],
+                                     [ "$_DATE",        $Paysys->{DATETIME} ],
+                                     [ "$_SUM",         $Paysys->{SUM}      ],
+                                     [ "$_PAY_SYSTEM",  $PAY_SYSTEMS{$Paysys->{SYSTEM_ID}}        ],
+                                     [ "$_TRANSACTION", $Paysys->{TRANSACTION_ID}  ],
+                                     [ "IP",            $Paysys->{IP}       ],
+                                     [ "$_INFO",        $Paysys->{INFO}     ]
+                                    ]
+                        } );
+
+   print $table->show();
+ }
+elsif(defined($FORM{del}) && $FORM{is_js_confirmed}) {
+  $Paysys->del($FORM{del});
+
+  if (! $Paysys->{errno}) {
+    $html->message('info', $_DELETE, "$_DELETED $FORM{del}");
+   }
+}
+
+if ($Paysys->{errno}) {
+  $html->message('err', $_ERROR, "[$Paysys->{errno}] $err_strs{$Paysys->{errno}}");
+ }
+
+
+
+
+my %info = ();
+$info{PAY_SYSTEMS_SEL}=$html->form_select('PAYMENT_SYSTEM', 
+                                          { 
+ 	                                          SELECTED  => $FORM{PAYMENT_SYSTEM},
+ 	                                          SEL_HASH  => \%PAY_SYSTEMS,
+ 	                                          NO_ID     => 1
+ 	                                        });
+
+
+form_search({ SEARCH_FORM => $html->tpl_show(_include('paysys_search', 'Paysys'), 
+	                         { %info, %FORM }, 
+	                         { notprint => 1 })  
+	            });
+
+
+
+if (! defined($FORM{sort})) {
+  $LIST_PARAMS{SORT}=1;
+  $LIST_PARAMS{DESC}=DESC;
+ }
+
+my $list = $Paysys->list( { %LIST_PARAMS } );	
+my $table = $html->table( { width      => '100%',
+                            caption    => "Paysys",
+                            border     => 1,
+                            title      => ['ID', "$_LOGIN", "$_DATE", "$_SUM", "$_PAY_SYSTEM", "$_TRANSACTION", "IP", '-', '-'],
+                            cols_align => ['left', 'left', 'right', 'right', 'left', 'right', 'right', 'center:noprint', 'center:noprint'],
+                            qs         => $pages_qs,
+                            pages      => $Paysys->{TOTAL}
+                           });
+
+foreach my $line (@$list) {
+ 
+  $table->addrow($line->[0],
+    $html->button("$line->[1]", "index=15&UID=$line->[8]"), 
+    "$line->[2]", 
+    "$line->[3]", 
+    "$PAY_SYSTEMS{$line->[4]}", 
+    $html->button("$line->[5]", "index=2&EXT_ID=$line->[5]&search=1"),
+    "$line->[6]",
+    $html->button($_INFO, "index=$index&info=$line->[0]"),
+    $html->button($_DEL, "index=$index&del=$line->[0]", { MESSAGE => "$_DEL $line->[0]?" })
+   );
+}
+print $table->show();
+
+$table = $html->table( { width      => '100%',
+                         cols_align => ['right', 'right'],
+                         rows       => [ [ "$_TOTAL:", "$Paysys->{TOTAL}", "$_SUM", $Paysys->{SUM} ] ]
+                        } );
+print $table->show();
+
+
+}
+
+#**********************************************************
+#
+#**********************************************************
+sub paysys_user_log {
+	
+	if ($FORM{info}) {
+	$Paysys->info($FORM{info});
+  
+  my @info_arr = split(/\n/, $Paysys->{INFO});
+  my $table = $html->table( { width => '100%' });
+  foreach my $line (@info_arr) {
+    my($k, $v)=split(/,/, $line, 2);
+    $table->addrow($k, $v) if ($k =~ /STATUS/);
+   }
+
+  $Paysys->{INFO}=$table->show({ OUTPUT2RETURN => 1 });
+
+  $table = $html->table( { width => '500',
+                           rows => [ [ "ID",            $Paysys->{ID}       ],
+                                     [ "$_LOGIN",       $Paysys->{LOGIN}    ],
+                                     [ "$_DATE",        $Paysys->{DATETIME} ],
+                                     [ "$_SUM",         $Paysys->{SUM}      ],
+                                     [ "$_PAY_SYSTEM",  $PAY_SYSTEMS{$Paysys->{SYSTEM_ID}}        ],
+                                     [ "$_TRANSACTION", $Paysys->{TRANSACTION_ID}  ],
+                                     [ "IP",            $Paysys->{IP}       ],
+                                     [ "$_INFO",        $Paysys->{INFO}     ]
+                                    ]
+                        } );
+
+   print $table->show();
+ }
+
+	
+if (! defined($FORM{sort})) {
+  $LIST_PARAMS{SORT}=1;
+  $LIST_PARAMS{DESC}=DESC;
+ }
+
+my $list = $Paysys->list( { %LIST_PARAMS } );	
+my $table = $html->table( { width      => '100%',
+                            caption    => "Paysys",
+                            border     => 1,
+                            title      => ['ID', "$_LOGIN", "$_DATE", "$_SUM", "$_PAY_SYSTEM", "$_TRANSACTION", "IP", '-' ],
+                            cols_align => ['left', 'left', 'right', 'right', 'left', 'right', 'right', 'center:noprint'],
+                            qs         => $pages_qs,
+                            pages      => $Paysys->{TOTAL}
+                           });
+
+foreach my $line (@$list) {
+ 
+  $table->addrow($line->[0],
+    $html->button("$line->[1]", "index=15&UID=$line->[8]"), 
+    "$line->[2]", 
+    "$line->[3]", 
+    "$PAY_SYSTEMS{$line->[4]}", 
+    $line->[5],
+    "$line->[6]",
+    $html->button($_INFO, "index=$index&info=$line->[0]")
+   );
+}
+print $table->show();
+
+$table = $html->table( { width      => '100%',
+                         cols_align => ['right', 'right'],
+                         rows       => [ [ "$_TOTAL:", "$Paysys->{TOTAL}", "$_SUM", $Paysys->{SUM} ] ]
+                        } );
+print $table->show();	
+
+}
+
+
+#**********************************************************
+#
+#**********************************************************
+sub paysys_webmoney () {
+
+
+if ($FORM{FALSE}) {
+	$html->message('err', $_ERROR, "$_FAILED $_TRANSACTION ID: $FORM{LMI_PAYMENT_NO}");
+ }
+elsif ($FORM{LMI_PAYMENT_NO}) {
+	my $users = Users->new($db, $admin, \%conf); 
+	my $user = $users->info($FORM{UID});
+	
+	if ($user->{errno}) {
+		$html->message('err', $_ERROR, "$_ERROR $user->{errno}");
+	 }
+	elsif ($user->{TOTAL} < 0) {
+		$html->message('err', $_ERROR, "$_NOT_EXIST");
+	 }
+	else {
+    if ($conf{PAYSYS_LMI_RESULT_URL}) {
+    	$html->message('info', $_INFO, "$_ADDED ID: $FORM{LMI_PAYMENT_NO}");
+     }
+    else {
+      my $list = $Paysys->list({ TRANSACTION_ID => "$FORM{'LMI_PAYMENT_NO'}", UID => $LIST_PARAMS{UID} });
+
+      if ($Paysys->{TOTAL} > 0) {
+	      $html->message('info', $_INFO, "$_ADDED $_SUM: $list->[0][3] ID: $FORM{LMI_PAYMENT_NO}");
+
+	      if ($conf{PAYSYS_EMAIL_NOTICE}) {
+	      	my $message = "\n".
+	      	 "System: Webmoney\n".
+	      	 "$_DATE: $DATE $TIME\n".
+	      	 "$_LOGIN: $user->{LOGIN} [$LIST_PARAMS{UID}]\n".
+	      	 "\n".
+       	   "\n".
+	      	 "ID: $FORM{LMI_PAYMENT_NO}\n".
+	      	 "$_SUM: $list->[0][3]\n";
+
+          sendmail("$conf{ADMIN_MAIL}", "$conf{ADMIN_MAIL}", "Paysys Webmoney Add", 
+              "$message", "$conf{MAIL_CHARSET}", "2 (High)");
+	      	
+	       }
+	     }
+      else {
+    	  $html->message('err', $_ERROR, "$_FAILED ID: $FORM{LMI_PAYMENT_NO} $_ERR_NO_TRANSACTION");
+       }
+     }
+	 }
+
+  return 0;
+ }
+  
+
+my %info = ();
+$info{LMI_PAYMENT_NO} = $FORM{OPERATION_ID};
+
+if ($conf{PAYSYS_WEBMONEY_TESTMODE}) {
+  my ($LMI_MODE, $LMI_SIM_MODE)=split(/:/, $conf{PAYSYS_WEBMONEY_TESTMODE}, 2);
+  $info{TEST_MODE}="
+   <input type='hidden' name='LMI_SIM_MODE' value='$LMI_SIM_MODE'>
+   <font color='red'>$_TEST_MODE (LMI_MODE: $LMI_MODE, LMI_SIM_MODE: $LMI_SIM_MODE)</font>"; 
+ }
+
+my @ACCOUNTS = split(/;/, $conf{PAYSYS_WEBMONEY_ACCOUNTS});
+$info{ACCOUNTS_SEL}=$html->form_select('LMI_PAYEE_PURSE', 
+                                      { 
+ 	                                      SELECTED  => $FORM{sum_val},
+ 	                                      SEL_ARRAY => \@ACCOUNTS,
+ 	                                      NO_ID     => 1
+                                       });
+
+$info{LMI_PAYMENT_AMOUNT}=$FORM{SUM};
+
+
+#$conf{PAYSYS_LMI_RESULT_URL} = "http://$ENV{SERVER_NAME}". ( ($ENV{SERVER_PORT} != 80) ? ":$ENV{SERVER_PORT}" : '' ) ."$ENV{REQUEST_URI}" if (! $conf{PAYSYS_LMI_RESULT_URL});
+
+$conf{PAYSYS_LMI_RESULT_URL} = "http://$ENV{SERVER_NAME}". ( ($ENV{SERVER_PORT} != 80) ? ":$ENV{SERVER_PORT}" : '' ) ."/paysys_check.cgi" if (! $conf{PAYSYS_LMI_RESULT_URL});
+
+
+$html->tpl_show(_include('paysys_webmoney_add', 'Paysys'), \%info);
+
+
+}
+
+
+#**********************************************************
+#
+#**********************************************************
+sub paysys_rupay {
+	
+	my %info = ();
+	
+if ($FORM{FALSE}) {
+	$html->message('err', $_ERROR, "$_FAILED ID: $FORM{OPERATION_ID}");
+ }
+elsif ($FORM{TRUE}) {
+   my $list = $Paysys->list({ TRANSACTION_ID => "$FORM{OPERATION_ID}", UID => $LIST_PARAMS{UID} });
+
+   if ($Paysys->{TOTAL} > 0) {
+	    $html->message('info', $_INFO, "$_TRANSACTION_PROCESSING $_SUM: $list->[0][3] ID: $FORM{OPERATION_ID}");
+	   }
+    else {
+    	$html->message('err', $_ERROR, "$_FAILED ID: $FORM{OPERATION_ID} $_ERR_NO_TRANSACTION");
+     }
+
+  return 0;
+ }
+	
+
+$info{SUM_VAL_SEL}=$html->form_select('sum_val', 
+                                    { 
+ 	                                      SELECTED  => $FORM{sum_val},
+ 	                                      SEL_ARRAY => [USD, EUR, UAH, RUR],
+ 	                                      NO_ID     => 1
+                                     });
+
+	$info{OPERATION_ID}  = $FORM{OPERATION_ID};  
+  $info{SUM}       = $FORM{SUM};
+  $info{DESCRIBE}  = $FORM{DESCRIBE};
+
+  $html->tpl_show(_include('paysys_rupay_add', 'Paysys'), \%info);
+}
+
+
+#**********************************************************
+# 
+#**********************************************************
+sub wm_validate {
+	
+	
+ eval { require Digest::MD5; };
+ if (! $@) {
+    Digest::MD5->import();
+   }
+ else {
+    print "Can't load 'Digest::MD5' check http://www.cpan.org";
+  }
+
+  my $md5 = new Digest::MD5;
+  $md5->reset;
+
+	$md5->add($FORM{LMI_PAYEE_PURSE}); 
+	$md5->add($FORM{LMI_PAYMENT_AMOUNT});
+  $md5->add($FORM{LMI_PAYMENT_NO});
+  $md5->add($FORM{LMI_MODE}); 
+  $md5->add($FORM{LMI_SYS_INVS_NO});
+  $md5->add($FORM{LMI_SYS_TRANS_NO});
+  $md5->add($FORM{LMI_SYS_TRANS_DATE});
+  $md5->add($FORM{LMI_SECRET_KEY}); 
+  $md5->add($FORM{LMI_PAYER_PURSE}); 
+  $md5->add($FORM{LMI_PAYER_WM}); 
+
+  my $digest = uc($md5->hexdigest());	
+  
+  print $digest;
+}
+
+
+
+
+
+1
+

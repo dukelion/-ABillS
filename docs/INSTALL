@@ -1,0 +1,244 @@
+=====Installation manual=====
+[[andman@ppnnet.net]] 
+
+
+
+
+=====Radius=====
+
+Download and install the latest version of FreeRadius [http://www.freeradius.org]
+
+  server$ tar zxvf freeradius-1.1.0.tar.gz
+  server$ freeradius-1.1.0
+  server$ ./configure --prefix=/usr/local/radiusd/
+  server$ make
+  server# make install (as root)
+
+If you don’t see any errors - you have successfully installed radius server: 
+
+Next step is to configure radius server:\\
+  server# vi /usr/local/radiusd/etc/raddb/users
+
+  DEFAULT Auth-Type = Accept
+    Exec-Program-Wait = "/usr/abills/libexec/rauth.pl"
+
+   server# vi /usr/local/radiusd/etc/raddb/acct_users
+
+  DEFAULT Acct-Status-Type == Start
+     Exec-Program = "/usr/abills/libexec/racct.pl"
+  
+  DEFAULT Acct-Status-Type == Alive
+     Exec-Program = "/usr/abills/libexec/racct.pl"
+  
+  DEFAULT Acct-Status-Type == Stop
+     Exec-Program = "/usr/abills/libexec/racct.pl"
+
+   server# vi /usr/local/radiusd/etc/raddb/clients.conf
+Put the IP/name and password of your NAS server:
+\\
+  client nashost.nasdomain {
+     secret = radsecret
+     shortname = shorrname
+  }
+\\
+
+   server# vi /usr/local/radiusd/etc/raddb/radiusd.conf
+
+The following lines must be commented:
+
+'chap' and 'mschap' in section 'authorize'
+
+  authorize {
+    preprocess
+  #  chap
+  #  counter
+  #  attr_filter
+  #  eap
+    suffix
+    files
+  # etc_smbpasswd
+  # sql
+  # mschap
+  }
+
+
+
+
+=====MySQL=====
+Download the tarball from [http://www.mysql.com]\\
+
+    server$ tar xvfz mysql-4.1.16.tar.gz
+    server$ cd mysql-4.1.16
+    server$ ./configure
+    server$ make
+    server# make install (as root)
+
+Create user and database:
+  server# mysql 
+
+  use mysql;
+  INSERT INTO user (Host, User, Password) 
+    VALUES ('localhost','abills', password('sqlpassword'));
+  
+  INSERT INTO db (Host, Db, User, Select_priv, Insert_priv, Update_priv, 
+    Delete_priv, Create_priv, Drop_priv, Index_priv, Alter_priv, 
+    Lock_tables_priv, Create_tmp_table_priv) 
+  VALUES ('localhost', 'abills', 'abills', 'Y', 'Y', 'Y', 'Y', 'Y', 
+    'Y', 'Y', 'Y', 'Y', 'Y');
+  CREATE DATABASE abills;
+  flush privileges;
+
+\\
+Create tables in the database:\\
+
+    server# mysql -D abills < abills.sql
+
+
+=====Perl modules=====
+You need install some perl modules before proceed:\\
+
+| **DBI**        |                           |
+| **DBD::mysql** |                           |
+| **Digest-MD5** | for Chap authorization       |
+| **Digest-MD4** | for MS-Chap authorization    |
+| **Crypt-DES**  | for MS-Chap authorization    |
+| **Digest-SHA1**| for MS-ChapV2 authorization |
+| **libnet**     | Only for UNIX type authorization |
+| **Time-HiRes** | Show authorization,page generation time. |
+
+Download it from [http://www.cpan.org]
+
+=====Web Server=====
+
+
+
+
+=====Apache=====
+Edit **httpd.conf**
+
+  #Abills version 0.3
+  # User interface
+  Alias /abills "/usr/abills/cgi-bin/"
+  <Directory "/usr/abills/cgi-bin">
+     <IfModule mod_rewrite.c>
+        RewriteEngine on
+        RewriteCond %{HTTP:Authorization} ^(.*)
+        RewriteRule ^(.*) - [E=HTTP_CGI_AUTHORIZATION:%1]
+        Options Indexes ExecCGI SymLinksIfOwnerMatch
+     </IfModule>
+    AddHandler cgi-script .cgi
+    Options Indexes ExecCGI FollowSymLinks
+    AllowOverride none
+    DirectoryIndex index.cgi
+    Order allow,deny
+    Allow from all
+
+    <Files ~ "\.(db|log)$">
+      Order allow,deny
+      Deny from all
+    </Files>
+  </Directory>
+  
+  
+  #Admin interface
+  <Directory "/usr/abills/cgi-bin/admin">
+    AddHandler cgi-script .cgi
+    Options Indexes ExecCGI FollowSymLinks
+    AllowOverride none
+    DirectoryIndex index.cgi
+    order deny,allow
+    allow from all
+  </Directory>
+
+
+
+
+=====ABillS=====
+Download it from [http://sourceforge.net/projects/abills/]\\
+
+    server# tar zxvf abills-0.3x.tgz
+    server# cp -Rf abills /usr/
+
+     server# vi /usr/abills/libexec/config.pl
+
+\\
+     #DB configuration 
+     $conf{dbhost}='localhost';
+     $conf{dbname}='abills'; 
+     $conf{dblogin}='abills';
+     $conf{dbpasswd}='sqlpassword'; 
+     $conf{ADMIN_MAIL}='info@your.domain'; 
+     $conf{USERS_MAIL_DOMAIN}="your.domain";
+     $conf{secretkey}="test12345678901234567890"; 
+\\
+
+
+
+     server# vi /etc/crontab
+
+  \*/5  *      *    *      *   root   /usr/abills/libexec/billd -all
+  1     0      *    *     *   root    /usr/abills/libexec/periodic daily
+  1     0      *    *     *   root    /usr/abills/libexec/periodic monthly
+
+\\
+
+Change the permissions:\\
+
+     server# chown -Rf www /usr/abills/cgi-bin
+
+    Open the web interface http://your.host/abills/admin/
+
+
+Default user ''abills'' password ''abills ''\\
+
+
+First of all must fill the parameters for NAS server:
+\\
+**System configuration->NAS**\\
+
+**Parameters**
+^ IP                     | IP address NAS                        |
+^ Name                   | Name                                   |
+^ Radius NAS-Identifier  | NAS-Identifier (optional) |
+^ Describe               | Server decription                           |
+^ Type                   | Server type |
+^ Authorization          | Type of authorization. \\ **SYSTEM** (/etc/passwd) **SQL** -use \\ SQL database (MySQL, PosgreSQL) \\  |
+^ Alive                  | Alive period              |
+^ Disable                | Disable                                 |
+^ :Manage:               | NAS server management             |
+^ IP:PORT                | IP address and port to control connections |
+^ User                   | Username |
+^ Password               | Password                                      |
+^ RADIUS Parameters      | Further parameters for NAS after login.|
+
+
+Here you need to add ip address range **IP POOLs**.
+^ FIRST IP | First IP|
+^ COUNT    | Count IP |
+
+
+
+
+Create tariff plans:
+\\
+Menu:\\
+**System configuration->Dialup & VPN->Tarif Plans**\\
+
+
+Register a customer:
+\\
+**Customers->Users->Add**\\
+
+
+
+
+**Testing**\\
+  # radtest testuser testpassword 127.0.0.1:1812 0 radsecret 0 127.0.0.1
+
+See ‘/usr/abills/var/log/abills.log’ for more details (errors,messages) 
+\\
+
+  2005-02-23 12:55:55 LOG_INFO: AUTH [testuser] NAS: 1 (xxx.xxx.xxx.xxx) GT: 0.03799
+
+
+

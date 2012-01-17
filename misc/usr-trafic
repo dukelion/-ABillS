@@ -1,0 +1,71 @@
+#!/bin/sh
+# Sample for
+# USR Netserver 8/16
+#
+# Arguments 
+#
+# exacct_program ACCT_STATUS_TYPE NAS_IP_ADDRESS NAS_PORT NAS_TYPE
+#
+#  ACCT_STATUS_TYPE:
+#    0 - Start
+#    1 - Stop
+#    2 - alive
+
+
+if [ w$3 != w ] ; then 
+  NAS_IPADDR=$2
+else
+ echo "No input prams"
+ echo "exacct_program ACCT_STATUS_TYPE NAS_IP_ADDRESS NAS_PORT NAS_TYPE";
+ exit 0;
+fi;
+
+NAS_TYPE=$4;
+
+if [ w${NAS_TYPE} != w'usr' ]; then
+  exit 0;
+fi;
+
+
+STATUS=$1
+NAS_PORT_ID=$3;
+SNMP_COM='tstats';
+
+var_path='/usr/abills/var/devices/'
+SNMPWALK=/usr/local/bin/snmpwalk;
+
+
+
+#USR trafic taker
+         in_byte=`$SNMPWALK -v 1 -c ${SNMP_COM} ${NAS_IPADDR} interfaces.ifTable.ifEntry.ifInOctets.${NAS_PORT_ID} | awk '{print $4}'`
+         out_byte=`$SNMPWALK -v 1 -c ${SNMP_COM} ${NAS_IPADDR} interfaces.ifTable.ifEntry.ifOutOctets.${NAS_PORT_ID} | awk '{print $4}'`
+
+#  echo "- $STATUS -| $in_byte  | $out_byte |/usr/local/snmp/bin/snmpwalk -v 1 -c ${SNMP_COM} ${NAS_IPADDR} interfaces.ifTable.ifEntry.ifInOctets.${NAS_PORT_ID} | awk '{print \$4}'\n" >> /tmp/1;
+#Start
+if [ ${STATUS} = 0 ]; then
+  echo ${in_byte} > ${var_path}${NAS_IPADDR}-${NAS_PORT_ID}.In
+  echo ${out_byte} > ${var_path}${NAS_IPADDR}-${NAS_PORT_ID}.Out
+else
+#Stop
+  sin_byte=`cat ${var_path}${NAS_IPADDR}-${NAS_PORT_ID}.In`
+  sout_byte=`cat ${var_path}${NAS_IPADDR}-${NAS_PORT_ID}.Out`
+
+  if [ w = w${sin_byte}${in_byte}${out_byte}${sout_byte} ] ; then
+
+    exit
+
+  fi;
+
+
+#  ${in_byte}=${in_byte}+0;
+#  ${out_byte}=${out_byte}+0;
+#  ${sout_byte}=${sout_byte}+0; 
+
+ 
+  res_in=`expr '$in_byte+0' - '$sin_byte + 0'`;
+  res_out=`expr $out_byte - $sout_byte + 0`;
+  echo "INBYTE=$res_in OUTBYTE=$res_out"
+#  echo "INBYTE=$res_in OUTBYTE=$res_out\n\n" >> /tmp/1;
+fi;
+
+

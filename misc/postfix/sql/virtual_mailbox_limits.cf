@@ -1,0 +1,11 @@
+user = %dbuser%
+password = %dbpasswd%
+hosts = %dbhost%
+dbname = %dbname%
+query = SELECT box_size * 1048576 FROM mail_boxes mb, mail_domains md WHERE CONCAT(mb.username, '@', md.domain)='%s' and mb.domain_id=md.id and mb.status = '0'
+
+#For postxix < 2.2.x
+#table = mail_boxes
+#select_field = box_size
+#where_field = username
+

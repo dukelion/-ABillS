@@ -1,0 +1,27 @@
+$web_interface    = 1;
+
+%FUNCTIONS_LIST = (
+                   "1:0:Netlist:netlist_list:"            => 5,
+                   "2:1:$_GROUPS:netlist_groups:"         => 5,
+                   "3:1:$_LIST:netlist_list:"             => 5,
+                   "5:0:IP Calc:netlist_ip_calc:"         => 6,
+                   );
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+1

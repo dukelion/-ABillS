@@ -1,0 +1,16 @@
+:DEFAULT:RADIUS_AUTH_SERVER=127.0.0.1:Radius auth server ip
+:DEFAULT:RADIUS_AUTH_PORT=1812:Radius auth port
+:DEFAULT:RADIUS_ACCT_SERVER=127.0.0.1:Radius accounting ip
+:DEFAULT:RADIUS_ACCT_PORT=1813:Radius accounting port
+:DEFAULT:PPP_CONTROL_PASSWORD=secret:PPP control password 
+:PARAMS=PPPOE:#PPPoE\npppoed_enable="YES"\npppoed_flags="-l pppoe-in -P /var/run/pppoed.pid"\npppoed_interface="%PPPOE_INTERFACE%"  >> [/etc/]/rc.conf
+:PARAMS=PPPOE:
+touch /var/log/pppoed.log
+:PARAMS=PPPOE:exec:touch /var/log/pppoed.log
+:PARAMS=PPPOE:!pppoed\n*.*   /var/log/pppoed.log     >> [/etc]/syslog.conf 
+:PARAMS=PPPOE:exec:killall -1 syslogd
+ppp.conf           > [/etc/ppp]/ppp.conf
+ppp.linkup         > [/etc/ppp]/ppp.linkup
+ppp.linkdown       > [/etc/ppp]/ppp.linkdown
+radius.conf        > [/etc]/radius.conf
+exppp             >> [/usr/local/etc/raddb]/dictionary

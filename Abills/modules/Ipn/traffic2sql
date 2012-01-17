@@ -1,0 +1,565 @@
+#!/usr/bin/perl -w
+# PUSH traffic to sql
+# 
+#
+use vars  qw(%RAD %conf $db %AUTH $DATE $TIME $var_dir);
+use strict;
+
+
+if ($#ARGV < 1) {
+  print "ABillS IPN Traffic collector
+  traffic2sql [NAS_IDS] [Options]
+   NAS_IDS    - Ids of NAS servers 1,2,3 or 1-100
+ Options:
+   log        - Log file for trafd
+   INTERFACE  - Interface for trafd
+   flowdir    - Folder where stored flow-capture result files
+   debug      - Set debug mode (1,2)
+   DETAIL_ONLY- Make IP detalisation only
+   UNKNOWN_IP_LOG - Disabled unknown ip login
+   TCOLLECTOR - Total Collector mode. Collect all data to SQL without analysetion
+   AMON_ALIVE - Second for Amon Alive Alive interval (default value 120).
+   daemon     - Deamon mode
+
+
+   FLOW_CAT   - Flow tools flow-cat location
+   FLOW_PRINT - Flow tools flow-print location\n";
+  exit;
+}
+
+# Get nas servers is
+my $NAS_IDS=$ARGV[0];
+
+my $debug = 0;
+
+use FindBin '$Bin';
+require $Bin . '/config.pl';
+unshift(@INC, $Bin . '/../', $Bin . "/../Abills/$conf{dbtype}");
+require Abills::Base;
+Abills::Base->import();
+my $begin_time = check_time();
+
+require Abills::SQL;
+my $sql = Abills::SQL->connect($conf{dbtype}, $conf{dbhost}, $conf{dbname}, $conf{dbuser}, $conf{dbpasswd});
+my $db  = $sql->{db};
+
+my $ARGV = parse_arguments(\@ARGV);
+my $IF_NAME=($ARGV->{INTERFACE}) ? $ARGV->{INTERFACE} : '';
+
+
+if (defined($ARGV->{debug})) {
+	print "Debug mode on\n";
+	$debug=$ARGV->{debug};
+ }
+elsif(defined($ARGV->{help})){
+	print "Help:\n";
+}
+
+if ($ARGV->{UNKNOWN_IP_LOG}) {
+  $conf{UNKNOWN_IP_LOG}=1;	
+  print "UNKNOWN_IP_LOG=$conf{UNKNOWN_IP_LOG}\n" if ($debug > 0);
+ }
+if ($ARGV->{DETAIL_ONLY}) {
+  $conf{IPN_DETAIL}=1;	
+  print "DETAIL_ONLY=$conf{IPN_DETAIL}\n" if ($debug > 0);
+ }
+if ($ARGV->{TCOLLECTOR}) {
+  $conf{IPN_TCOLLECTOR}=1;	
+  print "TCOLLECTOR=$conf{IPN_TCOLLECTOR}\n" if ($debug > 0);
+ }
+if ($ARGV->{AMON_ALIVE}) {
+  $conf{IPN_AMON_ALIVE}=$ARGV->{AMON_ALIVE};	
+  print "AMON_ALIVE=$conf{IPN_AMON_ALIVE}\n" if ($debug > 0);
+}
+
+require Ipn_Collector;
+Ipn_Collector->import();
+my $Ipn = Ipn_Collector->new($db, \%conf);
+use POSIX qw(strftime);
+
+
+my $NAS_ID = 0;
+my $unknown_ip_log = $var_dir."log/ipn/unknown_ip.log";
+my $log = $var_dir."log/ipn/trafd_". $NAS_ID. "_" .$IF_NAME;
+
+if ($NAS_IDS eq '') {
+	print "You don't specify NAS ID\n";
+	exit;
+}
+
+$log = $ARGV->{log} if ($ARGV->{log});
+
+my $FLOW_CAT = $ARGV->{FLOW_CAT} || '/usr/local/bin/flow-cat';
+my $FLOW_PRINT = $ARGV->{FLOW_PRINT} || '/usr/local/bin/flow-print';
+
+$Ipn->{debug}=1 if ($debug > 2);
+$conf{MB_SIZE} = $conf{KBYTE_SIZE} * $conf{KBYTE_SIZE};
+
+
+
+
+my %PROTOCOLS = ('tcp'    => 1,
+                 'udp'    => 2);
+my $PROTOCOL = 0; #(defined($PROTOCOLS{$PROTOCOL})) ? $PROTOCOLS{$PROTOCOL} : 0;
+
+
+#Get users info from online log
+$Ipn->user_ips({ NAS_ID => $NAS_IDS });
+
+if (-f $log) {
+  get_collector_data($log);
+  processing();
+  my $status = unlink("$log");
+  exit;
+}
+
+
+# GEt information from flowtools
+#
+  my $flow_dir = ($ARGV->{flowdir}) ? $ARGV->{flowdir} : $var_dir."log/ipn/";
+  $unknown_ip_log = "$flow_dir/unknown_ip.log";
+
+  exit if(make_pid($flow_dir."/traffic2sql_pid.pid") == 1);
+
+  #Get flow tools files
+  opendir DIR, $flow_dir or die "Can't open dir '$flow_dir' $!\n";
+    my @contents = grep  /^ft*/, readdir DIR;
+  closedir DIR;
+
+  foreach $log (sort @contents) {
+    print "$flow_dir/$log\n" if ($debug > 0);
+    if("$log" =~ /ft-(\w+)\.(\d+)\-(\d+)\-(\d+)\.(\d{2})(\d{2})(\d{2})[\-|\+](\d+)/) {
+      my ($dev,$ino,$mode,$nlink,$uid,$gid,$rdev,$size,$atime,$mtime,$ctime,$blksize,$blocks)=stat("$flow_dir/$log");
+      my $start_date = "$2-$3-$4 $5:$6:$7";
+      my $end_date = strftime "%Y-%m-%d %H:%M:%S", localtime($mtime);
+      #print "Start: $start_date End: $end_date\n"; 
+ 
+      get_collector_data("$FLOW_CAT $flow_dir/$log | $FLOW_PRINT |", { START => $start_date });
+
+      if (! $ARGV->{DETAIL_ONLY}) {
+        processing({ START => $start_date,
+  	                 STOP  => $end_date });
+       }
+
+      # Delete log file
+      my $status = unlink("$flow_dir/$log");
+     }
+    else {
+       print "Unknow File name format\n";
+     }
+  }
+
+make_pid($flow_dir."/traffic2sql_pid.pid", 'clean');
+
+
+
+
+
+
+
+#**********************************************************
+# Processin by traffic
+#**********************************************************
+sub processing {
+ my ($attr) = @_;
+
+my $IN_ARRAY  = $Ipn->{IN};
+my $OUT_ARRAY = $Ipn->{OUT};
+
+my $unknow_ip = '';
+foreach my $line (@$IN_ARRAY) {
+  my($from, $to, $size)=split(/\//, $line, 3);
+  $unknow_ip .= sprintf("%15s -> %15s %10s\n", int2ip($from), int2ip($to), $size); 
+ }
+
+$Ipn->traffic_agregate_nets();
+my ($intervals, $tp_interval) = $Ipn->get_interval_params();
+
+require Acct;
+Acct->import();
+my $Acct = Acct->new($db, \%conf);
+
+my $ips           = $Ipn->{USERS_IPS};
+my $ips_interim   = $Ipn->{INTERIM};
+my $logins        = $Ipn->{USERS_INFO}->{LOGINS};
+my $tps           = $Ipn->{USERS_INFO}->{TPS};
+my $session_ids   = $Ipn->{SESSIONS_ID};
+my $interim_times = $Ipn->{INTERIM_TIME}; 
+
+my %RAD = ();
+my $registred = '';
+
+
+#foreach my $ip ( sort keys %$ips_interim) {
+foreach my $ip ( sort keys %$session_ids) {  
+  if ($ip == 0) {	next; }
+
+  my $uid           = $ips->{$ip};
+  my $login         = $logins->{$uid};
+  my $tariif_plan   = $tps->{$uid} || 0;
+  my $session_id    = $session_ids->{$ip};
+  my $ip_stats      = $Ipn->{INTERIM}{$ip};
+  my $interium_time = $interim_times->{$session_id};	
+
+  my $total_in      = 0; 
+  my $total_out     = 0;
+  my $extended      = '';
+  my $total_user_sum = 0;
+
+  # Get interval ID
+  my $user_tp_interval  = (defined($tp_interval->{ $tariif_plan })) ? $tp_interval->{ $tariif_plan } : 0;
+
+  #Time tariffication
+  if ( $intervals->{$user_tp_interval}->{TIME_TARIFF} ) {
+    my $time_tariff = $intervals->{$user_tp_interval}->{TIME_TARIFF};
+    $total_user_sum = ($time_tariff > 0) ? $interium_time / 60 / 60 * $time_tariff  : 0;
+
+     $extended .= sprintf("Time| Price:%5s %d=%f\n", 
+       $time_tariff,
+       $interium_time,
+       $total_user_sum
+      );
+   }
+ 
+  my $ip_addr = int2ip($ip);
+
+#parse  traffic stats
+if ($Ipn->{INTERIM}{$ip}) {
+  # Traffic type, traffic count
+  while(my($k, $v)=each %$ip_stats) {
+     my $in = (defined($v->{IN})) ? int($v->{IN}) : 0;
+     my $out = (defined($v->{OUT})) ? int($v->{OUT}) : 0;
+      
+     $total_in += $in;
+     $total_out += $out;
+      
+      
+     my $sum_in  = 0;
+     my $sum_out = 0;
+     #Get price and calculate traffic
+     my $OCTETS_DIRECTION = $Ipn->{$ip}{OCTET_DIRECTION};
+     my $price_in =  ( defined($intervals->{$user_tp_interval}->{ZONES}->{$k}->{PriceIn}) ) ? $intervals->{$user_tp_interval}->{ZONES}->{$k}->{PriceIn} : 0;
+     my $price_out = ( defined($intervals->{$user_tp_interval}->{ZONES}->{$k}->{PriceOut}) ) ? $intervals->{$user_tp_interval}->{ZONES}->{$k}->{PriceOut} : 0;
+
+     # Work with prepaid traffic
+     if ( defined($intervals->{$user_tp_interval}->{ZONES}->{$k}->{PREPAID_TSUM}) ) {
+     	  my($used_traffic) = $Ipn->traffic_user_get({ UID  => $uid   });
+        my $online  = 0;
+
+        if($OCTETS_DIRECTION == 1) {
+          $used_traffic->{$k}{TRAFFIC_SUM}=($used_traffic->{$k}{TRAFFIC_IN}) ? $used_traffic->{$k}{TRAFFIC_IN} : 0;
+          $online = $in;
+         }
+        #Sent / Out
+        elsif($OCTETS_DIRECTION == 2) {
+   	      $used_traffic->{$k}{TRAFFIC_SUM}=($used_traffic->{$k}{TRAFFIC_OUT}) ? $used_traffic->{$k}{TRAFFIC_OUT} : 0;
+   	      $online = $out;
+         }
+        else {
+          $used_traffic->{$k}{TRAFFIC_SUM}=($used_traffic->{$k}{TRAFFIC_IN}) ? $used_traffic->{$k}{TRAFFIC_OUT} + $used_traffic->{$k}{TRAFFIC_IN} : 0;
+          $online =  ($in + $out);
+         } 
+
+     	  my $prepaid = $intervals->{$user_tp_interval}->{ZONES}->{$k}->{PREPAID_TSUM};
+     	  if ($debug > 1) {
+          print "Prepaid traffic: $prepaid CLASS: $k USED: $used_traffic->{$k}{TRAFFIC_SUM}\n";
+        }
+
+# print "$used_traffic->{$k}{TRAFFIC_OUT} + $used_traffic->{$k}{TRAFFIC_IN} + ($in + $out) / $conf{MB_SIZE}\n";
+# print $OCTETS_DIRECTION."\n";
+# print "$used_traffic->{$k}{TRAFFIC_SUM} < $prepaid\n";
+        if ($used_traffic->{$k}{TRAFFIC_SUM} < $prepaid) {
+           $price_in = 0;
+           $price_out = 0;
+         }
+        elsif ($used_traffic->{$k}{TRAFFIC_SUM} + $online / $conf{MB_SIZE} > $prepaid 
+            && $used_traffic->{$k}{TRAFFIC_SUM} < $prepaid) {
+          my $not_prepaid = ($used_traffic->{$k}{TRAFFIC_SUM} * $conf{MB_SIZE} + $online ) - $prepaid * $conf{MB_SIZE};
+    
+          my $sent = ($OCTETS_DIRECTION == 2) ?  $not_prepaid : $not_prepaid / 2;
+          my $recv = ($OCTETS_DIRECTION == 1) ?  $not_prepaid : $not_prepaid / 2;
+
+          $sum_in    = $recv / $conf{MB_SIZE} * $price_in if ($price_in > 0); 
+          $sum_out   = $sent / $conf{MB_SIZE} * $price_out if ($price_out > 0);
+          $price_in  = 0;
+          $price_out = 0;
+         }
+        #exit;
+      }
+
+     
+     $sum_in = $in / $conf{MB_SIZE} * $price_in if ($price_in > 0); 
+     $sum_out = $out / $conf{MB_SIZE} * $price_out if ($price_out > 0);
+
+     my $traf_class_sum = $sum_in + $sum_out;
+     $total_user_sum += $traf_class_sum ;
+     
+     
+     
+      if ($uid > 0) {
+   	    $Ipn->traffic_add_user( {
+   	        START					 => $attr->{START} || undef,
+   	        STOP					 => $attr->{STOP} || undef,
+   	        UID            => "$uid",
+            TARFFIC_CLASS  => $k,
+            INBYTE         => "$in",
+            OUTBYTE        => "$out",
+            NAS_ID         => $Ipn->{$ip}{NAS_ID},
+            IP						 => $ip,
+            INTERVAL       => $user_tp_interval,
+            SESSION_ID     => $session_id,    
+            SUM						 => $traf_class_sum
+   	      } );
+      }
+
+
+     
+     $extended .= sprintf("   %d| %10s| %10s| Price:%5s%5s = %f/%f=%f\n", $k, $in, $out, 
+       $price_in,
+       $price_out,
+       $sum_in,
+       $sum_out,
+       $traf_class_sum
+       );
+   }
+ }
+#If user Don't have interium traffic
+elsif($total_user_sum > 0 && $uid > 0) {
+#  $Ipn->traffic_add_user( {
+#   	        START					 => $attr->{START} || undef,
+#   	        STOP					 => $attr->{STOP} || undef,
+#   	        UID            => "$uid",
+#            TARFFIC_CLASS  => 0,
+#            INBYTE         => 0,
+#            OUTBYTE        => 0,
+#            NAS_ID         => $Ipn->{$ip}{NAS_ID},
+#            IP						 => $ip,
+#            INTERVAL       => $user_tp_interval,
+#            SESSION_ID     => $session_id,    
+#            SUM						 => $total_user_sum
+#   	      } );
+}
+
+  #Put user date to database  
+  if ($uid > 0) {
+    $Ipn->{$ip}{IN}  = $Ipn->{$ip}{IN} + $total_in;
+    $Ipn->{$ip}{OUT} = $Ipn->{$ip}{OUT}+ $total_out;
+
+    %RAD = (  NAS_PORT          => 0,
+   	          INBYTE            => $Ipn->{$ip}{IN},
+   	          OUTBYTE           => $Ipn->{$ip}{OUT},
+   	          INBYTE2           => 0,
+   	          OUTBYTE2          => 0,
+              FRAMED_IP_ADDRESS => $ip_addr,
+              USER_NAME         => $login,
+              ACCT_SESSION_ID   => $session_id,
+              ACCT_SESSION_TIME => 0,
+              ACCT_STATUS_TYPE  => 'Alive'
+            );
+
+
+    if ($Ipn->{INTERIM}{$ip}) {
+      #Make accounting
+      $Acct->{SUM}=$total_user_sum;
+      my $r = $Acct->accounting(\%RAD, { NAS_ID       => $Ipn->{$ip}{NAS_ID}, 
+    	                                   NAS_TYPE     => 'other',
+    	                                   NAS_EXT_ACCT => 1 
+    	                                });
+     }
+
+    #Hangup users with negative deposit
+    if (! $Ipn->{USERS_INFO}->{PAYMENT_TYPE}->{$uid} && 
+           defined($Ipn->{USERS_INFO}->{DEPOSIT}->{$uid}) && 
+            $Ipn->{USERS_INFO}->{DEPOSIT}->{$uid} < 0)  {
+         my @ip_array = split(/\./, $ip_addr, 4);
+         my $rule_num = $conf{IPN_FW_FIRST_RULE} + $ip_array[3];
+
+         print "$DATE $TIME Hangup UID: $uid DEPOSIT: $Ipn->{USERS_INFO}->{DEPOSIT}->{$uid}\n" if ($debug>0);
+         my $netmask = 32;
+
+         my $cmd = $conf{IPN_FW_STOP_RULE};
+         $cmd =~ s/\%IP/$ip_addr/g;
+         $cmd =~ s/\%NUM/$rule_num/g;
+         $cmd =~ s/\%MASK/$netmask/g;
+
+         print "$cmd" if ($debug>0); 
+         system("$cmd");
+         $Ipn->acct_stop({ SESSION_ID           => $session_id,
+         	                 ACCT_TERMINATE_CAUSE => 10 });
+     }
+    #AMon 
+    elsif($conf{IPN_AMON_ALIVE} && $Ipn->{CONNECT_INFO}{$session_id} && $Ipn->{CONNECT_INFO}{$session_id} =~ /^(\d{10}):\S+$/) {
+    	my $connect_update = $1;
+    	my $cut_time = time();
+    	my $last_alive = $cut_time - $connect_update;
+    	if ($last_alive > $conf{IPN_AMON_ALIVE} * 3) {
+        my @ip_array = split(/\./, $ip_addr, 4);
+        my $rule_num = $conf{IPN_FW_FIRST_RULE} + $ip_array[3];
+    		print "$DATE $TIME Hangup AMON ALIVE: $last_alive UID: $uid DEPOSIT: $Ipn->{USERS_INFO}->{DEPOSIT}->{$uid}\n" if ($debug > 0);
+
+        my $netmask = 32;
+
+        my $cmd = $conf{IPN_FW_STOP_RULE};
+        $cmd =~ s/\%IP/$ip_addr/g;
+        $cmd =~ s/\%NUM/$rule_num/g;
+        $cmd =~ s/\%MASK/$netmask/g;
+
+        print "$cmd" if ($debug>0); 
+        system("$cmd");
+        $Ipn->acct_stop({ SESSION_ID           => $session_id,
+         	                ACCT_TERMINATE_CAUSE => 10 });
+    	 }
+     }
+   }
+  
+  $registred .= sprintf("%6s| %14s| %10s| %10s| %10s| %10s| %5s|\n%s", 
+       $uid, 
+       $RAD{FRAMED_IP_ADDRESS}, 
+       $RAD{INBYTE},  $RAD{OUTBYTE}, 
+       $total_in, $total_out, 
+       $interium_time, 
+       $extended
+     ) if ($debug > 0);
+  
+}
+
+if ($debug > 0) {
+	my $GT = '';
+
+	if ($begin_time > 0) {
+    Time::HiRes->import(qw(gettimeofday));
+    my $end_time = gettimeofday();
+    my $gen_time = $end_time - $begin_time;
+    $GT = sprintf(" GT: %2.5f", $gen_time);
+   }
+
+	print "$unknow_ip$registred$GT/Query: $Ipn->{query_count}/ Stats Rows: $Ipn->{TRAFFIC_ROWS} Unknown: $Ipn->{UNKNOWN_TRAFFIC_ROWS}\n";
+	print " Unknown: $#{$Ipn->{IN}}/$Ipn->{INTERIM}{0}{OUT}" if ($Ipn->{IN});
+	print "\n";
+}
+elsif($unknow_ip ne '') {
+  open(FILE, ">>$unknown_ip_log") or die "Can't open '$unknown_ip_log' $!";
+    print FILE ">> $DATE $TIME\n";
+    print FILE $unknow_ip;
+  close(FILE);
+}
+
+
+
+#$Ipn->traffic_agregate_clean();
+}
+
+
+
+
+#**********************************************************
+# Get data from collectors
+#**********************************************************
+sub get_collector_data {
+ my ($log, $attr) = @_;
+ 
+print "$log\n" if ($debug > 1);
+
+$Ipn->traffic_agregate_clean();
+my %DATA=();
+
+open( LOG, $log ) || die "Can't open log file '$log' $!\n";
+
+while( <LOG> ) {
+  #Ipcad log analize
+  if (/ (\d+)\.(\d+)\.(\d+)\.(\d+)[ |\t]+(\d+)\.(\d+)\.(\d+)\.(\d+)[ |\t]+(\d+)[ |\t]+(\d+)[ |\t]+(\d+)[ |\t]+(\d+)[ |\t]+(\d+)[ |\t]+(\S+)/) {
+  	#print "-$1.$2.$3.$4 $5.$6.$7.$8 Pkg: $9 Byte: $10 Port: $11 / $12 Proto: $13 > $14\n";
+		( $DATA{SRC_IP}, $DATA{SRC_PORT} ) = ( 16777216 * $1 + 65536 * $2 + 256 * $3 + $4, $11 );
+		( $DATA{DST_IP}, $DATA{DST_PORT} ) = ( 16777216 * $5 + 65536 * $6 + 256 * $7 + $8, $12 ); 
+  	$DATA{SIZE} = $10;
+    $DATA{PROTOCOL}=0;
+		$DATA{SRC_PORT} = 0 if ( $DATA{SRC_PORT} !~ /^\d+$/ );
+		$DATA{DST_PORT} = 0 if ( $DATA{DST_PORT} !~ /^\d+$/ );
+		#$DATA{NAS_ID}=$NAS_ID;
+		if ($14) {
+			$DATA{IF_NAME}=$14;
+		 }
+    $Ipn->traffic_agregate_users({ %DATA });
+   }
+  # flow-capture
+ 	elsif ( /(\d+)\.(\d+)\.(\d+)\.(\d+)\s+(\d+)\.(\d+)\.(\d+)\.(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)/ ){
+  	#print "-$1.$2.$3.$4 $5.$6.$7.$8 $9 $10 $11 $12\n";
+		( $DATA{SRC_IP}, $DATA{SRC_PORT} ) = ( 16777216 * $1 + 65536 * $2 + 256 * $3 + $4, $10 );
+		( $DATA{DST_IP}, $DATA{DST_PORT} ) = ( 16777216 * $5 + 65536 * $6 + 256 * $7 + $8, $11 ); 
+
+  	$DATA{SIZE} = $12;
+    $DATA{PROTOCOL}=0; #$9
+		$DATA{SRC_PORT} = 0 if ( $DATA{SRC_PORT} !~ /^\d+$/ );
+		$DATA{DST_PORT} = 0 if ( $DATA{DST_PORT} !~ /^\d+$/ );
+		#$DATA{NAS_ID}=$NAS_ID;
+		$DATA{IF_NAME}='0';
+    $Ipn->traffic_agregate_users({ %DATA });
+ 	 }
+ 	#trafdlog analize
+ 	elsif ( /^(\d+)\.(\d+)\.(\d+)\.(\d+)\s+([^\s]+)\s+(\d+)\.(\d+)\.(\d+)\.(\d+)\s+([^\s]+)\s+[a-z]+\s+\d+\s+(\d+)/ ){
+		( $DATA{SRC_IP}, $DATA{SRC_PORT} ) = ( 16777216 * $1 + 65536 * $2 + 256 * $3 + $4, $5 );
+		( $DATA{DST_IP}, $DATA{DST_PORT} ) = ( 16777216 * $6 + 65536 * $7 + 256 * $8 + $9, $10 ); 
+  	$DATA{SIZE} = $11;
+	  $DATA{PROTOCOL}=0;
+		$DATA{SRC_PORT} = 0 if ( $DATA{SRC_PORT} !~ /^\d+$/ );
+		$DATA{DST_PORT} = 0 if ( $DATA{DST_PORT} !~ /^\d+$/ );
+		#$DATA{NAS_ID}=$NAS_ID;
+		$DATA{IF_NAME}='0';
+
+    $Ipn->traffic_agregate_users({ %DATA });
+	}
+}
+close(LOG);
+}
+
+
+#**********************************************************
+# Check running program
+#**********************************************************
+sub make_pid {
+  my ($pid_file, $attr) = @_;
+  
+  if ($attr && $attr eq 'clean') {
+  	unlink($pid_file);
+  	return 0;
+   }
+  
+  if (-f $pid_file) {
+  	open(PIDFILE, "$pid_file") || die "Can't open pid file '$pid_file' $!\n";
+  	  my @pids = <PIDFILE>;
+  	close(PIDFILE);
+    
+    my $pid = $pids[0];
+    if(verify($pid)) {
+     	print "Proccess running PID: $pid\n";
+   	  return 1;
+     }
+   }
+  
+  my $traffic2sql_pid = $$;  
+	open(PIDFILE, ">$pid_file") || die "Can't open pid file '$pid_file' $!\n";
+	  print PIDFILE $traffic2sql_pid;
+	close(PIDFILE);    
+  
+  return 0;
+}
+
+#**********************************************************
+# Check running program
+#**********************************************************
+sub verify {
+    my ($pid) = @_;
+
+    my $me = $$;  # = $self->{verify};
+
+    my @ps = split m|$/|, qx/ps -fp $pid/
+           || die "ps utility not available: $!";
+    s/^\s+// for @ps;   # leading spaces confuse us
+
+    no warnings;    # hate that deprecated @_ thing
+    my $n = split(/\s+/, $ps[0]);
+    @ps = split /\s+/, $ps[1], $n;
+
+    return ($ps[0]) ? 1 : 0;
+}
+

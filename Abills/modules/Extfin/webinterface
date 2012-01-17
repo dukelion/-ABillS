@@ -1,0 +1,173 @@
+# Integration with external financial programs
+# 1C
+
+
+use Extfin;
+my $Extfin = Extfin->new($db, $admin, \%conf);
+
+
+
+
+#**********************************************************
+# docs_invoice_add
+# Order array format
+# NAME|UNIT|COUNT|PRICE
+#**********************************************************
+# Contragents
+# Nachisleniya
+# Snyatiya
+sub exfin_export_customers {
+	my ($attr) = @_;
+  
+  my $aaa = `echo "1C - $ENV{HTTP_USER_AGENT}" >> /tmp/user_agent`;
+  
+  $Extfin->{ACTION}='get';
+  $Extfin->{ACTION_LNG}=$_GET;
+  
+#  $Extfin->{debug}=1;
+  
+  my ($Y, $M, $D)=split(/-/, $DATE);
+  $FORM{MONTH}="$Y-$M" if (! $FORM{MONTH});
+  
+  if ($FORM{xml}) {
+    print "Content-Type: text/xml\n\n";
+    print "<?xml version=\"1.0\"  encoding=\"windows-1251\" ?>\n";
+   }
+  elsif($FORM{qindex}) {
+    print "Content-Type: text/html\n\n";
+   }
+ 
+  if ($FORM{TYPE} && $FORM{TYPE} eq 'CUSTOMERS') {
+    $LIST_PARAMS{PAGE_ROWS} = 100000;
+    $LIST_PARAMS{PG}        = $FORM{PG} || 0;
+
+    my $list = $Extfin->customers_list({ %LIST_PARAMS });
+    my $table = $html->table( { width      => '100%',
+                                caption    => "$_USERS",
+                                title      => ['ID', $_NAME, $_FIO, "$_GROUP ID", "$_GROUP", $_TYPE, $_ADDRESS, 
+                                  $_PHONE, $_CONTRACT_ID, 'BILL ID', "BANK ACCOUNT", 'BANK NAME', 'COR ACCT' ],
+                                ID         => 'EXTFIN_CUSTOMERS'
+                           });
+
+
+
+    foreach my $line ( @$list ) {
+      # Group, Kod, Наименование, Вид контрагента, Полное наименование, Юредический адрес, Почтовый адрес, 
+      # номер телефона, ИНН, основной договор, основной счёт, 
+    	$table->addrow($line->[0],
+    	 $line->[1],
+    	 $line->[2],
+    	 $line->[3],
+    	 $line->[4],
+    	 $line->[5],
+    	 $line->[6],
+    	 $line->[7],
+    	 $line->[8],
+    	 $line->[9],
+    	 $line->[10],
+    	 $line->[11],
+    	 $line->[12]
+    	 );
+     }
+
+     print $table->show();
+     
+     
+     return 0;
+   }
+  elsif ($FORM{TYPE} && $FORM{TYPE} eq 'PAYMENT_DEED') {
+    
+    if ($FORM{PERIOD} && $FORM{PERIOD} =~ /(\d{2})\.(\d{2})\.(\d{4})\-(\d{2})\.(\d{2})\.(\d{4})/) {
+      $LIST_PARAMS{DATE_FROM}="$3-$2-$1";
+    	$LIST_PARAMS{DATE_TO}="$6-$5-$4";
+     }
+    elsif ($FORM{FROM_Y}) {
+        $FORM{FROM_M} = sprintf("%.2d", $FORM{FROM_M}+1);
+        $FORM{TO_M}   = sprintf("%.2d", $FORM{TO_M}+1);
+        $LIST_PARAMS{DATE_FROM}="$FORM{FROM_Y}-$FORM{FROM_M}-$FORM{FROM_D}";
+        $LIST_PARAMS{DATE_TO}="$FORM{TO_Y}-$FORM{TO_M}-$FORM{TO_D}";
+     }
+    else {
+      $LIST_PARAMS{MONTH}=$FORM{MONTH};
+     }
+    
+    #$Extfin->{debug}=1;
+    
+    my $self = $Extfin->payment_deed({ %LIST_PARAMS });
+
+    my $table = $html->table({ width      => '100%',
+                               caption    => "PAYMENT_DEED $_DATE: $LIST_PARAMS{DATE_FROM}/$LIST_PARAMS{DATE_TO}",
+                               title      => ['ID', $_NAME, $_TYPE, "$_SUM", "$_VAT", "$_TOTAL" ],
+                               ID         => 'EXTFIN_PAYMENT_DEED',
+                               cols_align => ['right', 'left', 'left', 'left', 'right', 'center'],
+                             });
+
+
+
+
+    foreach my $id ( keys %{ $Extfin->{PAYMENT_DEED} } ) {
+      my($name, $type, $vat)=split(/\|/, $Extfin->{NAMES}{$id});
+      my $total = $Extfin->{PAYMENT_DEED}{$id} + $Extfin->{PAYMENT_DEED}{$id} * ($vat / 100);
+      $table->addrow($id,
+       $name,
+       $type,
+       $Extfin->{PAYMENT_DEED}{$id},
+       $vat,
+       $total
+      );
+     }
+
+    print $table->show();
+    return 0;
+   }
+  elsif ($FORM{get}) {
+    print "Content-Type: text/plain\n\n";
+    my $list = $Extfin->customers_list({ %LIST_PARAMS });
+    my $output = '';
+    foreach my $line (@$list) {
+      # Group, Kod, Наименование, Вид контрагента, Полное наименование, Юредический адрес, Почтовый адрес, 
+      # номер телефона, ИНН, основной договор, основной счёт, 
+    	$output .= "$line->[0]|-|$line->[1]|$line->[2]|$line->[3]|$line->[4]|$line->[5]|$line->[6]|$line->[7]|".
+    	 "$line->[8]|$line->[9]|$line->[10]|\n";
+     }
+
+  	print $output;
+
+  	return 0;
+   }
+  
+  $Extfin->{TYPE_SEL} = $html->form_select('TYPE', 
+                                    { 
+ 	                                   SELECTED    => $FORM{TYPE},
+ 	                                   SEL_HASH    => { CUSTOMERS    => $_USERS,
+ 	                                   	                PAYMENT_DEED => $_PAYMENT_DEED
+ 	                                   	               },
+                                     NO_ID       => 1
+ 	                                  });
+  
+  my @monthes = ();
+  for(my $i=1; $i<13; $i++) {
+  	push @monthes, sprintf("%d-%02d", $Y, $i);
+   }
+  
+  $Extfin->{DATE_SEL} = $html->form_select('MONTH', 
+                                    { 
+ 	                                   SELECTED    => $FORM{MONTH},
+ 	                                   SEL_ARRAY   => \@monthes,
+                                     NO_ID       => 1
+ 	                                  });
+  
+  
+  $Extfin->{DATE_FROM}=$html->date_fld('FROM_', { MONTHES => \@MONTHES} );
+  $Extfin->{DATE_TO}=$html->date_fld('TO_', { MONTHES => \@MONTHES } );
+  
+  $html->tpl_show(_include('extfin_export_customers', 'Extfin'), $Extfin);
+}
+
+
+
+
+
+
+1
+
