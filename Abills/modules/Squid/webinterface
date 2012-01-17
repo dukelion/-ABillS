@@ -1,7 +1,7 @@
-#!/usr/bin/perl
-# Squid
+# Squid monitor
 
-
+use Log;
+$Log         = Log->new($db, \%conf);
 require "Abills/nas.pl";
 use Abills::Base;
 use Socket;
@@ -65,6 +65,7 @@ print $html->form_main({ CONTENT => $table->show(),
      }
     else {
       foreach my $client (@rows) {
+         next if $client=~/cache_object\:\/\//;
       	 my @client_infO_array = split(/\n/, $client);
 
       	 my %info_hash = ();

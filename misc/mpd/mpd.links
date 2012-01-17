@@ -1,36 +1,4 @@
-pptp0:
-  set link type pptp
+#ABillS %DATE% %TIME%
 
-pptp1:
-  set link type pptp
-
-pptp2:
-  set link type pptp
-
-pptp3:
-  set link type pptp
-
-pptp4:
-  set link type pptp
-
-pptp5:
-  set link type pptp
-
-
-#Links for L2TP
-l2tp0:
-   set link type l2tp
-
-l2tp1:
-  set link type l2tp
-
-l2tp2:
-  set link type l2tp
-
-l2tp3:
-  set link type l2tp
-
-l2tp4:
-  set link type l2tp
-
+%IF_LINKS%
 

@@ -12,7 +12,7 @@
 # See the file 'Changes' in the distrution archive.                         #
 #                                                                           #
 #############################################################################
-# 	$Id: Radius.pm,v 1.2 2007/11/15 09:29:37 abills Exp $
+# 	$Id: Radius.pm,v 1.2.2.2 2008/10/25 11:55:06 abills Exp $
 
 
 package Radius;
@@ -29,7 +29,7 @@ require Exporter;
 
 @ISA = qw(Exporter);
 @EXPORT = qw(ACCESS_REQUEST ACCESS_ACCEPT ACCESS_REJECT
-			 ACCOUNTING_REQUEST ACCOUNTING_RESPONSE ACCOUNTING_STATUS);
+			 ACCOUNTING_REQUEST ACCOUNTING_RESPONSE ACCOUNTING_STATUS POD_REQUEST COA_REQUEST);
 $VERSION = '0.12';
 
 my (%dict_id, %dict_name, %dict_val, %dict_vendor_id, %dict_vendor_name );
@@ -52,6 +52,8 @@ use constant ACCESS_REJECT                => 3;
 use constant ACCOUNTING_REQUEST           => 4;
 use constant ACCOUNTING_RESPONSE          => 5;
 use constant ACCOUNTING_STATUS            => 6;
+use constant POD_REQUEST                  => 40;
+use constant COA_REQUEST                  => 43;
 
 sub new {
 	my $class = shift;
@@ -102,7 +104,7 @@ sub send_packet {
 	my $length = 20 + length($self->{'attributes'});
 
 	$self->set_error;
-	if ($type == ACCOUNTING_REQUEST) {
+        if (($type == ACCOUNTING_REQUEST) || ($type == POD_REQUEST) || ($type == COA_REQUEST)) {
 	  $self->{'authenticator'} = "\0" x 16;
 	  $self->{'authenticator'} =
 	    $self->calc_authenticator($type, $request_id, $length)

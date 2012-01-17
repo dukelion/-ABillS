@@ -43,7 +43,7 @@ use Help;
 use Abills::Base;
 
 my $html = Abills::HTML->new();
-my $sql = Abills::SQL->connect($conf{dbtype}, $conf{dbhost}, $conf{dbname}, $conf{dbuser}, $conf{dbpasswd});
+my $sql = Abills::SQL->connect($conf{dbtype}, $conf{dbhost}, $conf{dbname}, $conf{dbuser}, $conf{dbpasswd}, { CHARSET => ($conf{dbcharset}) ? $conf{dbcharset} : undef  });
 my $db = $sql->{db};
 require "../../language/$html->{language}.pl";
 print $html->header({ 
@@ -80,7 +80,7 @@ if (defined($FORM{FUNCTION})){
   if($Help->{TOTAL}>0) {
     $Help->{HELP2}=$Help->{HELP};
     $Help->{HELP}=convert($Help->{HELP}, { text2html => 1 });
-    $html->tpl_show(templates('help_info'), $Help);
+    $html->tpl_show(templates('form_help_info'), $Help);
   	$Help->{ACTION}='change';
   	$Help->{LNG_ACTION}=$_CHANGE;
 
@@ -95,7 +95,7 @@ if (defined($FORM{FUNCTION})){
 
 if ($conf{HELP_EDIT}) {
   $Help->{HELP}=$Help->{HELP2};
-  $html->tpl_show(templates('help_form'), $Help);
+  $html->tpl_show(templates('form_help'), $Help);
 }
 
 

@@ -1,0 +1,5 @@
+abon_alert.tpl:russian:сообщение о невозможности продлить сервис изза недостаточности средств на счету
+abon_notification1.tpl:russian:Сообщение о необходимости продлить сервис 1
+abon_notification2.tpl:russian:Сообщение о необходимости продлить сервис 2
+abon_notification3.tpl:russian:Сообщение о продлении сервиса
+abon_tp.tpl:russian:Форма заведения тарифного плана

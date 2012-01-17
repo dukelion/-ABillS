@@ -1,18 +1,78 @@
-#/usr/bin/perl
 # Voip web functions
+
+
 
 use Voip;
 use Voip_Sessions;
+use Nas;
+use Log;
+use Fees;
+use Tariffs;
 
-my $Voip = Voip->new($db, $admin, \%conf);
+my $Voip     = Voip->new($db, $admin, \%conf);
 my $sessions = Voip_Sessions->new($db, \%conf);
+my $fees     = Fees->new($db, $admin, \%conf);
+my $tariffs  = Tariffs->new($db, \%conf, $admin);
 
 
-my $MODULE = (defined($module{$index})) ? $module{$index} : 'Voip';
+my $Nas      = Nas->new($db, \%conf);
+$Log         = Log->new($db, \%conf);
 
 
+my $MODULE = ($module{$index}) ? $module{$index} : 'Voip';
 my $debug = 0;
 
+
+my @service_status_colors = ("$_COLORS[9]", "$_COLORS[6]", '#808080', '#0000FF', '#FF8000', '#009999');
+my @service_status = ( "$_ENABLE", "$_DISABLE", "$_ALLOW_ANSWER", "$_DISABLE: $_NON_PAYMENT");
+
+
+
+$conf{VOIP_ASTERISK_USERS}='' if (! $conf{VOIP_ASTERISK_USERS});
+
+=comments
+h323-disconnect-cause for CISCO of Radius Server
+In case of CISCO router, from the Radius server h323-disconnect-cause with code is returned. Like h323-disconnect-cause=4 or h323-disconnect-cause=7. In the following mini dictionary disconnect cause along description corresponding code is shown which will help instantly to identify disconnect issue if we find any code.
+
+          
+           Local-Clear                    0
+           Local-No-Accept                1
+           Local-Decline                  2
+           Remote-Clear                   3
+           Remote-Refuse                  4
+           Remote-No-Answer               5
+           Remote-Caller-Abort            6
+           Transport-Error                7
+           Transport-Connect-Fail         8
+           Gatekeeper-Clear               9
+           Fail-No-User                   10
+           Fail-No-Bandwidth              11
+           No-Common-Capabilities         12
+           FACILITY-Forward               13
+           Fail-Security-Check            14
+           Local-Busy                     15
+           Local-Congestion               16
+           Remote-Busy                    17
+           Remote-Congestion              18
+           Remote-Unreachable             19
+           Remote-No-Endpoint             20
+           Remote-Off-Line                21
+           Remote-Temporary-Error         22
+=cut
+
+
+#*******************************************************************
+# Delete user from module
+# voip_user_del()
+#*******************************************************************
+sub voip_user_del {
+ my ($uid, $attr) = @_;
+
+ $Voip->{UID}=$uid;
+ $Voip->user_del({ UID => $uid });
+
+ return 0;
+}
 
 
 #*******************************************************************
@@ -24,8 +84,8 @@ sub voip_chg_tp {
 
  my $user;
 
- if(defined($attr->{USER})) {
-   $user = $attr->{USER};
+ if(defined($attr->{USER_INFO})) {
+   $user = $attr->{USER_INFO};
    $user = $Voip->user_info($user->{UID});
    if($user->{TOTAL} < 1) {
  	   $html->message('info', $_INFO, $_NOT_ACTIVE);
@@ -77,7 +137,7 @@ if ($FORM{set}) {
 
   }
 }
-elsif($FORM{del}) {
+elsif($FORM{del} && $FORM{is_js_confirmed}) {
   $shedule->del( { UID => $user->{UID},
    	               ID  => $FORM{SHEDULE_ID}  } 
    	            );
@@ -113,10 +173,11 @@ my $tariffs;
  else {
    $tariffs->{TARIF_PLAN_SEL}=$html->form_select('TP_ID', 
                                           { 
- 	                                          SELECTED  => $user->{TP_ID},
+ 	                                          SELECTED          => $user->{TP_ID},
  	                                          SEL_MULTI_ARRAY   => $Voip->tp_list(),
- 	                                          MULTI_ARRAY_KEY   => 0,
- 	                                          MULTI_ARRAY_VALUE => 1,
+ 	                                          MULTI_ARRAY_KEY   => 8,
+ 	                                          MULTI_ARRAY_VALUE => '0,1',
+ 	                                          NO_ID             => 1
  	                                        });
 
    $tariffs->{PARAMS} .= form_period($period);	
@@ -126,16 +187,14 @@ my $tariffs;
 
  
 
-my $tp_index = $index + 4;
+my $tp_index = get_function_index('voip_tp');
 
-$tariffs->{UID}=$attr->{USER}->{UID};
-$tariffs->{m}=$m;
-$tariffs->{TP_ID} = $user->{TP_ID};
-$tariffs->{TP_NAME} = "$user->{TP_ID}:$user->{TP_NAME} [". $html->button("$_TARIF_PLANS", "index=$tp_index&TP_ID=$user->{TP_ID}", { TITLE => "$_TP" } ). "]";
+$tariffs->{UID}     = $attr->{USER_INFO}->{UID};
+$tariffs->{m}       = $m;
+$tariffs->{TP_ID}   = $user->{TP_NUM};
+$tariffs->{TP_NAME} = "$user->{TP_ID}:$user->{TP_NAME} ". $html->button("$_TARIF_PLANS", "index=$tp_index&TP_ID=$user->{TP_ID}", { TITLE => "$_TP", CLASS => 'show rightAlignText' } ). "";
 
-
-print $html->tpl_show(templates('chg_tp'), $tariffs);
-
+print $html->tpl_show(templates('form_chg_tp'), $tariffs);
 }
 
 
@@ -175,48 +234,65 @@ sub voip_users_list {
   } 
 
 
-#use Users;
-#my $users = Users->new($db, $admin, \%conf); 
+my $list  = $Voip->user_list( { %LIST_PARAMS } );
+my @TITLE = ($_LOGIN, $_FIO, $_DEPOSIT, $_CREDIT, $_TARIF_PLANS, $_STATUS, $_NUMBER, '-');
+for(my $i=0; $i<$Voip->{SEARCH_FIELDS_COUNT}; $i++){
+	push @TITLE, '-';
+	$TITLE[7+$i] = "$_SEARCH";
+}
 
-my $list = $Voip->user_list( { %LIST_PARAMS } );
 
 if ($Voip->{errno}) {
   $html->message('err', $_ERROR, "[$Voip->{errno}] $err_strs{$Voip->{errno}}");	
   return 0;
  }
 elsif ($Voip->{TOTAL} == 1) {
-	form_users({  USER => user_info($list->[0]->[7]) });
+  my $ui          = user_info($list->[0]->[7]);
+  print $ui->{TABLE_SHOW};
+
+	form_users({  USER_INFO => user_info($list->[0]->[7]) });
 	return 0;
 }
 
 
 
 
-my $table = $html->table( { width => '100%',
-                                   border => 1,
-                                   title => [$_LOGIN, $_FIO, $_DEPOSIT, $_CREDIT, $_TARIF_PLANS, $_STATUS, $_NUMBER, '-'],
-                                   cols_align => ['left', 'left', 'right', 'right', 'left', 'center', 'left', 'center', 'center', 'center'],
-                                   qs => $pages_qs,
-                                   pages => $Voip->{TOTAL}
-                                  } );
+my $table = $html->table( { width      => '100%',
+                            border     => 1,
+                            title      => \@TITLE,
+                            cols_align => ['left', 'left', 'right', 'right', 'left', 'center', 'left', 'center', 'center', 'center'],
+                            qs         => $pages_qs,
+                            pages      => $Voip->{TOTAL},
+                            ID         => 'VOIP_USERS_LIST'
+                         } );
 
 foreach my $line (@$list) {
-  my $payments = ($permissions{1}) ?  $html->button($_PAYMENTS, "index=2&UID=$line->[7]") : ''; 
+  my $payments = ($permissions{1}) ?  $html->button($_PAYMENTS, "index=2&UID=". ($line->[7+$Voip->{SEARCH_FIELDS_COUNT}]), { CLASS => 'payments' }) : '';
+  my @fields_array  = ();
+  for(my $i=0; $i<$Voip->{SEARCH_FIELDS_COUNT}; $i++){
+     push @fields_array, $line->[7+$i];
+   }
 
-  $table->addrow($html->button($line->[0], "index=11&UID=$line->[7]"), "$line->[1]",
-   "$line->[2]", "$line->[3]", "$line->[4]", "$status[$line->[5]]", 
-   "$line->[6]",
-   $payments);
+  $table->addrow($html->button($line->[0], "index=15&UID=". ($line->[7+$Voip->{SEARCH_FIELDS_COUNT}]) ."&MODULE=Voip"), 
+     "$line->[1]",
+     "$line->[2]", 
+     "$line->[3]", 
+     "$line->[4]", 
+     $status[$line->[5]], 
+     "$line->[6]",
+     @fields_array,
+     $payments
+   );
 }
 print $table->show();
 
-$table = $html->table( { width => '100%',
-                                cols_align => ['right', 'right'],
-                                rows => [ [ "$_TOTAL:", "<b>$Voip->{TOTAL}</b>" ] ]
-                               } );
+$table = $html->table( { width      => '100%',
+                         cols_align => ['right', 'right'],
+                         rows       => [ [ "$_TOTAL:", $html->b($Voip->{TOTAL}) ] ]
+                     } );
 print $table->show();
 
-  return 0;
+return 0;
 }
 
 
@@ -226,14 +302,21 @@ print $table->show();
 sub voip_user {
  	$Voip->{UID}=$FORM{UID};	  
   
+  voip_provision();
+  
   if ($FORM{add}) {
-    $Voip->user_add({ %FORM });
-    if (! $Voip->{errno}) {
-      $html->message('info', $_INFO, "$_ADDED");	
+    if ($FORM{NUMBER} < 1) {
+      $html->message('err', $_ERROR, "$ERR_WRONG_DATA $_NUMBER");	
      }
-
-    if ($conf{VOIP_ASTERISK_USERS}) {
-    	voip_mk_users_conf();
+    else { 
+    	$Voip->user_add({ %FORM });
+      if (! $Voip->{errno}) {
+        $html->message('info', $_INFO, "$_ADDED");	
+       }
+  
+      if ($conf{VOIP_ASTERISK_USERS}) {
+      	voip_mk_users_conf();
+       }
      }
    }
 	elsif($FORM{set}) {
@@ -241,31 +324,85 @@ sub voip_user {
     if (! $Voip->{errno}) {
       $html->message('info', $_INFO, "$_CHANGED");	
      }
+
+    if ($conf{VOIP_ASTERISK_USERS}) {
+    	voip_mk_users_conf();
+     }
    }
-	elsif($FORM{del}) {
+	elsif($FORM{del} && $FORM{is_js_confirmed}) {
     $Voip->user_del();
     if (! $Voip->{errno}) {
       $html->message('info', $_INFO, "$_CHANGED");	
      }
 	 }
 
+  if ($Voip->{errno}) {
+    $html->message('err', $_ERROR, "[$Voip->{errno}] $err_strs{$Voip->{errno}}");
+   }
+
+
   my $user = $Voip->user_info($FORM{UID});
 
   if($user->{TOTAL} < 1) {
 	  $html->message('info', $_INFO, $_NOT_ACTIVE);
-	  $user = $Voip->defaults();
-	  $user->{ACTION}='add';
-	  $user->{LNG_ACTION}=$_ACTIVATE;
+	  $user              = $Voip->defaults();
+	  $user->{ACTION}    = 'add';
+	  $user->{LNG_ACTION}= $_ACTIVATE;
+	  
+	  $user->{TP_NAME}   = $html->form_select('TP_ID', 
+                                          { 
+ 	                                          SELECTED          => $FORM{TP_ID},
+ 	                                          SEL_MULTI_ARRAY   => $Voip->tp_list(),
+ 	                                          MULTI_ARRAY_KEY   => 8,
+ 	                                          MULTI_ARRAY_VALUE => '0,1',
+ 	                                          NO_ID             => 1
+ 	                                        });
+	  
 	 }
 	else {
+		$user->{CHANGE_TP_BUTTON}=$html->button($_CHANGE, 'UID='.$user->{UID}.'&index='.  get_function_index('voip_chg_tp'), { CLASS => 'change rightAlignText' });
 	  $user->{ACTION}='set';
 	  $user->{LNG_ACTION}=$_CHANGE;
-	} 
+	 }
 
-  $user->{DISABLE} = ($user->{DISABLE} == 1) ?  ' checked' : '';
-  $user->{ALLOW_ANSWER}=' checked' if($user->{ALLOW_ANSWER} == 1);
-  $user->{ALLOW_CALLS}=' checked' if($user->{ALLOW_CALLS} == 1);
+  #$user->{DISABLE}     = ($user->{DISABLE} == 1) ?  ' checked' : '';
+  $user->{ALLOW_ANSWER}= ' checked' if($user->{ALLOW_ANSWER} == 1);
+  $user->{ALLOW_CALLS} = ' checked' if($user->{ALLOW_CALLS} == 1);
   
+  $user->{STATUS_SEL}   = $html->form_select('DISABLE', 
+                                          { 
+ 	                                          SELECTED     => $user->{DISABLE} || 0,
+ 	                                          SEL_HASH     => { 
+ 	                                          	                0  => $service_status[0],
+ 	                                          	                1  => $service_status[1],
+ 	                                          	                2  => $service_status[2],
+ 	                                          	                3  => $service_status[3],  
+ 	                                          	                },
+                                            NO_ID       => 1,
+                                            STYLE        => \@service_status_colors,
+ 	                                        });
+
+  if ($user->{DISABLE} > 0) { 
+    $user->{STATUS_COLOR} = $service_status_colors[$user->{DISABLE}] ;
+   }
+  
+  
+  
+
+  
+  $user->{NAS_SEL} = $html->form_select('PROVISION_NAS_ID', 
+                                         { 
+ 	                                          SELECTED          => $user->{PROVISION_NAS_ID} || $FORM{PROVISION_NAS_ID},
+ 	                                          SEL_MULTI_ARRAY   => $Nas->list({ TYPE => 'ls_pap2t;ls_spa8000' }),
+ 	                                          MULTI_ARRAY_KEY   => 0,
+ 	                                          MULTI_ARRAY_VALUE => 1,
+ 	                                          MAIN_MENU         => get_function_index('form_nas'),
+ 	                                          MAIN_MENU_AGRV    => "chg=$user->{NAS_ID}"
+ 	                                        });
+
+  
+  $user->{PROVISION} = $html->tpl_show(_include('voip_provision_user', 'Voip'), $user, { OUTPUT2RETURN => 1 });
+
   $html->tpl_show(_include('voip_user', 'Voip'), $user);
 }
 
@@ -288,26 +425,81 @@ sub voip_nas {
 sub voip_tp_routes {
 	my ($attr) = @_;
 
-my $Voip_tp;
+  my $Voip_tp;
+  my @caption      = ($_PREFIX, $_ROUTES, "$_STATUS", "$_EXTRA_TARIFICATION", 'TRUNK');
+  my @aligns       = ('left', 'left', 'center');
+  my @interval_ids = ();
+  my $intervals    = 0;
+  my $exchange_rate = 1;
+
+  $users->config_info({ PARAM => 'VOIP_ER' });
+  if ($users->{TOTAL} > 0) {
+  	$exchange_rate = $users->{VALUE};
+   }
+  
+
 if (defined($attr->{TP})) {
 	$Voip_tp = $attr->{TP};
 
+  #Get time intervals
+ 	@DAY_NAMES = ("$_ALL", 'Sun', 'Mon', 'Tue', 'Wen', 'The', 'Fri', 'Sat', "$_HOLIDAYS");
+  my $list = $Voip_tp->ti_list({ %LIST_PARAMS });
+  foreach my $line (@$list) {
+
+    push @caption, "$_SUM (Min): ". $DAY_NAMES[$line->[1]] ."/ $line->[2]-$line->[3]";
+    push @aligns,  'center';
+    push @interval_ids, $line->[0];
+   }
+  $intervals = $Voip_tp->{TOTAL};
+
+
 	if ($FORM{change}) {
-		 $Voip->rp_add({ %FORM });
+		 $Voip->rp_add({ %FORM, EXCHANGE_RATE => $exchange_rate  });
      if (! $Voip->{errno}) {
       $html->message('info', $_INFO, "$_ADDED");
      }
 	 }
-  elsif ($FORM{export}) {
-  	
-   }
   elsif ($FORM{import}) {
-  	
+  	my $list = $Voip->routes_list({ %LIST_PARAMS, PAGE_ROWS => 100000 });	
+  	my %prefix_id = ();
+  	foreach my $line (@$list) {
+  		$prefix_id{$line->[0]}=$line->[4];
+  	 }
+
+    my $content = $FORM{ROUTE_FILE}{Contents};
+    my @rows_arr = split(/\n/, $content);
+    my %FORM2 = ();
+    
+    foreach my $line (@rows_arr) {
+    	chop($line);
+      my($prefix, $trunk, $et, @prices)=split(/\t/, $line);
+      for (my $i=0;  $i<=$#prices; $i++) {
+        $FORM2{'t_'.$prefix_id{$prefix}.'_'.$interval_ids[$i]} =$trunk;
+        $FORM2{'et_'.$prefix_id{$prefix}.'_'.$interval_ids[$i]}=$et;
+        if ($conf{VOIP_UNIT_TARIFICATION}) {
+          $FORM2{'up_'.$prefix_id{$prefix}.'_'.$interval_ids[$i]}=$prices[$i];
+          $FORM2{'p_'.$prefix_id{$prefix}.'_'.$interval_ids[$i]} =$prices[$i]*$exchange_rate;
+         }
+        else {
+          $FORM2{'p_'.$prefix_id{$prefix}.'_'.$interval_ids[$i]} =$prices[$i];
+         }
+       }
+     }
+
+
+    $Voip->rp_add({ %FORM2, EXCHANGE_RATE => $exchange_rate });
+    if (! $Voip->{errno}) {
+  	  $html->message('info', $_INFO, "$_IMPORT $_FILE: $FORM{ROUTE_FILE}{filename}\n $_ROWS: $#rows_arr\n $_CHANGED: $Voip->{TOTAL}");
+  	 }
    }
+	elsif($FORM{export_rp}) {
+		print "Content-Type: text/plain\n\n";
+	  $LIST_PARAMS{PAGE_ROWS}=100000;	
+	 }
 	elsif($FORM{clear}) {
 		
  	 }
-}
+ }
 else {
  	voip_tp({ f => 'voip_tp_routes' });
  	return 0;
@@ -318,22 +510,12 @@ else {
    $html->message('err', $_ERROR, "[$Voip->{errno}] $err_strs{$Voip->{errno}}");
   }
   
-  
-#  my $Voip_tp = $Voip->tp_info( $FORM{TP_ID} );
-  my $list = $Voip_tp->ti_list({ %LIST_PARAMS });
-  my @caption = ($_PREFIX, $_ROUTES, "$_STATUS");
-  my @aligns = ('left', 'left', 'center');
-  my @interval_ids = ();
-  my $intervals=0;
-  foreach my $line (@$list) {
-    push @caption, "$_SUM (Min): $line->[1] / $line->[2]-$line->[3]";
-    push @aligns,  'center';
-    push @interval_ids, $line->[0];
-   }
-  $intervals = $Voip_tp->{TOTAL};
 
 
-  form_search({ 
+ $pages_qs='';
+
+ if (! $FORM{export_rp}) {
+   form_search({ 
      SIMPLE        => {$_PREFIX   => "ROUTE_PREFIX",
                        $_NAME     => "ROUTE_NAME",
                        $_DISABLE  => "DISABLE",
@@ -341,20 +523,36 @@ else {
                        $_GATEWAY  => "GATEWAY_SEL",
                        $_SUM      => "PRICE"},
 
-     HIDDEN_FIELDS => { TP_ID      => $FORM{TP_ID} }
-   });
-
-
+     HIDDEN_FIELDS => { TP_ID      => $FORM{TP_ID},
+     	                  routes     => $FORM{routes} }
+     });
+  }
 
 $list = $Voip->rp_list({ %LIST_PARAMS });
-my %prices = ();
+my %prices     = ();
+my %trunks     = ();
+my %et         = ();
+my %unit_prices= ();
 foreach my $line (@$list) {
-  #print "-- $line->[0] / $line->[1] / $line->[2] / $line->[3] <br>\n";  
   $prices{"$line->[0]"}{"$line->[1]"}=$line->[3];
-
+  $trunks{"$line->[0]"}{"$line->[1]"}=$line->[4];
+  $et{"$line->[0]"}{"$line->[1]"}=$line->[5];
+  $unit_prices{"$line->[0]"}{"$line->[1]"}=$line->[6];
 }
 
 
+
+
+
+
+my ($delete, $change);
+my $price = 0;
+my $trunk = 0;
+my $unit_price = 0;
+my @export_arr = ();
+my $TRUNKS_MARR = $Voip->trunk_list();	
+
+my $extra_tarification_list = $Voip->extra_tarification_list(  );
 
 
 $pages_qs .= "&routes=$FORM{routes}";
@@ -365,113 +563,84 @@ my $table = $html->table( { width      => '100%',
                             border     => 1,
                             title      => \@caption,
                             cols_align => \@aligns,
-                            qs         => $pages_qs,
+                            qs         => $pages_qs."&TP_ID=$FORM{TP_ID}",
                             pages      => $Voip->{TOTAL},
                             ID         => 'VOIP_ROUTES_PRICES',
+                            header     => $html->button($_EXPORT, "export_rp=1&qindex=$index&TP_ID=$FORM{TP_ID}&routes=$FORM{routes}", { ex_params => 'TARGET=_new', BUTTON => 1 })
                          } );
 
-my ($delete, $change);
-my $price = 0;
+
+
+
 foreach my $line (@$list) {
   my @l=();
   for(my $i = 0; $i<$intervals; $i++) { 
-  	  if (defined($prices{"$interval_ids[$i]"}{"$line->[5]"})) {
-        $price = $prices{$interval_ids[$i]}{$line->[5]};
-  	    }
+  	  
+  	  if (defined($prices{"$interval_ids[$i]"}{"$line->[4]"})) {
+        $price = $prices{$interval_ids[$i]}{$line->[4]};
+        $unit_price = $unit_prices{$interval_ids[$i]}{$line->[4]};
+        $trunk = $trunks{$interval_ids[$i]}{$line->[4]} || $trunks{$interval_ids[0]}{$line->[4]};
+  	   }
       else {
-        $price = "N/P";
-        $price .= " $interval_ids[$i] $line->[5] -0" if ($debug > 0);
+        $price = '0.00';
+        $unit_price = '0.00';
+        $price .= " $interval_ids[$i] $line->[4] -0" if ($debug > 0);
        }
-      push @l, $html->form_input("p_$line->[5]". '_' . "$interval_ids[$i]", "$price", {SIZE => 10 });
 
-      #"<input type='text' name='p_$line->[5]". '_' . "$interval_ids[$i]' value='$price' size=10>"; 
-    }
-  $table->addrow("$line->[0]",  "$line->[1]", $status[$line->[2]], @l);
+      if ($FORM{export_rp}) {
+        push @l,  $price;
+       }
+      else {
+        push @l, (($conf{VOIP_UNIT_TARIFICATION}) ? $html->form_input("p_$line->[4]". '_' . "$interval_ids[$i]", "$unit_price", {SIZE => 10 }). $html->br(). $price : $html->form_input("p_$line->[4]". '_' . "$interval_ids[$i]", "$price", {SIZE => 10 }) ).
+          (($i > 0) ? $html->form_input("t_$line->[4]". '_' . "$interval_ids[$i]", "$trunk", {TYPE => 'hidden' }) : '');
+       }
+   }
+
+  if ($FORM{export_rp}) {
+    push @export_arr, [ $line->[0], $line->[1], $status[$line->[2]], $line->[3], @l ];
+   }
+  else {
+  	my $trunk_sel = $html->form_select("t_$line->[4]". '_' . "$interval_ids[$i]", 
+                                { SELECTED          => $trunks{"$interval_ids[$i]"}{"$line->[4]"},
+ 	                                SEL_MULTI_ARRAY   => [[0, '-'], @{ $TRUNKS_MARR } ],
+ 	                                MULTI_ARRAY_KEY   => 0,
+ 	                                MULTI_ARRAY_VALUE => 1,
+ 	                                NO_ID             => 1
+ 	                               });
+
+   my $ext_tp_sel= $html->form_select("et_$line->[4]". '_' . "$interval_ids[$i]", 
+                                          { 
+ 	                                          SELECTED          => $et{"$interval_ids[$i]"}{"$line->[4]"} || 0,
+ 	                                          SEL_MULTI_ARRAY   => [[0, '-'], @{ $extra_tarification_list } ],
+ 	                                          MULTI_ARRAY_KEY   => 0,
+ 	                                          MULTI_ARRAY_VALUE => 1,
+ 	                                          NO_ID             => 1
+ 	                                        });
+  	
+  	$table->addrow("$line->[0]",  "$line->[1]", $status[$line->[2]], $ext_tp_sel, $trunk_sel, @l);
+   }
+}
+
+
+if ($FORM{export_rp}) {
+	foreach my $rows (@export_arr) {
+		foreach my $row (@$rows) {
+			print "$row\t";
+		 }
+	  print "\n";
+	 }
+
+  return 0;	
 }
 
 
 
 
-###
-#my  %new_hash = ();
-#my  %phone_prefix = ();
-#
-#
-#foreach my $line (@$list) {
-#  $new_hash{$line->[5]}{$line->[0]}="$line->[2]";
-#  $route_info{$line->[0]}="$line->[1]:$line->[3]";
-#}
-#
-#my $h = $new_hash{0};
-#my @last_array = ();
-#
-#my @menu_sorted = sort {
-#   $h->{$b} <=> $h->{$a}
-#     ||
-#   length($a) <=> length($b)
-#     ||
-#   $a cmp $b
-#} keys %$h;
-#
-#
-#
-#foreach my $parent (@menu_sorted) { 
-#  
-#  my @l=();
-#  for(my $i = 0; $i<$intervals; $i++) { 
-#      push @l, "<input type=text name='p_$parent". '_' . "$interval_ids[$i]' value='$parent". '_' . "$interval_ids[$i]' size=5>"; 
-#    }
-#  
-#  my $val = $h->{$parent};
-#  my $level = 0;
-#  my $prefix = '';
-#  my ($phone_prefix, $enable) = split(/:/, $route_info{$parent}, 2);
-#  
-#  $table->addrow("$phone_prefix",  "$val", @l);
-#
-#  if (defined($new_hash{$parent})) {
-#    $level++;
-#    $prefix .= "&nbsp;&nbsp;&nbsp;";
-#    label:
-#      my $mi = $new_hash{$parent};
-#
-#      while(my($k, $val)=each %$mi) {
-#       
-#      my @l=();
-#      for(my $i = 0; $i<$intervals; $i++) { 
-#         push @l, "<input type=text name='p_$k" .'_'. "$interval_ids[$i]' value='$k". "_" . "$interval_ids[$i]' size=5>"; 
-#       }
-#
-#        my ($phone_prefix, $enable) = split(/:/, $route_info{$k}, 2);
-#        $table->addrow("$prefix $phone_prefix", "$prefix $val", @l);
-#
-#        if (defined($new_hash{$k})) {
-#      	   $mi = $new_hash{$k};
-#      	   $level++;
-#           $prefix .= "&nbsp;&nbsp;&nbsp;";
-#           push @last_array, $parent;
-#           $parent = $k;
-#         }
-#        delete($new_hash{$parent}{$k});
-#      }
-#    
-#    if ($#last_array > -1) {
-#      $parent = pop @last_array;	
-##      print "POP/$#last_array/$parent/<br>\n";
-#      $level--;
-#      
-#      $prefix = substr($prefix, 0, $level * 6 * 3);
-#      goto label;
-#    }
-#    delete($new_hash{0}{$parent});
-#   }
-#}
 
 
 my $table2 = $html->table( { width      => '100%',
                              cols_align => ['right', 'right'],
                              rows       => [ [  $html->form_input('change', $_CHANGE, { TYPE => 'submit' }),
-	                                              $html->form_input('export', $_EXPORT, { TYPE => 'submit' }),
 	                                              "$_FILE: ". $html->form_input('ROUTE_FILE', "ROUTE_FILE", { TYPE => 'FILE' }) .
 	                                                $html->form_input('import', $_IMPORT, { TYPE => 'submit' })
 	                                             ] ]
@@ -479,14 +648,18 @@ my $table2 = $html->table( { width      => '100%',
 
 
 print $html->form_main({ CONTENT => $table->show(). $table2->show(),
+	                       ENCTYPE => 'multipart/form-data',
+	                       NAME    => 'TP_ROUTES',
+	                       ID      => 'TP_ROUTES',
                          HIDDEN  => { TP_ID   => "$FORM{TP_ID}",
 	                                    index   => "$index",
-	                                    routes  => "$FORM{routes}"   },
+	                                    routes  => "$FORM{routes}"   
+	                                   },
 	                      });
 
 $table = $html->table( { width      => '100%',
                          cols_align => ['right', 'right'],
-                         rows       => [ [ "$_TOTAL:", "<b>$Voip->{TOTAL}</b>" ] ]
+                         rows       => [ [ "$_TOTAL:", $html->b($Voip->{TOTAL}) ] ]
                       } );
 print $table->show();
 
@@ -553,13 +726,13 @@ if(defined($attr->{TP})) {
                               title      => ['#', $_DAYS, $_BEGIN, $_END, $_HOUR_TARIF, '-', '-', '-',  '-'],
                               cols_align => ['left', 'left', 'right', 'right', 'right', 'right', 'center', 'center', 'center', 'center'],
                               qs         => $pages_qs,
-                              caption    => $_INTERVALS
+                              ID         => 'VOIP_INTERVALS',
                          } );
 
   my $color="AAA000";
   foreach my $line (@$list) {
 
-    my $delete = $html->button($_DEL, "index=$index$pages_qs&del=$line->[0]", { MESSAGE =>  "$_DEL [$line->[0]] ?" }); 
+    my $delete = $html->button($_DEL, "index=$index$pages_qs&del=$line->[0]", { MESSAGE =>  "$_DEL [$line->[0]] ?", CLASS => 'del' }); 
     $color = sprintf("%06x", hex('0x'. $color) + 7000);
      
     #day, $hour|$end = color
@@ -577,12 +750,12 @@ if(defined($attr->{TP})) {
     
     $table->addtd(
                   $table->td($line->[0], { rowspan => ($line->[5] > 0) ? 2 : 1 } ), 
-                  $table->td("<b>$DAY_NAMES[$line->[1]]</b>"), 
+                  $table->td($html->b($DAY_NAMES[$line->[1]])), 
                   $table->td($line->[2]), 
                   $table->td($line->[3]), 
                   $table->td($line->[4]), 
-                  $table->td($html->button("$_ROUTES", "index=$index$pages_qs&routes=$line->[0]")),
-                  $table->td($html->button("$_CHANGE", "index=$index$pages_qs&chg=$line->[0]")),
+                  $table->td($html->button("$_ROUTES", "index=$index$pages_qs&routes=$line->[0]", { CLASS => 'routes'   })),
+                  $table->td($html->button("$_CHANGE", "index=$index$pages_qs&chg=$line->[0]", { CLASS => 'change' })),
                   $table->td($delete),
                   $table->td("&nbsp;", { bgcolor => '#'. $color, rowspan => ($line->[5] > 0) ? 2 : 1 })
      );
@@ -624,7 +797,7 @@ for(my $i=0; $i<9; $i++) {
 
   	 if(defined($visual_view{$i})) {
   	   $day_periods = $visual_view{$i};
-       #print "<br>";
+
        foreach my $line (@$day_periods) {
      	   #print "$i -- $line    <br>\n";
      	   ($h_b, $h_e, $color, $p)=split(/\|/, $line, 4);
@@ -650,7 +823,7 @@ for(my $i=0; $i<9; $i++) {
     }
   
   
-  $table->addtd("<td>$DAY_NAMES[$i]</td>", @hours);
+  $table->addtd($table->td($DAY_NAMES[$i]), @hours);
 }
 
 
@@ -662,7 +835,7 @@ print $table->show();
  	                                ARRAY_NUM_ID  => 1
  	                               });
 
-  $html->tpl_show(templates('ti'), $tarif_plan);
+  $html->tpl_show(templates('form_ti'), $tarif_plan);
 }
 
 #**********************************************************
@@ -671,37 +844,55 @@ print $table->show();
 #**********************************************************
 sub voip_tp {
  my ($attr) = @_;
- my @Payment_Types    = ($_PREPAID, $_POSTPAID); 
+ my @Payment_Types = ($_PREPAID, $_POSTPAID); 
 
  $Voip_tp = $Voip->tp_defaults();
  $Voip_tp->{LNG_ACTION}=$_ADD;
  $Voip_tp->{ACTION}='ADD_TP';
 
 if($FORM{ADD_TP}) {
-  $FORM{TP_ID} = $FORM{CHG_TP_ID};
   $Voip->tp_add({ %FORM });
   if (! $Voip->{errno}) {
     $html->message('info', $_ADDED, "$_ADDED $Voip->{TP_ID}");
    }
  }
-elsif (defined($FORM{TP_ID})) {
+elsif ($FORM{TP_ID}) {
   $Voip_tp = $Voip->tp_info( $FORM{TP_ID} );
 
   if ($Voip_tp->{errno}) {
     $html->message('err', $_ERROR, "[$Voip_tp->{errno}] $err_strs{$Voip->{errno}}");	
     return 0;
    }
+  
+  if ($FORM{qindex}) {
+  	voip_tp_routes({ TP => $Voip_tp });
+  	return 0;
+   }
+
 
   $pages_qs .= "&TP_ID=$FORM{TP_ID}&subf=$FORM{subf}";
   $LIST_PARAMS{TP} = $FORM{TP_ID};
   %F_ARGS = ( TP => $Voip_tp );
   
+  $Voip_tp->{NAME_SEL} = $html->form_main({ CONTENT => $html->form_select('TP_ID', 
+                                          { 
+ 	                                          SELECTED          => $FORM{TP_ID},
+ 	                                          SEL_MULTI_ARRAY   => $Voip->tp_list({ %LIST_PARAMS }),
+ 	                                          MULTI_ARRAY_KEY   => 8,
+ 	                                          MULTI_ARRAY_VALUE => '0,1',
+ 	                                          NO_ID             => 1
+ 	                                        }),
+	                                          HIDDEN  => { index => "$index" },
+	                                          SUBMIT  => { show  => "$_SHOW" } 
+	                                       });
+  
+  
   func_menu({ 
-  	         'ID' =>   $Voip_tp->{TP_ID}, 
-  	         $_NAME => $Voip_tp->{NAME}
+  	         'ID' =>   $Voip_tp->{ID}, 
+  	         $_NAME => $Voip_tp->{NAME_SEL}
   	       }, 
   	{ 
-#  	 $_INFO          => ":TP_ID=$Voip_tp->{TP_ID}",
+  	  $_INFO          => ":TP_ID=$Voip_tp->{TP_ID}",
 #     $_USERS         => "11:TP_ID=$Voip_tp->{TP_ID}",
 #     $_INTERVALS     => "73:TP_ID=$Voip_tp->{TP_ID}",
 #     $_NAS           => "18:TP_ID=$Voip_tp->{TP_ID}"
@@ -710,11 +901,6 @@ elsif (defined($FORM{TP_ID})) {
   		f_args => { %F_ARGS }
   	 });
 
-#  if($attr->{f}) {
-#     $attr->{f}->({ TP => $Voip_tp });
-#     return 0;
-#   }
-#  els
   if ($FORM{subf}) {
   	return 0;
    }
@@ -730,7 +916,7 @@ elsif (defined($FORM{TP_ID})) {
   $Voip_tp->{ACTION}='change';
 
  }
-elsif(defined($FORM{del}) && $FORM{is_js_confirmed}) {
+elsif($FORM{del} && $FORM{is_js_confirmed}) {
   $Voip->tp_del($FORM{del});
 
   if (! $Voip->{errno}) {
@@ -749,7 +935,7 @@ if ($Voip->{errno}) {
 $Voip_tp->{PAYMENT_TYPE_SEL} = $html->form_select('PAYMENT_TYPE', 
                                 { SELECTED      => $Voip_tp->{PAYMENT_TYPE},
  	                                SEL_ARRAY     => \@Payment_Types,
- 	                                ARRAY_NUM_ID  => 'y'
+ 	                                ARRAY_NUM_ID  => 1
  	                               });
 
 #$Voip_tp = $Voip;
@@ -765,29 +951,30 @@ my $table = $html->table( { width      => '100%',
                             title      => ['#', $_NAME,  $_HOUR_TARIF, $_PAYMENT_TYPE, $_DAY_FEE, $_MONTH_FEE, $_SIMULTANEOUSLY, $_AGE,
                                      '-', '-', '-'],
                             cols_align => ['right', 'left', 'center', 'center', 'right', 'right', 'right', 'right', 'right', 'right', 'center', 'center', 'center'],
-                                   
-                                   
-                                  } );
+                            ID         => 'VOIP_TP'
+                         } );
 
 my ($delete, $change);
 foreach my $line (@$list) {
   if ($permissions{4}{1}) {
-    $delete = $html->button($_DEL, "index=$index&del=$line->[0]",  { MESSAGE => "$_DEL ?" }); 
-    $change = $html->button($_INFO, "index=$index&TP_ID=$line->[0]");
+    $delete = $html->button($_DEL, "index=$index&del=$line->[8]",  { MESSAGE => "$_DEL ?", CLASS => 'del'  }); 
+    $change = $html->button($_INFO, "index=$index&TP_ID=$line->[8]", { CLASS => 'change' });
    }
   
-  if($FORM{TP_ID} eq $line->[0]) {
+  if($FORM{TP_ID} eq $line->[8]) {
   	$table->{rowcolor}=$_COLORS[4];
    }
   else {
   	undef($table->{rowcolor});
    }
   
-  $table->addrow("<b>$line->[0]</b>", 
-  $html->button("$line->[1]", "index=$index&TP_ID=$line->[0]"), 
+  $table->addrow($html->b($line->[0]), 
+  $html->button("$line->[1]", "index=$index&TP_ID=$line->[8]"), 
    $bool_vals[$line->[2]], $Payment_Types[$line->[3]], $line->[4], 
-   $line->[5], $line->[6], $line->[7],
-   $html->button($_INTERVALS, "index=". ($index+2) ."&subf=73&TP_ID=$line->[0]"),
+   $line->[5], 
+   $line->[6], 
+   $line->[7],
+   $html->button($_INTERVALS, "index=". get_function_index('voip_intervals') ."&subf=73&TP_ID=$line->[8]", { CLASS => 'interval' }),
    $change,
    $delete);
 }
@@ -795,14 +982,120 @@ print $table->show();
 
 $table = $html->table( { width      => '100%',
                          cols_align => ['right', 'right'],
-                         rows       => [ [ "$_TOTAL:", "<b>$Voip->{TOTAL}</b>" ] ]
-                               } );
+                         rows       => [ [ "$_TOTAL:", $html->b($Voip->{TOTAL}) ] ]
+                     } );
 print $table->show();
 
 	
 }
 
+#**********************************************************
+# 
+# voip_trunks
+#**********************************************************
+sub voip_trunks {
+  $Voip->{ACTION}='add';
+  $Voip->{LNG_ACTION}=$_ADD;
+ 
+if($FORM{add}) {
+  $Voip->trunk_add( { %FORM });
+  if (! $Voip->{errno}) {
+    $html->message('info', $_ADDED, "$_ADDED $Voip->{TRUNK_ID}");
+   }
+ }
+elsif($FORM{change}) {
+  $Voip->trunk_change({ %FORM });
+  if (! $Voip->{errno}) {
+    $html->message('info', $_INFO, "$_CHANGED");	
+   }
+ }
+elsif($FORM{chg}) {
+  $Voip->trunk_info($FORM{chg});
+  if (! $Voip->{errno}) {
+    $html->message('info', $_INFO, "$_CHANGING");	
+   }
 
+  $Voip->{ACTION}='change';
+  $Voip->{LNG_ACTION}=$_CHANGE;
+ }
+elsif($FORM{del} && $FORM{is_js_confirmed}) {
+  $Voip->trunk_del($FORM{del});
+  if (! $Voip->{errno}) {
+    $html->message('info', $_DELETE, "$_DELETED $FORM{del}");
+   }
+}
+
+if ($Voip->{errno}) {
+   $html->message('err', $_ERROR, "[$Voip->{errno}] $err_strs{$Voip->{errno}}");	
+   return 0;
+ }
+
+$Voip->{DISABLE}=' checked' if($Voip->{DISABLE} == 1);
+$Voip->{FAILOVER_TRUNK_SEL}= $html->form_select('FAILOVER_TRUNK', 
+                                          { 
+ 	                                          SELECTED          => $Voip->{FAILOVER_TRUNK},
+ 	                                          SEL_MULTI_ARRAY   => [[0, '-'], @{ $Voip->trunk_list() } ],
+ 	                                          MULTI_ARRAY_KEY   => 0,
+ 	                                          MULTI_ARRAY_VALUE => 1,
+ 	                                          NO_ID             => 1
+ 	                                        });
+
+$Voip->{PROTOCOL_SEL}= $html->form_select('PROTOCOL', 
+                                          { 
+                                            SELECTED      => $Voip->{PROTOCOL},
+ 	                                          SEL_ARRAY     => [ 'SIP', 'IAX2', 'ZAP', 'H323' ],
+ 	                                          });
+
+
+
+$html->tpl_show(_include('voip_trunk', 'Voip'), $Voip);
+
+
+##
+my  %new_hash = ();
+my  %phone_prefix = ();
+
+my $list = $Voip->trunk_list({ %LIST_PARAMS });	
+
+
+
+my $table = $html->table( { width      => '100%',
+	                          caption    => "Trunks",
+                            border     => 1,
+                            title      => ['ID', $_NAME, $_PROTOCOL, "VOIP $_PROVIDER", "$_FAILOVER_TRUNK",  '-', '-'],
+                            cols_align => ['left', 'left', 'left', 'left', 'left', 'center', 'center'],
+                            qs         => $pages_qs,
+                            pages      => $Voip->{TOTAL},
+                            ID         => 'VOIP_TRUNKS',
+                        } );
+
+my ($delete, $change);
+foreach my $line (@$list) {
+   if ($permissions{4}{1}) {
+    $delete = $html->button($_DEL, "index=$index&del=$line->[0]", { MESSAGE => "$_DEL $line->[0]?", CLASS => 'del'  }); 
+    $change = $html->button($_CHANGE, "index=$index&chg=$line->[0]", { CLASS => 'change' });
+   }
+
+   $table->addrow($line->[0], 
+            $line->[1], 
+            $line->[2], 
+            $line->[3], 
+            $line->[4], 
+            $change,
+            $delete);
+
+}
+print $table->show();
+
+$table = $html->table( { width      => '100%',
+                         cols_align => ['right', 'right'],
+                         rows       => [ [ "$_TOTAL:", $html->b($Voip->{TOTAL}) ] ]
+                     } );
+
+print $table->show();
+
+	
+}
 
 #**********************************************************
 # Tarif plans
@@ -819,6 +1112,27 @@ if($FORM{add}) {
   if (! $Voip->{errno}) {
     $html->message('info', $_ADDED, "$_ADDED $Voip->{ROUTE_ID}");
    }
+ }
+elsif ($FORM{import}) {
+  my $content = $FORM{ROUTE_FILE}{Contents};
+  my @rows_arr = split(/\n/, $content);
+
+  my $count = 0;  
+ 
+  foreach my $line (@rows_arr) {
+  	chop($line);
+    my($prefix, $name, $status)=split(/\t/, $line);
+    $Voip->route_add({ ROUTE_PREFIX => $prefix, 
+                       ROUTE_NAME   => $name,
+                       DISABLE      => $status,
+                       REPLACE      => 1
+                   });
+    $count++;
+   }    
+
+   if (! $Voip->{errno}) {
+  	  $html->message('info', $_INFO, "$_IMPORT $_FILE: $FORM{ROUTE_FILE}{filename} ADDED: $count");
+  	}
  }
 elsif ($FORM{export}) {
 	print "Content-Type: text/plain\n\n";
@@ -838,7 +1152,6 @@ elsif ($FORM{export}) {
             $line->[3]
    );
   }
-
   return 0;
  }
 elsif($FORM{change}) {
@@ -847,6 +1160,14 @@ elsif($FORM{change}) {
     $html->message('info', $_INFO, "$_CHANGED");	
    }
  }
+elsif($FORM{change}) {
+  $Voip->route_del($FORM{del});
+  if (! $Voip->{errno}) {
+    $html->message('info', $_INFO, "$_DELETED");	
+   }
+ }
+
+
 
 if($FORM{add_route}) {
 	my $list = $Voip->routes_list({ PAGE_ROWS => 100000 });
@@ -863,7 +1184,7 @@ if($FORM{add_route}) {
    
     while(my ($par_key, $name) = each ( %$h )) {
       $menu_navigator =  $html->button("$name", "index=$index&ROUTE_ID=$root_index") . $menu_navigator;
-      $tree{$root_index}='y';
+      $tree{$root_index}=1;
       if ($par_key > 0) {
         $root_index = $par_key;
         $h = $route_items{$par_key};
@@ -890,9 +1211,15 @@ elsif(defined($FORM{del}) && $FORM{is_js_confirmed}) {
    }
 }
 
+
 if ($Voip->{errno}) {
-   $html->message('err', $_ERROR, "[$Voip->{errno}] $err_strs{$Voip->{errno}}");	
-   return 0;
+	if ($Voip->{errno} == 7) {
+     $html->message('err', $_ERROR, "$_PREFIX $_EXIST");	
+   }
+  else {	
+    $html->message('err', $_ERROR, "[$Voip->{errno}] $err_strs{$Voip->{errno}}");	
+    return 0;
+   }
  }
 
 $Voip->{DISABLE}=' checked' if($Voip->{DISABLE} == 1);
@@ -903,8 +1230,8 @@ $html->tpl_show(_include('voip_route', 'Voip'), $Voip);
 my %SEARCH_FIELDS = ($_PREFIX   => "ROUTE_PREFIX",
                      $_NAME     => "ROUTE_NAME",
                      $_DISABLE  => "DISABLE",
-                     $_DESCRIBE => "DESCRIBE",
-                     $_GATEWAY  => "GATEWAY_SEL");
+                     $_DESCRIBE => "DESCRIBE"
+                     );
 
 $output .= form_search({ 
   SIMPLE        => \%SEARCH_FIELDS,
@@ -927,15 +1254,14 @@ my $table = $html->table( { width      => '100%',
                             qs         => $pages_qs,
                             pages      => $Voip->{TOTAL},
                             ID         => 'VOIP_ROUTES',
-                            header     => $html->button($_EXPORT, "qindex=$index&export=1")
+                            header     => $html->button($_EXPORT, "qindex=$index&export=1", { BUTTON => 1 })
                         } );
 
 my ($delete, $change);
 foreach my $line (@$list) {
    if ($permissions{4}{1}) {
-    $delete = $html->button($_DEL, "index=$index&del=$line->[5]", { MESSAGe => "$_DEL '$line->[0]'?" }); 
-    $change = $html->button($_CHANGE, "index=$index&ROUTE_ID=$line->[5]");
-    #$add   = $html->button($_ADD, "index=$index&add_route=$parent&ROUTE_ID=$parent");
+    $delete = $html->button($_DEL, "index=$index&del=$line->[4]", { MESSAGE => "$_DEL '$line->[0]' ?", CLASS => 'del'  }); 
+    $change = $html->button($_CHANGE, "index=$index&ROUTE_ID=$line->[4]", { CLASS => 'change' });
    }
 
    $table->addrow($line->[0], 
@@ -946,23 +1272,32 @@ foreach my $line (@$list) {
             $delete);
 
 }
-print $table->show();
+
+
+my $table2 = $html->table( { width      => '100%',
+                             cols_align => ['right', 'right'],
+                             rows       => [ [  
+	                                              "$_IMPORT $_FILE: ". $html->form_input('ROUTE_FILE', "ROUTE_FILE", { TYPE => 'FILE' }) .
+	                                                $html->form_input('import', $_IMPORT, { TYPE => 'submit' })
+	                                             ] ]
+                         } );
+
+
+print $html->form_main({ CONTENT => $table->show(). $table2->show(),
+	                       ENCTYPE => 'multipart/form-data',
+	                       NAME    => 'TP_ROUTES',
+	                       ID      => 'TP_ROUTES',
+                         HIDDEN  => { 
+	                                    index   => "$index",
+	                                   },
+	                      });
 
 
 
-#if ($FORM{xml} && $FORM{list}) {
-#	print "Content-Type: text/xml\n\n";
-#	print "<?xml version=\"1.0\" encoding=\"windows-1251\"?>\n";
-#  print $table->show()	
-#   return 0;
-# }
-#else {
-#	print $output;
-#}
 
 $table = $html->table( { width      => '100%',
                          cols_align => ['right', 'right'],
-                         rows       => [ [ "$_TOTAL:", "<b>$Voip->{TOTAL}</b>" ] ]
+                         rows       => [ [ "$_TOTAL:", $html->b($Voip->{TOTAL}) ] ]
                      } );
 
 print $table->show();
@@ -1071,15 +1406,12 @@ print $table->show();
 #*******************************************************************
 sub voip_online {
 
-my $nas = Nas->new($db);
-
-
 my $message;
 
 
 if ($FORM{ping}) {
   if ($FORM{ping} =~ /^(\d){1,3}\.(\d){1,3}\.(\d){1,3}\.(\d){1,3}$/) {
-    my $res = `/sbin/ping -c 5 $FORM{ping}`;
+    my $res = `$PING -c 5 $FORM{ping}`;
     $html->message('info', $_INFO,  "Ping  $FORM{ping}<br>Result:<br><pre>$res</pre>");
    }
   else {
@@ -1088,10 +1420,10 @@ if ($FORM{ping}) {
  }
 elsif ($FORM{hangup}) {
   my ($nas_id, $acct_session_id, $user_name) = split(/ /, $FORM{hangup}, 4);
-  $nas->info( { NAS_ID => $nas_id, SECRETKEY => $conf{secretkey} });
+  $Nas->info( { NAS_ID => $nas_id, SECRETKEY => $conf{secretkey} });
   
-  if ($nas->{errno}) {
-    $html->message('err', $_NAS, "$nas->{errstr}");
+  if ($Nas->{errno}) {
+    $html->message('err', $_NAS, "$Nas->{errstr}");
   	return 0;
    }
 
@@ -1101,19 +1433,12 @@ elsif ($FORM{hangup}) {
   
   
   if ($ret == 0) {
-     my $table = $html->table( { width => '100%',
-                                caption => $_HANGUPED,
-                                rows => [ [ "$_NAS ID",   $nas_id],
-                                          [ "$_NAS IP",   $nas->{NAS_IP} ],
-                                          [ "$_PORT",     $nas_port_id   ],
-                                          [ "SESSION_ID", $acct_session_id ],
-                                          [ "", $ret ] ]
-                               } );
-     
-     $message = $table->show();
+     $message = "$_NAS ID: $nas_id 
+                 $_NAS IP: $Nas->{NAS_IP}
+                 $_PORT: $nas_port_id
+                 $_SESSION_ID: $acct_session_id
+                 $ret ";
      sleep 3;
-     
-     weblog('hangup', "$user_name");
    }
   elsif ($ret == 1) {
    	$message = 'NAS NOT supported yet';
@@ -1121,8 +1446,12 @@ elsif ($FORM{hangup}) {
 
   $html->message('info', $_INFO, "$message");
  }
+elsif ($FORM{zapall}) {
+  $sessions->zap(0, 0, 0, { ALL => 1, %FORM });
+  $html->message('info', $_INFO, "Zapped all sessions");
+ }
 elsif($FORM{zap}) {
-  my  ($nas_id, $acct_session_id)=split(/ /, $FORM{zap}, 3);
+  my  ($nas_id, $acct_session_id)=split(/[ +]+/, $FORM{zap}, 3);
   $sessions->zap($nas_id, $acct_session_id);
 
   if ($sessions->{errno}) {
@@ -1130,32 +1459,28 @@ elsif($FORM{zap}) {
   	 return 0;
    }
 
-  $nas->info({NAS_ID => $nas_id, SECRETKEY => $conf{secretkey} });
-  $message = "<table width=100%>
-     <tr><th colspan=2 align=left>$_CLOSED</th></tr>
-     <tr><td>$_NAS:</td><td>$nas->{NAS_IP} / $nas->{NAS_INDENTIFIER}</td></tr>
-     <tr><td>$_PORT:</td><td>$nas_port_id</td></tr>
-     <tr><td>SESSION_ID:</td><td>$acct_session_id</td></tr>
-     </table>\n";
-
-  
+  $Nas->info({NAS_ID => $nas_id, SECRETKEY => $conf{secretkey} });
+  $message = "$_NAS: $Nas->{NAS_IP} / $Nas->{NAS_INDENTIFIER}\n".
+     "$_PORT: $nas_port_id\n".
+     "SESSION_ID: $acct_session_id\n";
  
   $sessions->list({ ACCT_SESSION_ID => $acct_session_id, 
-  	                NAS_ID => $nas->{NAS_ID} });  
+  	                NAS_ID          => $Nas->{NAS_ID} });  
   
   if ($sessions->{TOTAL} < 1) {
-    $message .= "<p align=\"center\">[". $html->button('add to log', "index=$index&tolog=$acct_session_id&nas_id=$nas_id"). "]
-        [". $html->button("$_DEL", "index=$index&del=$acct_session_id&nas_id=$nas_id&nas_port_id=$nas_port_id"). "]</p>";
+    $message .= $html->button('add to log', "index=$index&tolog=$acct_session_id&nas_id=$nas_id", { BUTTON => 1  }). ' '.
+       $html->button("$_DEL", "index=$index&del=$acct_session_id&nas_id=$nas_id&nas_port_id=$nas_port_id", { BUTTON => 1  });
    }
   else {
   	$message = "$_EXIST";
+  	$sessions->{delete}=1;
   	$sessions->online_del({ NAS_ID          => $nas_id,
                             ACCT_SESSION_ID => $acct_session_id
                          });
 
    }
 
-  $html->message('info', $_INFO, $message);
+  $html->message('info', $_CLOSED, $message);
 }
 elsif($FORM{tolog}) {
   my $ACCT_INFO = $sessions->online_info({ NAS_ID          => $FORM{nas_id},
@@ -1163,7 +1488,7 @@ elsif($FORM{tolog}) {
                                          });
 
   if ($ACCT_INFO->{TOTAL} < 1) {
-    $html->message('err', $_ERROR, "$_NOT_EXIST");	
+    $html->message('err', $_ERROR, "$_NOT_EXIST $_SESSION_ID [$FORM{tolog}]");	
     return 0;
    }
 
@@ -1171,12 +1496,12 @@ elsif($FORM{tolog}) {
   $ACCT_INFO->{ACCT_STATUS_TYPE} = 'Stop';
   
 
-  $nas->info({NAS_ID    => $ACCT_INFO->{NAS_ID},
+  $Nas->info({NAS_ID    => $ACCT_INFO->{NAS_ID},
               SECRETKEY => $conf{secretkey}});
 
   Voip_aaa->import();
   my $Acct = Voip_aaa->new($db, \%conf);
-  my $r = $Acct->accounting($ACCT_INFO, $nas, \%conf);
+  my $r = $Acct->accounting($ACCT_INFO, $Nas, \%conf);
 
   if ($Acct->{errno}) {
     $html->message('err', $_ERROR, "[$Acct->{errno}] $Acct->{errstr}");	
@@ -1184,11 +1509,11 @@ elsif($FORM{tolog}) {
   else {
   	my $table = $html->table( { width => '100%'} );
   	while(my($k, $v)=each %$ACCT_INFO) {
- 		    $table->addrow($k, $v);
+ 		    $table->addrow("$k", $v);
   	  }
-  	while(my($k, $v)=each %$Acct) {
- 		    $table->addrow($k, $v);
-  	  }
+  	#while(my($k, $v)=each %$Acct) {
+ 		#    $table->addrow($k, $v);
+  	#  }
   	$html->message('info', $_ADDED, $table->show());	
    }
   
@@ -1210,13 +1535,7 @@ elsif($FORM{del} || $FORM{dellist}) {
    }
 
   if (! $sessions->{errno}) {
-    my $table = $html->table( { width => '100%',
-                                rows => [ [ "NAS_ID",          $FORM{nas_id}     ],
-                                          [ "ACCT_SESSION_ID", $FORM{del}        ]
-                                        ]
-                               } );
-    
-    $html->message('info', $_DELETED, $table->show());	
+    $html->message('info', $_DELETED, "NAS_ID: $FORM{nas_id}\nACCT_SESSION_ID: $FORM{del}");	
    }
 
 }
@@ -1228,13 +1547,13 @@ my $cure = '';
 
 
 if($FORM{ZAPED}) {
-	$LIST_PARAMS{ZAPED}='yes';
-	$form_link = $html->button('On line', "index=$index");
+	$LIST_PARAMS{ZAPED}=1;
+	$form_link = $html->button('On line', "index=$index", { BUTTON => 1, IMG => ':button_activate.png' });
 	$cure = 'Zap';
  } 
 else {
- 	$sessions->online( { ZAPED => 'yes' } );	
- 	$form_link = $html->button($_ZAPED, "index=$index&ZAPED=yes"). " ($sessions->{TOTAL})";
+ 	$sessions->online( { ZAPED => 1 } );	
+ 	$form_link = $html->button($_ZAPED, "index=$index&ZAPED=1", { BUTTON => 1, IMG => ':button_del.png'  }). " ($sessions->{TOTAL})";
 	$cure = 'Online';
 }
 
@@ -1244,45 +1563,40 @@ my $dub_logins = $sessions->{dub_logins};
  
 my $table = $html->table( { caption    => "$cure",
 	                          width      => '100%',
-                            title      => ["$_USER", "$_FIO", "CALLING_STATION_ID", "CALLING_STATION_ID", "$_DURATION", "CLIENT_IP_ADDRESS",  "-", "-", "-"],
+                            title      => ["$_USER", "$_FIO", "CALLED_STATION_ID", "CALLING_STATION_ID", "$_DURATION", "$_TYPE", "CLIENT_IP_ADDRESS",  "-", "-", "-"],
                             cols_align => ['left', 'left', 'right', 'right', 'right', 'right', 'right', 'right', 'right', 'center'],
-                            qs         => $pages_qs,
+                            qs         => $pages_qs,                            
                            });
 
 
  
-my $bg;
-my $online = $sessions->{nas_sorted};
-
-my $nas_list = $nas->list();
-
+my $online   = $sessions->{nas_sorted};
+my $nas_list = $Nas->list();
+my @call_types = ("$_ANSWER", "$_ORIGIN");
 foreach my $nas_row (@$nas_list) {
   next if (! defined($online->{$nas_row->[0]}));
 
-  $table->{rowcolor}=$_COLORS[0];
-  $table->{extra}="colspan=\"9\" class=\"small\"";
-  $table->addrow("$nas_row->[0]:<b>$nas_row->[1]</b>:$nas_row->[4]" );
-
-
+  $table->{rowcolor}= $_COLORS[0];
+  $table->{extra}   = "colspan='9' class='small'";
+  $table->addrow("$nas_row->[0]:". $html->button($html->b($nas_row->[1]), "index=". get_function_index('form_nas') ."&NAS_ID=$nas_row->[0]")  . ":$nas_row->[4]" );
 
   my $l = $online->{$nas_row->[0]};
   foreach my $line (@$l) {
     undef($table->{rowcolor});
     undef($table->{extra});
-    #print "$line->[0]<br>";
     if (defined($dub_logins->{$line->[0]}))                   { $bg='#FFFF00';    }
 #    elsif (defined($dub_ports->{$nas_row->[4]}{$line->[2]})) { $bg='#00FF40';    }
     elsif ($line->[9] == 3)                                   { $bg='#FF0000';    }
-    else {  $bg = ($bg eq $_COLORS[1]) ? $_COLORS[2] : $_COLORS[1];    }
 
-    my $zap = "(". $html->button('Z', "index=$index&zap=$nas_row->[0]+$line->[9]", { TITLE => 'Zap'}). ")";
-    my $hangup = ($FORM{ZAPED}) ? $html->form_input('dellist', "$line->[9]", { TYPE => 'checkbox' } ) : "(". $html->button('H', "index=$index&hangup=$nas_row->[0]+$line->[2]+$line->[9]+$line->[0]", { TITLE => 'Hangup'} ) .")";
-    my $user_info =  "$_FIO: $line->[1]\n$_PHONE: $line->[10]\n$_TARIF_PLAN: $line->[11]\n$_DEPOSIT: $line->[12]\n".
-     "$_CREDIT: $line->[13]\n$_SPEED: $line->[14]\nSESSION_ID: $line->[9]\nCID: $line->[15]\nCONNECT_INFO: $line->[16]";
+    my $zap = $html->button('Z', "index=$index&zap=$nas_row->[0]+$line->[10]", { TITLE => 'Zap', CLASS => 'del' });
+    my $hangup = ($FORM{ZAPED}) ? $html->form_input('dellist', "$line->[10]", { TYPE => 'checkbox' } ) : $html->button('H', "index=$index&hangup=$nas_row->[0]+$line->[2]+$line->[9]+$line->[0]", { TITLE => 'Hangup', CLASS => 'off'  } );
 
-    $table->addrow($html->button($line->[0], "index=11&UID=$line->[8]", { TITLE => "$user_info"}), 
-      $line->[1], $line->[2],  $line->[3],  $line->[4], $line->[5], 
-     "(". $html->button('P', "index=$index&ping=$line->[3]", { TITLE => 'Ping'}). ")",
+    my $user_info =  ''; 
+
+    $call_type = ($line->[5]==0) ? $html->color_mark($call_types[$line->[5]], "$_COLORS[7]" ) : $call_types[$line->[5]] ;
+    $table->addrow($html->button($line->[0], "index=11&UID=$line->[9]", { TITLE => "$user_info"}), 
+      $line->[1], $line->[2],  $line->[3],  $line->[4], $call_type, $line->[6],
+     $html->button('P', "index=$index&ping=$line->[6]", { TITLE => 'Ping', BUTTON => 1 }),
      "$zap",
      "$hangup");
   }
@@ -1290,7 +1604,7 @@ foreach my $nas_row (@$nas_list) {
 
 my $table2 = $html->table( { width      => '100%',
                              cols_align => ['right', 'right', 'right'],
-                             rows       => [ [ "$_TOTAL:", "<b>$sessions->{TOTAL}</b>", "$form_link" ] ]
+                             rows       => [ [ "$_TOTAL:", $html->b($sessions->{TOTAL}), "$form_link" ] ]
                          } );
 
 
@@ -1299,7 +1613,7 @@ my $output = $total . $table->show();
 
 $table = $html->table( { width       => '100%',
                          title_plain => [ 
-                                           "$_REFRESH (sec): ".   $html->form_input('REFRESH', int($FORM{REFRESH}), { SIZE => 4 } ),
+                                           "$_REFRESH (sec): ".   $html->form_input('REFRESH', int(($FORM{REFRESH}) ? $FORM{REFRESH} : 0 ), { SIZE => 4 } ),
                                            $html->form_input('SHOW',  $_SHOW, { TYPE => 'SUBMIT'})  
                                          ],
                           cols_align => ['center:noprint', 'center:noprint'],
@@ -1319,7 +1633,7 @@ else {
 	                              METHOD  => 'GET'
                         });
 
-  $output .= $html->button('Zap All', "index=$index&zapall=1", { MESSAGE => "Do you realy want zap all sessions ?" });
+  $output .= $html->button('Zap All', "index=$index&zapall=1", { IMG => ':tech_work.png', MESSAGE => "Do you realy want ZAP all sessions ?" });
  }
 
 
@@ -1382,7 +1696,8 @@ my $table = $html->table( { width        => '100%',
                             cols_align   => ['left', 'right', 'right', 'RIGHT', 'right', 'right', 'right', 'right', 'right', 'right', 'center'],
                             qs           => $pages_qs,
                             pages        => $sessions->{TOTAL},
-                            recs_on_page => $LIST_PARAMS{PAGE_ROWS}
+                            recs_on_page => $LIST_PARAMS{PAGE_ROWS},
+                            ID           => 'VOIP_SESSIONS'
                                } );
 
 my $delete = '';
@@ -1394,16 +1709,16 @@ my $Billing = Billing->new($db, \%conf);
 foreach my $line (@$list) {
   if ($permissions{3}{1}) {
     #$UID, $session_id, $nas_id, $session_start_date, $session_start_time, $sum, $login
-    $delete = $html->button($_DEL, "index=$index$pages_qs&del=$line->[11]+$line->[9]+$line->[6]+$line->[1]+$line->[9]+$line->[0]", { MESSAGE => "$_DEL Session SESSION_ID $line->[9]?" });
+    $delete = $html->button($_DEL, "index=$index$pages_qs&del=$line->[11]+$line->[9]+$line->[6]+$line->[1]+$line->[8]+$line->[0]", { MESSAGE => "$_DEL Session SESSION_ID $line->[9]?", CLASS => 'del', NO_LINK_FORMER => 1 });
    }
 
-  $table->addrow($html->button($line->[0], "index=11&UID=$line->[12]"), 
+  $table->addrow($html->button($line->[0], "index=11&UID=$line->[11]"), 
      $line->[1], $line->[2],  $line->[3],  
      $line->[4], 
      $line->[5], $line->[6],
      $line->[7], 
      "$line->[8] $test", 
-     "(". $html->button('D', "index=$index&UID=$line->[12]&SESSION_ID=$line->[11]", { TITLE => 'Session Detail' }) .")", 
+     $html->button('D', "index=$index&UID=$line->[11]&SESSION_ID=$line->[9]", { TITLE => 'Session Detail', CLASS => 'stats' }), 
      $delete);
 }
 
@@ -1442,9 +1757,9 @@ if (defined($FORM{DATE})) {
 
   my $list = $sessions->reports({ %LIST_PARAMS });
   foreach my $line (@$list) {
-    $table_sessions->addrow("<b>$line->[0]</b>", 
+    $table_sessions->addrow($html->b($line->[0]), 
       $html->button("$line->[1]", "index=11&subf=22&UID=$line->[5]&DATE=$line->[0]"), 
-       $line->[2], $line->[3],  "<b>$line->[4]</b>" );
+       $line->[2], $line->[3],  $html->b($line->[4]) );
    }
 
  }
@@ -1462,7 +1777,7 @@ else {
   foreach my $line (@$list) {
     $table_sessions->addrow(
     $html->button($line->[0], "index=$index&$type=$line->[0]$pages_qs"), 
-       $line->[1], $line->[2], $line->[3], "<b>$line->[4]</b>" );
+       $line->[1], $line->[2], $line->[3], $html->b($line->[4]) );
    }
 
 }
@@ -1472,12 +1787,12 @@ else {
 $table = $html->table( { width      => '100%',
                          caption    => $_SESSIONS,
                          cols_align => ['right', 'right', 'right', 'right', 'right', 'right'],
-                         rows       => [ [ "$_USERS: <b>$sessions->{USERS}</b>",
-                                            "$_SESSIONS: <b>$sessions->{SESSIONS}</b>", 
-                                            "$_DURATION: <b>$sessions->{DURATION}</b>", 
-                                            "$_SUM: <b>$sessions->{SUM}</b>" ] ],
-                                rowcolor => $_COLORS[2]
-                               } );
+                         rows       => [ [ "$_USERS: ".     $html->b($sessions->{USERS}),
+                                            "$_SESSIONS: ". $html->b($sessions->{SESSIONS}), 
+                                            "$_DURATION: ". $html->b($sessions->{DURATION}), 
+                                            "$_SUM: ".      $html->b($sessions->{SUM}) ] ],
+                         rowcolor   => $_COLORS[2]
+                     } );
 
 
 print $table_sessions->show() . $table->show();
@@ -1491,26 +1806,129 @@ print $table_sessions->show() . $table->show();
 #**********************************************************
 sub voip_error {
 	my ($attr) = @_;
-  my $PAGE_ROWS = 100;
-  $conf{LOGFILE} = "/usr/abills/var/log/abills.voip";
+  my $PAGE_ROWS = 25;
   my $login  = ''; 
 
+  my %log_levels_rev = reverse %log_levels;
+  my @ACTIONS = ('', 'AUTH', 'ACCT', 'HANGUP', 'CALCULATION', 'CMD');
+ 
 
-if ($attr->{USER}) {
-  my $user = $attr->{USER};
-  $login = $user->{LOGIN};
-}
+if ($attr->{USER_INFO}) {
+  my $user = $attr->{USER_INFO};
+  $Voip->user_info($attr->{USER_INFO}->{UID});  
+ 
+  $login   = $Voip->{NUMBER};
+  $LIST_PARAMS{LOGIN_EXPR} = $Voip->{NUMBER};
+ }
 elsif ($FORM{LOGIN_EXPR}) {
-  $login = $FORM{LOGIN_EXPR};
+  $login     = $FORM{LOGIN_EXPR};
+  $LIST_PARAMS{LOGIN_EXPR} = $FORM{LOGIN_EXPR};
   $pages_qs .= "&LOGIN_EXPR=$FORM{LOGIN_EXPR}";
  }
 elsif($FORM{UID}) {
-  voip_users();
+  voip_user();
   return 0;
 }
 
+#Sql Part
+if ($conf{ERROR2DB}) {
+  my %nas_ids = ( '' => '',
+                  0  => 'UNKNOWN',
+                 );
+
+  my $list = $Nas->list({ TYPE => 'asterisk,gnugk,cisco_voip' });
+  foreach my $line (@$list) {
+    $nas_ids{$line->[0]} = $line->[1];
+   }
+
+  $Voip->{LOG_TYPE_SEL} = $html->form_select('LOG_TYPE', 
+                          { 
+ 	                         SELECTED  => $FORM{LOG_TYPE},
+ 	                         SEL_HASH  => { '' => '', %log_levels_rev},
+                           NO_ID     => 1
+   	                      }) ;
+
+  $Voip->{NAS_ID_SEL} = $html->form_select('NAS_ID', 
+                          { 
+ 	                         SELECTED  => $FORM{NAS_ID},
+ 	                         SEL_HASH  => \%nas_ids,
+                           NO_ID     => 1
+   	                      }) ;
+
+  
+
+  $Voip->{ACTIONS_SEL} = $html->form_select('ACTION', 
+                                          { 
+ 	                                          SELECTED     => $FORM{ACTION},
+ 	                                          SEL_ARRAY    => \@ACTIONS,
+ 	                                        });
 
 
+  form_search({ SEARCH_FORM => $html->tpl_show(_include('voip_errors_search', 'Voip'),
+ 	                                            { %FORM, %$Voip },
+ 	                                            { OUTPUT2RETURN => 1 })    });
+
+  
+	if (! $FORM{sort}) {
+	  $LIST_PARAMS{SORT}=1;
+	  $LIST_PARAMS{DESC}=DESC;
+   }
+
+  if ($FORM{search}) {
+    $LIST_PARAMS{INTERVAL} = "$FORM{FROM_DATE}/$FORM{TO_DATE}";
+   }
+   
+  $LIST_PARAMS{NAS_ID}=join(';', keys %nas_ids);
+
+  $list = $Log->log_list({ %LIST_PARAMS  });
+  my $table = $html->table( { 
+  	                    caption    => $_TOTAL,
+	                      width      => '100%',
+	                      cols_align => ['right', 'right'],
+	                       } );
+
+  my $total = 0;
+	foreach my $line (@{ $Log->{list} }) {
+		$table->addrow(
+		$log_levels_rev{$line->[0]},
+		$line->[1]
+		);
+    $total += $line->[1];
+	 }
+
+	$table->addrow(
+		$_TOTAL, $total
+		);
+
+
+  print $table->show();
+
+
+  $table = $html->table( { caption => "$_ERROR",
+	                         width   => '100%',
+	                         title   => [ $_DATE, "$_TYPE", "$_ACTION", "$_USER", "$_TEXT", "NAS"],
+	                         pages   => $total,
+	                         qs      => $pages_qs,
+	                         ID      => 'DV_ERRORS'
+	                      } );
+
+	foreach my $line (@$list) {
+		$table->addrow($line->[0],
+		$log_levels_rev{$line->[1]},
+		$line->[2],
+		$html->button($line->[3], "index=11&LOGIN=$line->[3]"),
+		($line->[1] < 5) ? $html->color_mark($line->[4], "#FF0000") : $line->[4],
+		$nas_ids{$line->[5]}
+		);
+	 }
+
+  print $table->show();  
+}
+
+
+return 0 if (in_array('Dv', \@MODULES));
+
+#File part
 if (! -f $conf{LOGFILE}) {
 	$html->message('info', $_INFO, "'$conf{LOGFILE}' $_NOT_EXIST");
 	return 0;
@@ -1521,56 +1939,42 @@ if (defined($FORM{LOG_TYPE})) {
 	$pages_qs .= "&LOG_TYPE=$FORM{LOG_TYPE}";
 }
 
+
 my ($list, $types, $totals) = show_log("$login", "$conf{LOGFILE}", { DATE      => $FORM{DATE},
-	                                                                   LOG_TYPE  => $FORM{LOG_TYPE},
+	                                                                   LOG_TYPE  => $log_levels_rev{$FORM{LOG_TYPE}},
 	                                                                   PG        => $PG,
-	                                                                   PAGE_ROWS => $PAGE_ROWS });
-	                                                                   
+	                                                                   PAGE_ROWS => 25 #$PAGE_ROWS
+	                                                                 });
 
-print $html->form_main({ CONTENT => "$_LOGIN: " . $html->form_input('LOGIN_EXPR', "$FORM{LOGIN_EXPR}"),
-	                       HIDDEN  => { sid   => "$sid",
-	                                    index => "$index",
-	                                    UID   => "$UID"   },
-	                       SUBMIT  => { show  => "$_SHOW" }
-	                      
-	                      });
-	                                                                   
-
-	                                                                   
-my $table = $html->table( { caption => "$_LOG",
+my $table = $html->table( { caption => "System $_ERROR",
 	                          width   => '100%',
 	                          pages   => $totals,
-	                          qs      => $pages_qs
+	                          qs      => $pages_qs,
+	                          ID      => 'DV_ERRORS'
 	                         } );
 
 foreach my $line (@$list) {
   if ($line =~ m/LOG_WARNING/i) {
-     $line = "<font color='#FF0000'>$line</font>";
+     $line = $html->color_mark($line, '#FF0000');
    }
-
-#  if ($line =~ m/LOG_WARNING/i) {
-#    $table->{rowcolor}='#FF0000';
-#   } 
-#  else {
-#  	$table->{rowcolor}=undef;
-#   }  
 
   $table->addrow($line);
 }
 print $table->show();
 
 
-$table = $html->table({ 
-                        width      => '100%',
-                        cols_align => ['right', 'right'] 
-                        });
+$table = $html->table( { 
+	                      width      => '100%',
+	                      cols_align => ['right', 'right'] } );
 
 $table->addrow($html->button("$_TOTAL", "index=$index&$pages_qs"), $totals);
 while(my($k,$v)=each %$types) {
   $table->addrow($html->button($k, "index=$index&LOG_TYPE=$k$pages_qs"), $v);
 }
-print $table->show();
 
+$table->addrow($_SIZE, int2byte((-s $conf{LOGFILE}))) if ($login eq '');
+
+print $table->show();
 }
 
 
@@ -1580,8 +1984,8 @@ print $table->show();
 sub voip_stats {
 	my ($attr) = @_;
  
-if (defined($attr->{USER}))	{
-	my $user = $attr->{USER};
+if (defined($attr->{USER_INFO}))	{
+	my $user = $attr->{USER_INFO};
 
 	$UID = $user->{UID};
 	$LIST_PARAMS{UID} = $UID;
@@ -1606,7 +2010,7 @@ if (defined($attr->{USER}))	{
    }
   elsif($FORM{SESSION_ID}) {
   	$pages_qs .= "&SESSION_ID=$FORM{SESSION_ID}";
-  	voip_session_detail({ USER => $attr->{USER} });
+  	voip_session_detail({ USER_INFO => $attr->{USER_INFO} });
   	
   	return 0;
   }
@@ -1674,12 +2078,12 @@ print $html->form_main({ CONTENT => $table->show({ OUTPUT2RETURN => 1 }),
 voip_stats_calculation($sessions);
 
 if (defined($FORM{show})) {
-  $pages_qs .= "&show=y&fromd=$FORM{fromd}&fromm=$FORM{fromm}&fromy=$FORM{fromy}&tod=$FORM{tod}&tom=$FORM{tom}&toy=$FORM{toy}";
-  $FORM{fromm}++;
-  $FORM{tom}++;
-  $FORM{fromm} = sprintf("%.2d", $FORM{fromm}++);
-  $FORM{tom} = sprintf("%.2d", $FORM{tom}++);
-  $LIST_PARAMS{INTERVAL} = "$FORM{fromy}-$FORM{fromm}-$FORM{fromd}/$FORM{toy}-$FORM{tom}-$FORM{tod}";
+  $pages_qs .= "&show=y&fromD=$FORM{fromD}&fromm=$FORM{fromM}&fromy=$FORM{fromY}&tod=$FORM{toD}&tom=$FORM{toM}&toy=$FORM{toY}";
+  $FORM{fromM}++;
+  $FORM{toM}++;
+  $FORM{fromM} = sprintf("%.2d", $FORM{fromM}++);
+  $FORM{toM} = sprintf("%.2d", $FORM{toM}++);
+  $LIST_PARAMS{INTERVAL} = "$FORM{fromY}-$FORM{fromM}-$FORM{fromD}/$FORM{toY}-$FORM{toM}-$FORM{toD}";
  }
 elsif (defined($FORM{period})) {
 	$LIST_PARAMS{PERIOD} = int($FORM{period}); 
@@ -1706,6 +2110,123 @@ $table = $html->table( { width       => '640',
                                } );
 print $table->show();
 voip_sessions($list, $sessions) if ( $sessions->{TOTAL} > 0);
+}
+
+
+#*******************************************************************
+# Session Detail
+# voip_session_detail();
+#*******************************************************************
+sub voip_session_detail {
+	my ($attr) = @_;
+  my $user;
+
+ 
+if (defined($attr->{USER_INFO}))	{
+	$user = $attr->{USER_INFO};
+	$LIST_PARAMS{LOGIN}=$user->{LOGIN};
+	
+#	if ($FORM{RECALC}) {
+#		$sessions->session_detail({ %FORM });
+#
+#    use Billing;
+#    my $Billing = Billing->new($db, $CONF);
+#
+#    my($UID, 
+#     $SUM, 
+#     $BILL_ID, 
+#     $TARIF_PLAN, 
+#     $TIME_TARIF, 
+#     $TRAF_TARIF) = $Billing->session_sum($sessions->{LOGIN}, 
+#                                          $sessions->{START_UNIXTIME}, 
+#                                          $sessions->{DURATION}, 
+#                                            {  OUTBYTE  =>  $sessions->{SENT},
+#                                               INBYTE   =>  $sessions->{RECV},
+#                                               OUTBYTE2 =>  $sessions->{SENT2},
+#                                               INBYTE2  =>  $sessions->{RECV2}
+#                                             },
+#                                          {
+#                                          	disable_rt_billing => 1,
+#                                          	TP_NUM             => $sessions->{TP_ID}
+#                                           } 
+#                                          );
+#
+#    my $change = '';
+#
+#    if ($sessions->{SUM} != $SUM) {
+#      $change = "$_CHANGE  ". $html->button($_YES, "index=$index&RECALC=1&SESSION_ID=$FORM{SESSION_ID}&UID=$FORM{UID}&change=1", { BUTTON => 1 }). ' ?';
+#    
+#      if ($FORM{change}) {
+#        use Bills;
+#        my $Bill = Bills->new($db);
+#        $Bill->action('add', "$sessions->{BILL_ID}", $sessions->{SUM}) if ($sessions->{SUM});
+#        $Bill->action('take', "$sessions->{BILL_ID}", $SUM) if ($SUM > 0);
+#
+#        $sessions->query($db, "UPDATE dv_log SET sum='$SUM' WHERE acct_session_id='$sessions->{SESSION_ID}';", 'do');
+#
+#        if($bill->{errno}) {
+#          $html->message('err', $_ERROR, "[$bill->{errno}] $err_strs{$bill->{errno}}");
+#         }
+#        else {
+#          $html->message('info', $_INFO, "$_ADDED: SUM $FORM{sum}, BILL_ID: $FORM{BILL_ID}");  	
+#         }
+#      	$change = "$_CHANGED";
+#       }
+#     }
+#
+#		$html->message('info', "$_RECALCULATE", "$_TARIF_PLAN: $TARIF_PLAN, $_SUM: $sessions->{SUM} -> $SUM  $change");
+#	 }
+	
+}
+elsif (defined($LIST_PARAMS{LOGIN}))	{
+
+}
+elsif($FORM{UID}) {
+	voip_user();
+	return 0;
+}	
+
+
+my %ACCT_TERMINATE_CAUSES = (
+                      'Unknown'             =>     0,
+                      'User-Request'        =>     1,
+                      'Lost-Carrier'        =>     2,
+                      'Lost-Service'        =>     3,
+                      'Idle-Timeout'        =>     4,
+                      'Session-Timeout'     =>     5,
+                      'Admin-Reset'         =>     6,
+                      'Admin-Reboot'        =>     7,
+                      'Port-Error'          =>     8,
+                      'NAS-Error'           =>     9,
+                      'NAS-Request'         =>     10,
+                      'NAS-Reboot'          =>     11,
+                      'Port-Unneeded'       =>     12,
+                      'Port-Preempted'      =>     13,
+                      'Port-Suspended'      =>     14,
+                      'Service-Unavailable' =>     15,
+                      'Callback'            =>     16,
+                      'User-Error'          =>     17,
+                      'Host-Request'        =>     18,
+                      'Supplicant-Restart'  =>     19,
+                      'Reauthentication-Failure' => 20,
+                      'Port-Reinit'         =>     21,
+                      'Port-Disabled'       =>     22,
+                      'Lost-Alive/Billd Calculation' => 23      
+                    );
+
+my %ACCT_TERMINATE_CAUSES_VALUE = reverse %ACCT_TERMINATE_CAUSES;
+
+$sessions->session_detail({ %FORM });
+$sessions->{ACCT_TERMINATE_CAUSE} = "$sessions->{ACCT_TERMINATE_CAUSE} : ". $ACCT_TERMINATE_CAUSES_VALUE{$sessions->{ACCT_TERMINATE_CAUSE}};
+$sessions->{RECALC}= $html->button($_RECALCULATE, "index=$index&RECALC=1&SESSION_ID=$FORM{SESSION_ID}&UID=$FORM{UID}", { BUTTON => 1 });
+
+
+$sessions->{ROUTE_ID} = $html->button($sessions->{ROUTE_ID}, "&ROUTE_ID=$sessions->{ROUTE_ID}&index=".get_function_index('voip_routes') );
+
+$html->tpl_show(_include('voip_session_detail', 'Voip'), { %$sessions,
+ });
+
+	
 }
 
 
@@ -1750,6 +2271,7 @@ if ($sessions->{errno})	 {
 
 
 if ($FORM{rows}) {
+
   $LIST_PARAMS{PAGE_ROWS}=$FORM{rows};
   $conf{list_max_recs}=$FORM{rows};
   $pages_qs .= "&rows=$conf{list_max_recs}";
@@ -1762,7 +2284,8 @@ my $table = $html->table( { width       => '100%',
                             caption     => $_PERIOD,
                             title_plain => ["$_PERIOD", "$_DURATION", "$_SUM"],
                             cols_align  => ['left', 'right', 'right'],
-                            rowcolor    => $_COLORS[1]
+                            rowcolor    => $_COLORS[1],
+                            ID          => 'PERIODS'
                         } );
 
 if (! defined($sessions->{sum_4})) {
@@ -1777,14 +2300,15 @@ for(my $i = 0; $i < 5; $i++) {
 print $table->show();
 
 
-$table = $html->table( { width       => '100%',
-	                       rowcolor    => $_COLORS[0],
-                         title_plain => [ "$_FROM: ",  $html->date_fld('from', { MONTHES => \@MONTHES} ),
-                                          "$_TO: ",    $html->date_fld('to', { MONTHES => \@MONTHES } ),
-                                          "$_ROWS: ",  $html->form_input('rows', int($conf{list_max_recs}), { SIZE => 4, OUTPUT2RETURN => 1 } ),
-                                          $html->form_input('show', $_SHOW,  { TYPE => 'submit', OUTPUT2RETURN => 1 })
-                                         ],                                   
-                      });
+$table = $html->table({ width       => '100%',
+	                      rowcolor    => $_COLORS[0],
+                        rows        => [[ "$_FROM: ", $html->date_fld('from', { MONTHES => \@MONTHES} ),
+                                          "$_TO: ",   $html->date_fld('to', { MONTHES => \@MONTHES } ),
+                                          "$_ROWS: ", $html->form_input('rows', int($conf{list_max_recs}), { SIZE => 4, OUTPUT2RETURN => 1 } ),
+                                         $html->form_input('show', $_SHOW, { TYPE => 'submit', OUTPUT2RETURN => 1 })
+                                        ]],                                   
+                        } );
+
 
 print $html->form_main({ CONTENT => $table->show({ OUTPUT2RETURN => 1 }),
 	                       HIDDEN  => { sid   => "$sid",
@@ -1794,12 +2318,12 @@ print $html->form_main({ CONTENT => $table->show({ OUTPUT2RETURN => 1 }),
 voip_stats_calculation($sessions);
 
 if (defined($FORM{show})) {
-  $pages_qs .= "&show=y&fromd=$FORM{fromd}&fromm=$FORM{fromm}&fromy=$FORM{fromy}&tod=$FORM{tod}&tom=$FORM{tom}&toy=$FORM{toy}";
-  $FORM{fromm}++;
-  $FORM{tom}++;
-  $FORM{fromm} = sprintf("%.2d", $FORM{fromm}++);
-  $FORM{tom} = sprintf("%.2d", $FORM{tom}++);
-  $LIST_PARAMS{INTERVAL} = "$FORM{fromy}-$FORM{fromm}-$FORM{fromd}/$FORM{toy}-$FORM{tom}-$FORM{tod}";
+  $pages_qs .= "&show=y&fromD=$FORM{fromD}&fromm=$FORM{fromM}&fromy=$FORM{fromY}&tod=$FORM{toD}&tom=$FORM{toM}&toy=$FORM{toY}";
+  $FORM{fromM}++;
+  $FORM{toM}++;
+  $FORM{fromM} = sprintf("%.2d", $FORM{fromM}++);
+  $FORM{toM} = sprintf("%.2d", $FORM{toM}++);
+  $LIST_PARAMS{INTERVAL} = "$FORM{fromY}-$FORM{fromM}-$FORM{fromD}/$FORM{toY}-$FORM{toM}-$FORM{toD}";
  }
 elsif (defined($FORM{period})) {
 	$LIST_PARAMS{PERIOD} = int($FORM{period}); 
@@ -1816,6 +2340,7 @@ $table = $html->table( { width       => '640',
                          title_plain => ["$_SESSIONS", "$_DURATION", "$_SUM"],
                          cols_align  => ['right', 'right', 'right'],
                          rows        => [ [ $sessions->{TOTAL}, $sessions->{DURATION}, $sessions->{SUM} ] ],
+                         ID          => 'VOIP_TOTALS'
                      } );
 print $table->show();	
 
@@ -1848,31 +2373,19 @@ sub voip_user_routes {
   require Tariffs;
   Tariffs->import();
   my $Voip_tp = Tariffs->new($db, \%conf);
-
+  $WEEKDAYS[0]=$_ALL;
 	my $list = $Voip_tp->ti_list({ TP_ID => $user->{TP_ID}  });
   my @caption = ($_PREFIX, $_ROUTES, "$_STATUS");
   my @aligns = ('left', 'left', 'center');
   my @interval_ids = ();
   my $intervals=0;
   foreach my $line (@$list) {
-    push @caption, "$_SUM (Min): $line->[1] / $line->[2]-$line->[3]";
+    #push @caption, "$_SUM (Min): ". $WEEKDAYS[$line->[1]] .$html->br().  sec2time($line->[2], {str => 1}). '-' . sec2time($line->[3], {str => 1});
+    push @caption, $html->b($WEEKDAYS[$line->[1]]) .$html->br().  sec2time($line->[2], {format => 1}). '-' . sec2time($line->[3], {format => 1});
     push @aligns,  'center';
     push @interval_ids, $line->[0];
    }
   $intervals = $Voip_tp->{TOTAL};
-
-
-#  form_search({ 
-#     SIMPLE        => {$_PREFIX   => "ROUTE_PREFIX",
-#                       $_NAME     => "ROUTE_NAME",
-#                       $_DISABLE  => "DISABLE",
-#                       $_DESCRIBE => "DESCRIBE",
-#                       $_GATEWAY  => "GATEWAY_SEL",
-#                       $_SUM      => "PRICE"},
-#
-#     HIDDEN_FIELDS => { TP_ID      => $FORM{TP_ID} }
-#   });
-
 
 
 $list = $Voip->rp_list({ %LIST_PARAMS });
@@ -1903,12 +2416,12 @@ my $price = 0;
 foreach my $line (@$list) {
   my @l=();
   for(my $i = 0; $i<$intervals; $i++) { 
-  	  if (defined($prices{"$interval_ids[$i]"}{"$line->[5]"})) {
-        $price = $prices{$interval_ids[$i]}{$line->[5]};
+  	  if (defined($prices{"$interval_ids[$i]"}{"$line->[4]"})) {
+        $price = $prices{$interval_ids[$i]}{$line->[4]};
   	    }
       else {
-        $price = "N/P";
-        $price .= " $interval_ids[$i] $line->[5] -0" if ($debug > 0);
+        $price = "0.00";
+        $price .= " $interval_ids[$i] $line->[4] -0" if ($debug > 0);
        }
       push @l, $price;
     }
@@ -1925,125 +2438,181 @@ foreach my $line (@$list) {
 # daily_fees
 #**********************************************************
 sub voip_daily_fees {
+  my ($attr) = @_; 
+
+  my $debug = $attr->{DEBUG} || 0;
+  my $debug_output = '';
+  $debug_output .= "Voip: Daily periodic\n" if ($debug > 1);
  
- require Tariffs;
- Tariffs->import();
- my $tariffs = Tariffs->new($db, $conf);
+  $LIST_PARAMS{TP_ID} = $attr->{TP_ID} if ($attr->{TP_ID});
+  my %VOIP_LIST_PARAMS = ();
+  $VOIP_LIST_PARAMS{LOGIN} = $attr->{LOGIN} if ($attr->{LOGIN});
+  $VOIP_LIST_PARAMS{EXT_BILL} = 1 if ($conf{BONUS_EXT_FUNCTIONS});
+  
+  $ADMIN_REPORT{DATE}=$DATE if (! $ADMIN_REPORT{DATE});
+  my ($y, $m, $d)=split(/-/, $ADMIN_REPORT{DATE}, 3);
 
- require Fees;
- Fees->import();
- my $fees = Fees->new($db, $admin, $conf);
+ 
+ 
 
- my $list = $tariffs->list({ %LIST_PARAMS });
+ my $list = $tariffs->list({ %LIST_PARAMS, MODULE => 'Voip' });
 
  foreach my $line (@$list) {
- 	 if ($line->[5] > 0) {
-# 	   print "$line->[0] $line->[6]\n";
- 	   $LIST_PARAMS{TP}=$line->[0];
+   my %TP_INFO     = ();
+ 	 my $TP_ID       = $line->[0];
+ 	 my $postpaid    = $line->[4];
+   my $daily_fee   = $line->[5];
 
- 	   my $ulist = $Dv->list({ 
+   $TP_INFO{POSTPAID_MONTHLY} = $line->[13];
+   $TP_INFO{REDUCTION}        = $line->[11];
+   $TP_INFO{TP_NUM}           = $line->[18];
+
+
+   $debug_output .= "TP ID: $line->[0] DF: $daily_fee POSTPAID: $postpaid\n" if ($debug > 1); 	 
+ 	 if ($daily_fee > 0) {
+ 	   $LIST_PARAMS{TP}=$line->[0];
+ 	   my $ulist = $Voip->user_list({ 
          ACTIVATE => "<=$DATE",
-         EXPIRE => ">$DATE",
-         DISABLE => '0',
-         TP => $line->[0]
+         EXPIRE   => ">$DATE",
+         STATUS       => '0',
+         LOGIN_STATUS => 0,
+         TP_ID    => $TP_INFO{TP_NUM}
  	   	 });
 
-#     .id, u.fio, if(acct.id IS NULL, u.deposit, acct.deposit), u.credit, tp.name, u.disable, 
-#      u.uid, u.account_id, u.email, u.tp_id
      foreach my $u (@$ulist) {
         my %user = (
-            ACCOUNT_ID => $u->[7],
-            UID => $u->[6],
-            BILL_ID => $u->[12]  
-         );
-#          print " $u->[0] $line->[6] $u->[2] $u->[3]\n"; 	
+            LOGIN      => $u->[0],
+            UID        => $u->[7],
+            BILL_ID    => $u->[13],
+            ACTIVATE   => $u->[11],
+            REDUCTION  => 0,
+            DEPOSIT    => $u->[2],
+            CREDIT     => $u->[3],
+            STATUS     => $u->[14],            
+           );
 
-        if($line->[5] > 0
-            || $conf{negative_deposit} eq 'yes'
-            || $u->[2] + $u->[3] > 0 ) {
-          $fees->take(\%user, $line->[5], { DESCRIBE => "$_DAY_FEE" } );  
+        $debug_output .= " Login: $user{LOGIN} ($user{UID}) REDUCTION: $user{REDUCTION} DEPOSIT: $u->[2] CREDIT $user{CREDIT} ACTIVE: $user{ACTIVATE}\n" if ($debug > 3); 	
+
+        if($postpaid  || $user{DEPOSIT} + $user{CREDIT} > 0 ) {
+ 	        my %FEES_PARAMS = ( 
+               DESCRIBE => "Voip: $_DAY_FEE ($TP_ID)",
+               DATE     => "$ADMIN_REPORT{DATE} $TIME",
+               METHOD   => 1 );
+
+          $fees->take(\%user, $daily_fee, \%FEES_PARAMS );  
          }
       }
 
  	  }
   }
-
-
-
-
+ 
+ 
+ 
+  $DEBUG .= $debug_output;
+  return $debug_output; 
 }
-
-
-
 
 
 #**********************************************************
 # monthly_fees
 #**********************************************************
 sub voip_monthly_fees {
- require Tariffs;
- Tariffs->import();
- my $tariffs = Tariffs->new($db);
+  my ($attr) = @_;
 
- require Fees;
- Fees->import();
- my $fees = Fees->new($db, $admin);
-
- my $list = $tariffs->list({ %LIST_PARAMS });
-
- #print "$y, $m, $d\n";
-
- $m--;
+  my $debug = $attr->{DEBUG} || 0;
+  my $debug_output = '';
+  $debug_output .= "Voip: Monthly periodic payments\n" if ($debug > 1);
  
-my $date_unixtime =  mktime(0, 0, 0, $d, $m, $y - 1900, 0, 0, 0);
+  use Users;
+  my $users = Users->new($db, $admin, \%conf); 
+
+  $LIST_PARAMS{TP_ID} = $attr->{TP_ID} if ($attr->{TP_ID});
+  my %VOIP_LIST_PARAMS = ();
+  $VOIP_LIST_PARAMS{LOGIN} = $attr->{LOGIN} if ($attr->{LOGIN});
+  $VOIP_LIST_PARAMS{EXT_BILL} = 1 if ($conf{BONUS_EXT_FUNCTIONS});
+  
+  $ADMIN_REPORT{DATE}=$DATE if (! $ADMIN_REPORT{DATE});
+  my ($y, $m, $d)=split(/-/, $ADMIN_REPORT{DATE}, 3);
+ 
+
+
+  my $list = $tariffs->list({ %LIST_PARAMS, MODULE => 'Voip' });
+  my $date_unixtime =  mktime(0, 0, 0, $d, ($m-1), $y - 1900, 0, 0, 0);
  
  foreach my $line (@$list) {
- 	 if ($line->[6] > 0) {
-# 	   print "$line->[0] $line->[7]\n";
- 	   $LIST_PARAMS{TP}=$line->[0];
+   my %TP_INFO     = ();
+ 	 my $TP_ID       = $line->[0];
+ 	 my $postpaid    = $line->[4];
+   my $month_fee   = $line->[6];
 
- 	   my $ulist = $users->list({ 
-         ACTIVATE => "<=$DATE",
-         EXPIRE => ">$DATE",
-         DISABLE => '0',
-         TP => $line->[0]
+   $TP_INFO{POSTPAID_MONTHLY} = $line->[13];
+   $TP_INFO{REDUCTION}        = $line->[11];
+   $TP_INFO{TP_NUM}           = $line->[18];
+
+   $debug_output .= "TP ID: $line->[0] MF: $month_fee POSTPAID: $postpaid\n" if ($debug > 1); 	 
+ 	 
+ 	 if ($month_fee > 0) {
+ 	   my $ulist = $Voip->user_list({ 
+         ACTIVATE     => "<=$DATE",
+         EXPIRE       => ">$DATE",
+         STATUS       => '0;2',
+         LOGIN_STATUS => 0,
+         TP_ID        => $TP_INFO{TP_NUM},
+         PAGE_ROWS    => 10000000,
+         %VOIP_LIST_PARAMS
  	   	 });
-#u.id, u.fio, if(acct.id IS NULL, u.deposit, acct.deposit), u.credit, tp.name, u.disable, 
-#      u.uid, u.account_id, u.email, u.tp_id, u.activate, u.expire
-
 
      foreach my $u (@$ulist) {
-          my %user = (
-            ACCOUNT_ID => $u->[7],
-            UID => $u->[6],
-            BILL_ID => $u->[12]   
+        my %user = (
+            LOGIN      => $u->[0],
+            UID        => $u->[7],
+            BILL_ID    => $u->[13],
+            ACTIVATE   => $u->[11],
+            REDUCTION  => 0,
+            DEPOSIT    => $u->[2],
+            CREDIT     => $u->[3],
+            STATUS     => $u->[14],            
            );
 
-        if ($u->[10] eq '0000-00-00' and $d == 1) {
-#          print " $u->[0] $line->[6] $u->[2] $u->[3] $u->[10] - $u->[11]\n"; 	
-          if($line->[4] > 0 
-              || $conf{negative_deposit} eq 'yes'
-              || $u->[2] + $u->[3] > 0 ) {
-            $fees->take(\%user, $line->[6], { DESCRIBE => "$_MONTH_FEE" } );  
+
+        $debug_output .= " Login: $user{LOGIN} ($user{UID}) REDUCTION: $user{REDUCTION} DEPOSIT: $u->[2] CREDIT $user{CREDIT} ACTIVE: $user{ACTIVATE}\n" if ($debug > 3); 	
+        my %FEES_PARAMS = ( DESCRIBE => "Voip: $_MONTH_FEE ($TP_ID)",
+                            DATE     => $ADMIN_REPORT{DATE},
+                            METHOD   => 1 
+                           );  
+          
+          if ($user{ACTIVATE} eq '0000-00-00' and $d == 1) {
+            if($postpaid > 0 || $user{DEPOSIT} + $user{CREDIT} > 0 ) {
+              $fees->take(\%user, $month_fee, \%FEES_PARAMS );  
+             }
+            elsif  ($conf{VOIP_ONEMONTH_INCOMMING_ALLOW}) {
+              my $change_status = ($user{STATUS} == 0) ? 2 : 1;
+            	$Voip->user_change({ UID => $user{UID}, DISABLE => $change_status });
+            	$debug_output .= " CHANGE STATUS: $user{STATUS} -> $change_status\n" if ($debug > 3); 	
+             }
            }
-         }
-        elsif($u->[10] ne '0000-00-00') {
-          my ($activate_y, $activate_m, $activate_d)=split(/-/, $u->[10], 3);
-          $activate_m--;
-          my $active_unixtime =  mktime(0, 0, 0, $activate_d, $activate_m, $activate_y - 1900, 0, 0, 0);
+          elsif($user{ACTIVATE} ne '0000-00-00') {
+            if($postpaid > 0 || $user{DEPOSIT} + $user{CREDIT} > 0 ) {
+              my ($activate_y, $activate_m, $activate_d)=split(/-/, $user{ACTIVATE}, 3);
+              my $active_unixtime =  mktime(0, 0, 0, $activate_d, ($activate_m-1), $activate_y - 1900, 0, 0, 0);
 
-          if ($date_unixtime - $active_unixtime > 30 * 86400) {
-            #my $aa = (strftime "%Y-%m-%d", localtime($active_unixtime));
-            $fees->take(\%user, $line->[7], { DESCRIBE => "$_MONTH_FEE" } );
-            $users->change($u->[6], { ACTIVATE => $DATE } );
+              if ($date_unixtime - $active_unixtime > 30 * 86400) {
+                $fees->take(\%user, $month_fee, \%FEES_PARAMS );
+                $users->change($user{UID}, { ACTIVATE => $DATE, UID => $user{UID} } );
+               }
+             }
+            elsif  ($conf{VOIP_ONEMONTH_INCOMMING_ALLOW}) {
+              my $change_status = ($user{STATUS} == 0) ? 2 : 1;
+            	$Voip->user_change({ UID => $user{UID}, DISABLE => $change_status });
+            	$debug_output .= " CHANGE STATUS: $user{STATUS} -> $change_status\n" if ($debug > 3); 	
+             }
            }
-#          print "   $u->[0] $line->[6] $u->[2] $u->[3] $u->[10] - $u->[11]\n"; 	
-         }
-
-      }
-
  	  }
   }
+}
+
+  $DEBUG .= $debug_output;
+  return $debug_output;
 }
 
 
@@ -2070,8 +2639,11 @@ foreach my $line (@$list) {
   $USER_INFO{DEPOSIT}=$line->[4];
   $USER_INFO{CREDIT}=$line->[3];
   
-  my $email = ((! defined($line->[1])) || $line->[1] eq '') ? "$line->[0]\@$conf{USERS_MAIL_DOMAIN}" : "$line->[1]";
+  my $email = ((! defined($line->[1])) || $line->[1] eq '') ? (($conf{USERS_MAIL_DOMAIN}) ? "$line->[0]\@$conf{USERS_MAIL_DOMAIN}" : '') : "$line->[1]";
   
+  if ($email eq '') {
+  	next;
+   }
  
   $ADMIN_REPORT{USERS_WARNINGS} .= sprintf ("%-14s| %4d|%-20s| %9.4f| %8.2f|\n", 
   $USER_INFO{LOGIN}, $USER_INFO{TP_ID}, $USER_INFO{TP_NAME},  $USER_INFO{DEPOSIT}, $USER_INFO{CREDIT});
@@ -2099,7 +2671,7 @@ my  $nas = Nas->new($db, \%conf);
 
 
 
-my $list = $nas->list({ TYPE => 'gnugk'});
+my $list = $Nas->list({ TYPE => 'gnugk'});
 my $table = $html->table({ caption => "$_NAS",
 	                         width   => '100%',
                            border  => 1,
@@ -2157,16 +2729,16 @@ if ($FORM{NAS_ID}){
 
 
   if(length($FORM{command})>0){
-    $nas->info({ NAS_ID => $FORM{NAS_ID}});
+    $Nas->info({ NAS_ID => $FORM{NAS_ID}});
     my @commands = ();
  
     require 'Abills/nas.pl';
-    push @commands, "login:\t$nas->{NAS_MNG_USER}";
-    push @commands, "assword:\t$nas->{NAS_MNG_PASSWORD}";
+    push @commands, "login:\t$Nas->{NAS_MNG_USER}";
+    push @commands, "assword:\t$Nas->{NAS_MNG_PASSWORD}";
     push @commands, ";\t$FORM{command}";
     push @commands, ";\tquit";
 
-    my $result = telnet_cmd("$nas->{NAS_MNG_IP_PORT}", \@commands, { debug => 1 });
+    my $result = telnet_cmd("$Nas->{NAS_MNG_IP_PORT}", \@commands, { debug => 1 });
     my $total=0;
     my @rows = split(/\n/, $result);
     my @registred = ();
@@ -2197,8 +2769,8 @@ if ($FORM{NAS_ID}){
          #ACF|Caller_IP:Port|Caller_EPID|CRV|DestinationInfo|SrcInfo|IsAnswered;
          #ACF|Callee_IP:Port|Callee_EPID|CRV|DestinationInfo|SrcInfo|IsAnswered;
          $table->addrow('&nbsp;', @registred, 
-          "(". $html->button("H", "index=$index&NAS_ID=$FORM{NAS_ID}&command=disconnectcall+$registred[4]", 
-             { TITLE => 'Hangup'} ). ')');
+          $html->button("H", "index=$index&NAS_ID=$FORM{NAS_ID}&command=disconnectcall+$registred[4]", 
+            { TITLE => 'Hangup', BUTTON => 1  } ));
         }
       }
      print $table->show();
@@ -2206,7 +2778,7 @@ if ($FORM{NAS_ID}){
      $table = $html->table( { caption  => 'Commands',
      	                        width    => '100%',
                               cols_align => ['right', 'right'],
-                              rows => [ ["$_TOTAL:", "<b>$total</b>" ] ]
+                              rows => [ ["$_TOTAL:", $html->b($total) ] ]
                                } );
 
      print $table->show();
@@ -2231,17 +2803,17 @@ if ($FORM{NAS_ID}){
      foreach my $line (@rows) {
        if($line =~ /RCF/) {
          @registred = split(/\|/, $line);
-         push @registred, "(". $html->button('H', "index=$index&NAS_ID=$FORM{NAS_ID}&command=UnregisterIP+$registred[1]", 
-           { TITLE => 'Hangup'}). ")";
+         push @registred, $html->button('H', "index=$index&NAS_ID=$FORM{NAS_ID}&command=UnregisterIP+$registred[1]", 
+           { TITLE => 'Hangup', BUTTON => 1 });
          $table->addrow(@registred);
         }
       }
      print $table->show();
 
-     $table = $html->table( { width => '100%',
-                                cols_align => ['right', 'right'],
-                                rows => [ ["$_TOTAL:", "<b>$total</b>" ] ]
-                               } );
+     $table = $html->table( { width      => '100%',
+                              cols_align => ['right', 'right'],
+                              rows       => [ ["$_TOTAL:", "<b>$total</b>" ] ]
+                          } );
      print $table->show();
      }
     else {
@@ -2296,28 +2868,42 @@ sub voip_sheduler {
 sub voip_mk_users_conf {
  my ($attr) = @_;
 
+my $content = '';
 
-my %info = ();
+my $list = $Voip->user_list({ PAGE_ROWS => 100000, 
+	                            CID       => '*',
+	                            PASSWORD  => 1,
+	                            IP        => '>=0'
+	                          });
 
-$info{NUMBER}    = 0;
-$info{PASSWORD}  = $attr->{PASSWORD};
-$info{CALLER_ID} = $attr->{LOGIN};
-$info{FIO} = $attr->{FIO};
-
-my $tpl = '
-[%NUMBER%] ; #%FIO%
-type=friend
-host=dynamic
-username=%NUMBER%
-secret=%PASSWORD%
-dtmfmode=rfc2833
-context=office
-callerid="%CALLER_ID%" <%NUMBER%>
-;allow-ulaw
-;allow-alaw
+foreach my $line (@$list) {
+  my %info = ( LOGIN     => $line->[0],
+               FIO       => $line->[1],
+               NUMBER    => $line->[6],
+               CALLER_ID => $line->[$Voip->{SEARCH_FIELDS_COUNT}+5],
+               PASSWORD  => $line->[$Voip->{SEARCH_FIELDS_COUNT}+6],
+               HOST      => ($line->[$Voip->{SEARCH_FIELDS_COUNT}+4] eq '0.0.0.0') ? 'dynamic' : $line->[$Voip->{SEARCH_FIELDS_COUNT}+4],
+               DATE      => $DATE,
+               TIME      => $TIME
+               );
 
 
-';
+  $content .=  $html->tpl_show(_include('voip_users_conf', 'Voip'), \%info, { OUTPUT2RETURN => 1 });
+}
+
+if(open(FILE, ">$conf{VOIP_ASTERISK_USERS}")) {
+  print FILE "$content\n";
+  close(FILE);
+ }
+else {
+  #$html->message('err', "Voip:$_ERROR", "Can't open file config file '$conf{VOIP_ASTERISK_USERS}' $!") if (! $attr->{QUITE});	
+}
+
+if ($conf{VOIP_ASTERISK_RESTART}) {
+	#$conf{VOIP_ASTERISK_RESTART}=~
+	system($conf{VOIP_ASTERISK_RESTART});
+}
+
 
 
 }
@@ -2334,6 +2920,201 @@ sub voip_report {
  
   return $REPORT;
 }
+
+
+#***********************************************************
+# voip_report
+#***********************************************************
+sub voip_extra_tarification {
+	my ($type, $attr)=@_;
+ 
+  %LIST_PARAMS = %{$attr->{LIST_PARAMS}} if (defined($attr->{LIST_PARAMS}));
+	$Voip->{ACTION}='add';
+ 	$Voip->{LNG_ACTION}=$_ADD;
+
+  if ($FORM{add}) {
+  	$Voip->extra_tarification_add({ %FORM });
+    if (! $Voip->{errno}) {
+       $html->message('info', $_INFO, "$_ADDED");	
+     }
+   }
+	elsif($FORM{change}) {
+    $Voip->extra_tarification_change({ %FORM });
+    if (! $Voip->{errno}) {
+      $html->message('info', $_INFO, "$_CHANGED");	
+     }
+   }
+	elsif($FORM{chg}) {
+    $Voip->extra_tarification_info({ %FORM, ID => $FORM{chg} });
+    if (! $Voip->{errno}) {
+      $html->message('info', $_INFO, "$_CHANGING");	
+     }
+   	$Voip->{ACTION}='change';
+  	$Voip->{LNG_ACTION}=$_CHANGE;
+   }
+	elsif($FORM{del} && $FORM{is_js_confirmed}) {
+    $Voip->extra_tarification_del({ ID => $FORM{del}  });
+    if (! $Voip->{errno}) {
+      $html->message('info', $_INFO, "$_DELETED");	
+     }
+	 }
+
+  if ($Voip->{errno}) {
+    $html->message('err', $_ERROR, "[$Voip->{errno}] $err_strs{$Voip->{errno}}");
+   }
+  
+  $html->tpl_show(_include('voip_extra_tarification', 'Voip'), $Voip);
+ 
+ 
+ my $list = $Voip->extra_tarification_list( { %LIST_PARAMS } );
+
+if ($Voip->{errno}) {
+  $html->message('err', $_ERROR, "[$Voip->{errno}] $err_strs{$Voip->{errno}}");	
+  return 0;
+ }
+
+
+
+my $table = $html->table( { width      => '100%',
+                            border     => 1,
+                            title      => ['id', "$_NAME", "$_PREPAID $_TIME", '-', '-'],
+                            cols_align => ['left', 'left', 'right', 'right', 'left', 'center', 'left', 'center', 'center', 'center'],
+                            qs         => $pages_qs,
+                            pages      => $Voip->{TOTAL}
+                         } );
+
+foreach my $line (@$list) {
+  my $delete = $html->button($_DEL, "index=$index&del=$line->[0]", { MESSAGE =>  "$_DEL [$line->[0]] ?", CLASS => 'del' }); 
+  my $change = $html->button($_DEL, "index=$index&chg=$line->[0]", {  CLASS => 'change' }); 
+  
+  $table->{rowcolor} = ($FORM{chg} && $FORM{chg} == $line->[0]) ? $_COLORS[0] : undef;
+  
+  $table->addrow($line->[0], 
+     "$line->[1]",
+     "$line->[2]", 
+     $change,
+     $delete,
+     
+   );
+}
+print $table->show();
+
+$table = $html->table( { width      => '100%',
+                         cols_align => ['right', 'right'],
+                         rows       => [ [ "$_TOTAL:", $html->b($Voip->{TOTAL}) ] ]
+                     } );
+print $table->show(); 
+}
+
+
+#**********************************************************
+# exchange_rate
+#**********************************************************
+sub voip_exchange_rate {
+  my %info = (ACTION     => 'add',
+              LNG_ACTION => $_ADD); 
+	
+  if ($FORM{add}) {
+	 	 $FORM{VOIP_ER_CHANGED}="$DATE $TIME";
+     while(my($k, $v)=each %FORM) {
+       next if ($k !~ /^VOIP_/) ;
+       $users->config_add({ PARAM => $k, 
+  	                        VALUE => "$v"
+  	                     });
+  	  }
+
+    if (! $users->{errno}) {
+      $html->message('info', $_INFO, "$_CHANGED");
+     	$admin->{MODULE}='Voip';
+  	  $admin->system_action_add("$FORM{VOIP_ER}", { TYPE => 41 }) ;
+  	  $Voip->rp_change_exhange_rate({ EXCHANGE_RATE => $FORM{VOIP_ER} });
+  	 }
+	 }
+	elsif ($FORM{change}) {
+	 	$FORM{VOIP_ER_CHANGED}="$DATE $TIME";
+    while(my($k, $v)=each %FORM) {
+       next if ($k !~ /^VOIP_/) ;
+       $users->config_change($k, { PARAM => $k, 
+  	                               NAME  => "$v"
+  	                            });
+  	 }
+
+    if (! $users->{errno}) {
+      $html->message('info', $_INFO, "$_CHANGED");
+     	$admin->{MODULE}='Voip';
+  	  $admin->system_action_add("$FORM{VOIP_ER}", { TYPE => 41 }) ;
+  	  $Voip->rp_change_exhange_rate({ EXCHANGE_RATE => $FORM{VOIP_ER} });
+  	 }
+	  
+	 }
+	
+	my $list = $users->config_list({ PARAM => 'VOIP_*', SORT => 2  });
+
+	foreach my $line (@$list) {
+		$info{$line->[0]}=$line->[1];
+	 }
+	if ($info{VOIP_ER}) {
+		$info{ACTION}    = 'change';
+		$info{LNG_ACTION}= $_CHANGE;
+	 }
+
+  $html->tpl_show(_include('voip_er', 'Voip'), \%info);	
+}
+
+
+
+
+
+
+#**********************************************************
+#
+#**********************************************************
+sub voip_payments_maked {
+	my ($attr) = @_;
+
+  voip_mk_users_conf();
+}
+
+
+
+
+#**********************************************************
+# Provision 
+#**********************************************************
+sub voip_provision {
+	my ($attr)=@_;
+	
+	my $list = $Nas->list({ TYPE => 'ls_pap2t;ls_spa8000' });
+	
+	my $hosts = '';
+	foreach my $line ( @$list ) {
+		$hosts .= $html->tpl_show(_include('voip_provision_dhcp_host', 'Voip'), 
+		{   NAS_ID   => $line->[0],
+			  HOSTNAME => $line->[1],
+			  MAC      => $line->[15],
+        IP       => $line->[3],
+        ROUTERS  => '',			 
+			 }, 
+		{ OUTPUT2RETURN => 1 });
+	 }
+
+
+  my $conf = $html->tpl_show(_include('voip_provision_dhcp_conf', 'Voip'), 
+    { HOSTS => $hosts }, 
+		{ OUTPUT2RETURN => 1 });
+
+  
+
+if(open(FILE, ">/usr/abills/Abills/templates/provision_dhcp.conf")) {
+  print FILE "$conf\n";
+  close(FILE);
+ }
+else {
+	
+}
+
+}
+
 
 
 1

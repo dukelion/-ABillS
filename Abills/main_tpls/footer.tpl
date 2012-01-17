@@ -1,0 +1,1 @@
+  <tr class='FOOTER'><td colspan='2'><hr/> ABillS %VERSION%</td></tr>

@@ -3,7 +3,6 @@ package Abills::Base;
 
 use strict;
 use vars qw(@ISA @EXPORT @EXPORT_OK %EXPORT_TAGS $VERSION
- %int
  %conf
 );
 
@@ -31,11 +30,42 @@ $VERSION = 2.00;
   &test_radius_returns
   &sendmail
   &in_array
-  %int
+  &tpl_parse
+  &encode_base64
+  &cfg2hash
+  &clearquotes
+  &cmd
  );
 
-@EXPORT_OK = ();
+@EXPORT_OK = qw(
+  null
+  convert
+  parse_arguments
+  int2ip
+  ip2int
+  int2byte
+  sec2date
+  sec2time
+  time2sec
+  int2ml
+  show_log
+  mk_unique_value
+  decode_base64
+  check_time
+  get_radius_params
+  test_radius_returns
+  sendmail
+  in_array
+  tpl_parse
+  encode_base64
+  cfg2hash
+  clearquotes
+  cmd
+);
+
+
 %EXPORT_TAGS = ();
+
 
 #**********************************************************
 # Null function
@@ -45,15 +75,43 @@ sub null {
   return 0;	
 }
 
+
+#**********************************************************
+# Convert cft str to hash
+#
+# cfg format:
+#  key:value;key:value;key:value;
+#
+#**********************************************************
+sub cfg2hash {
+  my ($cfg, $attr) = @_;
+  my %hush = ();
+ 
+  return \%hush if (! $cfg);
+  $cfg =~ s/\n//g;
+	my @payments_methods_arr = split(/;/, $cfg);
+
+	foreach my $line (@payments_methods_arr) {
+		 my ($k, $v)=split(/:/, $line, 2);
+		 $k =~ s/^\s+//;
+		 $hush{$k}=$v;
+	 }
+
+  return \%hush;
+}
+
+
 #**********************************************************
 # isvalue()
 # Check value in array
 #**********************************************************
 sub in_array {
  my ($value, $array) = @_;
- 
- foreach my $line (@$array) {
- 	 return 1 if ($value eq $line);
+
+ return 0 if (! defined($value)); 
+
+ for(my $i=0; $i<=$#{ $array }; $i++) {
+ 	 return 1 if ($value eq $array->[$i]);
   }
 
  return 0;	
@@ -63,70 +121,168 @@ sub in_array {
 # Converter
 #   Attributes
 #     text2html - convert text to HTML
+#  
+#   Transpation
+#    win2koi 
+#    koi2win
+#    win2iso
+#    iso2win
+#    win2dos
+#    dos2win
 #
-#
-# convert
+# convert($text, $attr)
 #**********************************************************
 sub convert {
 	my ($text, $attr)=@_;
-	
-	if(defined($attr->{text2html})) {
-		 $text =~ s/\n/<br>/gi;
+
+	if(defined($attr->{text2html})) {		 
+		 $text =~ s/</&lt;/g;
+     $text =~ s/>/&gt;/g;
+     $text =~ s/\"/&quot;/g;
+     $text =~ s/\n/<br\/>\n/gi;
+     if ($attr->{SHOW_URL}) {
+       $text =~ s/([https|http]+:\/\/[a-z\.0-9\/\?\&\-\_\#:\=]+)/<a href=\'$1\' target=_new>$1<\/a>/ig;
+      }
    }
-	elsif(defined($attr->{win2koi})) {
-		 $text = wintokoi($text);
-	 }
+	elsif($attr->{'from_tpl'}) {
+     $text =~ s/textarea/__textarea__/g;
+   }
+	elsif($attr->{'2_tpl'}) {
+     $text =~ s/__textarea__/textarea/g;
+   }
+  elsif( $attr->{win2utf8}) { $text = win2utf8($text); } 
+  elsif( $attr->{utf82win}) { $text = utf82win($text); } 
+  elsif( $attr->{win2koi} ) { $text = win2koi($text);	 }
+  elsif( $attr->{koi2win} ) { $text = koi2win($text); }
+  elsif( $attr->{win2iso} ) { $text = win2iso($text); }
+  elsif( $attr->{iso2win} ) { $text = iso2win($text); }
+  elsif( $attr->{win2dos} ) { $text = win2dos($text); }
+  elsif( $attr->{dos2win} ) { $text = dos2win($text); }
+
 	
 	return $text;
 }
 
 
-# $version = '0.01';
-# возращает перекодированную переменную, вызов wintokoi(<переменна€>)
-
-sub wintokoi {
+sub win2koi {
     my $pvdcoderwin=shift;
     $pvdcoderwin=~ tr/\xC0\xC1\xC2\xC3\xC4\xC5\xC6\xC7\xC8\xC9\xCA\xCB\xCC\xCD\xCE\xCF\xD0\xD1\xD2\xD3\xD4\xD5\xD6\xD7\xD8\xD9\xDA\xDB\xDC\xDD\xDE\xDF\xE0\xE1\xE2\xE3\xE4\xE5\xE6\xE7\xE8\xE9\xEA\xEB\xEC\xED\xEE\xEF\xF0\xF1\xF2\xF3\xF4\xF5\xF6\xF7\xF8\xF9\xFA\xFB\xFC\xFD\xFE\xFF/\xE1\xE2\xF7\xE7\xE4\xE5\xF6\xFA\xE9\xEA\xEB\xEC\xED\xEE\xEF\xF0\xF2\xF3\xF4\xF5\xE6\xE8\xE3\xFE\xFB\xFD\xFF\xF9\xF8\xFC\xE0\xF1\xC1\xC2\xD7\xC7\xC4\xC5\xD6\xDA\xC9\xCA\xCB\xCC\xCD\xCE\xCF\xD0\xD2\xD3\xD4\xD5\xC6\xC8\xC3\xDE\xDB\xDD\xDF\xD9\xD8\xDC\xC0\xD1/;
 return $pvdcoderwin;
 }
 
-sub koitowin {
+sub koi2win {
     my $pvdcoderwin=shift;
-    $pvdcoderwin=~ tr/\xE1\xE2\xF7\xE7\xE4\xE5\xF6\xFA\xE9\xEA\xEB\xEC\xED\xEE\xEF\xF0\xF2\xF3\xF4\xF5\xE6\xE8\xE3\xFE\xFB\xFD\xFF\xF9\xF8\xFC\xE0\xF1\xC1\xC2\xD7\xC7\xC4\xC5\xD6\xDA\xC9\xCA\xCB\xCC\xCD\xCE\xCF\xD0\xD2\xD3\xD4\xD5\xC6\xC8\xC3\xDE\xDB\xDD\xDF\xD9\xD8\xDC\xC0\xD1/\xC0\xC1\xC2\xC3\xC4\xC5\xC6\xC7\xC8\xC9\xCA\xCB\xCC\xCD\xCE\xCF\xD0\xD1\xD2\xD3\xD4\xD5\xD6\xD7\xD8\xD9\xDA\xDB\xDC\xDD\xDE\xDF\xE0\xE1\xE2\xE3\xE4\xE5\xE6\xE7\xE8\xE9\xEA\xEB\xEC\xED\xEE\xEF\xF0\xF1\xF2\xF3\xF4\xF5\xF6\xF7\xF8\xF9\xFA\xFB\xFC\xFD\xFE\xFF/;
+    $pvdcoderwin=~ tr/\xE1\xE2\xF7\xE7\xE4\xE5\xF6\xFA\xE9\xEA\xEB\xEC\xED\xEE\xEF\xF0\xF2\xF3\xF4\xF5\xE6\xE8\xE3\xFE\xFB\xFD\xFF\xF9\xF8\xFC\xE0\xF1\xC1\xC2\xD7\xC7\xC4\xC5\xD6\xDA\xC9\xCA\xCB\xCC\xCD\xCE\xCF\xD0\xD2\xD3\xD4\xD5\xC6\xC8\xC3\xDE\xDB\xDD\xDF\xD9\xD8\xDC\xC0\xD1\xA6/\xC0\xC1\xC2\xC3\xC4\xC5\xC6\xC7\xC8\xC9\xCA\xCB\xCC\xCD\xCE\xCF\xD0\xD1\xD2\xD3\xD4\xD5\xD6\xD7\xD8\xD9\xDA\xDB\xDC\xDD\xDE\xDF\xE0\xE1\xE2\xE3\xE4\xE5\xE6\xE7\xE8\xE9\xEA\xEB\xEC\xED\xEE\xEF\xF0\xF1\xF2\xF3\xF4\xF5\xF6\xF7\xF8\xF9\xFA\xFB\xFC\xFD\xFE\xFF\xB3/;
 return $pvdcoderwin;
 }
 
-# возращает перекодированную переменную, вызов wintoiso(<переменна€>)
-sub wintoiso {
+# возращает перекодированную переменную, вызов win2iso(<переменна€>)
+sub win2iso {
     my $pvdcoderiso=shift;
     $pvdcoderiso=~ tr/\xC0\xC1\xC2\xC3\xC4\xC5\xC6\xC7\xC8\xC9\xCA\xCB\xCC\xCD\xCE\xCF\xD0\xD1\xD2\xD3\xD4\xD5\xD6\xD7\xD8\xD9\xDA\xDB\xDC\xDD\xDE\xDF\xE0\xE1\xE2\xE3\xE4\xE5\xE6\xE7\xE8\xE9\xEA\xEB\xEC\xED\xEE\xEF\xF0\xF1\xF2\xF3\xF4\xF5\xF6\xF7\xF8\xF9\xFA\xFB\xFC\xFD\xFE\xFF/\xB0\xB1\xB2\xB3\xB4\xB5\xB6\xB7\xB8\xB9\xBA\xBB\xBC\xBD\xBE\xBF\xC0\xC1\xC2\xC3\xC4\xC5\xC6\xC7\xC8\xC9\xCA\xCB\xCC\xCD\xCE\xCF\xD0\xD1\xD2\xD3\xD4\xD5\xD6\xD7\xD8\xD9\xDA\xDB\xDC\xDD\xDE\xDF\xE0\xE1\xE2\xE3\xE4\xE5\xE6\xE7\xE8\xE9\xEA\xEB\xEC\xED\xEE\xEF/;
 return $pvdcoderiso;
 }
 
-sub isotowin {
+sub iso2win {
     my $pvdcoderiso=shift;
     $pvdcoderiso=~ tr/\xB0\xB1\xB2\xB3\xB4\xB5\xB6\xB7\xB8\xB9\xBA\xBB\xBC\xBD\xBE\xBF\xC0\xC1\xC2\xC3\xC4\xC5\xC6\xC7\xC8\xC9\xCA\xCB\xCC\xCD\xCE\xCF\xD0\xD1\xD2\xD3\xD4\xD5\xD6\xD7\xD8\xD9\xDA\xDB\xDC\xDD\xDE\xDF\xE0\xE1\xE2\xE3\xE4\xE5\xE6\xE7\xE8\xE9\xEA\xEB\xEC\xED\xEE\xEF/\xC0\xC1\xC2\xC3\xC4\xC5\xC6\xC7\xC8\xC9\xCA\xCB\xCC\xCD\xCE\xCF\xD0\xD1\xD2\xD3\xD4\xD5\xD6\xD7\xD8\xD9\xDA\xDB\xDC\xDD\xDE\xDF\xE0\xE1\xE2\xE3\xE4\xE5\xE6\xE7\xE8\xE9\xEA\xEB\xEC\xED\xEE\xEF\xF0\xF1\xF2\xF3\xF4\xF5\xF6\xF7\xF8\xF9\xFA\xFB\xFC\xFD\xFE\xFF/;
 return $pvdcoderiso;
 }
 
-# возращает перекодированную переменную, вызов wintodos(<переменна€>)
-sub wintodos {
+# возращает перекодированную переменную, вызов win2dos(<переменна€>)
+sub win2dos {
     my $pvdcoderdos=shift;
     $pvdcoderdos=~ tr/\xC0\xC1\xC2\xC3\xC4\xC5\xC6\xC7\xC8\xC9\xCA\xCB\xCC\xCD\xCE\xCF\xD0\xD1\xD2\xD3\xD4\xD5\xD6\xD7\xD8\xD9\xDA\xDB\xDC\xDD\xDE\xDF\xE0\xE1\xE2\xE3\xE4\xE5\xE6\xE7\xE8\xE9\xEA\xEB\xEC\xED\xEE\xEF\xF0\xF1\xF2\xF3\xF4\xF5\xF6\xF7\xF8\xF9\xFA\xFB\xFC\xFD\xFE\xFF/\x80\x81\x82\x83\x84\x85\x86\x87\x88\x89\x8A\x8B\x8C\x8D\x8E\x8F\x90\x91\x92\x93\x94\x95\x96\x97\x98\x99\x9A\x9B\x9C\x9D\x9E\x9F\xA0\xA1\xA2\xA3\xA4\xA5\xA6\xA7\xA8\xA9\xAA\xAB\xAC\xAD\xAE\xAF\xE0\xE1\xE2\xE3\xE4\xE5\xE6\xE7\xE8\xE9\xEA\xEB\xEC\xED\xEE\xEF/;
 return $pvdcoderdos;
 }
 
-sub dostowin {
+sub dos2win {
     my $pvdcoderdos=shift;
     $pvdcoderdos=~ tr/\x80\x81\x82\x83\x84\x85\x86\x87\x88\x89\x8A\x8B\x8C\x8D\x8E\x8F\x90\x91\x92\x93\x94\x95\x96\x97\x98\x99\x9A\x9B\x9C\x9D\x9E\x9F\xA0\xA1\xA2\xA3\xA4\xA5\xA6\xA7\xA8\xA9\xAA\xAB\xAC\xAD\xAE\xAF\xE0\xE1\xE2\xE3\xE4\xE5\xE6\xE7\xE8\xE9\xEA\xEB\xEC\xED\xEE\xEF/\xC0\xC1\xC2\xC3\xC4\xC5\xC6\xC7\xC8\xC9\xCA\xCB\xCC\xCD\xCE\xCF\xD0\xD1\xD2\xD3\xD4\xD5\xD6\xD7\xD8\xD9\xDA\xDB\xDC\xDD\xDE\xDF\xE0\xE1\xE2\xE3\xE4\xE5\xE6\xE7\xE8\xE9\xEA\xEB\xEC\xED\xEE\xEF\xF0\xF1\xF2\xF3\xF4\xF5\xF6\xF7\xF8\xF9\xFA\xFB\xFC\xFD\xFE\xFF/;
 return $pvdcoderdos;
 }
 
 
-#*******************************************************************
+
+#**********************************************************
+# http://www.unicode.org/Public/MAPPINGS/VENDORS/MICSFT/WINDOWS/CP1251.TXT
+#**********************************************************
+sub win2utf8 {
+	my ($text)=@_;
+  #my $TestLine='јаЅб¬в√гƒд≈е®Є∆ж«з»и…й кЋлћмЌнќоѕп–р—с“т”у‘ф’х÷ц„чЎшўщЏъџы№ьЁэёюя€≥≤';
+  my @ChArray=split('',$text);
+  my $Unicode='';
+  my $Code='';
+  for(@ChArray){
+    $Code=ord;
+    #return $Code;
+    if(($Code>=0xc0)&&($Code<=0xff)){$Unicode.="&#".(0x350+$Code).";";}
+    elsif($Code==0xa8){$Unicode.="&#".(0x401).";";}
+    elsif($Code==0xb8){$Unicode.="&#".(0x451).";";}
+    elsif($Code==0xb3){$Unicode.="&#".(0x456).";";}
+    elsif($Code==0xaa){$Unicode.="&#".(0x404).";";}
+    elsif($Code==0xba){$Unicode.="&#".(0x454).";";}
+    elsif($Code==0xb2){$Unicode.="&#".(0x406).";";}
+    elsif($Code==0xaf){$Unicode.="&#".(0x407).";";}
+    elsif($Code==0xbf){$Unicode.="&#".(0x457).";";}
+    else{$Unicode.=$_;}
+   }
+
+  return $Unicode;
+ }
+
+#**********************************************************
+# http://www.unicode.org/Public/MAPPINGS/VENDORS/MICSFT/WINDOWS/CP1251.TXT
+# http://www.utf8-chartable.de/unicode-utf8-table.pl
+#**********************************************************
+sub utf82win {
+	my ($text)=@_;
+ 
+  use Encode;
+	my $win1251 = encode ('cp1251', decode ('utf8', $text)); 
+	return $win1251;
+#
+#
+#  for(@ChArray){
+#    $Code=ord;
+#    if($Code==0x0406)       { $Unicode.=chr(0xB2); }
+#    elsif($Code==0x0454)    { $Unicode.=chr(0xBA); } #
+#    elsif($Code==0x0456)    { $Unicode.=chr(0xB3); } # CYRILLIC SMALL LETTER BYELORUSSIAN-UKRAINIAN I
+#    elsif($Code==0x0491)    { $Unicode.=chr(0xB4); } # 
+#    elsif($Code==0x0457)    { $Unicode.=chr(0xBF); }
+#    elsif(($Code>=0x410)&&($Code<=0xff+0x44f)){$Unicode.=chr($Code-0x350);}
+#    elsif($Code==0x404)     { $Unicode.=chr(0xAA); }
+#    elsif($Code==0x407)     { $Unicode.=chr(0xAF); }
+#    elsif($Code==0x2116)    { $Unicode.=chr(0xB9); }
+#    elsif($Code==0xa8+0x350){$Unicode.=chr(0x401-0x350);}
+#    elsif($Code==0xb8+0x350){$Unicode.=chr(0x451-0x350);}
+#    elsif($Code==0xb3+0x350){$Unicode.=chr(0x456-0x350);}
+#    elsif($Code==0xaa+0x350){$Unicode.=chr(0x404-0x350);}
+#    elsif($Code==0xba+0x350){$Unicode.=chr(0x454-0x350);}
+#    elsif($Code==0xb2+0x350){$Unicode.=chr(0x406-0x350);}
+#    elsif($Code==0xaf+0x350){$Unicode.=chr(0x407-0x350);}
+#    elsif($Code==0xbf+0x350){$Unicode.=chr(0x457-0x350);}
+#    
+#    #elsif(($Code>=0x81)&&($Code<=0x200+0x44f)){ $Unicode.=chr($Code - 170); }
+#    
+#    #elsif($Code==0x49){ $Unicode.='I';     	}
+#    #elsif($Code==0x69){ $Unicode.='i';     	}
+#    #elsif($Code==0x3F){ $Unicode.='?';     	}
+#    #elsif($Code==0x20){ $Unicode.=' ';     	}
+#    #elsif($Code==0x2C){ $Unicode.=',';     	}
+#    #elsif($Code==0x2E){ $Unicode.='.';     	}
+#    #elsif($Code==0x64){ $Unicode.='d';     	}
+#    else{ $Unicode.= $_;  	
+#    	}
+#   }
+#
+#  return $Unicode;
+}
+
+#**********************************************************
 # Parse comand line arguments
 # parse_arguments(@$argv)
-#*******************************************************************
+#**********************************************************
 sub parse_arguments {
     my ($argv) = @_;
     
@@ -144,42 +300,102 @@ sub parse_arguments {
   return \%args;
 }
 
-#********************************************************************
+#***********************************************************
 # sendmail($from, $to, $subject, $message, $charset, $priority)
 # MAil Priorities:
 #
+# returns
+# 1 - error
+# 2 - reciever email not specified
 #
-#
-#
-#********************************************************************
+#***********************************************************
 sub sendmail {
-  my ($from, $to, $subject, $message, $charset, $priority, $attr) = @_;
+  my ($from, $to_addresses, $subject, $message, $charset, $priority, $attr) = @_;
+  if($to_addresses eq '') {
+    return 2;
+   }
   my $SENDMAIL = (defined($attr->{SENDMAIL_PATH})) ? $attr->{SENDMAIL_PATH} : '/usr/sbin/sendmail';
   
-  if ($attr->{TEST}) {
-    print "To: $to\n";
-    print "From: $from\n";
-    print "Content-Type: text/plain; charset=$charset\n";
-    print "X-Priority: $priority\n" if ($priority ne '');
-    print "Subject: $subject \n\n";
-    print "$message";
-    return 0;
+  my $header = '';
+  if ($attr->{MAIL_HEADER}) {
+    foreach my $line (@{ $attr->{MAIL_HEADER} } ) {
+    	$header .= "$line\n";
+     }	
    }
-  
-  open(MAIL, "| $SENDMAIL -t $to") || die "Can't open file '$SENDMAIL' $!\n";
-    print MAIL "To: $to\n";
-    print MAIL "From: $from\n";
-    print MAIL "Content-Type: text/plain; charset=$charset\n";
-    print MAIL "X-Priority: $priority\n" if ($priority ne '');
-    print MAIL "Subject: $subject \n\n";
-    print MAIL "$message";
-  close(MAIL);
 
-  return 0;
+#  $attr->{TEST}=1;
+  
+  $message =~ s/#.+//g;
+  if ($message =~ s/Subject: (.+)//g ) {
+  	$subject=$1;
+   }
+  if ($message =~ s/From: (.+)//g ) {
+  	$from=$1;
+   }
+  if ($message =~ s/X-Priority: (.+)//g ) {
+  	$priority=$1;
+   }
+  if ($message =~ s/To: (.+)//gi ) {
+  	$to_addresses=$1;
+   }
+
+  $to_addresses =~ s/[\n\r]//g;
+
+  if ($attr->{ATTACHMENTS}) {
+        my $boundary = "----------581DA1EE12D00AAA";
+        $header .= "MIME-Version: 1.0
+Content-Type: multipart/mixed;\n boundary=\"$boundary\"\n";
+
+$message = qq{--$boundary
+Content-Type: text/plain; charset=$charset
+Content-Transfer-Encoding: quoted-printable
+
+$message};
+  	
+    foreach my $attachment ( @{ $attr->{ATTACHMENTS} } ) {
+  	  my $data = encode_base64($attachment->{CONTENT});
+  	  $message .=  qq{ 
+--$boundary
+Content-Type: $attachment->{CONTENT_TYPE};\n name="$attachment->{FILENAME}"
+Content-transfer-encoding: base64
+Content-Disposition: attachment;\n filename="$attachment->{FILENAME}"
+
+$data}
+ 	
+    }
+$message .= "--$boundary"."--\n\n";
+  }
+
+  my @emails_arr = split(/;/, $to_addresses);
+  foreach my $to (@emails_arr) {
+    if ($attr->{TEST}) {
+      print "To: $to\n";
+      print "From: $from\n";
+      print "Content-Type: text/plain; charset=$charset\n";
+      print "X-Priority: $priority\n" if ($priority);
+      print $header;
+      print "Subject: $subject\n\n";
+      print "$message";
+     }
+    else {
+      open(MAIL, "| $SENDMAIL -t") || die "Can't open file '$SENDMAIL' $!\n";
+        print MAIL "To: $to\n";
+        print MAIL "From: $from\n";
+        print MAIL "Content-Type: text/plain; charset=$charset\n" if (! $attr->{ATTACHMENTS});
+        print MAIL "X-Priority: $priority\n" if ($priority);
+        print MAIL "X-Mailer: ABillS\n";
+        print MAIL $header;
+        print MAIL "Subject: $subject \n\n";
+        print MAIL "$message";
+      close(MAIL);
+     }
+  }
+
+  return 1;
 }
 
 
-#*******************************************************************
+#**********************************************************
 # show log
 # show_log($uid, $type, $attr)
 #  Attributes
@@ -187,7 +403,7 @@ sub sendmail {
 #   PG
 #   DATE
 #   LOG_TYPE
-#*******************************************************************
+#**********************************************************
 sub show_log {
   my ($login, $logfile, $attr) = @_;
 
@@ -195,7 +411,7 @@ sub show_log {
   my @err_recs = ();
   my %types = ();
 
-  my $PAGE_ROWS = (defined($attr->{PAGE_ROWS}))? $attr->{PAGE_ROWS} : 100;
+  my $PAGE_ROWS = ($attr->{PAGE_ROWS})? $attr->{PAGE_ROWS} : 25;
   my $PG = (defined($attr->{PG}))? $attr->{PG} : 1;
 
   $login =~ s/\*/\[\.\]\{0,100\}/g if ($login ne '');
@@ -220,13 +436,11 @@ sub show_log {
       	next;
        }
       
-      if (defined($attr->{LOG_TYPE}) && $log_type ne $attr->{LOG_TYPE}) {
-      	#print "0";
+      if (defined($attr->{LOG_TYPE}) && "$log_type" ne "$attr->{LOG_TYPE}:") {
       	next;
        }
 
       if (defined($attr->{DATE}) && $date ne $attr->{DATE}) {
-      	#print "0";
       	next;
        }
       
@@ -243,37 +457,31 @@ sub show_log {
      }
  close(FILE);
 
- my $total  = 0;
- $total = $#err_recs;
+ my $total  = $#err_recs;
  my @list;
 
  return (\@list, \%types, $total) if ($total < 0);
-
-  
-# my $output;
- #my $i = 0;
  for (my $i = $total - $PG; $i>=($total - $PG) - $PAGE_ROWS && $i >= 0; $i--) {
-    push @list, "$err_recs[$i]";
-#    $output .= "$i / $err_recs[$i]<br>";
-   }
+   push @list, "$err_recs[$i]";
+  }
  
-# print "$output";
  $total++;
  return (\@list, \%types, $total);
 } 
 
 
-#*******************************************************************
+#**********************************************************
 # Make unique value
 # mk_unique_value($size)
-#*******************************************************************
+#**********************************************************
 sub mk_unique_value {
    my ($passsize, $attr) = @_;
-   my $symbols = (defined($attr->{SYMBOLS})) ? $attr->{SYMBOLS} : "qwertyupasdfghjikzxcvbnmQWERTYUPASDFGHJKLZXCVBNM23456789";
+   my $symbols = (defined($attr->{SYMBOLS})) ? $attr->{SYMBOLS} : "qwertyupasdfghjikzxcvbnmQWERTYUPASDFGHJKLZXCVBNM123456789";
 
-   my $value = '';
+   my $value  = '';
    my $random = '';
-   my $i=0;
+   my $i      = 0;
+   $passsize  = 6 if (int($passsize) < 1);
    
    my $size = length($symbols);
    srand();
@@ -288,10 +496,10 @@ sub mk_unique_value {
 
 
 
-#*******************************************************************
+#**********************************************************
 # Convert integer value to ip
 # int2ip($i);
-#*******************************************************************
+#**********************************************************
 sub int2ip {
 my $i = shift;
 my (@d);
@@ -303,10 +511,10 @@ $d[3]=int($i-$d[0]*256*256*256-$d[1]*256*256-$d[2]*256);
 }
 
 
-#*******************************************************************
+#**********************************************************
 # Convert ip to int
 # ip2int($ip);
-#*******************************************************************
+#**********************************************************
 sub ip2int($){
   my $ip = shift;
   return unpack("N", pack("C4", split( /\./, $ip)));
@@ -314,11 +522,11 @@ sub ip2int($){
 
 
 
-#********************************************************************
+#***********************************************************
 # Time to second
 # time2sec()
 # return $sec;
-#********************************************************************
+#***********************************************************
 sub time2sec {
   my ($value, $attr) = @_;
   my $sec;
@@ -330,11 +538,11 @@ sub time2sec {
   return $sec;
 }
 
-#********************************************************************
+#***********************************************************
 # Second to date
 # sec2time()
 # return $sec,$minute,$hour,$day
-#********************************************************************
+#***********************************************************
 sub sec2time {
    my ($value, $attr) = @_;
    my($a,$b,$c,$d);
@@ -343,8 +551,11 @@ sub sec2time {
     $b=int(($value % 3600) / 60);
     $c=int(($value % (24*3600)) / 3600);
     $d=int($value / (24 * 3600));
-
- if($attr->{str}) {
+ if($attr->{format}) {
+   $c=int($value / 3600);
+   return sprintf("%.2d:%.2d:%.2d", $c,$b, $a);
+  }
+ elsif($attr->{str}) {
    return sprintf("+%d %.2d:%.2d:%.2d", $d, $c,$b, $a);
   }
  else {
@@ -352,11 +563,11 @@ sub sec2time {
   }
 }
 
-#********************************************************************
+#***********************************************************
 # Second to date
 # sec2date()
 # sec2date();
-#********************************************************************
+#***********************************************************
 sub sec2date {
   my $secnum = shift;
   return "0000-00-00 00:00:00" if ($secnum == 0);
@@ -372,11 +583,11 @@ sub sec2date {
   return "$year-$mon-$mday $hour:$min:$sec";
 }
 
-#********************************************************************
+#***********************************************************
 # Convert Integer to byte definision
 # int2byte($val, $attr)
 # $KBYTE_SIZE - SIze of kilobyte (Standart 1024)
-#********************************************************************
+#***********************************************************
 sub int2byte {
  my ($val, $attr) = @_;
  
@@ -410,10 +621,10 @@ sub int2byte {
 }
 
 
-#********************************************************************
+#***********************************************************
 # integet to money in litteral format
 # int2ml($array);
-#********************************************************************
+#***********************************************************
 sub int2ml {
  my ($array, $attr) = @_;
  my $ret = '';
@@ -430,11 +641,12 @@ sub int2ml {
 
  my $money_unit_names = $attr->{MONEY_UNIT_NAMES};
 
+ $array =~ s/,/\./g;
  $array =~ tr/0-9,.//cd;
  my $tmp = $array;
  my $count = ($tmp =~ tr/.,//);
-
-#print $array,"\n";
+ 
+ 
 if ($count > 1) {
   $ret .= "bad integer format\n";
   return 1;
@@ -476,6 +688,7 @@ for ($i = $first_length; $i >=1; $i--) {
       $tmp = $first[$i];
       $tmp =~ s/(^\d)(\d)(\d$)/$1/;
       $ret .= $hundred[$tmp];
+
       if ($tmp > 0) {
         $ret .= " ";
       }
@@ -518,26 +731,35 @@ for ($i = $first_length; $i >=1; $i--) {
     
   }
 
+  $ret .= ' ';
   if ($tmp == 1) {
-    $ret .= $ones[$i - 1] . " ";
+    $ret .= ($ones[$i - 1])? $ones[$i - 1]  : $money_unit_names->[0] ; 
   }
   elsif ($tmp > 1 && $tmp < 5) {
-    $ret .= $twos[$i - 1] . " ";
+    $ret .= ($twos[$i - 1]) ? $twos[$i - 1] : $money_unit_names->[0];
   }
   elsif ($tmp > 4) {
-    $ret .= $fifth[$i - 1] . " ";
+    $ret .= ($fifth[$i - 1]) ? $fifth[$i - 1] : $money_unit_names->[0] ;
   }
   else {
-    $ret .= $fifth[0] . " ";
+    $ret .= ($fifth[0]) ? $fifth[0] : $money_unit_names->[0];
   }
+  $ret .= ' ';
 }
 
 
 if ($second ne '') {
- $ret .= " $second  $money_unit_names->[1]\n";
+ $ret .= " $second  $money_unit_names->[1]";
 } else {
- $ret .= "\n";
+ $ret .= "";
 }
+
+ use locale;
+ use POSIX qw(locale_h);
+ my $locale = $attr->{LOCALE} || 'ru_RU.CP1251';
+ setlocale(LC_ALL, $locale);
+ $ret = ucfirst $ret;
+ setlocale(LC_NUMERIC, "");
  
  return $ret;
 }
@@ -565,15 +787,15 @@ sub decode_base64 {
 # encode_base64()
 #**********************************************************
 sub encode_base64 ($;$) {
-    if ($] >= 5.006) {
-	require bytes;
-	if (bytes::length($_[0]) > length($_[0]) ||
-	    ($] >= 5.008 && $_[0] =~ /[^\0-\xFF]/))
-	{
+
+ if ($] >= 5.006) {
+	 require bytes;
+	 if (bytes::length($_[0]) > length($_[0]) ||
+	    ($] >= 5.008 && $_[0] =~ /[^\0-\xFF]/))	{
 	    require Carp;
 	    Carp::croak("The Base64 encoding is only defined for bytes");
-	}
-    }
+	  } 
+  }
 
     use integer;
 
@@ -591,16 +813,16 @@ sub encode_base64 ($;$) {
     $res =~ s/.{$padding}$/'=' x $padding/e if $padding;
     # break encoded string into lines of no more than 76 characters each
     if (length $eol) {
-	$res =~ s/(.{1,76})/$1$eol/g;
+	$res =~ s/(.{1,72})/$1$eol/g;
     }
     return $res;
 }
 
 
-#*******************************************************************
+#**********************************************************
 # time check function
 # check_time()
-#*******************************************************************
+#**********************************************************
 sub check_time {
 # return 0 if ($conf{time_check} == 0);
 
@@ -618,7 +840,7 @@ sub check_time {
 }
 
 
-#*******************************************************************
+#**********************************************************
 # Get Argument params or Environment parameters  
 # 
 # FreeRadius enviropment parameters
@@ -630,9 +852,10 @@ sub check_time {
 #  FRAMED_PROTOCOL - PPP
 #  USER_NAME - andy
 #  NAS_IDENTIFIER - media.intranet
-#*******************************************************************
+#**********************************************************
 sub get_radius_params {
  my %RAD=();
+
  if ($#ARGV > 1) {
     foreach my $pair (@ARGV) {
         my ($side, $value) = split(/=/, $pair, 2);
@@ -662,25 +885,26 @@ sub get_radius_params {
 }
 
 
-#*******************************************************************
+#**********************************************************
 # For clearing quotes
-# clearquotes( $text )
-#*******************************************************************
+# clearquotes( $text, $attr_hash )
+#**********************************************************
 sub clearquotes {
- my $text = shift;
+ my ($text,$attr) = @_;
  if ($text ne '""') {
-   $text =~ s/\"//g;
+   my $extra = $attr->{EXTRA} || '';
+   $text =~ s/\"$extra//g;
   }
  else {
  	 $text = '';
   }
- return "$text";
+ return $text;
 }
 
-#*******************************************************************
+#**********************************************************
 # Get testing information
 # test_radius_returns()
-#*******************************************************************
+#**********************************************************
 sub test_radius_returns {
  my ($RAD)=@_;
 
@@ -705,5 +929,44 @@ sub test_radius_returns {
 #  log_print('LOG_DEBUG', "$test");
   return $test;
 }
+
+#**********************************************************
+# tpl_parse($string, \%HASH_REF);
+#**********************************************************
+sub tpl_parse {
+	my ($string, $HASH_REF) = @_;
+	
+	while(my($k, $v)= each %$HASH_REF) {
+		$string =~ s/\%$k\%/$v/g;
+	 }
+
+	return $string;
+}
+
+#**********************************************************
+# cmd($cmd, \%HASH_REF);
+#**********************************************************
+sub cmd {
+  my ($cmd, $attr) = @_;
+
+  my $timeout = $attr->{timeout} || 5 ;
+
+  eval {
+    local $SIG{ALRM} = sub { die "alarm\n" }; # NB: \n required
+    alarm $timeout;
+    system($cmd);
+    alarm 0;
+   };
+
+  if ($@) {
+    die unless $@ eq "alarm\n"; # propagate unexpected errors
+    print "timed out\n" if ($attr->{debug});
+   }
+  else {
+    # didn't
+    print "didn't\n" if ($attr->{debug});
+   }
+}
+
 
 1;

@@ -1,0 +1,14 @@
+$_ADD_MENU = 'Add menu';
+$_CHANGE_MENU = 'Change menu';
+$_DESCRIPTION = 'Description';
+$_MENU = 'Menu';
+$_HIDE = 'Hide';
+$_HIDDEN = 'Hidden';
+$_SHOWED = 'Showed';
+$_FIELDS_FOR_NAME_ARE_REQUIRED = 'Fields for name are required';
+$_FIELDS_FOR_TITLE_TEXT_MENU_ARE_REQUIRED = 'Fields for title text menu are required';
+$_ADD_ARTICLE = 'Add article';
+$_TITLE = 'Title';
+$_ON_MAIN_PAGE = 'On main page';
+$_CHOOSE_MENU = 'Choose menu...';
+$_CANT_DELETE_ERROR = 'Cant delete, menu contains articles';

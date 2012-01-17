@@ -1,0 +1,18 @@
+	perl {
+		module = /usr/abills/libexec/rlm_perl.pl
+		func_authorize = authorize
+		func_accounting = accounting
+		func_authenticate = authenticate
+		func_preacct = preacct
+		func_checksimul = checksimul
+		func_xlat = xlat
+                max_clones = 512
+               #start_clones = 32
+               #min_spare_clones = 0
+               #max_spare_clones = 32
+               cleanup_delay = 10
+               #max_request_per_clone = 0
+
+
+	}
+

@@ -1,0 +1,30 @@
+#!/bin/sh
+#
+#
+# Add the following lines to /etc/rc.conf
+# leases2db_enable (bool) :   Set to "NO" by default.
+#                             Set it to "YES" to enable leases2db.
+# leases2db_nas_id (str)  :   Default 0
+#                       
+#
+
+# PROVIDE: check_mysql
+# REQUIRE: LOGIN mysql dhcpd
+# KEYWORD: shutdown
+# VERSION 1.0
+. /etc/rc.subr
+
+
+: ${leases2db_enable="NO"}
+: ${leases2db_nas_id="0"}
+
+name="leases2db"
+rcvar=`set_rcvar`
+load_rc_config $name
+run_rc_command "$1"
+
+command="/usr/abills/libexec/leases2db.pl"
+command_args="-d LEASES=/var/db/dhcpd/dhcpd.leases"
+
+
+run_rc_command "$1"

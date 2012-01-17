@@ -14,9 +14,11 @@ CREATE TABLE `cards_dillers` (
   `disable` tinyint(1) unsigned NOT NULL default '0',
   `registration` date NOT NULL default '0000-00-00',
   `percentage` tinyint(3) unsigned NOT NULL default '0',
+  `uid` int(11) unsigned NOT NULL default '0',
+  `tp_id` SMALLINT(6) UNSIGNED NOT NULL DEFAULT '0',
   PRIMARY KEY  (`id`),
   UNIQUE KEY `id` (`id`),
-  UNIQUE KEY `name` (`name`)
+  UNIQUE KEY `uid` (`uid`)
 ) COMMENT='Cards dillers';
 
 
@@ -35,7 +37,40 @@ CREATE TABLE `cards_users` (
   `serial` varchar(10) NOT NULL default '',
   `pin` blob NOT NULL default '',
   `uid` int(11) unsigned NOT NULL default '0',
-  UNIQUE KEY `serial` (`number`,`serial`),
+  `domain_id` smallint(6) unsigned not null default 0,
+  `created` DATETIME NOT NULL,
+  `id` int(11) unsigned NOT NULL auto_increment,
+  `commission` double(10,2) unsigned NOT NULL default '0.00',
+  UNIQUE KEY `serial` (`number`,`serial`, `domain_id`),
   KEY `diller_id` (`diller_id`),
-  KEY `login` (`login`)
+  KEY `login` (`login`),
+  PRIMARY KEY (`id`)
 ) COMMENT='Cards list';
+
+CREATE TABLE `dillers_tps` (
+  `id` SMALLINT(6) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `name` VARCHAR(100) NOT NULL DEFAULT '',
+  `payment_type` TINYINT(2) UNSIGNED NOT NULL DEFAULT '0',
+  `percentage` TINYINT(3) UNSIGNED NOT NULL DEFAULT '0',
+  `operation_payment` DOUBLE(14,2) UNSIGNED NOT NULL DEFAULT '0.00',
+  `activate_price` DOUBLE(14,2) UNSIGNED NOT NULL DEFAULT '0.00',
+  `change_price` DOUBLE(14,2) UNSIGNED NOT NULL DEFAULT '0.00',
+  `credit` DOUBLE(10,2) UNSIGNED NOT NULL DEFAULT '0.00',
+  `min_use` DOUBLE(14,3) UNSIGNED NOT NULL DEFAULT '0.000',
+  `payment_expr` VARCHAR(240) NOT NULL DEFAULT '',
+  `nas_tp` tinyint(1) unsigned NOT NULL DEFAULT '0',
+  `gid` int(11) unsigned NOT NULL DEFAULT '0',
+  `comments` text NOT NULL,
+  `bonus_cards` int(11) unsigned NOT NULL DEFAULT '0',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `id` (`id`),
+  UNIQUE KEY `name` (`name`)
+ ) COMMENT='Resellers Tarif Plans';
+
+
+CREATE TABLE `dillers_permits` (
+  `diller_id` INTEGER(11) UNSIGNED NOT NULL DEFAULT '0',
+  `actions` TINYINT(4) UNSIGNED NOT NULL DEFAULT '0',
+  `section` TINYINT(4) UNSIGNED NOT NULL DEFAULT '0',
+  UNIQUE KEY `diller_id` (`diller_id`, `section`)
+) COMMENT='Dillers Permisions';

@@ -1,0 +1,25 @@
+#!/bin/sh
+# Negative deposit page
+# /etc/service
+#  neg_deposit 81/tcp
+#
+# /etc/inetd.conf
+#  neg_deposit  stream  tcp     nowait  root /usr/abills/neg_deposit/neg_deposit neg_deposit
+#
+
+debug=1
+
+if [ -f /usr/abills/neg_deposit/index.htm ]; then
+  cat /usr/abills/neg_deposit/index.htm
+else 
+
+ echo "<h3>Negative Deposit</h3>"
+fi;
+
+if [ w${debug} != w ]; then
+   date "+%Y;%m:%d %H;%M:%S" >> /tmp/neg_deposit
+   echo "================" >> /tmp/neg_deposit
+   env >> /tmp/neg_deposit
+   echo "================" >> /tmp/neg_deposit
+fi;
+

@@ -1,0 +1,38 @@
+#RLM perl config
+authenticate {
+        Auth-Type PAP {
+                pap
+        }
+        Auth-Type MS-CHAP {
+                mschap
+        }
+        Auth-Type Perl {
+                perl
+        }
+#        eap
+}
+
+
+authorize { 
+  preprocess 
+  mschap 
+  files 
+  perl
+#  sql
+ } 
+ 
+preacct { 
+  preprocess 
+ } 
+
+accounting {
+# don't use simultaneously 'perl' and files
+       perl
+       #detail
+}
+
+post-auth { 
+  Post-Auth-Type REJECT { 
+     perl
+   }
+}

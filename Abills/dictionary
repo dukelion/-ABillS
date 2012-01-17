@@ -2,7 +2,7 @@ ATTRIBUTE	User-Name			1	string
 ATTRIBUTE	Password			2	string
 ATTRIBUTE	CHAP-Password		3	string
 ATTRIBUTE	NAS-IP-Address		4	ipaddr
-ATTRIBUTE	NAS-Port-Id		5	integer
+ATTRIBUTE	NAS-Port		5	integer
 ATTRIBUTE	Service-Type		6	integer
 ATTRIBUTE	Framed-Protocol		7	integer
 ATTRIBUTE	Framed-IP-Address	8	ipaddr
@@ -56,6 +56,7 @@ ATTRIBUTE	Port-Limit		62	integer
 ATTRIBUTE	Login-LAT-Port		63	integer
 
 ATTRIBUTE	Connect-Info		77	string
+ATTRIBUTE       NAS-Port-Id		87	string
 
 ATTRIBUTE	Digest-Response		206	string
 ATTRIBUTE	Digest-Attributes	207	sublist
@@ -253,4 +254,44 @@ ATTRIBUTE       h323-connect-time       28      string  Cisco
 ATTRIBUTE       h323-disconnect-time    29      string  Cisco
 ATTRIBUTE       h323-credit-time				102     string  Cisco
 ATTRIBUTE       h323-return-code				103     string  Cisco
+#SIP Attributes
+ATTRIBUTE       call-id                 141     string	Cisco
+ATTRIBUTE       session-protocol        142     string	Cisco
+ATTRIBUTE       method                  143     string	Cisco
+ATTRIBUTE       prev-hop-via            144     string	Cisco
+ATTRIBUTE       prev-hop-ip             145     string	Cisco
+ATTRIBUTE       incoming-req-uri        146     string	Cisco
+ATTRIBUTE       outgoing-req-uri        147     string	Cisco
+ATTRIBUTE       next-hop-ip             148     string	Cisco
+ATTRIBUTE       next-hop-dn             149     string	Cisco
+ATTRIBUTE       sip-hdr                 150     string	Cisco
+ATTRIBUTE       Cisco-Account-Info      250     string  Cisco
+ATTRIBUTE       Cisco-Service-Info      251     string  Cisco
+ATTRIBUTE       Cisco-Command-Code      252     string  Cisco
+ATTRIBUTE       Cisco-Control-Info      253     string  Cisco
 
+
+
+ATTRIBUTE       Error-Cause                             101     integer
+
+#       Service Types
+
+VALUE   Service-Type                    Authorize-Only          17
+
+#       Error causes
+
+VALUE   Error-Cause                     Residual-Context-Removed 201
+VALUE   Error-Cause                     Invalid-EAP-Packet      202
+VALUE   Error-Cause                     Unsupported-Attribute   401
+VALUE   Error-Cause                     Missing-Attribute       402
+VALUE   Error-Cause                     NAS-Identification-Mismatch 403
+VALUE   Error-Cause                     Invalid-Request         404
+VALUE   Error-Cause                     Unsupported-Service     405
+VALUE   Error-Cause                     Unsupported-Extension   406
+VALUE   Error-Cause                     Administratively-Prohibited 501
+VALUE   Error-Cause                     Proxy-Request-Not-Routable 502
+VALUE   Error-Cause                     Session-Context-Not-Found 503
+VALUE   Error-Cause                     Session-Context-Not-Removable 504
+VALUE   Error-Cause                     Proxy-Processing-Error  505
+VALUE   Error-Cause                     Resources-Unavailable   506
+VALUE   Error-Cause                     Request-Initiated       507

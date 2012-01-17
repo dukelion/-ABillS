@@ -47,27 +47,43 @@ sub snmputils_nas_ipmac {
   my ($attr) = @_;
 
  $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
- $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
- $DESC = (defined($attr->{DESC})) ? $attr->{DESC} : 'DESC';
+ $SORT      = ($attr->{SORT}) ? $attr->{SORT} : 1;
+ $DESC      = (defined($attr->{DESC})) ? $attr->{DESC} : 'DESC';
 
  @WHERE_RULES = ();
- $WHERE = ($#WHERE_RULES > -1) ? 'WHERE ' . join(' and ', @WHERE_RULES)  : '';
+ if (defined($attr->{DISABLE})) {
+ 	 push @WHERE_RULES, "u.disable='$attr->{DISABLE}'";
+  }
 
- $self->query($db,   "SELECT un.nas_id, un.uid, INET_NTOA(d.ip), d.mac,
-     if(u.company_id > 0, cb.deposit, ub.deposit), d.comments
-     FROM (users u, users_nas un, dhcphosts_hosts d)
+ 
+ $WHERE = ($#WHERE_RULES > -1) ? 'AND ' . join(' AND ', @WHERE_RULES)  : '';
+
+ $self->query($db,   "SELECT un.nas_id, 
+     u.uid, 
+     INET_NTOA(d.ip), 
+     d.mac,
+     if(u.company_id > 0, cb.deposit+u.credit, ub.deposit+u.credit), 
+     d.comments,
+     d.vid,
+     d.ports,
+     d.nas,
+     u.id,
+     d.network,
+     if(u.disable=1, 1, if((u.expire='0000-00-00' or u.expire > CURDATE())
+        AND (u.activate='0000-00-00' or u.activate <= CURDATE()), 0, 1)
+       )
+   FROM (users u, dhcphosts_hosts d)
      LEFT JOIN bills ub ON (u.bill_id = ub.id)
      LEFT JOIN companies company ON  (u.company_id=company.id)
      LEFT JOIN bills cb ON  (company.bill_id=cb.id)
-            WHERE u.uid=un.uid
-               and un.uid=d.uid and un.nas_id='$attr->{NAS_ID}'
-               and u.disable=0
+     LEFT JOIN users_nas un ON (u.uid=un.uid)
+            WHERE u.uid=d.uid
+               and (d.nas='$attr->{NAS_ID}' or un.nas_id='$attr->{NAS_ID}')
+               $WHERE
             ORDER BY $SORT $DESC
             LIMIT $PG, $PAGE_ROWS;");
 
- my $list = $self->{list};
-
-  
+ my $list = $self->{list};  
  return $list;
 }
 
@@ -181,7 +197,23 @@ sub snmputils_binding_list {
    push @WHERE_RULES, "b.binding LIKE '$attr->{BINDING}'";
   }
  elsif($attr->{IDS}) {
-   push @WHERE_RULES, "b.binding IN ($attr->{IDS})";
+   #push @WHERE_RULES, "b.binding IN ($attr->{IDS})";
+   
+   $self->query($db,   "SELECT u.id, b.binding,  b.params, b.comments, b.id, 
+            b.uid,
+            if(u.company_id > 0, cb.deposit+u.credit, ub.deposit+u.credit),
+            u.disable
+            from (snmputils_binding b)
+            INNER JOIN users u ON (b.uid = u.uid)
+            LEFT JOIN bills ub ON (u.bill_id = ub.id)
+            LEFT JOIN companies company ON  (u.company_id=company.id)
+            LEFT JOIN bills cb ON  (company.bill_id=cb.id)
+            WHERE b.binding IN ($attr->{IDS})
+            ORDER BY $SORT $DESC
+            LIMIT $PG, $PAGE_ROWS;");
+      
+    my $list = $self->{list};
+    return $list;
   }
  
 
@@ -201,10 +233,10 @@ sub snmputils_binding_list {
   }
 
 
- 
  $WHERE = ($#WHERE_RULES > -1) ? 'WHERE ' . join(' and ', @WHERE_RULES)  : '';
 
- $self->query($db,   "SELECT u.id, b.binding,  b.params, b.comments, b.id, b.uid
+
+ $self->query($db,   "SELECT u.id, b.binding,  b.params, b.comments, b.id, b.uid 
             from (snmputils_binding b)
             LEFT JOIN users u ON (u.uid = b.uid)
             $WHERE

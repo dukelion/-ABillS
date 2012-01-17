@@ -16,44 +16,82 @@ my $Extfin = Extfin->new($db, $admin, \%conf);
 # Contragents
 # Nachisleniya
 # Snyatiya
-sub exfin_export_customers {
+sub extfin_export_customers {
 	my ($attr) = @_;
-  
-  my $aaa = `echo "1C - $ENV{HTTP_USER_AGENT}" >> /tmp/user_agent`;
-  
+
   $Extfin->{ACTION}='get';
-  $Extfin->{ACTION_LNG}=$_GET;
-  
-#  $Extfin->{debug}=1;
+  $Extfin->{ACTION_LNG}=$_SHOW;
   
   my ($Y, $M, $D)=split(/-/, $DATE);
   $FORM{MONTH}="$Y-$M" if (! $FORM{MONTH});
-  
-  if ($FORM{xml}) {
-    print "Content-Type: text/xml\n\n";
-    print "<?xml version=\"1.0\"  encoding=\"windows-1251\" ?>\n";
-   }
-  elsif($FORM{qindex}) {
-    print "Content-Type: text/html\n\n";
-   }
- 
-  if ($FORM{TYPE} && $FORM{TYPE} eq 'CUSTOMERS') {
-    $LIST_PARAMS{PAGE_ROWS} = 100000;
-    $LIST_PARAMS{PG}        = $FORM{PG} || 0;
+  $pages_qs .= "&TYPE=$FORM{TYPE}"; 
 
-    my $list = $Extfin->customers_list({ %LIST_PARAMS });
-    my $table = $html->table( { width      => '100%',
+  if ($FORM{TYPE} && $FORM{TYPE} eq 'CUSTOMERS') {
+    $LIST_PARAMS{PAGE_ROWS} = 1000000;
+    $LIST_PARAMS{PG}        = $FORM{PG} || 0;
+    $LIST_PARAMS{USER_TYPE} = $FORM{USER_TYPE};
+    $pages_qs .= "&USER_TYPE=$FORM{USER_TYPE}";
+    if ($LIST_PARAMS{USER_TYPE} == 0 && $FORM{TOTAL_ONLY}) {
+    	$pages_qs .= "&TOTAL_ONLY=$FORM{TOTAL_ONLY}";
+      my $table = $html->table( { width      => '100%',
                                 caption    => "$_USERS",
                                 title      => ['ID', $_NAME, $_FIO, "$_GROUP ID", "$_GROUP", $_TYPE, $_ADDRESS, 
                                   $_PHONE, $_CONTRACT_ID, 'BILL ID', "BANK ACCOUNT", 'BANK NAME', 'COR ACCT' ],
-                                ID         => 'EXTFIN_CUSTOMERS'
+                                ID         => 'EXTFIN_CUSTOMERS',,
+                                qs         => $pages_qs,
+                                rows       => [ [ 10000000,
+    	  "$_TOTAL $_USERS" ,
+    	  "$_TOTAL $_USERS",
+    	   0,
+    	  '' ,
+    	   1,
+    	 '',
+    	 '',
+    	 '',
+    	 '',
+    	 '',
+    	 '',
+    	 '']],
+    	                        EXPORT      => 'XML:xml=1'
+                                
+                           });
+    	
+    	print $table->show();
+    	return 0;
+     }
+
+   my @TITLE = ('ID', $_NAME, $_FIO, "$_GROUP ID", "$_GROUP", $_TYPE, $_ADDRESS, 
+                                  $_PHONE, "$_CONTRACT $_TYPE", $_CONTRACT_ID, 'BILL ID', "BANK ACCOUNT", 'BANK NAME', 'COR ACCT');
+
+   if ($FORM{INFO_FIELDS} || $FORM{INFO_FIELDS_COMPANIES}) {
+  	 push @TITLE, split(/, /, $FORM{INFO_FIELDS}. $FORM{INFO_FIELDS_COMPANIES});
+  	 $pages_qs .= "&INFO_FIELDS=$FORM{INFO_FIELDS}&INFO_FIELDS_COMPANIES=$FORM{INFO_FIELDS_COMPANIES}"
+    }
+
+   my $list  = $Extfin->customers_list({ %FORM, %LIST_PARAMS });
+   my $table = $html->table( { width      => '100%',
+                               caption    => "$_USERS",
+                               title      => \@TITLE,
+                               ID         => 'EXTFIN_CUSTOMERS',
+                               qs         => $pages_qs,
+                               EXPORT     => ' XML:&xml=1'
                            });
 
 
 
     foreach my $line ( @$list ) {
       # Group, Kod, Наименование, Вид контрагента, Полное наименование, Юредический адрес, Почтовый адрес, 
+      # номер телефона, ИНН, основной договор, основн 
       # номер телефона, ИНН, основной договор, основной счёт, 
+      
+      #Info fields
+      my @arr = ();
+      if($Extfin->{SEARCH_FIELDS_COUNT}) {
+      	for(my $i=0; $i<=$Extfin->{SEARCH_FIELDS_COUNT}; $i++) {
+      		push @arr, $line->[14+$i];
+      	 }
+       }
+      
     	$table->addrow($line->[0],
     	 $line->[1],
     	 $line->[2],
@@ -66,55 +104,80 @@ sub exfin_export_customers {
     	 $line->[9],
     	 $line->[10],
     	 $line->[11],
-    	 $line->[12]
+    	 $line->[12],
+    	 $line->[13],
+    	 @arr
     	 );
      }
 
      print $table->show();
-     
-     
      return 0;
    }
   elsif ($FORM{TYPE} && $FORM{TYPE} eq 'PAYMENT_DEED') {
     
     if ($FORM{PERIOD} && $FORM{PERIOD} =~ /(\d{2})\.(\d{2})\.(\d{4})\-(\d{2})\.(\d{2})\.(\d{4})/) {
-      $LIST_PARAMS{DATE_FROM}="$3-$2-$1";
-    	$LIST_PARAMS{DATE_TO}="$6-$5-$4";
-     }
-    elsif ($FORM{FROM_Y}) {
-        $FORM{FROM_M} = sprintf("%.2d", $FORM{FROM_M}+1);
-        $FORM{TO_M}   = sprintf("%.2d", $FORM{TO_M}+1);
-        $LIST_PARAMS{DATE_FROM}="$FORM{FROM_Y}-$FORM{FROM_M}-$FORM{FROM_D}";
-        $LIST_PARAMS{DATE_TO}="$FORM{TO_Y}-$FORM{TO_M}-$FORM{TO_D}";
+      $LIST_PARAMS{FROM_DATE}="$3-$2-$1";
+    	$LIST_PARAMS{TO_DATE}="$6-$5-$4";
      }
     else {
       $LIST_PARAMS{MONTH}=$FORM{MONTH};
      }
     
-    #$Extfin->{debug}=1;
-    
-    my $self = $Extfin->payment_deed({ %LIST_PARAMS });
+    $LIST_PARAMS{INFO_FIELDS} = $FORM{INFO_FIELDS};
+    $LIST_PARAMS{USER_TYPE}   = $FORM{USER_TYPE};
+    $LIST_PARAMS{TOTAL_ONLY}  = $FORM{TOTAL_ONLY};
+   
+    my $list = $Extfin->payment_deed({ %FORM, %LIST_PARAMS });
+
+    my @TITLE = ('ID', $_NAME, $_TYPE, "$_SUM", "$_VAT", "$_TOTAL");
+    if ($FORM{INFO_FIELDS} || $FORM{INFO_FIELDS_COMPANIES}) {
+  	 push @TITLE, split(/, /, $FORM{INFO_FIELDS}. $FORM{INFO_FIELDS_COMPANIES});
+  	 $pages_qs .= "&INFO_FIELDS=$FORM{INFO_FIELDS}&INFO_FIELDS_COMPANIES=$FORM{INFO_FIELDS_COMPANIES}"
+    }
+
 
     my $table = $html->table({ width      => '100%',
-                               caption    => "PAYMENT_DEED $_DATE: $LIST_PARAMS{DATE_FROM}/$LIST_PARAMS{DATE_TO}",
-                               title      => ['ID', $_NAME, $_TYPE, "$_SUM", "$_VAT", "$_TOTAL" ],
-                               ID         => 'EXTFIN_PAYMENT_DEED',
-                               cols_align => ['right', 'left', 'left', 'left', 'right', 'center'],
+                               caption    => "PAYMENT_DEED $_DATE: $FORM{FROM_DATE}/$FORM{TO_DATE}",
+                               title      => \@TITLE,
+                               ID         => 'PAYMENT_DEED',
+                               qs         => $pages_qs,
+                               EXPORT     => ' XML:&xml=1'
                              });
 
 
 
 
+    my $total_sum = 0;
     foreach my $id ( keys %{ $Extfin->{PAYMENT_DEED} } ) {
-      my($name, $type, $vat)=split(/\|/, $Extfin->{NAMES}{$id});
+      my($name, $type, $vat, @info_arr)=split(/\|/, $Extfin->{NAMES}{$id});
       my $total = $Extfin->{PAYMENT_DEED}{$id} + $Extfin->{PAYMENT_DEED}{$id} * ($vat / 100);
-      $table->addrow($id,
-       $name,
-       $type,
-       $Extfin->{PAYMENT_DEED}{$id},
-       $vat,
-       $total
-      );
+
+      if (! $FORM{TOTAL_ONLY}) {
+        $table->addrow($id,
+         $name,
+         $type,
+         $Extfin->{PAYMENT_DEED}{$id},
+         $vat,
+         $total,
+         @info_arr
+        );
+       }
+      else {
+      	$total_sum += $total;
+       }
+
+     }
+
+      if ($FORM{TOTAL_ONLY}) {
+ 	      $name = ($FORM{USER_TYPE} == 1) ? "$_TOTAL $_COMPANIES" : "$_TOTAL $_USERS"; 
+        $table->addrow(999999,
+         $name,
+         $FORM{USER_TYPE},
+         0,
+         0,
+         $total_sum,
+         @info_arr
+       );
      }
 
     print $table->show();
@@ -122,7 +185,7 @@ sub exfin_export_customers {
    }
   elsif ($FORM{get}) {
     print "Content-Type: text/plain\n\n";
-    my $list = $Extfin->customers_list({ %LIST_PARAMS });
+    my $list = $Extfin->customers_list({ %FORM, %LIST_PARAMS });
     my $output = '';
     foreach my $line (@$list) {
       # Group, Kod, Наименование, Вид контрагента, Полное наименование, Юредический адрес, Почтовый адрес, 
@@ -136,6 +199,10 @@ sub exfin_export_customers {
   	return 0;
    }
   
+  
+  $Extfin->{GROUP_SEL} = sel_groups();
+  
+  
   $Extfin->{TYPE_SEL} = $html->form_select('TYPE', 
                                     { 
  	                                   SELECTED    => $FORM{TYPE},
@@ -144,6 +211,17 @@ sub exfin_export_customers {
  	                                   	               },
                                      NO_ID       => 1
  	                                  });
+
+  $Extfin->{USER_TYPE_SEL} = $html->form_select('USER_TYPE', 
+                                    { 
+ 	                                   SELECTED    => $FORM{USER_TYPE},
+ 	                                   SEL_HASH    => { '' => $_ALL,
+ 	                                   	                0  => $_USERS,
+ 	                                   	                1  => $_COMPANIES
+ 	                                   	               },
+                                     NO_ID       => 1
+ 	                                  });
+
   
   my @monthes = ();
   for(my $i=1; $i<13; $i++) {
@@ -158,16 +236,1380 @@ sub exfin_export_customers {
  	                                  });
   
   
-  $Extfin->{DATE_FROM}=$html->date_fld('FROM_', { MONTHES => \@MONTHES} );
-  $Extfin->{DATE_TO}=$html->date_fld('TO_', { MONTHES => \@MONTHES } );
+  $Extfin->{FROM_DATE}=$html->date_fld2('FROM_DATE', { MONTHES => \@MONTHES, FORM_NAME => 'extfin' } );
+  $Extfin->{TO_DATE}=$html->date_fld2('TO_DATE', { MONTHES => \@MONTHES, FORM_NAME => 'extfin' } );
+
+  #Users Info fields
+  my $if_list = $users->config_list({ PARAM => 'ifu*'  });
+  foreach my $line (@$if_list) {
+    my $field_id       = '';
+    if ($line->[0] =~ /ifu(\S+)/) {
+  	  $field_id = $1;
+     }
+
+    my($position, $type, $name, $user_portal)=split(/:/, $line->[1]);
+
+    my $input = '';
+ 	  $Extfin->{INFO_FIELDS} .= $html->form_input('INFO_FIELDS', $field_id, { TYPE  => 'checkbox',  
+ 		                                        STATE => ($FORM{$field_id}) ? 1 : undef  });
+    $Extfin->{INFO_FIELDS} .= (eval "\"$name\"").$html->br();
+   }
   
+  #Companies Info list
+  my $list = $users->config_list({ PARAM => 'ifc*', SORT => 2 });
+  foreach my $line (@$list) {
+    my $field_id       = '';
+
+    if ($line->[0] =~ /ifc(\S+)/) {
+    	$field_id = $1;
+     }
+
+    my($position, $type, $name)=split(/:/, $line->[1]);
+    my $input = '';
+ 	  $Extfin->{INFO_FIELDS_COMPANIES} .= $html->form_input('INFO_FIELDS_COMPANIES', $field_id, { TYPE  => 'checkbox',  
+ 		                                        STATE => ($FORM{$field_id}) ? 1 : undef  });
+    $Extfin->{INFO_FIELDS_COMPANIES} .= (eval "\"$name\"").$html->br();
+   }
+
   $html->tpl_show(_include('extfin_export_customers', 'Extfin'), $Extfin);
+}
+
+
+
+#**********************************************************
+# Monthly summary
+#**********************************************************
+sub extfin_monthly_summary {
+ my ($attr) = @_;
+
+ my $debug = $attr->{DEBUG} || 0;
+ my $debug_output = "Extfin summary\n";
+ 
+ $ADMIN_REPORT{DATE}=$DATE if (! $ADMIN_REPORT{DATE});
+ my ($y, $m, $d)=split(/-/, $ADMIN_REPORT{DATE}, 3);
+ 
+ $conf{START_PERIOD_DAY} = 1 if (! $conf{START_PERIOD_DAY});
+
+ if ($d != $conf{START_PERIOD_DAY}) {
+   $DEBUG .= $debug_output;
+   return $debug_output;
+  }
+
+
+ if ($m == 1) {
+ 	 $m=12;
+ 	 $y--;
+  }
+ else {
+   $m--;
+  }
+ 
+ my $period = sprintf("%d-%.2d",  $y, $m);  
+ $debug_output .= "Extfin make summary. Period: $period\n" if ($debug > 1);
+ my $list = $Extfin->payment_deed({ MONTH => "$period" });
+
+ foreach my $id ( keys %{ $Extfin->{PAYMENT_DEED} } ) {
+   my($name, $type, $vat)=split(/\|/, $Extfin->{NAMES}{$id});
+   $vat = 0 if (! $vat);
+   my $total = $Extfin->{PAYMENT_DEED}{$id} + $Extfin->{PAYMENT_DEED}{$id} * ($vat / 100);
+      
+   $debug_output .= "PERIOD: $period BILL_ID: $id SUM: $Extfin->{PAYMENT_DEED}{$id} DATE: $DATE\n" if ($debug > 2);
+   if ($debug < 5) {
+     $Extfin->summary_add({
+      	  PERIOD  => $period,
+      	  BILL_ID => $id, 
+      	  SUM     => $Extfin->{PAYMENT_DEED}{$id}, 
+      	  DATE    => "$DATE", 
+      	  AID     => $admins->{AID}
+      	 });
+      }
+  }
+
+
+  ($y, $m, $d)=split(/-/, $ADMIN_REPORT{DATE}, 3);
+  $period = sprintf("%d-%.2d",  $y, $m);  
+
+  $Extfin->balances_add({ PERIOD => "$period" });
+
+  $DEBUG .= $debug_output;
+  return $debug_output;
+}
+
+#**********************************************************
+#
+#**********************************************************
+sub  extfin_periodic_paids {
+  my ($attr) = @_;
+
+  my $debug = $attr->{DEBUG} || 0;
+  my $debug_output = "Extfin periodic paids\n";
+  
+  my ($Y, $M, $D) = split(/-/, $ADMIN_REPORT{DATE}, 3);
+ 
+  $conf{START_PERIOD_DAY} = 1 if (!$conf{START_PERIOD_DAY});
+
+  if ($D != $conf{START_PERIOD_DAY}) {
+    $DEBUG .= $debug_output;
+    return $debug_output;
+   }
+
+
+  $debug_output .= "Extfin periodic paids\n" if ($debug > 1);
+  my $list = $Extfin->paid_periodic_list({ SUM => '>0' });	
+  
+  foreach my $line (@$list) {
+    $debug_output .= "UID: $line->[7] SUM: $line->[2] TYPE: $line->[1] ($line->[0])\n" if ($debug > 2);
+    $Extfin->paid_add({ TYPE        => $line->[0],
+    	                  SUM         => $line->[2],
+    	                  DESCRIB     => "$_PERIOD: $line->[3] ",
+    	                  MACCOUNT_ID => "$_PERIOD: $line->[4] ",
+                        UID         => $line->[8],
+                        DATE        => "$ADMIN_REPORT{DATE}",
+    	                  EXT_ID      => ''
+    	                 });
+ 	                  
+    if ($Extfin->{errno}) {
+       print "$Extfin->{errno}\n";
+     }
+    }
+  
+
+
+
+  $DEBUG .= $debug_output;
+  return $debug_output;
+}
+
+
+#**********************************************************
+#
+#**********************************************************
+sub extfin_paids {
+  $Extfin->{ACTION}='add';
+  $Extfin->{ACTION_LNG}=$_ADD;
+
+
+  if ($FORM{PERIODIC}) {
+    $Extfin->paid_periodic_add({ %FORM });
+    if (! $Extfin->{errno}) {
+      $html->message('info', $_INFO, "$_CHANGED");	
+     }  	
+   }
+  elsif ($FORM{add}) {
+    if (! $permissions{0}{1} ) {
+      $html->message('err', $_ERROR, "Access Deny");  	
+    	return 0;
+     }
+    $Extfin->paid_add({ %FORM });
+    if (! $Extfin->{errno}) {
+      $html->message('info', $_INFO, "$_ADDED");	
+     }
+   }
+	elsif($FORM{change}) {
+    if (! $permissions{0}{4} ) {
+      $html->message('err', $_ERROR, "Access Deny");  	
+    	return 0;
+     }
+
+    $Extfin->paid_change({ %FORM, 
+                       	   STATUS_DATE => ($FORM{STATUS} && $FORM{STATUS} > 0) ? $DATE : '' });
+
+    if (! $Extfin->{errno}) {
+      $html->message('info', $_INFO, "$_CHANGED");	
+     }
+   }
+	elsif($FORM{chg}) {
+    if (! $permissions{0}{4} ) {
+      $html->message('err', $_ERROR, "Access Deny");  	
+    	return 0;
+     }
+
+    $Extfin->paid_info({ ID => $FORM{chg} });
+    if (! $Extfin->{errno}) {
+      $html->message('info', $_INFO, "$_CHANGING");	
+      $Extfin->{ACTION}='change';
+      $Extfin->{ACTION_LNG}=$_CHANGE;
+     }
+   }
+	elsif($FORM{del}) {
+    $Extfin->paid_del({ ID => $FORM{del}  });
+    if (! $Extfin->{errno}) {
+      $html->message('info', $_INFO, "$_CHANGED");	
+     }
+	 }
+
+  if ($Extfin->{errno}) {
+    $html->message('err', $_ERROR, "[$Extfin->{errno}] $err_strs{$Extfin->{errno}}");
+   }
+
+ $Extfin->{STATUS}=($Extfin->{STATUS}) ? ' checked' : '';
+
+ $Extfin->{TYPE_SEL}=$html->form_select('TYPE', 
+                                          { 
+ 	                                          SELECTED          => $Extfin->{TYPE},
+ 	                                          SEL_MULTI_ARRAY   => [ [0, 'N/A'], @{ $Extfin->paid_types_list() } ],
+ 	                                          MULTI_ARRAY_KEY   => 0,
+ 	                                          MULTI_ARRAY_VALUE => 1,
+ 	                                        });
+
+ push @PAYMENT_METHODS, @EX_PAYMENT_METHODS if (@EX_PAYMENT_METHODS);
+
+ $Extfin->{MACCOUNT_SEL} =  $html->form_select('MACCOUNT_ID', 
+                                { SELECTED      => $FORM{METHOD} || '',
+ 	                                SEL_ARRAY     => \@PAYMENT_METHODS,
+ 	                                ARRAY_NUM_ID  => 1
+ 	                               });
+
+
+ $Extfin->{DATE_LIST} = $html->date_fld2('DATE', { MONTHES => \@MONTHES, DATE => $Extfin->{DATE} || $DATE } );
+
+
+
+ $html->tpl_show(_include('extfin_form_paid', 'Extfin'), $Extfin);
+
+ if (! $LIST_PARAMS{UID}) {
+   form_search({ SEARCH_FORM => $html->tpl_show(_include('extfin_search_paids', 'Extfin'),
+ 	                                            { %FORM },
+ 	                                            { notprint => 1 })    });
+  }
+ else {
+   my $list = $Extfin->paid_periodic_list({ PERIODIC => 1, UID => $LIST_PARAMS{UID} });	
+
+   if ($Extfin->{TOTAL} > 0) {
+
+   my $table = $html->table( { width      => '80%',
+                              caption    => "$_PERIOD",
+                              border     => 1,
+                              title      => [ '#', 	"$_TYPE", "$_SUM", "$_DESCRIBE", "$_ACCOUNT", "$_ADMIN", "$_DATE" ]
+ 	                         });
+
+
+   foreach my $line (@$list) {
+     my $MACCOUNT=$html->form_select('MACCOUNT_ID_'.$line->[0], 
+                                          { 
+ 	                                          SELECTED      => $line->[4] || 0,
+ 	                                          SEL_ARRAY     => \@PAYMENT_METHODS,
+                                            ARRAY_NUM_ID  => 1
+ 	                                        });
+   	
+     $table->addrow($html->form_input('IDS', "$line->[0]", { TYPE  => 'checkbox',
+  	                                                         STATE => ($line->[2] > 0) ? 1 : undef
+  	                                                   }) . $html->b($line->[0]), 
+     $line->[1], 
+     $html->form_input("SUM_$line->[0]", ($line->[2]) ? $line->[2] : '0.00', { SIZE => '10' }),
+     $html->form_input("COMMENTS_$line->[0]", ($line->[2]) ? $line->[3] : '', { SIZE => '50' }),
+     $MACCOUNT, 
+     $line->[5],
+     $line->[6]
+    );
+   }
+
+
+   print $html->form_main({ CONTENT => $table->show({ OUTPUT2RETURN => 1 }),
+                            HIDDEN  => { index     => "$index",
+                            	            UID       => $LIST_PARAMS{UID}
+                         	                   },
+	                          SUBMIT  => { PERIODIC  => "$_CHANGE" } 
+	                       });
+    }
+
+ 	 $pages_qs="&UID=$LIST_PARAMS{UID}";
+  }
+
+
+if (! defined($FORM{sort})) {
+  $LIST_PARAMS{SORT}=1;
+  $LIST_PARAMS{DESC}=DESC;
+ }
+
+$list = $Extfin->paids_list({ %LIST_PARAMS });	
+$table = $html->table( { width      => '100%',
+                         caption    => "$_FEES",
+                         border     => 1,
+                         title      => ['#', $_DATE, $_USER, $_SUM, $_TYPE, $_DESCRIBE,  $_ACCOUNT, $_ADMIN, $_STATUS, "$_CLOSED $_DATE", 'EXT ID', '-', '-' ],
+                         cols_align => ['right', 'left', 'left', 'right', 'left', 'left', 'left', 'center', 'right', 'left', 'center:noprint', 'center:noprint'],
+                         pages      => $Extfin->{TOTAL},
+                         qs         => $pages_qs,
+                        } );
+
+my ($delete, $change);
+foreach my $line (@$list) {
+  if ($permissions{4}{1}) {
+    $delete = $html->button($_DEL, "index=$index&del=$line->[0]", { MESSAGE => "$_DEL $line->[0]?", BUTTON => 1  }); 
+    $change = $html->button($_CHANGE, "index=$index&chg=$line->[0]&UID=$line->[11]", { BUTTON => 1  });
+   }
+
+  $table->addrow($html->b($line->[0]), 
+   $html->button($line->[1], "index=$index&chg=$line->[0]"),
+   $html->button($line->[2], "index=15&UID=$line->[11]&MODULE=Extfin"), 
+   $line->[3],
+   $line->[4], 
+   $line->[5], 
+   $PAYMENT_METHODS[$line->[6]], 
+   $line->[7], 
+   ($line->[8]) ? "$_CLOSED" : '',  
+   $line->[9], 
+   $line->[10], 
+   $change,
+   $delete
+   );
+}
+
+print $table->show();
+
+$table = $html->table( { width      => '100%',
+                         cols_align => ['right', 'right'],
+                         rows       => [ [ "$_TOTAL:", $html->b($Extfin->{TOTAL}),
+                                           "$_SUM: ", $html->b($Extfin->{SUM})  ] ]
+                     } );
+print $table->show();
+}
+
+#**********************************************************
+#
+#**********************************************************
+sub extfin_paids_types {
+
+  $Extfin->{ACTION}='add';
+  $Extfin->{ACTION_LNG}=$_ADD;
+
+
+  if ($FORM{add}) {
+    if (! $permissions{0}{1} ) {
+      $html->message('err', $_ERROR, "Access Deny");  	
+    	return 0;
+     }
+
+    $Extfin->paid_type_add({ %FORM });
+    if (! $Extfin->{errno}) {
+      $html->message('info', $_INFO, "$_ADDED");	
+     }
+   }
+	elsif($FORM{change}) {
+    if (! $permissions{0}{4} ) {
+      $html->message('err', $_ERROR, "Access Deny");  	
+    	return 0;
+     }
+
+    $Extfin->paid_type_change({ %FORM });
+    if (! $Extfin->{errno}) {
+      $html->message('info', $_INFO, "$_CHANGED");	
+     }
+   }
+	elsif($FORM{chg}) {
+    if (! $permissions{0}{4} ) {
+      $html->message('err', $_ERROR, "Access Deny");  	
+    	return 0;
+     }
+
+    $Extfin->paid_type_info({ ID => $FORM{chg} });
+    if (! $Extfin->{errno}) {
+      $html->message('info', $_INFO, "$_CHANGING");	
+      $Extfin->{ACTION}='change';
+      $Extfin->{ACTION_LNG}=$_CHANGE;
+
+     }
+
+   }
+	elsif($FORM{del}) {
+    $Extfin->paid_type_del({ ID => $FORM{del} });
+    if (! $Extfin->{errno}) {
+      $html->message('info', $_INFO, "$_DELETED ID $FORM{del}");	
+     }
+	 }
+
+  if ($Extfin->{errno}) {
+    $html->message('err', $_ERROR, "[$Extfin->{errno}] $err_strs{$Extfin->{errno}}");
+   }
+
+
+ $Extfin->{PERIODIC}=' checked' if ($Extfin->{PERIODIC});
+ $html->tpl_show(_include('extfin_paid_type', 'Extfin'), $Extfin);
+
+my $list = $Extfin->paid_types_list({ %LIST_PARAMS });	
+my $table = $html->table( { width      => '100%',
+                            caption    => "$_TYPE",
+                            border     => 1,
+                            title      => ['#', $_NAME,  $_PERIOD, '-', '-'],
+                            cols_align => ['right', 'left', 'center', 'center:noprint', 'center:noprint'],
+                            ID         => 'ID'
+                         } );
+
+my ($delete, $change);
+foreach my $line (@$list) {
+  if ($permissions{4}{1}) {
+    $delete = $html->button($_DEL, "index=$index&del=$line->[0]", { MESSAGE => "$_DEL $line->[0]?", BUTTON => 1 }); 
+    $change = $html->button($_CHANGE, "index=$index&chg=$line->[0]", { BUTTON => 1 });
+   }
+
+  $table->addrow($html->b($line->[0]), 
+   $html->button($line->[1], "index=$index&chg=$line->[0]"),
+   $line->[2], 
+   $change,
+   $delete
+   );
+}
+
+print $table->show();
+}
+
+
+
+#**********************************************************
+# 
+#**********************************************************
+sub extfin_report_deeds {
+
+my ($Y, $M, $D)=split(/-/, $DATE, 3);
+
+$LIST_PARAMS{USER_TYPE}  = $FORM{USER_TYPE};
+$LIST_PARAMS{TOTAL_ONLY} = $FORM{TOTAL_ONLY};
+
+if ($FORM{show} || $FORM{qindex}) {
+  if ($FORM{MONTH}) {
+  	$LIST_PARAMS{MONTH}=$FORM{MONTH};
+   }
+  elsif($FORM{PERIOD} && $FORM{PERIOD} =~ /(\d{2})\.(\d{2})\.(\d{4})-(\d{2})\.(\d{2})\.(\d{4})/) {
+    $LIST_PARAMS{FROM_DATE}= "$3-$2";
+    $LIST_PARAMS{TO_DATE}  = "$6-$5";
+   }
+  elsif ($FORM{FROM_M}) {
+    $LIST_PARAMS{FROM_DATE}="$FORM{FROM_Y}-". sprintf("%.2d", $FORM{FROM_M}+1);
+    $LIST_PARAMS{TO_DATE}="$FORM{TO_Y}-". sprintf("%.2d", $FORM{TO_M}+1);
+   }
+
+  if ($FORM{xml}) {
+    print "Content-Type: text/xml\n\n";
+    print "<?xml version=\"1.0\"  encoding=\"windows-1251\" ?>\n";
+   }
+  elsif($FORM{qindex}) {
+    print "Content-Type: text/html\n\n";
+   }
+ }
+else {
+	$LIST_PARAMS{MONTH}="$Y-$M";
+}
+
+my @MONTH_ARR = ('');
+for(my $i=1; $i<13; $i++) {
+	my $m = sprintf("%02.d", $i);
+	push @MONTH_ARR, sprintf("%d-%.2d", $Y, $m);
+}
+
+
+if (! $FORM{xml}) {
+  my $table = $html->table( { width       => '100%',
+	                       rowcolor    => $_COLORS[0],
+                         rows        => [[ "$_FROM: ",   $html->date_fld('FROM_', { MONTHES => \@MONTHES} ),
+                                           "$_TO: ",     $html->date_fld('TO_', { MONTHES => \@MONTHES } ),
+                                           "$_PERIOD: ", $html->form_select('MONTH', { SELECTED   => $FORM{MONTH},
+ 	                                                           SEL_ARRAY  => \@MONTH_ARR,
+ 	                                                           NO_ID      => 1
+                                                          } ),
+                                           "$_USERS $_TYPE: " .  $html->form_select('USER_TYPE', 
+                                    { 
+ 	                                   SELECTED    => $FORM{USER_TYPE},
+ 	                                   SEL_HASH    => { '' => $_ALL,
+ 	                                   	                0  => $_USERS,
+ 	                                   	                1  => $_COMPANIES
+ 	                                   	               },
+                                     NO_ID       => 1
+ 	                                  }),
+                                    "$_TOTAL: ". $html->form_input('TOTAL_ONLY', 1, { TYPE => 'checkbox', STATE => ($FORM{TOTAL_ONLY}) ? 1 : undef } ),
+
+                                          "XML: ",  $html->form_input('xml', 1, { TYPE => 'checkbox' } ),
+                                          $html->form_input('show', $_SHOW, { TYPE => 'submit' })
+                                         ]],                                   
+                      });
+
+  print $html->form_main({ CONTENT => $table->show({ OUTPUT2RETURN => 1 }),
+	                         HIDDEN  => { 
+	                                      qindex => "$index"
+	                                     }
+	                       });
+
+
+}
+
+
+my $list = $Extfin->extfin_report_deeds({ %LIST_PARAMS  });
+
+if ($Extfin->{errno}) {
+  
+}
+
+$table = $html->table( { width      => '100%',
+                         caption    => "PAYMENT_DEED $_DATE: $period",
+                         border     => 1,
+                         title      => ['#', $_PERIOD,  'BILL ID', $_NAME, $_TYPE, "$_SUM",  "$_VAT" ],
+                         cols_align => ['right', 'right', 'right', 'left', 'left', 'right', 'right', 'center',  'center', 'center:noprint', 'center:noprint'],
+                         ID         => 'EXTFIN_PAYMENT_DEED',
+                         } );
+
+foreach my $line (@$list) {
+  my $date = $line->[1];
+  
+  if ($line->[1] =~ /\d{2}(\d{2})\-(\d{2})/ ) {
+  	$date = "01.$2.$1";
+   }
+  
+  my $name = $line->[3];
+  
+  if ($FORM{TOTAL_ONLY}) {
+ 	  $name = ($line->[4] == 1) ? "$_TOTAL: $_COMPANIES" : "$_TOTAL: $_USERS"; 
+   }
+  
+  $table->addrow($line->[0], 
+   $date,
+   $line->[2], 
+   $name,
+   $line->[4], 
+   $line->[5],
+   $line->[6], 
+   );
+}
+
+print $table->show();
+
+	
+}
+
+#**********************************************************
+# 
+#**********************************************************
+sub extfin_report_paids {
+
+#my %CAPTIONS_HASH = ('1:DATE'            => $_DATE,  	
+#                     '2:USERS'           => $_USERS,
+#                     '3:SESSIONS'        => $_SESSIONS,
+#                     '4:TRAFFIC_RECV'    => "$_TRAFFIC $_RECV",
+#                     '5:TRAFFIC_SENT'    => "$_TRAFFIC $_SENT",
+#                     '8:TRAFFIC_SUM'     => $_TRAFFIC,
+#                     '9:TRAFFIC_2_SUM'   => $_TRAFFIC." 2",
+#                     '6:DURATION'        => $_DURATION,
+#                     '7:SUM'             => $_SUM);
+
+my %CAPTIONS_HASH = ();
+  
+
+my $list = $Extfin->paid_types_list({ %LIST_PARAMS });	
+foreach my $line (@$list) {
+	$CAPTIONS_HASH{"$line->[0]:$line->[0]"}="$line->[1]";
+}
+
+  my %METHODS_HASH = ();
+  push @PAYMENT_METHODS, @EX_PAYMENT_METHODS if (@EX_PAYMENT_METHODS);
+  
+  for(my $i=0; $i<=$#PAYMENT_METHODS; $i++) {
+  	$METHODS_HASH{"$i:$i"}="$PAYMENT_METHODS[$i]";
+   }
+
+  reports({ DATE          => $FORM{DATE}, 
+  	        REPORT        => '',
+  	        EX_PARAMS     => { DATE  => "$_DATE",
+  	        	                 USERS => "$_USERS" }, 
+  	        PERIOD_FORM		=> 1,
+  	        EXT_TYPE      => { PAYMENT_METHOD => $_PAYMENT_METHOD, PAYMENT_TYPE => $_TYPE, ADMINS => $_ADMINS },
+  	        FIELDS        => { %CAPTIONS_HASH },
+  	        XML           => 1,
+  	       });
+
+
+my ($table_sessions);
+my $output = '';
+
+my %DATA_HASH = ();
+my %CHART = ();
+my %AVG = (COUNT    => 0,
+           SUM      => 0,
+           CLOSED   => 0);
+
+my $graph_type='';
+
+
+#Day reposrt
+if (defined($FORM{DATE}) || defined($FORM{PAYMENT_METHOD})) {
+ if (! defined($FORM{sort})) {
+   $LIST_PARAMS{SORT}=1;
+   $LIST_PARAMS{DESC}=DESC;
+  }
+
+  $LIST_PARAMS{PAYMENT_METHOD}=$FORM{PAYMENT_METHOD} if(defined($FORM{PAYMENT_METHOD}));
+
+
+  my $list = $Extfin->paids_list({ %LIST_PARAMS });	
+  $table_sessions = $html->table( { width      => '100%',
+                                    caption    => "$_FEES",
+                                    border     => 1,
+                                    title      => ['#', $_DATE, $_USER, $_SUM, $_TYPE, $_DESCRIBE,  "$_PAYMENT_METHOD", $_ADMIN, $_STATUS, "$_CLOSED $_DATE", 'EXT ID', '-', '-' ],
+                                    cols_align => ['right', 'left', 'right', 'left', 'right', 'left', 'center', 'right', 'center:noprint', 'center:noprint'],
+                                  } );
+
+  my ($delete, $change);
+  foreach my $line (@$list) {
+    if ($permissions{4}{1}) {
+      $delete = $html->button($_DEL, "index=$index&del=$line->[0]", { MESSAGE => "$_DEL $line->[0]?", BUTTON => 1 }); 
+      $change = $html->button($_CHANGE, "index=$index&chg=$line->[0]&UID=$line->[11]", { BUTTON => 1 });
+     }
+
+    $table_sessions->addrow($html->b($line->[0]), 
+     $html->button($line->[1], "index=$index&chg=$line->[0]"),
+     $html->button($line->[2], "index=15&UID=$line->[11]&MODULE=Extfin"), 
+     $line->[3],
+     $line->[4], 
+     $line->[5], 
+     $PAYMENT_METHODS[$line->[6]],
+     $line->[7], 
+     ($line->[8]) ? "$_CLOSED" : '', 
+     $line->[9], 
+     $change,
+     $delete
+     );
+  }
+
+ }
+else {
+  #Used Traffic
+
+  my %fields_hash = (); 
+  my @fields_arr  = ();
+	my @caption = ("$_DATE", "$_CLOSED", "$_CLOSED $_SUM", "$_COUNT", "$_SUM"); 
+  
+  if ($FORM{TYPE}) {
+    if ($FORM{TYPE} eq 'PAYMENT_METHOD') {
+  	  $caption[0]=$_PAYMENT_METHOD;
+  	  push @caption, "$_PAYMENTS $_COUNT", "$_PAYMENTS $_SUM", "$_RESULT";
+     }
+    elsif ($FORM{TYPE} eq 'PAYMENT_TYPE') {
+  	  $caption[0]=$_TYPE;
+     }
+    elsif ($FORM{TYPE} eq 'USER') {
+  	  $caption[0]=$_USERS;
+     }
+   }
+  
+
+  
+
+
+  $table_sessions = $html->table({ width      => '100%',
+	                                 caption    => "$_FEES", 
+                                   title      => \@caption,
+                                   cols_align => ['right', 'right', 'right', 'right', 'right', 'right', 'right', 'right'],
+                                   qs         => $pages_qs             
+                               } );
+
+
+  $graph_type='month_stats';
+  my $num = 0;
+  
+  my $list = $Extfin->paid_reports({ %LIST_PARAMS });
+  my %PAIDS_HASH = ();
+  
+  foreach my $line (@$list) {
+    my $firth_field = $html->button($line->[0], "index=$index&$type=$line->[0]$pages_qs");
+
+    if ($FORM{TYPE}) {
+      if ($FORM{TYPE} eq 'USER') {
+        $firth_field = $html->button($line->[0], "index=15&UID=$line->[5]");   	 	
+   	   }
+      elsif($FORM{TYPE} eq 'PAYMENT_METHOD') {
+     	  $firth_field = $html->button($PAYMENT_METHODS[$line->[0]], "index=$index&PAYMENT_METHOD=$line->[0]$pages_qs");
+ 	   	  $PAIDS_HASH{$line->[0]} = [
+          $line->[1], 
+          $line->[2], 
+          $line->[3],  
+          $line->[4]
+        ];
+       }
+      elsif($FORM{TYPE} eq 'PAYMENT_TYPE') {
+     	  $firth_field = $html->button($CAPTIONS_HASH{"$line->[0]:$line->[0]"}, "index=$index&PAYMENT_TYPE=$line->[0]");
+       }
+      elsif($FORM{TYPE} eq 'ADMINS') {
+     	  $firth_field = $line->[0];   	 	
+       }
+
+     }
+ 	
+
+      $AVG{COUNT}      = $line->[1] if ($AVG{COUNT} < $line->[1]);
+      $AVG{SUM}        = $line->[3] if ($AVG{SUM} < $line->[3]);
+      $AVG{CLOSED_SUM} = time2sec($line->[5]) if ($AVG{CLOSED_SUM} < $line->[5]);
+
+      if ($line->[0] =~ /(\d+)-(\d+)-(\d+)/) {
+      	$num = $3;
+       }
+      elsif ($line->[0] =~ /(\d+)-(\d+)/) {
+      	$CHART{X_LINE}[$num]=$line->[0];
+        $num++;
+       }
+     
+     $DATA_HASH{COUNT}[$num]       = $line->[1];      
+     $DATA_HASH2{SUM}[$num]        = $line->[3];
+     $DATA_HASH2{CLOSED_SUM}[$num] = $line->[5];
+
+     if ($FORM{TYPE} ne 'PAYMENT_METHOD') {
+  	   @rows = ($firth_field,
+         $line->[1], 
+         $line->[2], 
+         $line->[3],  
+         $line->[4]
+        );
+      }
+
+     $table_sessions->addrow(@rows);
+   }
+
+if($FORM{TYPE} eq 'PAYMENT_METHOD') {
+  #Get paymets data
+  use Finance;
+  my $payments = Finance->payments($db, $admin, \%conf);
+  my $list = $payments->reports({ %LIST_PARAMS });
+  my %PAYMENTS_HASH = ();
+  foreach my $line (@$list) {
+  	push @{ $PAYMENTS_HASH{$line->[0]} }, $line->[1], $line->[2] ;
+   }
+  
+  #Show date
+  my $paids_total    = 0;
+  my $payments_total = 0;
+  my $result_total   = 0;
+
+  for (my $i=0; $i<=$#PAYMENT_METHODS; $i++) {
+	  my $paids_sum = ($PAIDS_HASH{$i}->[1]) ? $PAIDS_HASH{$i}->[1] : 0.00;
+    
+
+    
+    my $result_sum = $PAYMENTS_HASH{$i}->[1] - $paids_sum;
+
+	  $table_sessions->addrow($html->button($PAYMENT_METHODS[$i], "index=$index&PAYMENT_METHOD=$line->[0]$pages_qs"), 
+	   @{ ($PAIDS_HASH{$i}->[2]) ? $PAIDS_HASH{$i} : [ '0', '0.00', '0', '0.00' ] },
+
+	   ($PAYMENTS_HASH{$i}->[0]) ? $PAYMENTS_HASH{$i}->[0] : 0,
+	   ($PAYMENTS_HASH{$i}->[1]) ? $PAYMENTS_HASH{$i}->[1] : '0.00',
+	   sprintf("%.2f", $result_sum),
+	   );
+
+    $paids_total    += $paids_sum;
+    $payments_total += $PAYMENTS_HASH{$i}->[1];
+    $result_total   += $result_sum;
+    $Extfin->{TOTAL}+= $PAYMENTS_HASH{$i}->[0] + $PAIDS_HASH{$i}->[1];
+   }
+
+   my $table3 = $html->table( { width      => '100%',
+                         caption    => $_RESULT,
+                         cols_align => ['right', 'right', 'right', 'right' ],
+                         rows       => [ [ "$_PAYMENTS: ". $html->b( sprintf("%.2f", $payments_total) ),
+                                           "$_FEES: ".     $html->b( sprintf("%.2f", $paids_total)  ), 
+                                           "$_RESULT: ".   $html->b( sprintf("%.2f", $result_total) )
+                                        ] ],
+                         rowcolor   => $_COLORS[2]
+                               } );
+
+   $Extfin->{SUM}=$result_total;
+   print $table3->show();
+
+}
+
+
+$output = $html->make_charts({  
+	 PERIOD     => $graph_type,
+	 DATA       => \%DATA_HASH2,
+	 AVG        => \%AVG,
+	 TYPE       => ['area', 'area'],
+	 TRANSITION => 1,
+   OUTPUT2RETURN => 1
+  });
+
+
+}
+
+
+$table = $html->table( { width      => '100%',
+                         cols_align => ['right', 'right', 'right', 'right' ],
+                         rows       => [ [ "$_COUNT: ". $html->b( $Extfin->{TOTAL} ),
+                                           "$_SUM: ". $html->b( $Extfin->{SUM} ), 
+                                        ] ],
+                         rowcolor   => $_COLORS[2]
+                               } );
+
+print $table_sessions->show() . $table->show(). $output;
+
+}
+
+
+
+#**********************************************************
+#
+#**********************************************************
+sub extfin_sum {
+
+#my %CAPTIONS_HASH = ('1:DATE'            => $_DATE,  	
+#                     '2:USERS'           => $_USERS,
+#                     '3:SESSIONS'        => $_SESSIONS,
+#                     '4:TRAFFIC_RECV'    => "$_TRAFFIC $_RECV",
+#                     '5:TRAFFIC_SENT'    => "$_TRAFFIC $_SENT",
+#                     '8:TRAFFIC_SUM'     => $_TRAFFIC,
+#                     '9:TRAFFIC_2_SUM'   => $_TRAFFIC." 2",
+#                     '6:DURATION'        => $_DURATION,
+#                     '7:SUM'             => $_SUM);
+
+my %CAPTIONS_HASH = ();
+  
+
+my $list = $Extfin->paid_types_list({ 
+	                                    %LIST_PARAMS });	
+foreach my $line (@$list) {
+	$CAPTIONS_HASH{"$line->[0]:$line->[0]"}="$line->[1]";
+}
+
+  $FORM{TYPE} = 'PAYMENT_METHOD';
+
+  my %METHODS_HASH = ();
+  push @PAYMENT_METHODS, @EX_PAYMENT_METHODS if (@EX_PAYMENT_METHODS);
+  
+  for(my $i=0; $i<=$#PAYMENT_METHODS; $i++) {
+  	$METHODS_HASH{"$i:$i"}="$PAYMENT_METHODS[$i]";
+   }
+
+  reports({ DATE          => $FORM{DATE}, 
+  	        REPORT        => '',
+  	        EX_PARAMS     => { DATE  => "$_DATE",
+  	        	                 USERS => "$_USERS" 
+  	        	                 }, 
+  	        PERIOD_FORM		=> 1,
+  	        EXT_TYPE      => { PAYMENT_METHOD => $_PAYMENT_METHOD, 
+  	        	                 PAYMENT_TYPE   => $_TYPE, 
+  	        	                 ADMINS         => $_ADMINS 
+  	        	                 },
+  	        FIELDS        => { %CAPTIONS_HASH },
+  	        XML           => 1,
+  	       });
+
+
+my ($table_sessions);
+my $output = '';
+
+my %DATA_HASH = ();
+my %CHART = ();
+my %AVG = (COUNT    => 0,
+           SUM      => 0,
+           CLOSED   => 0);
+
+my $graph_type='';
+
+
+#Day reposrt
+if (defined($FORM{DATE})) {
+ if (! defined($FORM{sort})) {
+   $LIST_PARAMS{SORT}=1;
+   $LIST_PARAMS{DESC}=DESC;
+  }
+
+  my $list = $Extfin->paids_list({ %LIST_PARAMS });	
+  $table_sessions = $html->table( { width      => '100%',
+                                    caption    => "$_FEES",
+                                    border     => 1,
+                                    title      => ['#', $_DATE, $_USER, $_SUM, $_TYPE, $_DESCRIBE,  $_ADMIN, $_STATUS, "$_CLOSED $_DATE", 'EXT ID', '-', '-' ],
+                                    cols_align => ['right', 'left', 'right', 'left', 'right', 'left', 'center', 'right', 'center:noprint', 'center:noprint'],
+                                  } );
+
+  my ($delete, $change);
+  foreach my $line (@$list) {
+    if ($permissions{4}{1}) {
+      $delete = $html->button($_DEL, "index=$index&del=$line->[0]", { MESSAGE => "$_DEL $line->[0]?", BUTTON => 1 }); 
+      $change = $html->button($_CHANGE, "index=$index&chg=$line->[0]&UID=$line->[10]", { BUTTON => 1  });
+     }
+
+    $table_sessions->addrow($html->b($line->[0]), 
+     $html->button($line->[1], "index=$index&chg=$line->[0]"),
+     $html->button($line->[2], "index=15&UID=$line->[10]&MODULE=Extfin"), 
+     $line->[3],
+     $line->[4], 
+     $line->[5], 
+     ($line->[6]) ? "$_CLOSED" : '',  
+     $line->[7], 
+     $line->[8], 
+     $line->[9], 
+     $change,
+     $delete
+     );
+  }
+
+ }
+else {
+  #Used Traffic
+
+  my %fields_hash = (); 
+  my @fields_arr  = ();
+	my @caption = ("$_DATE", "$_CLOSED", "$_CLOSED $_SUM", "$_COUNT", "$_SUM"); 
+  
+ 
+  if ($FORM{TYPE}) {
+    if ($FORM{TYPE} eq 'PAYMENT_METHOD') {
+  	  $caption[0]=$_PAYMENT_METHOD;
+     }
+    elsif ($FORM{TYPE} eq 'PAYMENT_TYPE') {
+  	  $caption[0]=$_TYPE;
+     }
+    elsif ($FORM{TYPE} eq 'USER') {
+  	  $caption[0]=$_USERS;
+     }
+   }
+  
+  $table_sessions = $html->table({ width      => '100%',
+	                                 caption    => "$_FEES", 
+                                   title      => \@caption,
+                                   cols_align => ['right', 'right', 'right', 'right', 'right', 'right', 'right'],
+                                   qs         => $pages_qs             
+                               } );
+
+
+  $graph_type='month_stats';
+  my $num = 0;
+  
+  
+  
+  my $list = $Extfin->paid_reports({ %LIST_PARAMS, TYPE => 'PAYMENT_METHOD' });
+  
+  foreach my $line (@$list) {
+    my $firth_field = $html->button($line->[0], "index=$index&$type=$line->[0]$pages_qs");
+    if ($FORM{TYPE}) {
+      if ($FORM{TYPE} eq 'USER') {
+        $firth_field = $html->button($line->[0], "index=15&UID=$line->[5]");   	 	
+   	   }
+      elsif($FORM{TYPE} eq 'PAYMENT_METHOD') {
+     	  $firth_field = $html->button($PAYMENT_METHODS[$line->[0]], "index=11&UID=$line->[0]");   	 	
+       }
+      elsif($FORM{TYPE} eq 'PAYMENT_TYPE') {
+     	  $firth_field = $html->button($CAPTIONS_HASH{"$line->[0]:$line->[0]"}, "index=11&UID=$line->[0]");   	 	
+       }
+      elsif($FORM{TYPE} eq 'ADMINS') {
+     	  $firth_field = $line->[0];   	 	
+       }
+
+     }
+
+  	
+ 	  @rows = ($firth_field,
+       $line->[1], 
+       $line->[2], 
+       $line->[3],  
+       $line->[4]
+       );
+
+      $AVG{COUNT}      = $line->[1] if ($AVG{COUNT} < $line->[1]);
+      $AVG{SUM}        = $line->[3] if ($AVG{SUM} < $line->[3]);
+      $AVG{CLOSED_SUM} = time2sec($line->[5]) if ($AVG{CLOSED_SUM} < $line->[5]);
+
+      if ($line->[0] =~ /(\d+)-(\d+)-(\d+)/) {
+      	 $num = $3;
+        }
+      elsif ($line->[0] =~ /(\d+)-(\d+)/) {
+      	 $CHART{X_LINE}[$num]=$line->[0];
+       	 $num++;
+       }
+     
+     $DATA_HASH{COUNT}[$num]       = $line->[1];      
+     $DATA_HASH2{SUM}[$num]        = $line->[3];
+     $DATA_HASH2{CLOSED_SUM}[$num] = $line->[5];
+
+    $table_sessions->addrow(@rows);
+   }
+
+
+$output = $html->make_charts({  
+	 PERIOD     => $graph_type,
+	 DATA       => \%DATA_HASH2,
+	 AVG        => \%AVG,
+	 TYPE       => ['area', 'area'],
+	 TRANSITION => 1,
+   OUTPUT2RETURN => 1
+  });
+
+
+}
+
+
+$table = $html->table( { width      => '100%',
+                         cols_align => ['right', 'right', ],
+                         rows       => [ [ "$_COUNT: ". $html->b( $Extfin->{TOTAL} ),
+                                           "$_SUM: ". $html->b( $Extfin->{SUM} ), 
+                                        ] ],
+                         rowcolor   => $_COLORS[2]
+                               } );
+
+print $table_sessions->show() . $table->show(). $output;
+
 }
 
 
 
 
 
+
+
+
+#**********************************************************
+#
+#**********************************************************
+sub extfin_debetors {
+	my ($attr) = @_;
+
+ 
+
+$table = $html->table( { width       => '100%',
+	                       rowcolor    => $_COLORS[0],
+                         rows        => [[ "$_PERIOD: ", $html->form_input('SEL_DATE', 1, { TYPE => 'checkbox' } ). $html->date_fld('from', { MONTHES => \@MONTHES} ),
+                                           "$_STATUS: ". $html->form_select('STATUS', 
+                                    { 
+ 	                                   SELECTED    => $FORM{STATUS},
+ 	                                   SEL_ARRAY   => [ $_ALL, "$_ENABLE","$_DISABLE" ],
+                                     ARRAY_NUM_ID=> 1
+ 	                                  }),
+                                           "$_ROWS: ",  $html->form_input('rows', int($conf{list_max_recs}), { SIZE => 4 } ),
+                                          $html->form_input('show', $_SHOW, { TYPE => 'submit' })
+                                         ]],                                   
+                      });
+
+
+
+print $html->form_main({ CONTENT => $table->show({ OUTPUT2RETURN => 1 }),
+	                       HIDDEN  => { sid   => "$sid",
+	                                    index => "$index",
+	                                    UID   => "$UID" }});
+
+if ($FORM{show}) {
+	$FORM{fromM}++;
+  $LIST_PARAMS{DATE}="$FORM{fromY}-$FORM{fromM}-$FORM{fromD}"  if ($FORM{show} && $FORM{SEL_DATE});
+  $LIST_PARAMS{STATUS}=$FORM{STATUS};
+}
+
+my $list = $Extfin->extfin_debetors({ %LIST_PARAMS, });	  
+my $table = $html->table( { width      => '100%',
+                            caption    => "$_DEBETORS",
+                            border     => 1,
+                            title      => ['#', $_LOGIN, $_CONTRACT_ID, $_FIO, $_REGISTRATION, "$_STATUS",
+                                "$_TARIF_PLAN",  $_DEPOSIT, "< 32 days", "33 - 64 days","65 - 96 days","97 - 183 days", "184 - 365 days", "> 365 days" ],
+                            cols_align => ['right', 'left', 'left', 'left', 'right', 'right', 'right', 'right', 'right', 'right', 'right', 'right', 'right' ],
+                            ID         => 'DEBETORS'
+                           } );
+
+my ($delete, $change);
+my $i=0;
+my $total         = 0;
+my $total_sum     = 0.00;
+my $total_32      = 0;
+my $total_32_sum  = 0.00;
+my $total_65      = 0;
+my $total_65_sum  = 0.00;
+my $total_97      = 0;
+my $total_97_sum  = 0.00;
+my $total_184     = 0;
+my $total_184_sum = 0.00;
+my $total_365     = 0;
+my $total_365_sum = 0.00;
+my $total_maximum = 0;
+my $total_maximum_sum = 0.00;
+
+
+my @interval = ();
+foreach my $line (@$list) {
+   @interval = ( ($line->[9]) ? sprintf("%.2f", $line->[9])  : '',
+    ($line->[10]) ? sprintf("%.2f", $line->[10])  : '',
+    ($line->[11]) ? sprintf("%.2f", $line->[11]): '',
+    ($line->[12]) ? sprintf("%.2f", $line->[12]): '',
+    ($line->[13]) ? sprintf("%.2f", $line->[13]): '' );
+    
+    
+    
+   $total_65_sum += $line->[9];
+   $total_97_sum += $line->[10];
+   $total_184_sum+= $line->[11];
+   $total_365_sum+= $line->[12];
+   $total_maximum_sum += $line->[13];
+
+
+   $total_65 += ($line->[9]) ? 1 : 0;
+   $total_97 += ($line->[10]) ? 1 : 0;
+   $total_184+= ($line->[11]) ? 1 : 0;
+   $total_365+= ($line->[12]) ? 1 : 0;
+   $total_maximum += ($line->[13]) ? 1 : 0;
+
+
+  my $deposit = $Extfin->{DEPOSITS}->{$line->[14]};
+  $table->addrow($i,
+    $html->button($line->[1], "index=15&UID=$line->[14]"),
+    $line->[2],
+    $line->[3],
+    $line->[4],
+    ($line->[5]==1) ? $html->color_mark($status[$line->[5]], '#FF0000') : $status[$line->[5]],
+    $line->[6],
+    ($line->[7]) ? sprintf("%.2f", $line->[7])  : '',
+    ($line->[8]) ? sprintf("%.2f", $line->[8])  : '',
+    @interval,
+    );
+
+   $total_sum    += $line->[7] if ($line->[7] < 0);
+   $total_32_sum += $line->[8];
+
+   $total    += ($line->[7] < 0) ? 1 : 0;
+   $total_32 += ($line->[8]) ? 1 : 0;
+
+
+
+  $i++;
+ }
+
+
+$table->{rowcolor}   = $_COLORS[2];
+
+  @interval = ( $html->b($total_65),
+  $html->b($total_97),
+  $html->b($total_184),
+  $html->b($total_365),
+  $html->b($total_maximum) );
+
+$table->addrow("$_COUNT:  ", '', '', '', '', '', '',
+$html->b($total),
+$html->b($total_32),
+@interval
+
+ );
+
+
+  @interval = ( 
+  $html->b(sprintf("%.2f", $total_65_sum  )),
+  $html->b(sprintf("%.2f", $total_97_sum  )),
+  $html->b(sprintf("%.2f", $total_184_sum )),
+  $html->b(sprintf("%.2f", $total_365_sum )),
+  $html->b(sprintf("%.2f", $total_maximum_sum )) );
+
+
+$table->addrow("$_SUM: ", '', '', '',  '', '', '',
+$html->b(sprintf("%.2f", $total_sum)),
+$html->b(sprintf("%.2f", $total_32_sum  )),
+@interval ) ;
+
+print $table->show();
+
+
+
+}
+
+
+
+
+#**********************************************************
+#
+#**********************************************************
+sub extfin_payments_fees {
+
+  if (! $permissions{2} || ! $permissions{2}{0}) {
+  	$html->message('err', $_ERROR, "$ERR_ACCESS_DENY");  	
+  	return 0;
+  }
+
+  reports({ DATE        => $FORM{DATE}, 
+  	        REPORT      => '',
+            PERIOD_FORM => 1,
+#  	        EXT_TYPE    => { METHOD => $_TYPE,
+#  	        	               ADMINS => $_ADMINS,
+#  	        	               FIO    => $_FIO,
+#  	        	               COMPANIES => "$_COMPANIES"
+#  	        	              }
+         });
+
+
+  $LIST_PARAMS{PAGE_ROWS}=1000000;
+
+  my $graph_type= 'month_stats';
+  my %DATA_HASH = ();
+  my %AVG       = ();
+  my %CHART     = ();
+  my $num       = 1;
+  my @CHART_TYPE= ('area', 'line', 'column');
+
+  my $list = $Extfin->report_payments_fees( { %LIST_PARAMS } );
+  my $table_fees = $html->table( { width      => '100%',
+                            caption    => "$_PAYMENTS /  $_FEES",
+                            border     => 1,
+                            title      => ['#', $_LOGIN, $_FIO, $_PAYMENTS, $_FEES, '-'],
+                            cols_align => ['right', 'left', 'right', 'right', 'left', 'left', 'right', 'right', 'left', 'center:noprint'],
+                            qs         => $pages_qs,
+                            pages      => $fees->{TOTAL},
+                            ID         => 'REPORTS_PAYMENTS_FEES',
+                            EXPORT     => $_EXPORT .' XML:&xml=1',
+                        } );
+
+  $pages_qs .= "&subf=2" if (! $FORM{subf});
+  foreach my $line (@$list) {
+    $table_fees->addrow($num,
+      $html->button($line->[1], "index=15&UID=".$line->[5]), 
+      $line->[2],
+      $line->[3] || '0.00', 
+      $line->[4] || '0.00', 
+     );
+    $num++;
+  }
+
+
+  print $table_fees->show();	
+  $table = $html->table( { width      => '100%',
+                           cols_align => ['right', 'right', 'right'],
+                           rows       => [ [ 
+                              "$_TOTAL $_USERS: ". $html->b($Extfin->{USERS_TOTAL}), 
+                              "$_TOTAL $_PAYMENTS: ". $html->b($Extfin->{PAYMENTS_TOTAL}), 
+                              "$_TOTAL $_FEES: ". $html->b($Extfin->{FEES_SUM}) ] ],
+                           rowcolor   => 'even'
+                          });
+  print $table->show();
+  
+  if ($graph_type ne '') {
+    print $html->make_charts({  
+	        PERIOD     => $graph_type,
+	        DATA       => \%DATA_HASH,
+	        AVG        => \%AVG,
+	        TYPE       => \@CHART_TYPE,
+	        TRANSITION => 1,
+          OUTPUT2RETURN => 1,
+          %CHART 
+       });
+   }
+
+}
+
+
+
+
+
+#**********************************************************
+#
+#**********************************************************
+sub extfin_users_balance {
+my ($Y, $M, $D)=split(/-/, $DATE, 3);
+
+$LIST_PARAMS{USER_TYPE}  = $FORM{USER_TYPE};
+$LIST_PARAMS{TOTAL_ONLY} = $FORM{TOTAL_ONLY};
+
+if ($FORM{show} || $FORM{qindex}) {
+  if ($FORM{MONTH}) {
+  	$LIST_PARAMS{MONTH}=$FORM{MONTH};
+   }
+  elsif($FORM{PERIOD} && $FORM{PERIOD} =~ /(\d{2})\.(\d{2})\.(\d{4})-(\d{2})\.(\d{2})\.(\d{4})/) {
+    $LIST_PARAMS{FROM_DATE}= "$3-$2";
+    $LIST_PARAMS{TO_DATE}  = "$6-$5";
+   }
+  elsif ($FORM{FROM_M}) {
+    $LIST_PARAMS{FROM_DATE}="$FORM{FROM_Y}-". sprintf("%.2d", $FORM{FROM_M}+1);
+    $LIST_PARAMS{TO_DATE}="$FORM{TO_Y}-". sprintf("%.2d", $FORM{TO_M}+1);
+   }
+
+  if ($FORM{xml}) {
+    print "Content-Type: text/xml\n\n";
+    print "<?xml version=\"1.0\"  encoding=\"windows-1251\" ?>\n";
+   }
+  elsif($FORM{qindex}) {
+    print $html->header();
+   }
+ }
+else {
+	$LIST_PARAMS{MONTH}="$Y-$M";
+}
+
+my @MONTH_ARR = ('');
+for(my $i=1; $i<13; $i++) {
+	my $m = sprintf("%02.d", $i);
+	push @MONTH_ARR, sprintf("%d-%.2d", $Y, $m);
+}
+
+
+if (! $FORM{xml}) {
+  my $table = $html->table( { width       => '100%',
+	                       rowcolor    => $_COLORS[0],
+                         rows        => [[ "$_FROM: ",   $html->date_fld('FROM_', { MONTHES => \@MONTHES} ),
+                                           "$_TO: ",     $html->date_fld('TO_', { MONTHES => \@MONTHES } ),
+                                           "$_PERIOD: ", $html->form_select('MONTH', { SELECTED   => $FORM{MONTH},
+ 	                                                           SEL_ARRAY  => \@MONTH_ARR,
+ 	                                                           NO_ID      => 1
+                                                          } ),
+                                           "$_USERS $_TYPE: " .  $html->form_select('USER_TYPE', 
+                                    { 
+ 	                                   SELECTED    => $FORM{USER_TYPE},
+ 	                                   SEL_HASH    => { '' => $_ALL,
+ 	                                   	                0  => $_USERS,
+ 	                                   	                1  => $_COMPANIES
+ 	                                   	               },
+                                     NO_ID       => 1
+ 	                                  }),
+                                    "$_TOTAL: ". $html->form_input('TOTAL_ONLY', 1, { TYPE => 'checkbox', STATE => ($FORM{TOTAL_ONLY}) ? 1 : undef } ),
+
+                                          "XML: ",  $html->form_input('xml', 1, { TYPE => 'checkbox' } ),
+                                          $html->form_input('show', $_SHOW, { TYPE => 'submit' })
+                                         ]],                                   
+                      });
+
+  print $html->form_main({ CONTENT => $table->show({ OUTPUT2RETURN => 1 }),
+	                         HIDDEN  => { 
+	                                      qindex => "$index"
+	                                     }
+	                       });
+
+
+}
+
+
+my $list = $Extfin->extfin_report_balances({ %LIST_PARAMS  });
+
+if ($Extfin->{errno}) {
+  
+}
+
+$table = $html->table( { width      => '100%',
+                         caption    => "$_DEPOSIT $_DATE: $period",
+                         border     => 1,
+                         title      => ['#', $_LOGIN, "$_FIO/$_NAME", "DEBIT", "CREDIT", "SALDO" ],
+                         cols_align => ['right', 'right', 'right', 'left', 'left', 'right', 'right', 'center',  'center', 'center:noprint', 'center:noprint'],
+                         ID         => 'EXTFIN_PAYMENT_DEED',
+                         } );
+# остатки+оплаты-переносы|списания| депозит
+my $num = 1;
+$Extfin->{TOTAL_SALDO} = 0;
+foreach my $line (@$list) {
+  my $date = $line->[1];
+  
+  if ($line->[1] =~ /\d{2}(\d{2})\-(\d{2})/ ) {
+  	$date = "01.$2.$1";
+   }
+  
+  my $name = $line->[3];
+  
+  if ($FORM{TOTAL_ONLY}) {
+ 	  $name = ($line->[4] == 1) ? "$_TOTAL: $_COMPANIES" : "$_TOTAL: $_USERS"; 
+   }
+
+  my $fees  = sprintf("%.6f", $line->[4]);
+  my $saldo = sprintf("%.6f", ($line->[3]-$fees));
+  $table->addrow($num,
+   $html->button($line->[1], "index=11&UID=$line->[6]"), 
+   $line->[2],
+   $line->[3],
+   $fees,
+   $saldo,
+   );
+
+  $Extfin->{TOTAL_SALDO}+=$saldo ;
+  $num++;
+}
+
+$table->{rowcolor}=$_COLORS[3];
+$table->addrow('-', '', '', $Extfin->{TOTAL_DEBIT}, 
+     $Extfin->{TOTAL_CREDIT},
+     $Extfin->{TOTAL_SALDO});
+
+print $table->show();
+
+}
 
 1
 

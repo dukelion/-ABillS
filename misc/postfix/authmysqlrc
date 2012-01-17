@@ -14,4 +14,4 @@ MYSQL_PORT              3306
 MYSQL_QUOTA_FIELD       CONCAT(mb.box_size * 1048576,'S')
 MYSQL_UID_FIELD         '1005'
 MYSQL_USER_TABLE        mail_boxes mb, mail_domains md
-MYSQL_WHERE_CLAUSE      mb.status='0'
+MYSQL_WHERE_CLAUSE      mb.status='0' AND mb.domain_id=md.id

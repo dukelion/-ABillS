@@ -1,6 +1,7 @@
 package Abills::XML;
 #XML Functions
 
+
 use strict;
 use vars qw(@ISA @EXPORT @EXPORT_OK %EXPORT_TAGS $VERSION %h2
    @_COLORS
@@ -17,7 +18,6 @@ use vars qw(@ISA @EXPORT @EXPORT_OK %EXPORT_TAGS $VERSION %h2
    $DESC
    $PG
    $PAGE_ROWS
-   $OP
    $SELF_URL
    $SESSION_IP
    @MONTHES
@@ -44,7 +44,6 @@ $VERSION = 2.01;
    $DESC
    $PG
    $PAGE_ROWS
-   $OP
    $SELF_URL
    $SESSION_IP
 );
@@ -57,8 +56,7 @@ my $debug;
 my %log_levels;
 my $IMG_PATH;
 my $row_number = 0;
-#Hash of url params
-
+my $CONF;
 
 #**********************************************************
 # Create Object
@@ -68,6 +66,7 @@ sub new {
   my ($attr) = @_;
   
   $IMG_PATH = (defined($attr->{IMG_PATH})) ? $attr->{IMG_PATH} : '../img/';
+  $CONF = $attr->{CONF} if (defined($attr->{CONF}));
 
   my $self = { };
   bless($self, $class);
@@ -76,14 +75,13 @@ sub new {
      $self->{NO_PRINT}=1;
    }
 
-
   %FORM     = form_parse();
   %COOKIES  = getCookies();
   $SORT     = $FORM{SORT} || 1;
   $DESC     = ($FORM{desc}) ? 'DESC' : '';
   $PG       = $FORM{pg} || 0;
-  $OP       = $FORM{op} || '';
   $PAGE_ROWS = $FORM{PAGE_ROWS} || 25;
+  $self->{CHARSET}=(defined($attr->{CHARSET})) ? $attr->{CHARSET} : 'windows-1251';
   $domain   = $ENV{SERVER_NAME};
   $web_path = '';
   $secure   = '';
@@ -116,11 +114,14 @@ sub new {
   $index = $FORM{index} || 0;  
   
   
-  if (defined($COOKIES{language}) && $COOKIES{language} ne '') {
-    $self->{language}=$COOKIES{language};
+  if ($attr->{language}) {
+    $self->{language}=$attr->{language};
+   }
+  elsif ($COOKIES{language}) {
+  	$self->{language}=$COOKIES{language};
    }
   else {
-    $self->{language} = 'english';
+    $self->{language} = $CONF->{default_language} || 'english';
    }
 
   return $self;
@@ -194,8 +195,15 @@ sub form_input {
 }
 
 
-
+#**********************************************************
+# HTML Input form
+#**********************************************************
 sub form_main {
+	my ($attr) = @_;
+  if ($FORM{EXPORT_CONTENT} && $FORM{EXPORT_CONTENT} ne $attr->{ID} ) {
+  	return '';
+   }
+	
   my $self = shift;
   my ($attr)	= @_;
 	
@@ -204,7 +212,7 @@ sub form_main {
   if (defined($attr->{HIDDEN})) {
   	my $H = $attr->{HIDDEN};
   	while(my($k, $v)=each( %$H)) {
-      $self->{FORM} .= "<input type=\"hidden\" name=\"$k\" value=\"$v\"/>\n";
+      $self->{FORM} .= "<input name=\"$k\" value=\"$v\"/>\n";
   	}
   }
 
@@ -246,7 +254,7 @@ sub form_select {
  	  my $H = $attr->{SEL_OPTIONS};
 	  while(my($k, $v) = each %$H) {
      $self->{SELECT} .= "<option value='$k'";
-     $self->{SELECT} .=' selected="1"' if ($k eq $attr->{SELECTED});
+     $self->{SELECT} .=' selected="1"' if (defined($attr->{SELECTED}) && $k eq $attr->{SELECTED});
      $self->{SELECT} .= ">$v</option>\n";	
      }
    }
@@ -258,7 +266,7 @@ sub form_select {
 	  foreach my $v (@$H) {
       my $id = (defined($attr->{ARRAY_NUM_ID})) ? $i : $v;
       $self->{SELECT} .= "<option value='$id'";
-      $self->{SELECT} .= ' selected="1"' if (($i eq $attr->{SELECTED}) || ($v eq $attr->{SELECTED}) );
+      $self->{SELECT} .= ' selected="1"' if (defined($attr->{SELECTED}) && ( ($i eq $attr->{SELECTED}) || ($v eq $attr->{SELECTED}) ) );
       $self->{SELECT} .= ">$v</option>\n";
       $i++;
      }
@@ -281,17 +289,24 @@ sub form_select {
 
 	  if ($attr->{SORT_KEY}) {
 	  	@H = sort keys %{ $attr->{SEL_HASH} };
-	  }
+	   }
 	  else {
 	    @H = keys %{ $attr->{SEL_HASH} };
      }
     
-    
     foreach my $k (@H) {
       $self->{SELECT} .= "<option value='$k'";
-      $self->{SELECT} .=' selected="1"' if (defined($attr->{SELECTED}) && $k eq $attr->{SELECTED});
-
-      $self->{SELECT} .= ">";
+      $self->{SELECT} .= " selected='1'" if (defined($attr->{SELECTED}) && $k eq $attr->{SELECTED});
+      
+      if ($attr->{EXT_PARAMS}) {
+      	while(my ($ext_k, $ext_v)=each %{ $attr->{EXT_PARAMS} }) {
+          $self->{SELECT} .= " $ext_k='";
+          $self->{SELECT} .= $attr->{EXT_PARAMS}->{$ext_k}->{$k} if ($attr->{EXT_PARAMS}->{$ext_k}->{$k});
+          $self->{SELECT} .= "'";
+         }
+       }
+      
+      $self->{SELECT} .= '>';
       $self->{SELECT} .= "$k:" if (! $attr->{NO_ID});
       $self->{SELECT} .= "$attr->{SEL_HASH}{$k}</option>\n";	
      }
@@ -300,20 +315,6 @@ sub form_select {
 	$self->{SELECT} .= "</select>\n";
 
 	return $self->{SELECT};
-}
-
-
-#**********************************************************
-#
-#**********************************************************
-sub dirname {
-    my($x) = @_;
-    #print STDERR "dirname('$x') = ";
-    if ( $x !~ s@[/\\][^/\\]+$@@ ) {
-     	$x = '.';
-    }
-    #print STDERR "'$x'\n";
-    $x;
 }
 
 
@@ -327,9 +328,6 @@ sub setCookie {
 	my $self = shift;
 	my($name, $value, $expiration, $path, $domain, $secure) = @_;
 	
-	#$path = dirname($ENV{SCRIPT_NAME}) if ($path eq '');
-
-
 	print "Set-Cookie: ";
 	print $name, "=$value; expires=\"", $expiration,
 		"\"; path=$path; domain=", $domain, "; ", $secure, "\n";
@@ -363,10 +361,15 @@ sub getCookies {
 #**********************************************************
 # Functions list
 #**********************************************************
+sub menu2 {
+  my $self = shift;
+  my ($menu_items, $menu_args, $permissions, $attr) = @_;
+  $self->menu($menu_items, $menu_args, $permissions, $attr);
+}
+
 sub menu {
  my $self = shift;
  my ($menu_items, $menu_args, $permissions, $attr) = @_;
- 
 
  return 0 if ($FORM{index} > 0);
  
@@ -378,42 +381,31 @@ sub menu {
 
  my $EX_ARGS = (defined($attr->{EX_ARGS})) ? $attr->{EX_ARGS} : '';
  my $fl = $attr->{FUNCTION_LIST};
-
-
  
 my  %new_hash = ();
 while((my($findex, $hash)=each(%$menu_items))) {
    while(my($parent, $val)=each %$hash) {
-     #print "$parent $findex $val<br>\n";
      $new_hash{$parent}{$findex}=$val;
     }
 }
-
-
 
 my $h = $new_hash{0};
 my @last_array = ();
 
 my @menu_sorted = sort {
-   $h->{$b} <=> $h->{$a}
-     ||
-   length($a) <=> length($b)
-     ||
-   $a cmp $b
+   $b cmp $a
 } keys %$h;
 
-for(my $parent=1; $parent<$#menu_sorted + 1; $parent++) { 
+
+for(my $parent=0; $parent<$#menu_sorted + 1; $parent++) { 
   my $val = $h->{$menu_sorted[$parent]};
+
   my $level = 0;
   my $prefix = '';
   my $ID = $menu_sorted[$parent];
-  
 
   next if((! defined($attr->{ALL_PERMISSIONS})) && (! $permissions->{$parent-1}) && $parent == 0);
-#  next if (! defined($permissions->{($parent-1)}));  
   $menu_text .= "<MENU NAME=\"$fl->{$ID}\" ID=\"$ID\" EX_ARGS=\"". $self->link_former($EX_ARGS) ."\" DESCRIBE=\"$val\" TYPE=\"MAIN\"/>\n ";
-
-  #next;
   if (defined($new_hash{$ID})) {
     $level++;
     $prefix .= "   ";
@@ -421,7 +413,7 @@ for(my $parent=1; $parent<$#menu_sorted + 1; $parent++) {
       my $mi = $new_hash{$ID};
 
       while(my($k, $val)=each %$mi) {
-         $menu_text .= "$prefix<MENU NAME=\"$fl->{$k}\" ID=\"$k\" EX_ARGS=\"". $self->link_former("$EX_ARGS") ."\" DESCRIBE=\"$val\" TYPE=\"SUB\" PARENT=\"$ID\"/>\n ";
+        $menu_text .= "$prefix<MENU NAME=\"$fl->{$k}\" ID=\"$k\" EX_ARGS=\"". $self->link_former("$EX_ARGS") ."\" DESCRIBE=\"$val\" TYPE=\"SUB\" PARENT=\"$ID\"/>\n ";
 
         if (defined($new_hash{$k})) {
       	   $mi = $new_hash{$k};
@@ -442,156 +434,10 @@ for(my $parent=1; $parent<$#menu_sorted + 1; $parent++) {
     }
     delete($new_hash{0}{$parent});
    }
-
-# return 0;
 }
-
 
  return ($menu_navigator, $menu_text);
 }
-
-sub menu2 () {
- my $self = shift;
- my ($menu_items, $menu_args, $permissions, $attr) = @_;
-
- my $menu_navigator = '';
- my $root_index     = 0;
- my %tree           = ();
- my %menu           = ();
- my $sub_menu_array;
- my $EX_ARGS = (defined($attr->{EX_ARGS})) ? $attr->{EX_ARGS} : '';
- my $fl = $attr->{FUNCTION_LIST};
- 
-# if (defined($attr->{FUNCTION_LIST}) && $attr->{ALL_PERMISSIONS}) {
-#   
-#   my $qmenu_text = "<NAVIGATOR>\n";
-#  
-# 	 while(my($k, $v)=each %{ $attr->{FUNCTION_LIST} } ){
-# 	 	 $qmenu_text .= "<MENU NAME=\"$v\" ID=\"$k\" DESCRIBE=\"\" EX_ARGS=\"". $self->link_former($EX_ARGS) ."\"/>\n";
-# 	  }
-#   $qmenu_text .= "</NAVIGATOR>\n";
-#
-#   return  '', $qmenu_text;
-#  }
-
-
-
- # make navigate line 
- if ($index > 0) {
-   $root_index = $index;
-   my $h = $menu_items->{$root_index};
-
-   while(my ($par_key, $name) = each ( %$h )) {
-
-     my $ex_params = (defined($FORM{$menu_args->{$root_index}})) ? '&'."$menu_args->{$root_index}=$FORM{$menu_args->{$root_index}}" : '';
-    
-     $menu_navigator =  " ". $self->button($name, "index=$root_index$ex_params"). '/' . $menu_navigator;
-     $tree{$root_index}='y';
-     if ($par_key > 0) {
-        $root_index = $par_key;
-        $h = $menu_items->{$par_key};
-      }
-    }
-}
-
-$FORM{root_index} = $root_index;
-if ($root_index > 0) {
-  my $ri = $root_index-1;
-  if (defined($permissions) && (! defined($permissions->{$ri}))) {
-	  $self->{ERROR} = "Access deny";
-	  return '', '';
-   }
-}
-
-
-my @s = sort {
-   length($a) <=> length($b)
-     ||
-   $a cmp $b
-} keys %$menu_items;
-
-
-
-foreach my $ID (@s) {
- 	my $VALUE_HASH = $menu_items->{$ID};
- 	foreach my $parent (keys %$VALUE_HASH) {
-# 		print "$parent, $ID<br>";
-    push( @{$menu{$parent}},  "$ID:$VALUE_HASH->{$parent}" );
-   }
-}
-
- my @last_array = ();
-
-    my $menu_text = "\n<NAVIGATOR>\n";
- 	  my $level  = 0;
- 	  my $prefix = '';
-    
-    my $parent = 0;
-
- 	  label:
- 	  $sub_menu_array =  \@{$menu{$parent}};
- 	  my $m_item='';
- 	  
- 	  my %table_items = ();
- 	  
- 	  while(my $sm_item = pop @$sub_menu_array) {
- 	     my($ID, $name)=split(/:/, $sm_item, 2);
- 	     next if((! defined($attr->{ALL_PERMISSIONS})) && (! $permissions->{$ID-1}) && $parent == 0);
-
-       if(! defined($menu_args->{$ID}) || (defined($menu_args->{$ID}) && defined($FORM{$menu_args->{$ID}})) ) {
-       	   my $ext_args = "$EX_ARGS";
-       	   if (defined($menu_args->{$ID})) {
-       	     $ext_args = "&$menu_args->{$ID}=$FORM{$menu_args->{$ID}}";
-       	     $name = "<b>$name</b>" if ($name !~ /<b>/);
-       	    }
-
-       	   #my $link = $self->button($name, "index=$ID$ext_args");
-    	       if($parent == 0) {
- 	        	   $menu_text .= "<ITEM NAME=\"$fl->{$ID}\" ID=\"$ID\" DESCRIBE=\"$name\" EX_ARGS=\"". $self->link_former($EX_ARGS) ."\" TYPE=\"MAIN\" />\n";
- 	        	   #$menu_text .= "<ITEM NAME=\"$fl->{$ID}\" TYPE=\"MAIN\" ID=\"$ID\">$prefix$link</ITEM>\n";
-	            }
- 	           elsif(defined($tree{$ID})) {
-   	           $menu_text .= "<ITEM NAME=\"$fl->{$ID}\" ID=\"$ID\" DESCRIBE=\"$name\" EX_ARGS=\"". $self->link_former($EX_ARGS) ."\" TYPE=\"TREE\" />\n"; 
-#   	           $menu_text .= "<ITEM TYPE=\"TREE\" ID=\"$ID\">$prefix$link</ITEM>\n";
- 	            }
- 	           else {
- 	             $menu_text .= "  <ITEM NAME=\"$fl->{$ID}\" ID=\"$ID\" DESCRIBE=\"$name\" EX_ARGS=\"". $self->link_former($EX_ARGS) ."\" TYPE=\"SUB\" PARENT=\"$parent\" />\n"; 
- 	             #$menu_text .= "<ITEM TYPE=\"SUB\" PARENT=\"$parent\" ID=\"$ID\">$prefix$link</ITEM>\n";
- 	            }
-         }
-        else {
-          #next;
-          #$link = "<a href='$SELF_URL?index=$ID&$menu_args->{$ID}'>$name</a>";	
-         }
-
- 	      	     
- 	     if(defined($tree{$ID})) {
- 	     	 $level++;
- 	     	 $prefix .= "&#160;&#160;&#160;";
-         push @last_array, $parent;
-         $parent = $ID;
- 	     	 $sub_menu_array = \@{$menu{$parent}};
- 	      }
- 	   }
-
-    if ($#last_array > -1) {
-      $parent = pop @last_array;	
-      #print "POP/$#last_array/$parent/<br>\n";
-      $level--;
-      $prefix = substr($prefix, 0, $level * 6 * 3);
-      goto label;
-     }
-
-
- 	  
-#  }
- 
- 
- $menu_text .= "</NAVIGATOR>\n";
- 
- return ($menu_navigator, $menu_text);
-}
-
 
 #*******************************************************************
 # heder off main page
@@ -612,35 +458,16 @@ sub header {
  my $admin_name=$ENV{REMOTE_USER};
  my $admin_ip=$ENV{REMOTE_ADDR};
  $self->{header} = "Content-Type: text/xml\n\n";
-# my @_C;
- if ($COOKIES{colors} ne '') {
+ if ($COOKIES{colors} && $COOKIES{colors} ne '') {
    @_COLORS = split(/, /, $COOKIES{colors});
-#    @_C = split(/, /, $COOKIES{colors});
   }
 
-  my $JAVASCRIPT = ($attr->{PATH}) ? "$attr->{PATH}functions.js" : "functions.js";
-
-  
+ my $JAVASCRIPT = ($attr->{PATH}) ? "$attr->{PATH}functions.js" : "functions.js";
  my $css = ''; #css();
 
-
-my $CHARSET=(defined($attr->{CHARSET})) ? $attr->{CHARSET} : 'windows-1251';
+my $CHARSET=(defined($attr->{CHARSET})) ? $attr->{CHARSET} : $self->{CHARSET} || 'windows-1251';
 $CHARSET=~s/ //g;
 $self->{header} .= qq{<?xml version="1.0"  encoding="$CHARSET" ?>};
-#<!DOCTYPE rss PUBLIC "-//Netscape Communications//DTD RSS 0.91//EN"
-#              "http://my.netscape.com/publish/formats/rss-0.91.dtd">
-#
-#<html>
-#<head>
-#};
-
-#$self->{header} .= $css;
-#$self->{header} .= 
-#"<script src=\"$JAVASCRIPT\" type=\"text/javascript\" language=\"javascript\"></script>\n".
-#q{ 
-#<title>~AsmodeuS~ Billing System</title>
-#</head>} .
-
 
  return $self->{header};
 }
@@ -650,81 +477,7 @@ $self->{header} .= qq{<?xml version="1.0"  encoding="$CHARSET" ?>};
 # css()
 #********************************************************************
 sub css { 
-
-my $css = "
-<style type=\"text/css\">
-
-body {
-  background-color: $_COLORS[10];
-  color: $_COLORS[9];
-  font-family: Arial, Tahoma, Verdana, Helvetica, sans-serif;
-  font-size: 14px;
-  /* this attribute sets the basis for all the other scrollbar colors (Internet Explorer 5.5+ only) */
-}
-
-th.small {
-  color: $_COLORS[9];
-  font-size: 10px;
-  height: 10;
-}
-
-td.small {
-  color: $_COLORS[9];
-  height: 1;
-}
-
-th, li {
-  color: $_COLORS[9];
-  height: 24;
-  font-family: Arial, Tahoma, Verdana, Helvetica, sans-serif;
-  font-size: 12px;
-}
-
-td {
-  color: $_COLORS[9];
-  font-family: Arial, Tahoma, Verdana, Helvetica, sans-serif;
-  height: 20;
-  font-size: 14px;
-}
-
-form {
-  font-family: Tahoma,Verdana,Arial,Helvetica,sans-serif;
-  font-size: 12px;
-}
-
-.button {
-  font-family:  Arial, Tahoma,Verdana, Helvetica, sans-serif;
-  background-color: #003366;
-  color: #fcdc43;
-  font-size: 12px;
-  font-weight: bold;
-}
-
-input, textarea {
-	font-family : Verdana, Arial, sans-serif;
-	font-size : 12px;
-	color : $_COLORS[9];
-	border-color : #9F9F9F;
-	border : 1px solid #9F9F9F;
-	background : $_COLORS[2];
-}
-
-select {
-	font-family : Verdana, Arial, sans-serif;
-	font-size : 12px;
-	color : $_COLORS[9];
-	border-color : #C0C0C0;
-	border : 1px solid #C0C0C0;
-	background : $_COLORS[2];
-}
-
-TABLE.border {
-  border-color : #99CCFF;
-  border-style : solid;
-  border-width : 1px;
-}
-</style>";
-
+ my $css = "";
  return $css;
 }
 
@@ -751,16 +504,13 @@ sub table {
      $self->{rowcolor} = $attr->{rowcolor};
    }  
 
-
  if (defined($attr->{rows})) {
     my $rows = $attr->{rows};
     foreach my $line (@$rows) {
       $self->addrow(@$line);
      }
   }
-
-
- 
+ $self->{ID}=$attr->{ID};
 
  $self->{table} = "<TABLE";
 
@@ -775,20 +525,18 @@ sub table {
  $self->{table} .= ">\n";
 
  if (defined($attr->{title})) {
- 	 $self->{table} .= $self->table_title($SORT, $DESC, $PG, $OP, $attr->{title}, $attr->{qs});
+ 	 $self->{table} .= $self->table_title($SORT, $DESC, $PG, $attr->{title}, $attr->{qs});
   }
  elsif(defined($attr->{title_plain})) {
    $self->{table} .= $self->table_title_plain($attr->{title_plain});
   }
 
- if (defined($attr->{pages})) {
+ if ($attr->{pages} && ! $FORM{EXPORT_CONTENT}) {
  	   my $op;
  	   if($FORM{index}) {
  	   	 $op = "index=$FORM{index}";
  	    }
- 	   else {
- 	   	 $op = "op=$OP";
- 	    }
+
  	   my %ATTR = ();
  	   if (defined($attr->{recs_on_page})) {
  	   	 $ATTR{recs_on_page}=$attr->{recs_on_page};
@@ -807,9 +555,7 @@ sub addrow {
   my (@row) = @_;
  
   my $extra=(defined($self->{extra})) ? " $self->{extra}" : '';
-
   $row_number++;
-  
   $self->{rows} .= "  <ROW>";
   foreach my $val (@row) {
      $self->{rows} .= "<TD$extra>". $self->link_former($val, { SKIP_SPACE => 1 }) ."</TD>";
@@ -825,9 +571,7 @@ sub addrow {
 sub addtd {
   my $self = shift;
   my (@row) = @_;
- 
   my $extra=(defined($self->{extra})) ? $self->{extra} : '';
-
 
   $self->{rows} .= "<ROW>";
   foreach my $val (@row) {
@@ -835,7 +579,6 @@ sub addtd {
    }
 
   $self->{rows} .= "</ROW>\n";
-
   return $self->{rows};
 }
 
@@ -864,15 +607,20 @@ sub td {
   my $extra='';
   
   while(my($k, $v)=each %$attr ) {
-    $extra.=" $k=\"$v\"";
+    #$extra.=" $k=\"$v\"";
    }
 
   my $td = '';
   if ($attr->{TH}) {
-  	$td = "<TH $extra>$value</TH>";
+  	$td = "<TH $extra>";
+   	$td .= $value if (defined($value));
+  	$td .= "</TH>";
+
    }
   else {
-    $td = "<TD$extra>$value</TD>";
+    $td = "<TD$extra>";
+   	$td .= $value if (defined($value));
+  	$td .= "</TD>";
    }
   return $td;
 }
@@ -885,8 +633,9 @@ sub td {
 sub table_title_plain {
   my $self = shift;
   my ($caption)=@_;
+  
+  $self->{table_title} = "<TITLE columns=\"". (  $#{ $caption } + 1) ."\">\n";
 
-  $self->{table_title} = "<TITLE columns=\"". ($#{ @$caption } + 1) ."\">\n";
 	my $i = 0;
   foreach my $line (@$caption) {
     $self->{table_title} .= "  <COLUMN_".$i." NAME=\"$line\"/>\n";
@@ -900,7 +649,7 @@ sub table_title_plain {
 #*******************************************************************
 # Show table column  titles with wort derectives
 # Arguments 
-# table_title($sort, $desc, $pg, $get_op, $caption, $qs);
+# table_title($sort, $desc, $pg, $caption, $qs);
 # $sort - sort column
 # $desc - DESC / ASC
 # $pg - page id
@@ -908,13 +657,9 @@ sub table_title_plain {
 #*******************************************************************
 sub table_title  {
   my $self = shift;
-  my ($sort, $desc, $pg, $get_op, $caption, $qs)=@_;
-  my ($op);
-  my $img='';
+  my ($sort, $desc, $pg, $caption, $qs)=@_;
 
-#  print "$sort, $desc, $pg, $op, $caption, $qs";
-
-  $self->{table_title} = "<TITLE columns=\"". ($#{ @$caption } + 1) ."\">\n";
+  $self->{table_title} = "<TITLE columns=\"". ($#{ $caption } + 1) ."\">\n";
   my $i=1;
   foreach my $line (@$caption) {
      $self->{table_title} .= " <COLUMN_".$i." NAME=\"$line\" ";
@@ -929,13 +674,12 @@ sub table_title  {
              $self->{table_title} .= " SORT=\"DESC\"";
              $desc='DESC';
            }
-         
-         #$self->{table_title} .= $self->button("<img src=\"$IMG_PATH/$img\" width=\"12\" height=\"10\" border=\"0\" alt=\"Sort\" title=\"sort\"/>", "$op$qs&pg=$pg&sort=$i&desc=$desc");
        }
 
      $self->{table_title} .= "/>\n";
      $i++;
    }
+
  $self->{table_title} .= "</TITLE>\n";
  return $self->{table_title};
 }
@@ -948,6 +692,11 @@ sub table_title  {
 sub show  {
   my $self = shift;	
   my ($attr) = @_;
+  
+  if ($FORM{EXPORT_CONTENT} && $FORM{EXPORT_CONTENT} ne $self->{ID} ) {
+  	return '';
+   }
+
   
   $self->{show} = $self->{table};
   $self->{show} .= "<DATA>\n";
@@ -964,9 +713,6 @@ sub show  {
   	#$self->{OUTPUT} .= $self->{show};
   	$self->{show} = '';
    }
-
-
-
 
   return $self->{show};
 }
@@ -991,7 +737,7 @@ sub link_former {
 
 #**********************************************************
 #
-# del_button($op, $del, $message, $attr)
+# button($name, $params, $attr)
 #**********************************************************
 sub button {
   my $self = shift;
@@ -1078,9 +824,54 @@ sub date_fld  {
  my $month = $FORM{$base_name.'M'} || $mon;
  my $year = $FORM{$base_name.'Y'} || $curyear + 1900;
 
+my $result  = "<SELECT name=\"". $base_name ."D\">";
+for (my $i=1; $i<=31; $i++) {
+   $result .= sprintf("<option value=\"%.2d\"", $i);
+   $result .= ' selected="1"' if($day == $i ) ;
+   $result .= ">$i</option>\n";
+ }	
+$result .= '</SELECT>';
+$result  .= "<SELECT name=\"". $base_name ."M\">";
+
+my $i=0;
+foreach my $line (@$MONTHES) {
+   $result .= sprintf("<option value=\"%.2d\"", $i);
+   $result .= ' selected="1"' if($month == $i ) ;
+   $result .= ">$line</option>\n";
+   $i++
+}
+
+$result .= '</SELECT>';
+
+$result  .= "<SELECT name=\"". $base_name ."Y\">";
+for ($i=2001; $i<=$curyear + 1900; $i++) {
+   $result .= "<option value=\"$i\"";
+   $result .= ' selected="1"' if($year eq $i ) ;
+   $result .= ">$i</option>\n";
+ }	
+$result .= '</SELECT>';
+
+return $result ;
+}
 
 
-# print "$base_name -";
+#*******************************************************************
+# Make data field
+# date_fld($base_name)
+#*******************************************************************
+sub date_fld2  {
+ my $self = shift;
+ my ($base_name, $attr) = @_;
+ 
+ my $MONTHES = $attr->{MONTHES};
+
+ my($sec,$min,$hour,$mday,$mon,$curyear,$wday,$yday,$isdst) = localtime(time);
+
+ my $day = $FORM{$base_name.'D'} || 1;
+ my $month = $FORM{$base_name.'M'} || $mon;
+ my $year = $FORM{$base_name.'Y'} || $curyear + 1900;
+
+
 my $result  = "<SELECT name=\"". $base_name ."D\">";
 for (my $i=1; $i<=31; $i++) {
    $result .= sprintf("<option value=\"%.2d\"", $i);
@@ -1096,7 +887,6 @@ my $i=0;
 foreach my $line (@$MONTHES) {
    $result .= sprintf("<option value=\"%.2d\"", $i);
    $result .= ' selected="1"' if($month == $i ) ;
-   
    $result .= ">$line</option>\n";
    $i++
 }
@@ -1122,7 +912,7 @@ sub log_print {
  my ($level, $text) = @_;	
 
  if($debug < $log_levels{$level}) {
-     return 0;	
+    return 0;	
   }
 
 print << "[END]";
@@ -1144,7 +934,11 @@ sub tpl_show {
   my $self = shift;
   my ($tpl, $variables_ref, $attr) = @_;	
   
-  my $tpl_name = '';
+  my $tpl_name = $attr->{ID} || '';
+  
+  if ($FORM{EXPORT_CONTENT} && $FORM{EXPORT_CONTENT} ne $tpl_name ) {
+  	return '';
+   }
   
   my $xml_tpl = "<INFO name=\"$tpl_name\">\n";  
   
@@ -1159,8 +953,6 @@ sub tpl_show {
     else {
       $xml_tpl .= "<$var/>";
      }
-
-
   }
 
   $tpl =~ s/&nbsp;/&#160;/g;
@@ -1201,33 +993,84 @@ sub test {
 
 
 #**********************************************************
+# b();
+#**********************************************************
+sub b {
+ my ($self) = shift; 
+ my ($text) = @_;
+
+ return $text;
+}
+
+#**********************************************************
+# b();
+#**********************************************************
+sub p {
+ my ($self) = shift; 
+ my ($text) = @_;
+
+ return $text;
+}
+
+
+#**********************************************************
 # letters_list();
 #**********************************************************
 sub letters_list {
  my ($self, $attr) = @_;
- 
- my $pages_qs = $attr->{pages_qs} if (defined($attr->{pages_qs}));
 
+  if ($FORM{EXPORT_CONTENT} && $FORM{EXPORT_CONTENT} ne $attr->{ID} ) {
+      return ""; #"<a> $FORM{EXPORT_CONTENT} </a>";
+   }
+
+ my $pages_qs = $attr->{pages_qs} if (defined($attr->{pages_qs}));
   
-my $output = $self->button('All ', "index=$index");
+my $output = '<LETTERS>'.$self->button('All ', "index=$index");
 for (my $i=97; $i<123; $i++) {
   my $l = chr($i);
-  if ($FORM{letter} eq $l) {
+  if ($FORM{letter} && $FORM{letter} eq $l) {
      $output .= "<b>$l </b>";
    }
   else {
      $output .= $self->button("$l", "index=$index&letter=$l$pages_qs") . "\n";
    }
  }
+$output .= '</LETTERS>';
 
   if (defined($self->{NO_PRINT})) {
   	$self->{OUTPUT}.=$output;
-  	return '';
+ 	return '';
    }
-	else {
- 	  print $output;
-	 }
+  else {
+     print $output;
+   }
 
 }
+
+#*******************************************************************
+# Mark text
+#*******************************************************************
+sub color_mark {
+ my $self = shift;
+ my ($message, $color, $attr) = @_;
+ 
+ return $message if ($attr->{SKIP_XML});
+ 
+ my $output = "<color_mark color=\"$color\">$message</color_mark>";
+ return $output;
+}
+
+
+#**********************************************************
+# Break line
+#
+#**********************************************************
+sub br () {
+	my $self = shift;
+	my ($attr) = @_;
+	
+	return '<br/>';
+}
+
 
 1

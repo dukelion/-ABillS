@@ -36,8 +36,6 @@ sub new {
     $self->del($CONF->{DELETE_USER}, '', '', '', { DELETE_USER => $CONF->{DELETE_USER} });
    }
 
-  
-  #$self->{debug}=1;
   return $self;
 }
 
@@ -86,10 +84,11 @@ sub online {
                           calling_station_id,
                           called_station_id,
                           SEC_TO_TIME(UNIX_TIMESTAMP() - UNIX_TIMESTAMP(c.started)),
+                          c.call_origin,
                           INET_NTOA(c.client_ip_address),
                           c.status,
                           c.nas_id,
-                          u.uid,
+                          c.uid,
   c.acct_session_id, 
   pi.phone, 
   service.tp_id, 
@@ -98,7 +97,7 @@ sub online {
   if(date_format(c.started, '%Y-%m-%d')=curdate(), date_format(c.started, '%H:%i:%s'), c.started)
 
  FROM voip_calls c
- LEFT JOIN users u     ON u.id=user_name
+ LEFT JOIN users u     ON u.uid=c.uid
  LEFT JOIN voip_main service  ON (service.uid=u.uid)
  LEFT JOIN users_pi pi ON (pi.uid=u.uid)
  WHERE $WHERE
@@ -116,10 +115,10 @@ sub online {
  
  foreach my $line (@$list) {
  	  $dub_logins{$line->[0]}++;
-    push( @{ $nas_sorted{"$line->[7]"} }, [ $line->[0], $line->[1], $line->[2], $line->[3], $line->[4], $line->[5], $line->[6], $line->[7], $line->[8], 
+    push( @{ $nas_sorted{"$line->[8]"} }, [ $line->[0], $line->[1], $line->[2], $line->[3], $line->[4], $line->[5], $line->[6], $line->[7], $line->[8], 
       
       $line->[9], $line->[10], $line->[11], 
-      $line->[13], $line->[14], $line->[15], $line->[16], $line->[17], $line->[18], $line->[19], $line->[20], $line->[21]]);
+      $line->[13], $line->[14], $line->[15], $line->[16], $line->[17], $line->[18], $line->[19], $line->[20], $line->[21], $line->[22]]);
   }
  
  
@@ -144,11 +143,10 @@ sub online_del {
   else {
     my $NAS_ID  = (defined($attr->{NAS_ID})) ? $attr->{NAS_ID} : '';
     my $ACCT_SESSION_ID = (defined($attr->{ACCT_SESSION_ID})) ? $attr->{ACCT_SESSION_ID} : '';
-    $WHERE = "nas_id=INET_ATON('$NAS_ID')
+    $WHERE = "nas_id='$NAS_ID'
             and acct_session_id='$ACCT_SESSION_ID'";
    }
-  
-  $self->{debug}=1;
+
   $self->query($db, "DELETE FROM voip_calls WHERE $WHERE;", 'do');
 
   return $self;
@@ -171,7 +169,7 @@ sub online_info {
   
   $self->query($db, "SELECT user_name, 
     UNIX_TIMESTAMP(started), 
-    SEC_TO_TIME(UNIX_TIMESTAMP() - UNIX_TIMESTAMP(started)), 
+    UNIX_TIMESTAMP() - UNIX_TIMESTAMP(started), 
     INET_NTOA(client_ip_address),
     lupdated,
     nas_id,
@@ -179,7 +177,8 @@ sub online_info {
     called_station_id,
     acct_session_id,
     conf_id,
-    INET_NTOA(client_ip_address)
+    INET_NTOA(client_ip_address),
+    call_origin
     FROM voip_calls 
     WHERE nas_id='$NAS_ID'
      and acct_session_id='$ACCT_SESSION_ID'");
@@ -202,7 +201,9 @@ sub online_info {
    $self->{ACCT_SESSION_ID},
    $self->{H323_CONF_ID},
    $self->{CLIENT_IP_ADDRESS},
+   $self->{H323_CALL_ORIGIN},
    $self->{CONNECT_TERM_REASON}, 
+   
     )= @{ $self->{list}->[0] };
 
 
@@ -219,8 +220,8 @@ sub zap {
   my $self=shift;
   my ($nas_id, $acct_session_id, $nas_port_id)=@_;
 
-  $self->query($db, "UPDATE voip_calls SET status=2 WHERE nas_id=INET_ATON('$nas_id')
-       and acct_session_id='$acct_session_id';", 'do');
+  my $WHERE = ($nas_id && $acct_session_id) ? "WHERE nas_id=INET_ATON('$nas_id') and acct_session_id='$acct_session_id'" : '';
+  $self->query($db, "UPDATE voip_calls SET status=2 $WHERE;", 'do');
 
   return $self;
 }
@@ -232,40 +233,29 @@ sub session_detail {
  my $self = shift;	
  my ($attr) = @_;
  
-
  $WHERE = " and l.uid='$attr->{UID}'" if ($attr->{UID});
  
-
  $self->query($db, "SELECT 
   l.start,
   l.start + INTERVAL l.duration SECOND,
   l.duration,
   l.tp_id,
   tp.name,
-
-  l.sent,
-  l.recv,
-  l.sent2,
-  l.recv2,
-
-  INET_NTOA(l.ip),
-  l.CID,
+  INET_NTOA(client_ip_address),
+  l.calling_station_id,
+  l.called_station_id,
   l.nas_id,
   n.name,
   n.ip,
-  l.port_id,
-  
-  l.minp,
-  l.kb,
-  l.sum,
-
   l.bill_id,
   u.id,
-  
   l.uid,
-  l.acct_session_id
+  l.acct_session_id,
+  l.route_id,
+  l.terminate_cause,
+  l.sum
  FROM (voip_log l, users u)
- LEFT JOIN tarif_plans tp ON (l.tp_id=tp.id) 
+ LEFT JOIN tarif_plans tp ON (l.tp_id=tp.tp_id) 
  LEFT JOIN nas n ON (l.nas_id=n.id) 
  WHERE l.uid=u.uid 
  $WHERE
@@ -276,46 +266,27 @@ sub session_detail {
      $self->{errstr} = 'ERROR_NOT_EXIST';
      return $self;
    }
-
-
+ 
   ($self->{START}, 
    $self->{STOP}, 
    $self->{DURATION}, 
    $self->{TP_ID}, 
    $self->{TP_NAME}, 
-   $self->{SENT}, 
-   $self->{RECV}, 
-   $self->{SENT2},   #?
-   $self->{RECV2},   #?
    $self->{IP}, 
-   $self->{CID}, 
+   $self->{CALLING_STATION_ID}, 
+   $self->{CALLED_STATION_ID}, 
    $self->{NAS_ID}, 
    $self->{NAS_NAME},
    $self->{NAS_IP},
-   $self->{NAS_PORT}, 
-
-   $self->{TIME_TARIFF},
-   $self->{TRAF_TARIFF},
-   $self->{SUM}, 
-
    $self->{BILL_ID}, 
    $self->{LOGIN}, 
-
    $self->{UID}, 
-   $self->{SESSION_ID}
+   $self->{SESSION_ID},
+
+   $self->{ROUTE_ID},
+   $self->{ACCT_TERMINATE_CAUSE},
+   $self->{SUM}
     )= @{ $self->{list}->[0] } ;
-
-#   $self->{UID} = $attr->{UID};
-#   $self->{SESSION_ID} = $attr->{SESSION_ID};
-
-#Ext traffic detail
-# $self->query($db, "SELECT 
-#  acct_session_id
-#  traffic_id,
-#  in,
-#  out
-# FROM traffic_details
-# WHERE acct_session_id='$attr->{SESSION_ID}';");
 
  return $self;
 }
@@ -386,9 +357,8 @@ sub list {
  if ($attr->{UID}) {
     push @WHERE_RULES, "l.uid='$attr->{UID}'";
   }
- elsif ($attr->{LOGIN_EXPR}) {
-    $attr->{LOGIN_EXPR} =~ s/\*/\%/ig;
-    push @WHERE_RULES, "u.id LIKE '$attr->{LOGIN_EXPR}'";
+ elsif ($attr->{LOGIN}) {
+    push @WHERE_RULES, @{ $self->search_expr($attr->{LOGIN}, 'STR', 'u.id') };
   }
 
  if ($attr->{LIST_UIDS}) {
@@ -487,7 +457,7 @@ elsif($attr->{DATE}) {
  $self->query($db, "SELECT 
  u.id, 
  l.start, 
- sEC_TO_TIME(l.duration), 
+ SEC_TO_TIME(l.duration), 
  l.tp_id,
  l.calling_station_id, 
  l.called_station_id,

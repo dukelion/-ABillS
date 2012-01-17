@@ -3,3 +3,4 @@
 <tr><td>ID (>,<)</td><td><input type=text name=DOC_ID value='%DOC_ID%'></td></tr>
 <tr><td>$_ADMIN:</td><td><input type=text name=AID value='%AID%'></td></tr>
 <tr><td>$_SUM:</td><td><input type=text name=SUM value='%SUM%'></td></tr>
+<tr><td>$_STATUS:</td><td>%PAID_STATUS_SEL%</td></tr>

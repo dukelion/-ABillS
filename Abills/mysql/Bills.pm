@@ -1,5 +1,5 @@
 package Bills;
-# Bill accounts manage functions
+# Bills accounts manage functions
 #
 
 use strict;
@@ -25,9 +25,9 @@ use main;
 sub new {
   my $class = shift;
   ($db, $admin, $CONF) = @_;
+  
   my $self = { };
   bless($self, $class);
-#  $self->{debug}=1;
   return $self;
 }
 
@@ -58,7 +58,6 @@ sub create {
 	my ($attr) = @_;
 
   my %DATA = $self->get_data($attr, { default => defaults() }); 
-
   $self->query($db, "INSERT INTO bills (deposit, uid, company_id, registration) 
     VALUES ('$DATA{DEPOSIT}', '$DATA{UID}', '$DATA{COMPANY_ID}', now());", 'do');	
 
@@ -80,20 +79,24 @@ sub action {
 	my $self = shift;
 	my ($type, $BILL_ID, $SUM, $attr) = @_;
   my $value = '';
-  
-  if ($type eq 'take') {
+
+  if ($SUM == 0) {
+  	$self->{errstr}='Wrong sum 0';
+  	return $self;
+   }
+  elsif ($type eq 'take') {
   	 $value = "-$SUM";
    }
   elsif($type eq 'add') {
      $value = "+$SUM";
    }
+  else {
+  	$self->{errstr}='Select action';
+  	return $self;
+   }
 
   $self->query($db, "UPDATE bills SET deposit=deposit$value WHERE id='$BILL_ID';", 'do');	
 
-
-#  return $self if($db->err > 0);
-#  $admin->action_add($uid, "ADD BILL [$self->{INSERT_ID}]");
-	
 	return $self;
 }
 

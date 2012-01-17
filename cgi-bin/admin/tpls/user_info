@@ -1,7 +1,0 @@
-Welcome
-
-$_LOGIN             %ID%
-$_USER_NAME    %FIO%
-$_PASSWORD     %PASSWORD%
-E-EMAIL              %EMAIL%
-

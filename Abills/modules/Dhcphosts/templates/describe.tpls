@@ -1,0 +1,11 @@
+dhcphosts_dhcp_conf_host.tpl:russian:Секция конфигурационного файла для задания параметров хоста
+dhcphosts_dhcp_conf_main.tpl:russian:Основной конфигурационный файл для dhcp сервера
+dhcphosts_dhcp_conf_subnet.tpl:russian:Секция конфигурационного файла для задания сети
+dhcphosts_host.tpl:russian:Форма описание параметров пользователя
+dhcphosts_ipguard.tpl:russian:Форма списка IP Guars
+dhcphosts_ipguard_static.tpl:russian:Форма заведения статических адресов для IP Guard
+dhcphosts_network.tpl:russian:Форма заведения сетей
+dhcphosts_routes.tpl:russian:Форма заведения маршрутов
+dhcphosts_search.tpl:russian:Форма поиска пользовательских аккаунтов в модуле
+dhcphosts_dhcp_conf_o82_class.tpl:russian:Шаблон Option 82  выражения	
+dhcphosts_log_search.tpl:russian:Поиск в DHCP логе 

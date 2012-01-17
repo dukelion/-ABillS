@@ -1,0 +1,598 @@
+# Marketing reports
+
+use Tariffs;
+use Marketing;
+
+my $Marketing = Marketing->new($db, $admin, \%conf);
+my $tariffs   = Tariffs->new($db, \%conf, $admin);
+
+
+my %FORM_BASE = ();
+my @service_status = ( "$_ENABLE", "$_DISABLE", "$_NOT_ACTIVE", "$_HOLD_UP", "$_DISABLE: $_NON_PAYMENT", "$ERR_SMALL_DEPOSIT" );
+my @service_status_colors = ("$_COLORS[9]", "$_COLORS[6]", '#808080', '#0000FF', '#FF8000');
+
+
+
+#*******************************************************************
+# 
+# marketing_report1()
+#*******************************************************************
+sub marketing_evolution {
+
+ @service_status = ( "$_ENABLE", "$_DISABLE", "$_NOT_ACTIVE" ); 
+ $table = $html->table( { width       => '100%',
+	                        rowcolor    => $_COLORS[0],
+                          rows        => [[ "$_FROM: ",  $html->date_fld2('FROM_DATE', { FORM_NAME=>'marketing',  MONTHES => \@MONTHES} ),
+                                            "$_TO: ",  $html->date_fld2('TO_DATE', { FORM_NAME=>'marketing', MONTHES => \@MONTHES} ),
+                                         "$_MODULES: " . $html->form_select('MODULE', 
+                                { SELECTED      => $FORM{MODULE},
+ 	                                SEL_ARRAY     => ['', @MODULES],
+ 	                                OUTPUT2RETURN => 1
+ 	                               }),
+                            "$_PERIOD: ". $html->form_select('PERIOD', 
+                                { SELECTED      => $FORM{PERIOD},
+ 	                                SEL_ARRAY     => ["$_MONTH", "$_DAY"],
+ 	                                ARRAY_NUM_ID  => 1,
+ 	                                OUTPUT2RETURN => 1
+ 	                               }),
+
+                                      
+                                          "$_ROWS: ",  $html->form_input('rows', int($conf{list_max_recs}), { SIZE => 4 } ),
+                                          $html->form_input('show', $_SHOW, { TYPE => 'submit' })
+                                         ]],                                   
+                      });
+
+  my $graph_type= 'month_stats';
+  my %DATA_HASH = ();
+  my %AVG       = ();
+  my %CHART     = ();
+  my $num       = 0;
+  
+  if ($FORM{show}) {
+    $pages_qs = "&show=1&FROM_DATE=$FORM{FROM_DATE}&TO_DATE=$FORM{TO_DATE}&PERIOD=$FORM{PERIOD}";
+    $LIST_PARAMS{INTERVAL} = "$FORM{FROM_DATE}/$FORM{TO_DATE}";
+   }
+  elsif ($FORM{MONTH}) {
+  	$LIST_PARAMS{MONTH}=$FORM{MONTH};
+  	$graph_type='day_stats';
+   }
+
+
+print $html->form_main({ CONTENT => $table->show({ OUTPUT2RETURN => 1 }),
+	                       HIDDEN  => { sid   => "$sid",
+	                                    index => "$index",
+	                                    UID   => "$UID" 
+	                                    },
+	                       NAME    => 'marketing'
+	                       });
+
+if ($FORM{USERS}) {
+	my @caption = ("$_DATE", "$_USER", "$_ADMIN", "$_REGISTRATION"   );
+ 
+  $LIST_PARAMS{USERS}=1;
+  my %reports_list = (ADDED    => "$_ADDED",
+                      DISABLED => "$_DISABLE",
+                      ENABLE   => "$_ENABLE",
+                      DELETED  => "$_DELETED"
+                       ); 
+
+  foreach my $report_name (keys %reports_list) {
+  	$LIST_PARAMS{$report_name}=1;
+    my $list    = $Marketing->evolution_users_report({ %LIST_PARAMS, %FORM });
+    my $table   = $html->table( { width      => '100%',
+                             caption    => "Internet - $_EVOLUTION $_USERS - $reports_list{$report_name}",
+                             title      => [ @caption ],
+                             ID         => 'REPORT_EVOLUTION',
+                             pages      => $Marketing->{TOTAL},
+                             qs         => $pages_qs,
+                             ID         => 'MARKETIG_EVOLUTION'
+                           });
+
+    delete $LIST_PARAMS{$report_name};
+    foreach my $line ( @$list ) {
+    	$table->addrow(
+    	 $line->[0],
+    	 ($report_name eq 'DELETED') ? $line->[1] :  $html->button($line->[1], "index=11&UID=$line->[4]"),
+    	 $line->[2],
+    	 $line->[3]
+    	 );
+
+
+      if ($line->[0] =~ /(\d+)-(\d+)-(\d+)/) {
+      	 $num = $3;
+        }
+      elsif ($line->[0] =~ /(\d+)-(\d+)/) {
+      	 $CHART{X_LINE}[$num]=$line->[0];
+      	 $CHART{X_TEXT}[$num]=$line->[0];
+       	 $num++;
+       }
+
+
+      $DATA_HASH{REGISTRATION}[$num]= $line->[1];      
+      $DATA_HASH{DISABLED}[$num]    = $line->[2];
+      $DATA_HASH{DELETED}[$num]     = $line->[3];
+      $AVG{REGISTRATION}= $line->[1] if ($AVG{REGISTRATION} < $line->[1]);
+      $AVG{DISABLED}    = $line->[2] if ($AVG{DISABLED} < $line->[2]);
+      $AVG{DELETED}     = $line->[3] if ($AVG{DELETED} < $line->[3]);
+
+     }
+
+    print $table->show();
+  
+    $table = $html->table( { width      => '100%',
+                         cols_align => ['right', 'right'],
+                         rows       => [ [ "$_TOTAL:", $html->b($Marketing->{TOTAL})
+                            ] ]
+                         } );
+    print $table->show();
+  }	
+	
+	
+ }
+else {
+  my @caption = ("$_DATE", "$_REGISTRATION", "$_DISABLE", "$_ENABLE",  "$_DELETED", "$_USERS");
+ 
+  if (! $FORM{SORT}) {
+  	$LIST_PARAMS{SORT}=1;
+  	$LIST_PARAMS{DESC}='DESC';
+   }
+ 
+  my $list    = $Marketing->evolution_report({ %LIST_PARAMS, %FORM });
+  my $table   = $html->table( { width      => '100%',
+                             caption    => "$_EVOLUTION - Internet",
+                             title      => [ @caption ],
+                             ID         => 'REPORT_EVOLUTION',
+                             pages      => $Marketing->{TOTAL},
+                             qs         => $pages_qs,
+                           });
+
+
+    foreach my $line ( @$list ) {
+    	$table->addrow(
+    	 ($FORM{MONTH}) ? $html->button($line->[0], "index=$index&DATE=$line->[0]") : $html->button($line->[0], "index=$index&MONTH=$line->[0]"),
+    	 $line->[1],
+    	 (($line->[2]<0) ? 0 : $line->[2]),
+    	 $line->[3],
+    	 $line->[4],
+    	 ($FORM{MONTH}) ? $html->button($_USERS, "index=$index&DATE=$line->[0]&USERS=1") : $html->button($_USERS, "index=$index&MONTH=$line->[0]&USERS=1"),
+    	 );
+
+
+      if ($line->[0] =~ /(\d+)-(\d+)-(\d+)/) {
+      	 $num = $3;
+        }
+      elsif ($line->[0] =~ /(\d+)-(\d+)/) {
+      	 $CHART{X_LINE}[$num]=$line->[0];
+      	 $CHART{X_TEXT}[$num]=$line->[0];
+       	 $num++;
+       }
+
+
+      $DATA_HASH{REGISTRATION}[$num]= $line->[1];      
+      $DATA_HASH{DISABLED}[$num]    = $line->[2];
+      $DATA_HASH{DELETED}[$num]     = $line->[3];
+      $AVG{REGISTRATION}= $line->[1] if ($AVG{REGISTRATION} < $line->[1]);
+      $AVG{DISABLED}    = $line->[2] if ($AVG{DISABLED} < $line->[2]);
+      $AVG{DELETED}     = $line->[3] if ($AVG{DELETED} < $line->[3]);
+
+     }
+
+print $table->show();
+  
+$table = $html->table( { width      => '100%',
+                         cols_align => ['right', 'right'],
+                         rows       => [ [ "$_TOTAL:", $html->b($Marketing->{TOTAL})
+                                           ] ]
+                     } );
+
+
+print $html->make_charts({  
+      PERIOD     => $graph_type,
+      DATA       => \%DATA_HASH,
+      #AVG        => \%AVG,
+      TYPE       => ['area', 'column', 'line' ],
+      TRANSITION => 1,
+      OUTPUT2RETURN => 1,
+      %CHART 
+   });
+}
+
+
+
+
+}
+
+#*******************************************************************
+# 
+# marketing_report1()
+#*******************************************************************
+sub marketing_internet {
+
+ #@service_status = ( "$_ENABLE", "$_DISABLE", "$_NOT_ACTIVE" ); 
+ @service_status = ( "$_ENABLE", "$_DISABLE", "$_NOT_ACTIVE", "$_HOLD_UP", "$_DISABLE: $_NON_PAYMENT", "$ERR_SMALL_DEPOSIT" );
+
+ $table = $html->table( { width       => '100%',
+	                        rowcolor    => $_COLORS[0],
+                          rows        => [[ "$_PERIOD: ",  $html->date_fld('FROM_', { MONTHES => \@MONTHES} ),
+                                            "$_STATUS: ". $html->form_select('STATUS', 
+                                          { 
+ 	                                          SELECTED     => $FORM{STATUS},
+ 	                                          SEL_HASH     => { '' => "$_ALL",
+ 	                                          	                0  => $service_status[0],
+ 	                                          	                1  => $service_status[1],
+ 	                                          	                2  => $service_status[2],  
+ 	                                          	                3  => $service_status[3],
+ 	                                          	                4  => $service_status[4],  
+ 	                                          	                },
+ 	                                          SORT_KEY    => 1,
+                                            NO_ID       => 1
+ 	                                        }),
+                                    $_TARIF_PLAN =>  $html->form_select('TP_ID', 
+                                          { 
+ 	                                          SELECTED          => $FORM{TP_ID},
+ 	                                          SEL_MULTI_ARRAY   => [['', ''], @{ $tariffs->list() }],
+ 	                                          MULTI_ARRAY_KEY   => 0,
+ 	                                          MULTI_ARRAY_VALUE => 1,
+ 	                                        }),
+                          
+                                           "$_ROWS: ",  $html->form_input('rows', int($conf{list_max_recs}), { SIZE => 4 } ),
+                                          $html->form_input('show', $_SHOW, { TYPE => 'submit' })
+                                         ]],                                   
+                      });
+
+
+
+print $html->form_main({ CONTENT => $table->show({ OUTPUT2RETURN => 1 }),
+	                       HIDDEN  => { sid   => "$sid",
+	                                    index => "$index",
+	                                    UID   => "$UID" }});
+
+ $pages_qs.="&TP_ID=$FORM{TP_ID}"  if ($FORM{TP_ID});
+ $pages_qs.="&STATUS=$FORM{STATUS}"  if (defined($FORM{STATUS}));
+ my $list = $Marketing->internet_fees_monitor({ %LIST_PARAMS, %FORM });
+ @service_status = ( "$_ENABLE", "$_DISABLE", "$_NOT_ACTIVE" );
+ my $table = $html->table( { width      => '100%',
+                             caption    => "Internet _$_FEES",
+                             title      => ["UID", "$_LOGIN", "$_ACCOUNT", "$_SERVICES $_STATUS",
+                               "$_TARIF_PLAN ID", "$_TARIF_PLAN $_NAME", "$_TARIF_PLAN $_FEES", "$_COUNT", "$_DATE" ],
+                             ID         => 'REPORT 1',
+                             pages      => $Marketing->{TOTAL},
+                             qs         => $pages_qs,
+                           });
+
+    foreach my $line ( @$list ) {
+    	$table->addrow(
+    	 $line->[0],
+    	 $html->button($line->[1], "index=11&UID=$line->[0]"),
+    	 
+    	 ($line->[2] == 0) ? $service_status[$line->[2]] : $html->color_mark($service_status[$line->[2]], '#FF0000'),
+    	 ($line->[3] == 0) ? $service_status[$line->[3]] : $html->color_mark($service_status[$line->[3]], '#FF0000'),
+    	 $line->[4],
+    	 $line->[5],
+    	 $line->[6],
+    	 $line->[7],
+    	 $line->[8],
+    	 );
+     }
+
+   print $table->show();
+  
+$table = $html->table( { width      => '100%',
+                         cols_align => ['right', 'right'],
+                         rows       => [ [ "$_TOTAL:", $html->b($Marketing->{TOTAL})
+                                           ] ]
+                     } );
+print $table->show();
+
+}
+
+
+
+
+#*******************************************************************
+# 
+# marketing_report1()
+#*******************************************************************
+sub marketing_report1 {
+ my ($attr) = @_;
+
+ my $list = $Marketing->report1({ %LIST_PARAMS });
+ 
+ my $table = $html->table( { width      => '100%',
+                             caption    => "$_REPORT 1",
+                             title      => ["$_ADDRESS_STREET", "$_ADDRESS_BUILD", "$_COUNT", '%' ],
+                             ID         => 'REPORT 1',
+                             pages      => $Marketing->{TOTAL},
+                           });
+
+
+
+
+
+
+    foreach my $line ( @$list ) {
+      my $percent = sprintf("%.10f", 100 / $Marketing->{TOTAL} * $line->[2]);
+
+    	$table->addrow($line->[0],
+    	 $line->[1],
+    	 $line->[2],
+    	 $percent
+    	 );
+     }
+
+   print $table->show();
+  
+$table = $html->table( { width      => '100%',
+                         cols_align => ['right', 'right'],
+                         rows       => [ [ "$_TOTAL:", $html->b($Marketing->{TOTAL})
+                                           ] ]
+                     } );
+print $table->show();
+
+}
+
+#**********************************************************
+# Marketing report 2
+#**********************************************************
+sub marketing_report2 {
+
+
+push @PAYMENT_METHODS, @EX_PAYMENT_METHODS if (@EX_PAYMENT_METHODS);
+
+for(my $i=0; $i<=$#PAYMENT_METHODS; $i++) {
+	$PAYMENTS_METHODS{"$i"}="$PAYMENT_METHODS[$i]";
+ }
+
+my %PAYSYS_PAYMENT_METHODS = %{ cfg2hash($conf{PAYSYS_PAYMENTS_METHODS}) };
+
+while(my($k, $v) = each %PAYSYS_PAYMENT_METHODS ) {
+	$PAYMENTS_METHODS{$k}=$v;
+}
+
+  $Marketing->{LAST_PAYMENT_METHOD_SEL} = $html->form_select('LAST_PAYMENT_METHOD', 
+                                { SELECTED     => (defined($FORM{METHOD}) && $FORM{METHOD} ne '') ? $FORM{METHOD} : '',
+ 	                                SEL_HASH     => \%PAYMENTS_METHODS,
+ 	                                NO_ID        => 1,
+ 	                                SORT_KEY     => 1,
+ 	                                SEL_OPTIONS   => { '' => $_ALL }
+ 	                               });
+
+  $Marketing->{DISTRICT_SEL} = $html->form_select('DISTRICT_ID', 
+                                         { 
+ 	                                         SELECTED  => $FORM{DISTRICT_ID},
+ 	                                         SEL_MULTI_ARRAY   => [['', $_ALL], @{ $users->district_list({ %LIST_PARAMS, PAGE_ROWS => 1000 }) } ],
+ 	                                         MULTI_ARRAY_KEY   => 0,
+ 	                                         MULTI_ARRAY_VALUE => 1,
+ 	                                        });
+
+  $Marketing->{ADDRESS_STREET_SEL} = $html->form_select('ADDRESS_STREET_ID', 
+                                         { 
+ 	                                         SELECTED  => $FORM{ADDRESS_STREET_ID},
+ 	                                         SEL_MULTI_ARRAY   => [['', $_ALL], @{ $users->street_list({ %LIST_PARAMS, PAGE_ROWS => 1000 }) } ],
+ 	                                         MULTI_ARRAY_KEY   => 0,
+ 	                                         MULTI_ARRAY_VALUE => 1,
+ 	                                        });
+
+  $Marketing->{STATUS_SEL}=$html->form_select('STATUS', 
+                                          { 
+ 	                                          SELECTED     => $FORM{STATUS},
+ 	                                          SEL_HASH     => { '' => "$_ALL",
+ 	                                          	                0  => $service_status[0],
+ 	                                          	                1  => $service_status[1],
+ 	                                          	                },
+                                            STYLE        => \@service_status_colors,
+                                            NO_ID       => 1
+ 	                                        });
+
+  my $tp_list = $tariffs->list({ MODULE => 'Dv', DOMAIN_ID => $admin->{DOMAIN_ID} });
+
+  $Marketing->{TP_ID_SEL} = $html->form_select('TP_ID', 
+                                         { 
+ 	                                         SELECTED  => $FORM{TP_ID},
+ 	                                         SEL_MULTI_ARRAY   => [['', $_ALL], @$tp_list ],
+ 	                                         MULTI_ARRAY_KEY   => 0,
+ 	                                         MULTI_ARRAY_VALUE => 1,
+ 	                                        });
+
+  $Marketing->{PRE_TP_ID_SEL} = $html->form_select('PRE_TP_ID', 
+                                         { 
+ 	                                         SELECTED  => $FORM{PRE_TP_ID},
+ 	                                         SEL_MULTI_ARRAY   => [['', $_ALL], @$tp_list ],
+ 	                                         MULTI_ARRAY_KEY   => 0,
+ 	                                         MULTI_ARRAY_VALUE => 1,
+ 	                                        });
+
+
+$html->tpl_show(_include('marketing_report2', 'Marketing'), { %$Marketing, %FORM }, { });
+#form_search(); 
+
+
+my %TARIF_PLANS_HASH = ();
+foreach my $line (@$list) {
+	$TARIF_PLANS_HASH{$line->[0]}="$line->[0]:$line->[1]";
+}
+
+if (! $FORM{search} ) {
+	$FORM{ADDRESS}  = 1 ;
+	$FORM{INTERNET} = 1 ;
+	$FORM{PAYMENTS} = 1 ;
+	$FORM{OTHER}    = 1 ;
+ }
+
+
+my @caption = ($_LOGIN, $_FIO); 
+
+
+
+if ($FORM{ADDRESS}) {
+ push @caption, 	 $_REGISTRATION,
+  $_ADMIN,
+  'SEGMET',
+  'DISTRICT',
+  $_ADDRESS_STREET,
+  $_ADDRESS_BUILD,
+  'ENTRANCE',
+  $_ADDRESS_FLAT,
+  'FLOR';
+ }
+  
+if ($FORM{INTERNET}) {
+  push @caption,
+    $_TARIF_PLAN,
+    "$_PRE $_TARIF_PLAN",
+    "$_TARIF_PLAN $_CHANGE";
+ }	
+
+if ($FORM{PAYMENTS}) {
+  push @caption,
+    "$_DEPOSIT",
+    "$_CREDIT",
+    "$_LAST_PAYMENT $_SUM",
+    "$_LAST_PAYMENT",
+    "$_PAYMENTS $_TYPE",
+    "$_PAYMENTS $_LOG",
+    "$_PAYMENT_TO_DATE",
+    "$_DEBTS_DAYS";
+   }	 
+
+if ($FORM{OTHER}) {
+  push @caption,
+     "$_STATUS",
+     "FORUM",
+     "BONUS",
+     "DISCONNECT_DATE",
+     "DISCONNECT_REASON";
+    }
+
+
+if ($FORM{search}) {
+  $pages_qs  = "&search=1";
+	
+	while(my($k, $v)=each %FORM) {
+		if ($k =~ /([A-Z0-9]+|_[a-z0-9]+)/ && $v ne '' && $k ne '__BUFFER') {
+		  $LIST_PARAMS{$k}= $v;
+	    $pages_qs      .= "&$k=$v";
+		 }
+	 }
+}
+
+
+my @TITLE = ($_LOGIN, $_FIO, $_DEPOSIT, $_CREDIT, $_STATUS, '-', '-');
+
+my %SEARCH_TITLES = ('if(company.id IS NULL,ext_b.deposit,ext_cb.deposit)' => "$_EXTRA $_DEPOSIT",
+                  'max(p.date)'       => "$_PAYMENTS $_DATE",
+                  'pi.email'          => 'E-Mail', 
+                  'pi.address_street' => $_ADDRESS, 
+                  'pi.pasport_date'   => "$_PASPORT $_DATE", 
+                  'pi.pasport_num'    => "$_PASPORT $_NUM", 
+                  'pi.pasport_grant'  => "$_PASPORT $_GRANT", 
+                  'pi.address_build'  => "$_ADDRESS_BUILD", 
+                  'pi.address_flat'   => "$_ADDRESS_FLAT", 
+                  'pi.city'           => "$_CITY", 
+                  'pi.zip'            => "$_ZIP", 
+                  'pi.contract_id'    => "$_CONTRACT_ID", 
+                  'u.registration'    => "$_REGISTRATION", 
+                  'pi.phone'          => "$_PHONE",
+                  'pi.comments'       => "$_COMMENTS", 
+                  'if(company.id IS NULL,b.id,cb.id)' => 'BILL ID', 
+                  'u.activate'        => "$_ACTIVATE", 
+                  'u.expire'          => "$_EXPIRE",
+                  'u.credit_date'     => "$_CREDIT $_DATE",
+                  'u.reduction'       => "$_REDUCTION"
+                    );
+
+
+
+
+
+my $list = $Marketing->report_2({ %FORM, %LIST_PARAMS,  });
+
+if ($users->{EXTRA_FIELDS}) {
+  foreach my $line (@{ $users->{EXTRA_FIELDS} }) {
+    if ($line->[0] =~ /ifu(\S+)/) {
+      my $field_id = $1;
+      my ($position, $type, $name)=split(/:/, $line->[1]);
+      if ($type == 2) {
+        $SEARCH_TITLES{$field_id.'_list.name'}=$name;
+       }
+      else {
+        $SEARCH_TITLES{'pi.'.$field_id}=$name;
+       }
+     }
+   }
+}
+
+
+my @EX_TITLE_ARR  = split(/, /, $users->{SEARCH_FIELDS});
+
+for(my $i=0; $i<$users->{SEARCH_FIELDS_COUNT}; $i++) {
+	push @TITLE, '-';
+	$TITLE[5+$i] = $SEARCH_TITLES{$EX_TITLE_ARR[$i]} || "$_SEARCR";
+}
+
+ my $table = $html->table( { width      => '100%',
+                             caption    => "$_REPORT 1",
+                             title      => \@caption,
+                             ID         => 'REPORT 2',
+                             pages      => $Marketing->{TOTAL},
+                             qs         => $pages_qs
+                           });
+
+foreach my $line ( @$list ) {
+  my @rows = (
+    	 $html->button($line->[0], "index=11&UID=$line->[27]"),
+    	 $line->[1]);
+  if ($FORM{ADDRESS}) {
+    push @rows, 	 $line->[2],
+    	 $line->[3],
+    	 $line->[4],
+    	 $line->[5],
+    	 $line->[6],
+    	 $line->[7],
+    	 $line->[8],
+    	 $line->[9],
+    	 $line->[10];
+   }
+  
+  if ($FORM{INTERNET}) {
+    push @rows,
+    	 $TARIF_PLANS_HASH{$line->[11]},
+    	 $TARIF_PLANS_HASH{$line->[12]},
+    	 $line->[13];
+    }	
+
+  if ($FORM{PAYMENTS}) {
+    push @rows,
+       $line->[14],
+    	 $line->[15],
+    	 $line->[16],
+    	 $line->[17],
+    	 $line->[18],
+    	 $html->button($_PAYMENTS, "index=2&UID=$line->[27]"),
+    	 $line->[20],
+    	 $line->[21];
+    }	 
+  if ($FORM{OTHER}) {
+    push @rows,
+    	 $html->color_mark($service_status[$line->[22]], $service_status_colors[$line->[22]]),
+    	 $line->[23],
+    	 $line->[24],
+    	 $line->[25],
+    	 $line->[26];
+    }
+
+  $table->addrow( @rows );  
+}
+
+
+print $table->show();
+
+
+
+}
+
+
+
+1
+
+

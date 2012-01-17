@@ -16,6 +16,7 @@ $VERSION = 2.00;
 
 use main;
 @ISA  = ("main");
+my $MODULE='Sqlcmd';
 
 
 #**********************************************************
@@ -24,6 +25,7 @@ use main;
 sub new {
   my $class = shift;
   ($db, $admin, $CONF) = @_;
+  $admin->{MODULE}=$MODULE;
   my $self = { };
   bless($self, $class);
   return $self;
@@ -41,16 +43,40 @@ sub info {
   my ($attr) = @_;
 
  my $list;
- 
-# $attr->{fields}='' if (! $attr->{fields});
-# my @fields = split(/, /, $attr->{fields});
- 
  $SORT = ($attr->{SORT}) ? $attr->{SORT} : 0;
  $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
+ my $DATE = $attr->{DATE} || '0000-00-00';
 
  my $type = $attr->{TYPE} || '';
  
   if ($type eq 'showtables') {
+    if ($attr->{ACTION}) { 
+    	if($attr->{ACTION} eq 'ROTATE') {
+    	  $DATE =~ s/-/\_/g;
+ 	      # CREATE TABLE LIKE work from version 4.1
+        my $version = $self->db_version();
+        if ($version < 4.1) {
+      	  $self->{errno}=1;
+      	  $self->{errstr}="MYSQL: $version. Version Lower 4.1 not support RENAME Syntax";
+      	  return $self;
+         }
+
+ 	      my @tables_arr = split(/, /, $attr->{TABLES});
+        foreach my $table (@tables_arr) {
+          print "CREATE TABLE IF NOT EXISTS ". $table ."_2 LIKE $table ;".
+          "RENAME TABLE $table TO $table". "_$DATE, $table". "_2 TO $table;";
+          my $sth = $db->do( "CREATE TABLE IF NOT EXISTS ". $table ."_2 LIKE $table ;");
+          $sth = $db->do( "RENAME TABLE $table TO $table". "_$DATE, $table". "_2 TO $table;");
+         }
+       } 
+      #elsif ($attr->{ACTION} eq 'BACKUP') {
+    	#  $DATE =~ s/-/\_/g;
+ 	    #  my @tables_arr = split(/, /, $attr->{TABLES});
+ 	    #  my $table_list = join(',', @tables_arr);
+ 	    #  
+      # }
+      }
+    
     
     my $sth = $db->prepare( "SHOW TABLE STATUS FROM $CONF->{dbname}" );
     $sth->execute();
@@ -78,9 +104,7 @@ sub info {
         my @res = $q->fetchrow();
         $Rows_hash{"$names->[$i]"}="$res[2] / $res[3]";
       }
-      
       push @rows, \%Rows_hash;
-
     }
 
 
@@ -88,12 +112,13 @@ sub info {
     $list = \@rows;
     #show indexes
     # SHOW INDEX FROM $row_array[0];
-
     return $list;
   }
+ elsif ($type eq 'showtriggers') {
+    $self->query($db, "SHOW TRIGGERS");
+ 	  return $self->{list}     
+  }
 
-
-  
   return $self;
 }
 
@@ -105,72 +130,6 @@ sub maintenance  {
 	
 	
 }
-
-
-
-#**********************************************************
-# add()
-#**********************************************************
-sub add {
-  my $self = shift;
-  my ($attr) = @_;
-  
-  %DATA = $self->get_data($attr); 
-
-  $self->query($db,  "INSERT INTO dv_main (uid, registration, tp_id, 
-             logins, disable, ip, netmask, speed, filter_id, cid)
-        VALUES ('$DATA{UID}', now(),
-        '$DATA{TARIF_PLAN}', '$DATA{SIMULTANEONSLY}', '$DATA{DISABLE}', INET_ATON('$DATA{IP}'), 
-        INET_ATON('$DATA{NETMASK}'), '$DATA{SPEED}', '$DATA{FILTER_ID}', LOWER('$DATA{CID}'));", 'do');
-  
-  return $self if ($self->{errno});
-  
- 
-  $admin->action_add($DATA{UID}, "ADDED");
-  return $self;
-}
-
-
-
-
-#**********************************************************
-# change()
-#**********************************************************
-sub change {
-  my $self = shift;
-  my ($attr) = @_;
-  
-  my %FIELDS = ();
-
-
-	$self->changes($admin,  { CHANGE_PARAM => 'UID',
-		               TABLE        => 'dv_main',
-		               FIELDS       => \%FIELDS,
-		               OLD_INFO     => $self->info($attr->{UID}),
-		               DATA         => $attr
-		              } );
-
-  return $self->{result};
-}
-
-
-
-#**********************************************************
-# Delete user info from all tables
-#
-# del(attr);
-#**********************************************************
-sub del {
-  my $self = shift;
-  my ($attr) = @_;
-
-  $self->query($db, "DELETE from dv_main WHERE uid='$self->{UID}';", 'do');
-
-  return $self->{result};
-}
-
-
-
 
 #**********************************************************
 # list()
@@ -199,51 +158,56 @@ sub list {
 my @rows = ();
 
 foreach my $query (@QUERY_ARRAY) {
-
 	next if (length($query) < 5);
+	my $q;
+	
+	if ($query =~ /CREATE /i) {
+		$self->{AFFECTED} = $db->do("$query") || print $db->errstr;
+	 }
+  else {
+    $q = $db->prepare("$query",  { "mysql_use_result" => ($query !~ /!SELECT/gi ) ? 0 : 1   } ) || print $db->errstr;
+    if($db->err) {
+      $self->{errno}      = 3;
+      $self->{sql_errno}  = $db->err;
+      $self->{sql_errstr} = $db->errstr;
+      $self->{errstr}     = $db->errstr;
+      return $self->{errno};
+     }
+    $self->{AFFECTED} = $q->execute(); 
 
-  my $q = $db->prepare("$query", { "mysql_use_result" => 1  } ) || die $db->errstr;
-  if($db->err) {
-     $self->{errno} = 3;
-     $self->{sql_errno}=$db->err;
-     $self->{sql_errstr}=$db->errstr;
-     $self->{errstr}=$db->errstr;
-   
-     return $self->{errno};
-   }
-  $q->execute(); 
 
-  if($db->err) {
-     $self->{errno} = 3;
-     $self->{sql_errno}=$db->err;
-     $self->{sql_errstr}=$db->errstr;
-     $self->{errstr}="$query / ".$db->errstr;
+    if($db->err) {
+      $self->{errno}     = 3;
+      $self->{sql_errno} = $db->err;
+      $self->{sql_errstr}= $db->errstr;
+      $self->{errstr}    = "$query / ".$db->errstr;
      
-     return $self;
+      return $self;
+     } 
+  
+    $self->{MYSQL_FIELDS_NAMES}  = $q->{NAME};
+    $self->{MYSQL_IS_PRIMARY_KEY}= $q->{mysql_is_pri_key};
+    $self->{MYSQL_IS_NOT_NULL}   = $q->{mysql_is_not_null};
+    $self->{MYSQL_LENGTH}        = $q->{mysql_length};
+    $self->{MYSQL_MAX_LENGTH}    = $q->{mysql_max_length};
+    $self->{MYSQL_IS_KEY}        = $q->{mysql_is_key};
+    $self->{MYSQL_TYPE_NAME}     = $q->{mysql_type_name};
+
+    $self->{TOTAL} = $q->rows;
+    if ($query !~ /INSERT |UPDATE |CREATE |DELETE /i) {
+      while(my @row = $q->fetchrow()) {
+        push @rows, \@row;
+       }
+     }
    }
   
-   $self->{MYSQL_FIELDS_NAMES}  = $q->{NAME};
-   $self->{MYSQL_IS_PRIMARY_KEY}= $q->{mysql_is_pri_key};
-   $self->{MYSQL_IS_NOT_NULL}   = $q->{mysql_is_not_null};
-   $self->{MYSQL_LENGTH}        = $q->{mysql_length};
-   $self->{MYSQL_MAX_LENGTH}    = $q->{mysql_max_length};
-   $self->{MYSQL_IS_KEY}        = $q->{mysql_is_key};
-   $self->{MYSQL_TYPE_NAME}     = $q->{mysql_type_name};
-
-   $self->{TOTAL} = $q->rows;
-
-
-   while(my @row = $q->fetchrow()) {
-     push @rows, \@row;
-    }
-
   return $self if($self->{errno});
   
   push @{ $self->{EXECUTED_QUERY} }, $query;
 }
  
- #$self->query($db, "$attr->{QUERY};");
-
+  $attr->{QUERY} =~ s/\'/\\\'/g;
+  $admin->system_action_add("SQLCMD:$attr->{QUERY}", { TYPE => 1 });    
   my $list = \@rows;
   return $list;
 }
@@ -288,5 +252,106 @@ while(@row = $query->fetchrow_array()) {
    
  return \%stats, \%vars;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#**********************************************************
+# add()
+#**********************************************************
+sub history_add {
+  my $self = shift;
+  my ($attr) = @_;
+  
+  $attr->{SQL_QUERY} =~ s/\'/\\\'/g;
+  $self->query($db,  "INSERT INTO sqlcmd_history (datetime,
+                  aid,  sql_query,  db_id,  comments)
+               VALUES (now(), '$admin->{AID}', '$attr->{SQL_QUERY}', '$attr->{DB_ID}', '$attr->{COMMENTS}');", 'do');
+   
+  return $self;
+}
+
+
+#**********************************************************
+# Delete user info from all tables
+#
+# del(attr);
+#**********************************************************
+sub history_del {
+  my $self = shift;
+  my ($attr) = @_;
+ 
+  my $DEL = '';
+  if ($attr->{IDS}) {
+  	$DEL = "id IN ('$attr->{IDS}')";
+   }
+  else {
+    $DEL = "id='$attr->{ID}'";
+   }
+ 
+  $self->query($db, "DELETE from sqlcmd_history WHERE $DEL;", 'do');
+
+  return $self->{result};
+}
+
+#**********************************************************
+# list_allow nass
+#**********************************************************
+sub history_list {
+  my $self = shift;
+  my $list;
+
+  $self->query($db, "SELECT datetime, comments, id FROM sqlcmd_history WHERE aid='$admin->{AID}' 
+  ORDER BY 1 DESC
+  LIMIT $PG, $PAGE_ROWS;");
+
+
+	return $self->{list};
+}
+
+
+
+#**********************************************************
+# list_allow nass
+#**********************************************************
+sub history_query {
+  my $self = shift;
+  my ($attr)=@_;
+
+
+  $self->query($db, "SELECT datetime, 
+   sql_query,
+   comments, 
+   id FROM sqlcmd_history 
+   WHERE aid='$admin->{AID}' 
+   AND id = '$attr->{QUERY_ID}';
+   ");
+   
+  
+
+  if ($self->{TOTAL} < 1){
+  	 return $self;
+   }
+
+  ($self->{DATETIME},
+   $self->{SQL_QUERY},
+   $self->{COMENTS},
+   $self->{ID}
+   ) = @{ $self->{list}->[0] };
+
+	return $self;
+}
+
+
 
 1

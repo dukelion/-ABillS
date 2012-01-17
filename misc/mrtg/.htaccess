@@ -1,0 +1,10 @@
+order deny,allow
+deny from all
+#allow from 192.168.101.2
+#allow from 192.168.101.4
+AuthType Basic
+AuthName "Admin Area"
+AuthUserFile /usr/abills/libexec/web_users
+Satisfy Any
+require valid-user
+

@@ -6,8 +6,8 @@
 
 require "Sqlcmd.pm";
 Sqlcmd->import();
-my $Sqlcmd = Sqlcmd->new($db, $admin, \%conf);
-
+my $Sqlcmd      = Sqlcmd->new($db, $admin, \%conf);
+my $Sqlcmd_main = Sqlcmd->new($db, $admin, \%conf);
 
 
 
@@ -20,26 +20,51 @@ my (%stats, %vars); # SHOW STATUS, SHOW VARIABLES
 # sqlcmd
 #**********************************************************
 sub sqlcmd {
- 
- 
- 
+
+
+if ($FORM{qindex}) {
+  print $html->header();
+  $Sqlcmd->query($db, "SHOW CREATE TABLE $FORM{TABLE_INFO}");
+  my $table = $html->table({ width        => '100%',
+                             caption      => 'SQL Dump',
+                             border       => 1,
+                             rows         => [[ $html->pre($Sqlcmd->{list}->[0]->[1], { OUTPUT2RETURN => 1 }) ]]
+                           });
+
+  print $table->show();
+  print $html->button("$_INFO", "index=$index&TABLE_INFO=$FORM{TABLE_INFO}", { CLASS => 'show' }),
+  exit;
+}
+
+
+ if (! sqlcmd_cluster_info() ) {
+ 	  return 0;
+  }
+
 my $FORM2  = ();
 my @pairs = split(/&/, $FORM{__BUFFER});
 
-foreach my $pair (@pairs) {
-   my ($side, $value) = split(/=/, $pair);
-   $value =~ tr/+/ /;
-   $value =~ s/%([a-fA-F0-9][a-fA-F0-9])/pack("C", hex($1))/eg;
+$LIST_PARAMS{PAGE_ROWS}=15;
 
-   if (defined($FORM2{$side})) {
-     $FORM2{$side} .= ", $value";
-    }
-   else {
-     $FORM2{$side} = $value;
-    }
+if ($FORM{QUERY_ID}) {
+  $Sqlcmd_main->history_query({ %FORM });  
+  $FORM{QUERY}    = $Sqlcmd_main->{SQL_QUERY};
+  $FORM2{QUERY}   = $FORM{QUERY};
+  $Sqlcmd->{QUERY}= $FORM{QUERY};
  }
+else {
+  foreach my $pair (@pairs) {
+    my ($side, $value) = split(/=/, $pair);
+    $value =~ tr/+/ /;
+    $value =~ s/%([a-fA-F0-9][a-fA-F0-9])/pack("C", hex($1))/eg;
 
- 
+    if (defined($FORM2{$side})) {
+      $FORM2{$side} .= ", $value";
+     }
+    else {
+      $FORM2{$side} = $value;
+     }
+  }
  
 if ($FORM{WIZARD}) {
 	my @f = split(/, /, $FORM{FIELDS});
@@ -56,68 +81,132 @@ if ($FORM{WIZARD}) {
 	$FORM{QUERY} .= " FROM $FORM{TABLE_INFO} LIMIT $PAGE_ROWS";
 }
 
+}
+ 
+ if($FORM{del} && $FORM{is_js_confirmed}) {
+	 $Sqlcmd_main->history_del({ ID => $FORM{del} });
+	 if(! $Sqlcmd_main->{errno} ) {
+		 $html->message('info', $_INFO, "$_DELETED");
+	  }
+   # return 0;
+  }
+
+
+
+  $table = $html->table( { width        => '100%',
+                           border       => 1,
+                           caption      => $FORM{TABLE_INFO},
+                           title_plain  => [$_DATE, "$_COMMENTS", '-', '-'], 
+                       } );
+	
+
+  my $list = $Sqlcmd_main->history_list({ %LIST_PARAMS });
+
+	foreach my $line (@$list) {
+		$table->addrow($line->[0], 
+		$line->[1], 
+		$html->button('QUERY', "index=$index&QUERY_ID=$line->[2]", { CLASS => 'sql' }),
+		$html->button("$_DEL", "index=$index&del=$line->[2]", { MESSAGE => "$_DEL $line->[2]?", CLASS => 'del' }),
+		 );
+	 }
+
+ $Sqlcmd->{SQL_HISTORY} = $table->show({ OUTPUT2RETURN => 1 });
  
 
- $html->tpl_show(_include('sqlcmd', 'Sqlcmd'), { %$Sqlcmd, \%FORM });
- 
+if (! $FORM{FIELD}) {
+	$FORM{QUERY} =~ s/\\\'/\'/g;
+	$FORM{QUERY} =~ s/\\\"/\"/g;
+  $html->tpl_show(_include('sqlcmd', 'Sqlcmd'), { %$Sqlcmd, %FORM }) ;
   my $list = $Sqlcmd->list( { %FORM2 } ) if (defined($FORM2{QUERY}) && length($FORM2{QUERY}) > 10);
 
-
 if ($FORM{QUERY} && ! $FORM{xml}) {
+	$FORM{SQL_QUERY} = $FORM{QUERY};
+
   my $table = $html->table( { width       => '100%',
                               cols_align  => ['left'],
                              } );
 
   #Syntax hightligth
+  my @func =  ('CURDATE', 'NOW', 'DECODE', 'ENCODE', 'CONCAT', 'INET_NTOA', 'INET_ATON');
   my @syntax = ('SELECT', 'FROM', 'WHERE', 'MIN', 'MAX', 'AVG', 'SUM', 'IF',
             'INSERT', 'UPDATE', 'INTO', 'VALUES', 
             'GROUP BY', 'ORDER BY', 'LIMIT',
-            'DATE_FORMAT', 'LEFT JOIN', 'ON', 'AND', 'EXPLAIN', 'ALTER', 'TABLE',
-            'ADD', 'COLUMN', 'UNSIGNED', 'NOT', 'NULL', 'DEFAULT', 'INTERVAL', 'COUNT'
+            'DATE_FORMAT', 'LEFT JOIN', 'INNER JOIN', 'ON', 'AND', 'EXPLAIN', 'ALTER', 'TABLE',
+            'ADD', 'COLUMN', 'UNSIGNED', 'NOT', 'NULL', 'DEFAULT', 'INTERVAL', 
+            'COUNT', 'DESC', 'ASC',
+            @func
             );
  
   my @types = ('INT', 'VARCHAR', 'SMALLINT', 'CHAR', 'TINYINT', 'DOUBLE');
-  my @func =  ('CURDATE()', 'NOW()');
-
   my @division = ('FROM', 'WHERE', 'LEFT JOIN', 'GROUP BY', 'ORDER BY', 'LIMIT');
 
+
+
   foreach my $query ( @{ $Sqlcmd->{EXECUTED_QUERY} } ) {
+    $show_query = $query;
+    $show_query =~ s/</&lt;/g;
+    $show_query =~ s/>/&gt;/g;
+    $show_query =~ s/\"/&quot;/g;
+
     foreach my $s (@division) {
-      $query =~ s/$s | $s / <br>$s /ig;
+      $show_query =~ s/$s | $s / <br>$s /ig;
      }
+
+    #foreach my $s (@func) {
+    #  $show_query =~ s/$s | $s / <br>$s /ig;
+    # }
 
     foreach my $s (@syntax) {
       #Extended
-      $query =~ s/$s | $s / <b>$s<\/b> /ig;
-      $query =~ s/$s\(/ <b>$s<\/b>\(/gi;
-      $query =~ s/'(\S+)'/ <font color=\"#0000FF\">'$1'<\/font> /gi;
-      $query =~ s/ (\d+)|(\d+),/ <font color=\"red\">$1<\/font>/g;
+      $show_query =~ s/$s | $s / <b>$s<\/b> /ig;
+      $show_query =~ s/$s\(/ <b>$s<\/b>\(/gi;
+      $show_query =~ s/'(\S+)'/ <font color=\"#0000FF\">'$1'<\/font> /gi;
+      $show_query =~ s/ (\d+)|(\d+),/ <font color=\"red\">$1<\/font>/g;
      }
-    $table->addrow("$query", "Ok");
+
+    $show_query =~ s/(FROM[\/<>b]+\s+)([a-z0-9 _\s\n,]+)/\1 %TABLES% /gi;
+    my $tables = $2;
+
+    $tables =~s/(([a-z0-9_]+)([\sa-z0-9]{0,10})?)([,]?)/<a href="#" onclick="window.open('$SELF_URL?qindex=$index&TABLE_INFO=\2', null, 'toolbar=0,location=0,directories=0,status=1,menubar=0,'+'scrollbars=1,resizable=1,'+'width=640, height=600');">\2<\/a> \3\4/gi;
+    $show_query =~ s/%TABLES%/$tables/g;
+
+    $show_query =~ s/(JOIN[\/<>b]+\s+)(\S+)/\1<a href="#" onclick="window.open('$SELF_URL?qindex=$index&TABLE_INFO=\2', null, 'toolbar=0,location=0,directories=0,status=1,menubar=0,'+'scrollbars=1,resizable=1,'+'width=640, height=600');">\2<\/a>/gi;
+    
+    $table->addrow("$show_query", "Ok");
   }
 
   print $table->show();
+  
+  if ($FORM{HISTORY}) {
+  	if (! $FORM{COMMENTS}) {
+  		$FORM{COMMENTS}=substr($FORM{QUERY}, 0,40).'...';
+  	 }
+    $Sqlcmd_main->history_add({ %FORM }) ;
+
+    if ($Sqlcmd_main->{errno}) {
+      $html->message('err', $_ERROR, "[$Sqlcmd_main->{errno}] $err_strs{$Sqlcmd_main->{errno}}\n $Sqlcmd_main->{errstr}");	
+     }
+   }
 }
 
+   
+
 if ($Sqlcmd->{errno}) {
-  $html->message('err', $_ERROR, "[$Sqlcmd->{errno}] $err_strs{$Sqlcmd->{errno}} /$Sqlcmd->{errstr}/");	
+  $html->message('err', $_ERROR, "[$Sqlcmd->{errno}] $err_strs{$Sqlcmd->{errno}}\n $Sqlcmd->{errstr}");	
 
   return 0;
  }
 
-
 $pages_qs .= "&QUERY=$FORM{QUERY}";
-
 
   my @CAPTION = ();
   @CAPTION = @{ $Sqlcmd->{MYSQL_FIELDS_NAMES} } if ($Sqlcmd->{MYSQL_FIELDS_NAMES});
- 
-
-  $table = $html->table( { width  => '100%',
-                           border => 1,
-                           title  => ( $#CAPTION > -1 ) ? [ @CAPTION ] : [ ], 
-                           qs     => $pages_qs,
-                           pages  => $Sqlcmd->{TOTAL}
+  $table = $html->table( { width   => '100%',
+                           border  => 1,
+  	                       caption => $_RESULT,
+                           title   => ( $#CAPTION > -1 ) ? [ @CAPTION ] : [ ], 
+                           qs      => $pages_qs,
+                           pages   => $Sqlcmd->{TOTAL}
                        } );
 
 
@@ -133,38 +222,201 @@ $pages_qs .= "&QUERY=$FORM{QUERY}";
 
   $table = $html->table( { width      => '100%',
                            cols_align => ['right', 'right'],
-                           rows       => [ [ "$_TOTAL:", "<b>$Sqlcmd->{TOTAL}</b>" ] ]
+                           rows       => [ [ "$_TOTAL: ". $html->b($Sqlcmd->{TOTAL}), "AFFECTED: ".  $html->b($Sqlcmd->{AFFECTED}) ] ]
                         } );
 
   print $table->show();
-
+}
 
 if ($FORM{TABLE_INFO}) {
+  if ($FORM{FIELD}) {
+    if ($FORM{change}) {
+    	
+    	if ($FORM{COLUMN_TYPE} =~ /INT/ig) {
+    		$FORM{COLLATION} = "";
+    	 }
+    	elsif ($FORM{COLLATION}) {
+    	  $FORM{COLLATION} = " COLLATE $FORM{COLLATION} ";
+    	  $FORM{AUTO_INCREMENT}='';
+    	 }
+    	
+    	$FORM{COLUMN_LENGTH}="($FORM{COLUMN_LENGTH})" if ($FORM{COLUMN_LENGTH});
+    	$FORM{DEFAULT} = "''" if (! $FORM{DEFAULT});
+    	
+    	my $query = "ALTER TABLE $FORM{TABLE_INFO} CHANGE COLUMN $FORM{FIELD} $FORM{NAME} $FORM{COLUMN_TYPE}$FORM{COLUMN_LENGTH} $FORM{AUTO_INCREMENT} $FORM{COLLATION} $FORM{ATTRIBUTE_TYPE} DEFAULT $FORM{DEFAULT} ";
+    	
+    	print $query;
+    	$Sqlcmd->list({ QUERY => $query });
+     }
+
+    my $list = $Sqlcmd->list({ QUERY => "SHOW FULL COLUMNS FROM $CONF->{dbname}.$FORM{TABLE_INFO} LIKE '$FORM{FIELD}' " });
+    $FORM{NAME}              = $FORM{FIELD};
+    
+   
+    if ($list->[0]->[1] =~ /(\S+)\((\d+)\)\s?(.{0-30})?/) {
+      $FORM{COLUMN_TYPE}     = uc($1);
+      
+      
+      
+      $FORM{COLUMN_LENGTH}   = $2;
+      $FORM{ATTRIBUTE_TYPE}  = $3;
+     }
+    else {
+    	$FORM{COLUMN_TYPE}= uc($list->[0]->[1]);
+     }
+    $FORM{COLLATION}=$list->[0]->[2];
+    $FORM{DEFAULT}  =$list->[0]->[5];
+    $FORM{AUTO_INCREMENT}= ($list->[0]->[6] eq 'auto_increment') ? 'checked' : '';
+
+my %COLUMN_TYPES = (
+    # most used
+    'INT' => 'INT',
+    'VARCHAR' => 'VARCHAR',
+    'TEXT' => 'TEXT',
+    'DATE' => 'DATE',
+
+    # numeric
+    'NUMERIC' => [
+        'TINYINT',
+        'SMALLINT',
+        'MEDIUMINT',
+        'INT',
+        'BIGINT',
+        '-',
+        'DECIMAL',
+        'FLOAT',
+        'DOUBLE',
+        'REAL',
+        '-',
+        'BIT',
+        'BOOLEAN',
+        'SERIAL',
+    ],
+    # Date/Time
+    'DATE and TIME' => [
+        'DATE',
+        'DATETIME',
+        'TIMESTAMP',
+        'TIME',
+        'YEAR',
+    ],
+
+    # Text
+    'STRING' => [
+        'CHAR',
+        'VARCHAR',
+        '-',
+        'TINYTEXT',
+        'TEXT',
+        'MEDIUMTEXT',
+        'LONGTEXT',
+        '-',
+        'BINARY',
+         'BINARY',
+        'VARBINARY',
+        '-',
+        'TINYBLOB',
+        'MEDIUMBLOB',
+        'BLOB',
+        'LONGBLOB',
+        '-',
+        'ENUM',
+        'SET',
+    ],
+
+    'SPATIAL' => [
+        'GEOMETRY',
+        'POINT',
+        'LINESTRING',
+        'POLYGON',
+        'MULTIPOINT',
+        'MULTILINESTRING',
+        'MULTIPOLYGON',
+        'GEOMETRYCOLLECTION',
+    ]
+);
+
+    $Sqlcmd->{COLUMN_TYPE_SEL} = $html->form_select('COLUMN_TYPE', 
+                                                   {
+                                                   	 SELECTED => $FORM{COLUMN_TYPE},
+                                                   	 SEL_HASH => \%COLUMN_TYPES,
+                                                   	 NO_ID    => 1
+                                                   }
+                                                  );
+
+    my @ATTRIBUTE_TYPES = (
+      '',
+      'BINARY',
+      'UNSIGNED',
+      'UNSIGNED ZEROFILL',
+      'on update CURRENT_TIMESTAMP'
+     );
+
+    $Sqlcmd->{ATTRIBUTE_TYPE_SEL} = $html->form_select('ATTRIBUTE_TYPE', 
+                                                   {
+                                                   	 SELECTED  => $FORM{ATTRIBUTE_TYPE},
+                                                   	 SEL_ARRAY => \@ATTRIBUTE_TYPES,
+                                                   	 NO_ID     => 1
+                                                   }
+                                                  );
+
+    $Sqlcmd->query($db, "SHOW COLLATION");
+    my $COLLATION_HASH = ('' => '');
+    foreach my $line (@{ $Sqlcmd->{list} } ) {
+    	push @{ $COLLATION_HASH{$line->[1]} }, $line->[0];
+     }
+
+    $Sqlcmd->{COLLATION_SEL} = $html->form_select('COLLATION', 
+                                                   {
+                                                   	 SELECTED => "$FORM{COLLATION}",
+                                                   	 SEL_HASH => \%COLLATION_HASH
+                                                   }
+                                                  );
+
+    $html->tpl_show(_include('sqlcmd_field', 'Sqlcmd'), { %$Sqlcmd, %FORM });  	
+   }
+  
+  my $list = $Sqlcmd->list({ QUERY => "SHOW FULL COLUMNS FROM $CONF->{dbname}.$FORM{TABLE_INFO}" });
+  @CAPTION = @{ $Sqlcmd->{MYSQL_FIELDS_NAMES} } if ($Sqlcmd->{MYSQL_FIELDS_NAMES});
+
   $table = $html->table( { width        => '100%',
                            border       => 1,
                            caption      => $FORM{TABLE_INFO},
-                           title_plain  => [$_NAME, $_TYPE, "$_MAX $_LENGTH", "NO NULL", 'INDEX', 'PRIMARY_INDEX'], 
+                           #title_plain  => [$_NAME, $_TYPE, "$_MAX $_LENGTH", "NO NULL", 'INDEX', 'PRIMARY_INDEX'], 
+                           title_plain  => [ @CAPTION, '-' ]
                        } );
-	
+  
+  foreach my $line (@$list) {
+  	$table->{rowcolor} = ($line->[0] eq $FORM{FIELD}) ? $_COLORS[0] : undef;
+
+	 	$table->addrow($html->form_input('FIELDS', $line, {TYPE => 'CHECKBOX' } ). " $line->[0]", 
+	 	 $line->[1],
+	 	 $line->[2],
+	 	 $line->[3],
+	 	 $line->[4],
+	 	 $line->[5],
+	 	 $line->[6],
+	 	 $line->[7],
+	 	 $line->[8],
+	 	 $html->button($_CHANGE, "index=$index&TABLE_INFO=$FORM{TABLE_INFO}&FIELD=$line->[0]", { BUTTON => 1 })
+	 	 );
+   }
+	#my $i=0;
+	#foreach my $line (@CAPTION) {
+	#	$table->addrow($html->form_input('FIELDS', $line, {TYPE => 'CHECKBOX' } ). " $line", 
+	#	 "$Sqlcmd->{MYSQL_TYPE_NAME}->[$i] ($Sqlcmd->{MYSQL_LENGTH}->[$i])",
+	# 	 $Sqlcmd->{MYSQL_MAX_LENGTH}->[$i],
+	# 	 $bool_vals[$Sqlcmd->{MYSQL_IS_NOT_NULL}->[$i]],
+	#	 $bool_vals[$Sqlcmd->{MYSQL_IS_KEY}->[$i]],
+	#	 $bool_vals[$Sqlcmd->{MYSQL_IS_PRIMARY_KEY}->[$i]]
+	#	 );
+	#	$i++;
+	# }
 
 
-
-	my $i=0;
-	foreach my $line (@CAPTION) {
-		$table->addrow($html->form_input('FIELDS', $line, {TYPE => 'CHECKBOX' } ). " $line", 
-		 "$Sqlcmd->{MYSQL_TYPE_NAME}->[$i] ($Sqlcmd->{MYSQL_LENGTH}->[$i])",
-	 	 $Sqlcmd->{MYSQL_MAX_LENGTH}->[$i],
-	 	 $bool_vals[$Sqlcmd->{MYSQL_IS_NOT_NULL}->[$i]],
-		 $bool_vals[$Sqlcmd->{MYSQL_IS_KEY}->[$i]],
-		 $bool_vals[$Sqlcmd->{MYSQL_IS_PRIMARY_KEY}->[$i]]
-		 );
-		$i++;
-	 }
-
-
-  $table2 = $html->table({ width       => '100%',
+  $table2 = $html->table({ width        => '100%',
                            border       => 1,
-                           title_plain  => [ $html->form_input('WIZARD', "$_SHOW", {TYPE => 'SUBMIT'}) ]
+                           title_plain  => [ $html->form_input('WIZARD', "$_SHOW", { TYPE => 'SUBMIT'}) ]
                         });
 	
 	
@@ -174,10 +426,73 @@ if ($FORM{TABLE_INFO}) {
 	                          METHOD  => 'GET'
                           });
 
+
+  $Sqlcmd->query($db, "SHOW CREATE TABLE $FORM{TABLE_INFO}");
+  $table = $html->table({ width        => '100%',
+                          caption      => 'SQL Dump',
+                          border       => 1,
+                          rows         => [[ $html->pre($Sqlcmd->{list}->[0]->[1], { OUTPUT2RETURN => 1 }) ]]
+                        });
+
+  print $table->show();
 }
 
 
   return 0;
+}
+
+
+
+#**********************************************************
+#
+#**********************************************************
+sub sqlcmd_triggers {
+	sqlcmd_cluster_info();
+	
+	my @caption = ('Trigger', 'Event', 'Table', 'Statement',
+             'Timing', 'Created', 'sql_mode', 'Definer', 'character_set_client',
+             'collation_connection', 'Database Collation');
+	
+	my $table = $html->table( { width      => '100%',
+                              border     => 1,
+                              title      => \@caption,
+                              cols_align => ['left', 'left', 'left', 'left', 'right', 'right', 'center'],
+                              qs         => "&fields=$FORM{fields}"
+                          } );
+
+  my @syntax = ('BEGIN', 'END\s+IF\s{0,10};', 'END$', 'IF', 'THEN', 'DECLARE', 
+    'SET', 'INTEGER', 'new\.');
+
+  my $list = $Sqlcmd->info({ TYPE => 'showtriggers', %LIST_PARAMS, %FORM });
+  foreach my $line (@$list) {
+
+    my $trigger = $line->[3];
+
+    foreach my $s (@syntax) {
+      #Extended
+      $trigger =~ s/($s)/ <b>$1<\/b>/ig;
+      $trigger =~ s/$s\(/ <b>$s<\/b>\(/gi;
+      $trigger =~ s/\'(\S+)\'/ <font color=\"#0000FF\">\'$1\'<\/font> /gi;
+      $trigger =~ s/\s?(\d+)|(\d+),/ <font color=\"red\">$1<\/font>/g;
+     }
+
+
+     $table->addrow(
+      $line->[0],
+      $line->[1],
+      $html->button($line->[2], "TABLE_INFO=$line->[2]&QUERY=SELECt * FROM $line->[2] LIMIT 25&index=". ($index-2)),
+      $html->pre("$trigger", { OUTPUT2RETURN => 1 }),
+      $line->[4],
+      $line->[5],
+      $line->[6],
+      $line->[7],
+      $line->[8],
+      $line->[9],
+     );
+   }
+  
+
+  print $table->show();	
 }
 
 #**********************************************************
@@ -185,28 +500,33 @@ if ($FORM{TABLE_INFO}) {
 #**********************************************************
 sub sqlcmd_tables {
 	
+	sqlcmd_cluster_info();
 	#SHOW TABLE STATUS FROM abills;
   #$table{size} = Index_length + Data_length
-  
+  # ALTER TABLE `abon_tariffs` CHANGE `name` `name` VARCHAR( 20 ) CHARACTER SET cp1251 COLLATE cp1251_general_ci NOT NULL DEFAULT ''
+  $FORM{sort} = 1 if (! $FORM{sort});
+ 
+  if ($FORM{ACTION} && $FORM{ACTION} eq 'BACKUP') {
+    $FORM{mk_backup}=1;
+    form_sql_backup({ TABLES => $FORM{TABLES} });
+   }
+
   my $list = $Sqlcmd->info({ TYPE => 'showtables', %LIST_PARAMS, %FORM });
 
   if ($Sqlcmd->{errno}) {
     $html->message('err', $_ERROR, "[$Sqlcmd->{errno}] $err_strs{$Sqlcmd->{errno}}");	
     return 0;
-   }
-
-
-  
+   }  
 
   my @ACTIVE_FIELDS = ('Name', 
-                  'Type',
+                  'Engine',
                   'Row_format',
                   "Comment",
+                  'Collation',
                   'Rows',
                   "Size",
                   "-");
-  
-  
+
   @ACTIVE_FIELDS = split(/, /, $FORM{'fields'}) if ($FORM{'fields'});
   $ACTIVE_FIELDS[0] = 'Name' if ($ACTIVE_FIELDS[0] ne 'Name');
   
@@ -236,7 +556,6 @@ sub sqlcmd_tables {
   	$i++;
   }
 
-  #print $sorted[0]->{$ACTIVE_FIELDS[$FORM{sort}-1]} ;
   my @sorted_ids = sort { 
      if($ACTIVE_FIELDS[$FORM{sort}-1] eq 'Name') {
        $SORT_HASH{$a} cmp $SORT_HASH{$b}
@@ -272,22 +591,17 @@ sub sqlcmd_tables {
     
     $table->addrow(
       @table_rows,
-      $html->button($_SHOW, "index=". ($index - 1).  "&TABLE_INFO=$line->{'Name'}&QUERY=SELECT * FROM $line->{'Name'} LIMIT $PAGE_ROWS")
+      $html->button($_SHOW, "index=". ($index - 1).  "&TABLE_INFO=$line->{'Name'}&QUERY=SELECT * FROM $line->{'Name'} LIMIT $PAGE_ROWS", { CLASS => 'show' })
      );
-    
-    
-    
+
     $tables_total++;
     $tables_size+=$line->{'Index_length'} + $line->{'Data_length'};
    }
-  #print $table->show();
 
   my $table2 = $html->table( { width       => '100%',
                            cols_align  => ['right', 'right', 'right', 'right'],
                            rows        => [ [ "$_TOTAL:", "$tables_total", "$_SIZE:", int2byte("$tables_size") ] ]
                        } );
-  #print $table2->show();
-  
   
 my $table3 = $html->table({ width => '100%' });
 my @arr = ();
@@ -327,10 +641,8 @@ print $html->form_main({ CONTENT => $table->show().
 	                                  $table3->show(),
                               HIDDEN  => { index =>  "$index" },
                               METHOD  => 'GET',
-                              SUBMIT  => { $_SHOW    => "$_SHOW" }
+                              SUBMIT  => { $_SHOW    => "$_ACTION" }
                            });
-
-
 }
 
 
@@ -343,6 +655,7 @@ sub sqlcmd_info {
  %stats = %$stats;  
  %vars  = %$vars;
 
+ sqlcmd_cluster_info();
 
 my $questions = $stats->{'Questions'};
 my $key_read_ratio  = sprintf "%.2f", ($stats->{'Key_read_requests'} ? $stats->{'Key_reads'} / $stats->{'Key_read_requests'} : 0);
@@ -374,10 +687,9 @@ my $dms = $DMS_vals{SELECT} + $DMS_vals{INSERT} + $DMS_vals{REPLACE} + $DMS_vals
 
 
 # First part of main report
-
-
-  my $table = $html->table( { width  => '100%',
-                              border => 1,
+  my $table = $html->table( { width    => '100%',
+  	                          caption  => "$_INFO",
+                              border   => 1,
                               cols_align => ['left', 'left', 'left', 'left', 'right', 'right', 'center']
                            } );
 
@@ -569,8 +881,6 @@ $table->addrow('Table', make_short($stats{'Created_tmp_tables'}), t($stats{'Crea
 
 $table->addrow('File',  make_short($stats{'Created_tmp_files'}), t($stats{'Created_tmp_files'}).'/s', '', '');
 
-
-
  $table->{rowcolor}=$_COLORS[0];
  $table->{extra}="colspan='6'";
  $table->addrow("Threads");
@@ -600,6 +910,21 @@ $table->addrow($_TOTAL, make_short($stats{'Bytes_received'} + $stats{'Bytes_sent
  make_short(t($stats{'Bytes_received'}+$stats{'Bytes_sent'}, { PERIOD => 'min' } )).'/m',
  make_short(t($stats{'Bytes_received'}+$stats{'Bytes_sent'}, { PERIOD => 'hour' } )).'/h');
 
+
+ $table->{rowcolor}=$_COLORS[0];
+ $table->{extra}="colspan='6'";
+ $table->addrow("Other");
+ undef($table->{extra});
+ undef($table->{rowcolor});
+
+
+ $table->addrow('mysql_hostinfo', $db->{'mysql_hostinfo'});
+ $table->addrow('mysql_info', $db->{'mysql_info'});
+ $table->addrow('mysql_protoinfo',   $db->{'mysql_protoinfo'});
+ $table->addrow('mysql_serverinfo',       $db->{'mysql_serverinfo'});
+ $table->addrow('mysql_stat',       $db->{'mysql_stat'});
+ $table->addrow('mysql_thread_id',      $db->{'mysql_thread_id'});
+ $table->addrow('mysql_dbd_stats',      %{ $db->{'mysql_dbd_stats'} });
 
  print $table->show();
 }
@@ -689,6 +1014,7 @@ sub t  () {
 #**********************************************************
 sub sqlcmd_procs {
 
+  sqlcmd_cluster_info();
 
   if ($FORM{del}) {
   	$Sqlcmd->list({ QUERY => "kill $FORM{del}" });
@@ -719,10 +1045,216 @@ sub sqlcmd_procs {
                    $line->[6],
                    $line->[7],
                    $html->button($_DEL, "index=$index&del=$line->[0]", 
-                      { MESSAGE => "$_DEL $line->[0] ?" }) );
+                      { MESSAGE => "$_DEL $line->[0] ?", CLASS => 'del' }) );
    }
 
   print $table->show();
 }
+
+#**********************************************************
+#
+#**********************************************************
+sub sqlcmd_cluster_info {
+	my ($attr) =  @_;
+	
+
+ my(@cluster_hosts) = split(/,/, $conf{SQLCMD_CLUSTER_HOSTS});
+
+ my $table = $html->table( { width       => '100%',
+                             cols_align  => ['left'],
+                           } );
+
+my $id  = 0;
+my $active_host = $FORM{HOST_ID} || 0;
+my $ret = 1;
+
+foreach my $host ( ("$_MAIN",  @cluster_hosts) ) {
+	if ($active_host == $id) {
+    push @cells, $table->th("$host", { bgcolor => $_COLORS[1] });
+
+    $Sqlcmd_main = Sqlcmd->new($db, $admin, \%conf);
+
+    if ($conf{'SQLCMD_HOST'. $id .'_HOSTNAME'}) {
+#      print "
+#       $conf{'SQLCMD_HOST'. $id .'_HOSTNAME'}
+#       $conf{'SQLCMD_HOST'. $id .'_DB'}
+#       $conf{'SQLCMD_HOST'. $id .'_USER'}
+#       $conf{'SQLCMD_HOST'. $id .'_PASSWD'}
+#      ";
+      my $sql = Abills::SQL->connect($conf{dbtype}, $conf{'SQLCMD_HOST'. $id .'_HOSTNAME'}, 
+                                                    $conf{'SQLCMD_HOST'. $id .'_DB'}, 
+                                                    $conf{'SQLCMD_HOST'. $id .'_USER'}, 
+                                                    $conf{'SQLCMD_HOST'. $id .'_PASSWD'},
+        { CHARSET => ($conf{dbcharset}) ? $conf{dbcharset} : undef  });
+
+      my $db_slave = $sql->{db};
+
+      $FORM{DB_ID}=$id;
+      $Sqlcmd = Sqlcmd->new($db_slave, $admin, \%conf);
+     }
+
+	 }
+	else {
+	  push @cells,  $table->th($html->button("$host", "index=$index&HOST_ID=$id"), { bgcolor => $_COLORS[0] })
+	 }
+  $id++;
+}
+
+  $table->addtd(@cells);
+
+  print $table->show();
+  
+ if($active_host != 0 && ! $conf{'SQLCMD_HOST'. $active_host .'_HOSTNAME'}) {
+    $html->message('info', $_INFO, "Can't find DB");
+   	$ret = 0;
+   }
+
+  return $ret;
+}
+
+#**********************************************************
+#
+#**********************************************************
+sub sqlcmd_cluster {
+	my ($attr) = @_;
+	
+	my(@cluster_hosts) = split(/,/, $conf{SQLCMD_CLUSTER_HOSTS});
+
+ 
+my $id          = 0;
+my $active_host = $FORM{HOST_ID} || 0;
+my $ret         = 1;
+
+my @servers = ();
+if ($FORM{SYNC}) {
+  $sql = Abills::SQL->connect($conf{dbtype}, $conf{'SQLCMD_HOST'. $FORM{SYNC} .'_HOSTNAME'}, 
+                                                  $conf{'SQLCMD_HOST'. $FORM{SYNC} .'_DB'}, 
+                                                  $conf{'SQLCMD_HOST'. $FORM{SYNC} .'_USER'}, 
+                                                  $conf{'SQLCMD_HOST'. $FORM{SYNC} .'_PASSWD'},
+  { CHARSET => ($conf{dbcharset}) ? $conf{dbcharset} : undef  });
+
+  my $db_slave = $sql->{db};
+  #my $query    = ($id>0) ? "SHOW SLAVE STATUS;" : "SHOW MASTER STATUS;";
+  my @resync_sql = ("stop slave;",  "load data from master;",  "start slave;"); 
+  
+  foreach my $sql_cmd (@resync_sql) {
+    my $q        = $db_slave->do($sql_cmd);
+
+    if ($db_slave->err) {
+      $html->message('err', $_ERROR.' : DB ID '. $FORM{SYNC} .' : '. $conf{'SQLCMD_HOST'. $FORM{SYNC} .'_HOSTNAME'}, "$_ERROR: ". $db_slave->err .'/'. $db_slave->errstr.' / '. $resync_sql);      
+     }
+    else {
+      $html->message('info', $_INFO.' : '. $FORM{SYNC} .' : '. $conf{'SQLCMD_HOST'. $FORM{SYNC} .'_HOSTNAME'}, "Rebuilding...");
+     }
+   }
+
+  return 0;
+ }
+
+foreach my $host ( ("$_MAIN",  @cluster_hosts) ) {
+    #$Sqlcmd_main = Sqlcmd->new($db, $admin, \%conf);
+    my $sql;
+    my $db_host = '';
+    my $table = $html->table({ width       => '100%',
+    	                         caption     => "$id:$host / " . $conf{'SQLCMD_HOST'. $id .'_HOSTNAME'},
+    	                         title       => [ 'key', 'val' ],
+                               cols_align  => ['left', 'left'],
+                             });
+
+    if ($id && ! $conf{'SQLCMD_HOST'. $id .'_HOSTNAME'}) {
+    	$html->message('err', $_ERROR.' : BD INFO '. $id .' : '. $host .' / '. $conf{'SQLCMD_HOST'. $id .'_HOSTNAME'}, "$_ERROR: $_NOT_EXIST"); 
+    	$id++;
+    	next     
+     }
+    elsif ($id == 0) {
+      $sql = Abills::SQL->connect($conf{dbtype}, $conf{'dbhost'}, 
+                                                 $conf{'dbname'}, 
+                                                 $conf{'dbuser'}, 
+                                                 $conf{'dbpasswd'},
+      { CHARSET => ($conf{dbcharset}) ? $conf{dbcharset} : undef  });
+      $db_host = $conf{'dbhost'};
+     }
+    else {
+      $sql = Abills::SQL->connect($conf{dbtype}, $conf{'SQLCMD_HOST'. $id .'_HOSTNAME'}, 
+                                                 $conf{'SQLCMD_HOST'. $id .'_DB'}, 
+                                                 $conf{'SQLCMD_HOST'. $id .'_USER'}, 
+                                                 $conf{'SQLCMD_HOST'. $id .'_PASSWD'},
+      { CHARSET => ($conf{dbcharset}) ? $conf{dbcharset} : undef  });
+      
+      $table->addrow($html->button('RESYNC', "index=$index&SYNC=$id", { BUTTON => 1 }), '-');
+      $db_host = $conf{'SQLCMD_HOST'. $id .'_HOSTNAME'};
+     }
+
+    if (! $sql->{db}) {
+    	$html->messages('info', $_INFO, "Can't connect to $host '". $conf{'SQLCMD_HOST'. $id .'_HOSTNAME'} ."'");    	
+    	return 0;
+     }
+
+    my $db_slave = $sql->{db};
+
+    $FORM{DB_ID}=$id;
+    $Sqlcmd     = Sqlcmd->new($db_slave, $admin, \%conf);
+    my $query   = ($id>0) ? "SHOW SLAVE STATUS;" : "SHOW MASTER STATUS;";
+    my $q       = $db_slave->prepare("$query",  { "mysql_use_result" => ($query !~ /!SELECT/gi ) ? 0 : 1   } ) || die $db_slave->errstr;
+    $q->execute(); 
+    
+    if ($db_slave->err) {
+      $html->message('err', $_ERROR.' : DB_ID: '. $id .' : '. $db_host .' / '. $conf{'SQLCMD_HOST'. $id .'_HOSTNAME'}, "$_ERROR: ". $db_slave->err .'/'. $db_slave->errstr);      
+     }
+    $Sqlcmd->{MYSQL_FIELDS_NAMES} = $q->{NAME};
+    
+    #print @{ $Sqlcmd->{MYSQL_FIELDS_NAMES} };
+
+    while(my @row = $q->fetchrow()) {
+    	my $i=0;
+      foreach my $field ( @{ $Sqlcmd->{MYSQL_FIELDS_NAMES} } ) {
+      	if ($field eq 'Slave_IO_Running' && $row[$i]	ne 'Yes') {
+          $row[$i]=$html->color_mark("$_ERROR", '#FF0000');
+         }
+        elsif ($field eq 'Slave_SQL_Running' && $row[$i]	ne 'Yes') {
+        	$row[$i]=$html->color_mark("$_ERROR", '#FF0000');
+         }
+      	
+        $table->addrow($field, $row[$i]);
+        $i++;
+       }
+     }
+    $db_slave->disconnect;
+
+    push @servers, $table->show();
+    $id++;
+}
+
+  
+my $table = $html->table({ width        => '100%',
+                           caption     => "$host",
+                           cols_align  => ['left', 'left'],
+                         });
+ 
+for($i=0; $i<= $#servers; $i+=2) {
+  $table->addtd( $table->td($servers[$i]), 
+                 $table->td($servers[$i+1])
+                );
+}
+
+print $table->show();
+  
+# if($active_host != 0 && ! $conf{'SQLCMD_HOST'. $active_host .'_HOSTNAME'}) {
+#    $html->message('info', $_INFO, "Can't find DB");
+#   	$ret = 0;
+#   }
+
+
+#$db = mysql_connect("master-host","master-user","master-pwd") or $db = false;
+#if ($db!=false) {
+#mysql_close($db);
+#$db = mysql_connect("localhost","local-user","local-pwd") or die ("Could not connect to MySQL");
+#mysql_select_db("my_database",$db);
+#mysql_query("stop slave; DROP DATABASE my_database; load data from master; start slave;");
+#mysql_close($db);
+#}	
+	
+}
+
 
 1

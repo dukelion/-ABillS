@@ -1,0 +1,14 @@
+:DEFAULT:MONIT_WWW_ADMIN=admin:Monit web interface admin
+:DEFAULT:MONIT_WWW_PASSWD=123456monit:Monit web interface password
+:DEFAULT:MONIT_WWW_PORT=2812:Monit web interface port
+:DEFAULT:MONIT_WWW_HOST=127.0.0.1:Monit web interface host
+:DEFAULT:MONIT_WWW_ALLOW_HOST=127.0.0.1:Monit web interface allow hosts
+:DEFAULT:FLOWCAPTURE_PORT=9996:Flow capture port
+
+
+monitrc                           > [/usr/local/etc/]/monitrc
+main                              > [/usr/local/etc/]/monit/main
+:FLOW_CAPTURE=1:FILE=flow_capture > [/usr/local/etc/]/monit/flow_capture
+:OS=FREEBSD:monit_enable="YES"    >> [/etc]/rc.conf
+:OS=FREEBSD:exec:chmod 0700 /usr/local/etc/monitrc
+:OS=FREEBSD:exec:/usr/local/etc/rc.d/monit restart

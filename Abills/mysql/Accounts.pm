@@ -211,13 +211,7 @@ sub list {
     ($self->{TOTAL}) = @$a_ref;
    }
 
-#  $self->{list}=$list;
-
 return $list;
 }
-
-
-
-
 
 1

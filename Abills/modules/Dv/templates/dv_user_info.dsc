@@ -1,0 +1,7 @@
+CONTRACT_DATE:дата:russian:(x=428;y=691)
+CONTRACT_ID:номер контракта:russian:(x=422;y=706)
+SPEED:скорость:russian:(x=380;y=581)
+LOGIN:логин:russian:(x=150;y=505)
+PASSWORD:пароль:russian:(x=350;y=505)
+TP_NAME:ТП:russian:(x=100;y=425)
+FIO:ФИО:russian:(x=410;y=425)

@@ -1,0 +1,39 @@
+
+SERVICE_L4R     User-Password == "cisco", Auth-Type = Accept
+                Cisco-AVPair += "ip:l4redirect=redirect list 197 to group REDIRECT_NOPAY",
+                Cisco-AVpair += "traffic-class=input access-group 198",
+                Cisco-AVpair += "traffic-class=output access-group 198",
+                Cisco-AVPair += "ip:traffic-class=out default drop",
+                Cisco-AVPair += "ip:traffic-class=in default drop",
+                Idle-Timeout =  "600"
+
+
+BILLING_ACCESS  Password == "cisco", Auth-Type = Accept
+                Cisco-AVPair += "ip:traffic-class=in access-group 195 priority 4",
+                Cisco-AVPair += "ip:traffic-class=out access-group 195 priority4",
+                Cisco-Account-Info += "QU;512000;256000;D;512000;256000"
+
+
+#PREPAID_INTERNET  Password == "cisco", Auth-Type = Accept
+#                Cisco-Account-Info += "QU;128000;64000;D;128000;64000",
+#                Cisco-AVPair += "ip:traffic-class=in access-group 196 priority 6",
+#                Cisco-AVPair += "ip:traffic-class=out access-group 196 priority 6",
+#                Cisco-AVPair += "ip:traffic-class=out default drop",
+#                Cisco-AVPair += "ip:traffic-class=in default drop",
+#                Cisco-AVPair += "prepaid-config=TRAFFIC_PREPAID",
+
+
+#192.168.1.1    User-Password == "ISG", Auth-Type = Accept
+#        Cisco-Service-Info = "NPREPAID_INTERNET",
+#        Cisco-Control-Info += "QV1000000",
+#        Service-Type = Dialout-Framed-User,
+#        Cisco-Account-Info += "QU;1024000;256000;D;1024000;256000",
+#        Cisco-Account-Info += "APREPAID_INTERNET",
+#        Cisco-Account-Info += "NPREPAID_INTERNET",
+#        Idle-Timeout = 120,
+#        Cisco-Account-Info += "ABILLING_ACCESS"                
+
+
+
+DEFAULT Auth-Type = Perl
+    Fall-Through = 1

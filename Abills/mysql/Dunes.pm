@@ -2,8 +2,6 @@ package Dunes;
 # 
 #
 
-
-
 use strict;
 use vars qw(@ISA @EXPORT @EXPORT_OK %EXPORT_TAGS $VERSION);
 
@@ -34,8 +32,6 @@ sub new {
 }
 
 
-
-
 #**********************************************************
 # User information
 # info()
@@ -60,99 +56,15 @@ sub info {
      return $self;
    }
 
-  my $ar = $self->{list}->[0];
-
   ($self->{ERR_ID},
    $self->{WIN_ERR_HANDLE}, 
    $self->{TRANSLATE}, 
    $self->{ERROR_TEXT}, 
    $self->{SOLUTION}
-  )= @$ar;
-  
+  )= @{ $self->{list}->[0] };
   
   return $self;
 }
-
-
-
-
-#**********************************************************
-# add()
-#**********************************************************
-sub add {
-  my $self = shift;
-  my ($attr) = @_;
-  
-  %DATA = $self->get_data($attr); 
-
-  $self->query($db,  "INSERT INTO dv_main (uid, registration, 
-             tp_id, 
-             logins, 
-             disable, 
-             ip, 
-             netmask, 
-             speed, 
-             filter_id, 
-             cid)
-        VALUES ('$DATA{UID}', now(),
-        '$DATA{TP_ID}', '$DATA{SIMULTANEONSLY}', '$DATA{DISABLE}', INET_ATON('$DATA{IP}'), 
-        INET_ATON('$DATA{NETMASK}'), '$DATA{SPEED}', '$DATA{FILTER_ID}', LOWER('$DATA{CID}'));", 'do');
-
-  return $self if ($self->{errno});
-#  $admin->action_add("$DATA{UID}", "ACTIVE");
-  return $self;
-}
-
-
-
-
-#**********************************************************
-# change()
-#**********************************************************
-sub change {
-  my $self = shift;
-  my ($attr) = @_;
-  
-  my %FIELDS = (SIMULTANEONSLY => 'logins',
-              DISABLE          => 'disable',
-              IP               => 'ip',
-              NETMASK          => 'netmask',
-              TP_ID            => 'tp_id',
-              SPEED            => 'speed',
-              CID              => 'cid',
-              UID              => 'uid',
-              FILTER_ID        => 'filter_id'
-             );
-
-
-
-  $self->changes($admin, { CHANGE_PARAM => 'UID',
-                   TABLE        => 'dv_main',
-                   FIELDS       => \%FIELDS,
-                   OLD_INFO     => $self->info($attr->{UID}),
-                   DATA         => $attr
-                  } );
-
-  return $self->{result};
-}
-
-
-
-#**********************************************************
-# Delete user info from all tables
-#
-# del(attr);
-#**********************************************************
-sub del {
-  my $self = shift;
-  my ($attr) = @_;
-
-  $self->query($db, "DELETE from dv_main WHERE uid='$self->{UID}';", 'do');
-  return $self->{result};
-}
-
-
-
 
 #**********************************************************
 # list()
@@ -187,10 +99,6 @@ sub list {
 
   return $list;
 }
-
-
-
-
 
 
 1

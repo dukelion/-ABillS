@@ -17,6 +17,6 @@ body {
 }
 
 
-.menu, .header, .button, .noprint {display:none}
+.menu .header, .button, .noprint {display:none}
 
 

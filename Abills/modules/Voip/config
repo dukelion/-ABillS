@@ -1,6 +1,3 @@
-$web_interface    = 1;
-#@useraccount_menu = ('Dialup_VPN');
-
 #Iner_ID : Main or Sub or if -1 user menu func list
 %FUNCTIONS_LIST = ("01:0:VoIP $_LIST:voip_users_list:"       => 11,
                    "02:0:VoIP:voip_user:UID"                 => 20,
@@ -15,13 +12,16 @@ $web_interface    = 1;
                    "11:6:$_ROUTES:voip_routes:"              => 5,
                    "12:7:$_ROUTES:voip_tp_routes:TP_ID"      => 5,
                    "13:7:$_USERS:voip_users_list:TP_ID"      => 5,
-                   "14:0:VoIP:null:"                         => 4,
-                   "15:14:$_ERROR:voip_error:"               => 4,
-                   "16:14:$_LAST:voip_sessions:"             => 4,
-                   "17:14:$_USED:voip_use:"                  => 4,
-                   "18:16:$_MONTH:voip_use_allmonthes:"      => 4,
-                   "19:0:VoIP:voip_online:"                  => 8,
-                   "20:19:Gatekeeper:voip_gk_console:"       => 8,
+                   "14:6:$_EXTRA_TARIFICATION:voip_extra_tarification:"=> 5,
+                   "15:6:$_EXCHANGE_RATE:voip_exchange_rate:"=> 5,
+                   "16:6:Trunks:voip_trunks:"                => 5,
+                   "20:0:VoIP:null:"                         => 4,
+                   "21:20:$_ERROR:voip_error:"               => 4,
+                   "22:20:$_LAST:voip_sessions:"             => 4,
+                   "23:20:$_USED:voip_use:"                  => 4,
+                   "24:22:$_MONTH:voip_use_allmonthes:"      => 4,
+                   "30:0:VoIP:voip_online:"                  => 6,
+                   "31:30:Gatekeeper:voip_gk_console:"       => 6,
 
                    );
 
@@ -30,25 +30,8 @@ $web_interface    = 1;
                        "03:1:$_ROUTES:voip_user_routes:"     => 0
                       );
 
-%PERIODIC = ( report  => [ 'voip_report' ]);
-
-#daily   => [ 'voip_daily_fees' ],
-#monthly => [ 'voip_monthly_fees' ],
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+%PERIODIC = (daily   => [ 'voip_daily_fees'  ],
+             monthly => [ 'voip_monthly_fees' ],
+             report  => [ 'voip_report'       ]);
 
 1

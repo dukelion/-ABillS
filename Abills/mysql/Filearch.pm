@@ -282,6 +282,12 @@ sub video_add {
  
   %DATA = $self->get_data($attr); 
 
+  if (! $DATA{COUNTRY_ID}) {
+    $self->file_country_info({ COUNTRY_NAME => $DATA{COUNTRY}, ADD => 1 }) if ($DATA{COUNTRY});
+
+    $DATA{COUNTRY_ID}=$self->{COUNTRY_ID};
+   }
+
   $self->query($db, "INSERT INTO filearch_video 
      (id,
       original_name,
@@ -297,7 +303,9 @@ sub video_add {
       file_sound,
       cover_url,
       parent,
-      extra
+      extra,
+      country,
+      pin_access
       )
      values
      ('$DATA{ID}',
@@ -314,13 +322,15 @@ sub video_add {
       '$DATA{FILE_SOUND}',
       '$DATA{COVER}',
       '$DATA{PARENT}',
-      '$DATA{EXTRA}'
+      '$DATA{EXTRA}',
+      '$DATA{COUNTRY_ID}',
+      '$DATA{PIN_ACCESS}'
      );", 'do');
 
   
 
   $self->film_genres_add({ ID => "$DATA{ID}", GENRE => $DATA{GENRES} }) if ($DATA{GENRES});
-
+  
   $self->film_actors_add( $attr );
  
 
@@ -499,12 +509,15 @@ sub video_change {
                  FILE_SOUND    => 'file_sound',
                  COVER         => 'cover_url',
                  PARENT        => 'parent',
-                 EXTRA         => 'extra'
+                 EXTRA         => 'extra',
+                 COUNTRY       => 'country',
+                 PIN_ACCESS    => 'pin_access',
+                 UPDATED       => 'updated'
                 );   
 
 
 
- 
+  $attr->{PIN_ACCESS} = (! defined($attr->{PIN_ACCESS})) ?  0 : 1;
   
   my $OLD_INFO = $self->video_info($attr->{ID}, $attr);
   
@@ -565,7 +578,10 @@ sub video_info {
          f.filename,
          f.path,
          v.parent,
-         v.extra
+         v.extra,
+         v.country,
+         v.pin_access,
+         v.updated
   FROM filearch f
    LEFT JOIN filearch_video v ON (f.id = v.id)  
    LEFT JOIN filearch_film_actors fa ON (f.id = fa.video_id)  
@@ -603,7 +619,10 @@ sub video_info {
    $self->{FILENAME},
    $self->{PATH},
    $self->{PARENT},
-   $self->{EXTRA}
+   $self->{EXTRA},
+   $self->{COUNTRY},
+   $self->{PIN_ACCESS},
+   $self->{UPDATED}
   ) = @$ar;
 
 
@@ -716,6 +735,56 @@ sub file_list() {
 #**********************************************************
 # Add
 #**********************************************************
+sub file_country_add {
+	my $self = shift;
+  my ($attr) = @_;
+
+  $self->query($db, "INSERT INTO filearch_countries (name) VALUES ('$attr->{COUNTRY_NAME}');", 'do');
+  
+  $self->{COUNTRY_ID}=$self->{INSERT_ID};
+
+  return $self;	
+}      
+
+
+#**********************************************************
+# Add
+#**********************************************************
+sub file_country_info {
+  my $self = shift;
+  my ($attr) = @_;
+
+
+
+  
+  my $WHERE = ($attr->{COUNTRY_NAME}) ? " name='$attr->{COUNTRY_NAME}' " :  "id='$attr->{ID}'" ;
+
+  $self->query($db, "SELECT id, name FROM filearch_countries 
+   WHERE $WHERE;", 'do');
+
+  if ($attr->{ADD} && $self->{TOTAL} == 0) {
+  	$self->file_country_add({ COUNTRY_NAME => $attr->{COUNTRY_NAME} });
+   }
+
+  return $self;	
+}
+
+#**********************************************************
+# list
+#**********************************************************
+sub file_country_list {
+  my $self = shift;
+  my ($attr) = @_;
+
+  $self->query($db, "SELECT id, name FROM filearch_countries");
+  
+  return $self->{list};	
+}
+
+
+#**********************************************************
+# Add
+#**********************************************************
 sub file_add {
   my $self = shift;
   my ($attr) = @_;
@@ -784,6 +853,8 @@ sub file_del {
   my $self = shift;
   my ($id) = @_;
   $self->query($db, "DELETE FROM filearch WHERE id='$id';", 'do');
+  
+  $self->video_del($id);
   return $self;
 }
 

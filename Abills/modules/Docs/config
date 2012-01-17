@@ -1,21 +1,34 @@
-$web_interface    = 1;
 #Iner_ID : Main or Sub or if -1 user menu func list
-%FUNCTIONS_LIST = ("01:-1:$_DOCS:null:UID"            => 15,
+%FUNCTIONS_LIST = ("01:-1:$_DOCS:docs_accounts_list:UID"        => 15,
                    "02:1:$_ACCOUNTS:docs_accounts_list:UID"     => 15,
-                   "03:2:$_ADD:docs_account:UID"       => 15,
-                   "05:0:$_DOCS:null:"                     => 5,
-                   "06:5:$_TEMPLATES:null:"                => 5,
-                   "10:0:$_DOCS:docs_accounts_list:"           => 6,
-                   "11:10:$_ACCOUNTS:docs_accounts_list:"      => 6,
-                   "12:10:$_INVOICE:docs_invoice_list:"       => 6
+                   "03:1:$_INVOICES:docs_invoice:UID"           => 15,
+                   "04:1:$_SETTINGS:docs_user:UID"              => 15,
+                   
+
+                   "05:0:$_DOCS:docs_acts:COMPANY_ID"           => 13,
+                   "06:5:$_ACTS:docs_acts:COMPANY_ID"           => 13,
+                   "07:5:$_TAX_INVOICE:docs_tax_invoice:COMPANY_ID" => 13,
+                   "08:5:$_ACCOUNTS:docs_accounts_list:COMPANY_ID"  => 13,
+#                  "08:7:$_ADD:docs_tax_invoice:COMPANY_ID"     => 13,
+
+                   "09:0:$_DOCS:docs_summary:"                  => 5,
+
+                   "10:0:$_DOCS:docs_accounts_list:"            => 8,
+                   "11:10:$_ACCOUNTS:docs_accounts_list:"       => 8,
+                   "12:11:$_CREATE:docs_accounts_multi_create:"       => 8,
+                   "14:10:$_INVOICE:docs_invoice_list:"         => 8,
+                   "21:0:$_DOCS:docs_reports:"                  => 4,
+                   "22:21:$_TAX_INVOICE:docs_tax_invoice_list:" => 4,
+                   "23:22:Export:docs_tax_exports:"             => 4,
+                   "24:21:$_ACTS:docs_acts_list:"               => 4,
+                   "25:21:$_ACCOUNTS:docs_accounts_list:"       => 4,
+                   "26:21:$_INVOICE:docs_invoice_list:"         => 4,
+                   
+#                   "13:10:$_CONTRACTS:docs_contractst:"        => 8
 
                    );
 
 %USER_FUNCTION_LIST = ("01:0:$_DOCS:docs_accounts_list:"            => 0
                       );
-
-#%PERIODIC = (daily   => 'dv_daily_fees',
-#             monthly => 'dv_monthly_fees');
-
 
 1

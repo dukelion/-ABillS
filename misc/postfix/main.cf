@@ -1,13 +1,18 @@
 debug_peer_level = 2
 command_directory = /usr/local/sbin
 daemon_directory = /usr/local/libexec/postfix
+#Linux
+#command_directory = /usr/sbin
+#daemon_directory = /usr/lib/postfix/
+
 #mydestination = $myhostname
+alias_maps = hash:/etc/mail/aliases
 
 disable_vrfy_command = yes
 smtpd_helo_required = yes
 
 smtpd_helo_restrictions =       permit_mynetworks, 
-#                      permit_sasl_authenticated,
+                      permit_sasl_authenticated,
                       reject_invalid_hostname, 
                       reject_unknown_hostname,
                       reject_non_fqdn_hostname
@@ -47,6 +52,8 @@ virtual_mailbox_limit_override = yes
 virtual_maildir_limit_message = Sorry, the user's maildir has overdrawn his diskspace quota, please try again later.
 virtual_overquota_bounce = yes
 
+maildrop_destination_recipient_limit=1
+
 
 readme_directory = no
 sample_directory = /usr/local/etc/postfix
@@ -61,7 +68,7 @@ mail_owner = postfix
 
 # tls config
 #smtp_use_tls = yes
-#smtpd_use_tls = yes
+#smtpd_tls_security_level = may
 #smtp_tls_note_starttls_offer = yes
 #smtpd_tls_key_file = /usr/abills/Certs/smtpd.pem
 #smtpd_tls_cert_file = /usr/abills/Certs/smtpd.pem

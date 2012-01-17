@@ -1,4 +1,3 @@
-
 $_FIRST_PERIOD='First period';
 $_FIRST_PERIOD_STEP='Step Of first period';
 $_NEXT_PERIOD='Next Period';
@@ -9,6 +8,13 @@ $_ROUTE='Route';
 $_GATEWAY='Gateway';
 $_NUMBER='Number';
 
+$_FAILOVER_TRUNK='Failover Trunk';
+$_PROTOCOL='Protocol';
+$_PROVIDER = 'Provider';
 
 $_ALLOW_ANSWER='Allow answer';
 $_ALLOW_CALLS='Allow Calls';
+$_TIME_DIVISION='Time Division';
+$_SECONDS='Seconds';
+$_ORIGIN='Origin';
+$_ANSWER='Answer';

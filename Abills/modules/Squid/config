@@ -1,7 +1,6 @@
-$web_interface    = 1;
 #Iner_ID : Main or Sub or if -1 user menu func list
 %FUNCTIONS_LIST = (
-                   "17:0:Squid:squid_monitor:"          => 8
+                   "17:0:Squid:squid_monitor:"          => 6
                    );
 
 

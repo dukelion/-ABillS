@@ -5,7 +5,7 @@
 <input type=hidden name=PARENT_ID value='%PARENT_ID%'>
 <input type=hidden name=ROUTE_ID value='$FORM{ROUTE_ID}'>
 <table width=420 cellspacing=0 cellpadding=3>
-<TR bgcolor='$_COLORS[0]'><TH colspan='2' align='right'>$_ROUTE</TH></TR>
+<TR><TH colspan='2' class='form_title'>$_ROUTE</TH></TR>
 <!-- <tr><td>$_PARENT:</td><td>%PARENT%</td></tr> -->
 <tr><td>$_PREFIX:</td><td><input type=text name=ROUTE_PREFIX value='%ROUTE_PREFIX%'></td></tr>
 <tr><td>$_NAME:</td><td><input type=text name=ROUTE_NAME value='%ROUTE_NAME%'></td></tr>

@@ -1,0 +1,66 @@
+# PayPal Payments checker
+
+
+#$debug = 5;
+require "Paypal.pm";
+my $users = Users->new($db, $admin, \%conf); 
+paypal_check_pays();
+
+
+
+#**********************************************************
+#
+#**********************************************************
+sub paypal_check_pays {
+
+print "Paypal: Check pays\n" if ($debug > 2);
+
+my $list = $Paysys->list({ STATUS => 0, 
+                           PAYMENT_SYSTEM => 66, 
+                           PAGE_ROWS => 100000,
+                           CODE      => '*' });
+foreach my $line (@$list) {
+  print "ID: $line->[0] LOGIN: $line->[1] ($line->[8]) DATE: $line->[2] SUM: $line->[3] TRANSACTION_ID: $line->[5]\n" if($debug > 0);
+  
+  $Paysys->info({ ID => $line->[0]  });
+  
+  my $resArray = CallPaymentDetails('', '', "$Paysys->{INFO}");
+
+         my $result = '';
+      	 while(my($k, $v)=each %$resArray){
+    	   	 $v =~ s/\%([A-Fa-f0-9]{2})/pack('C', hex($1))/seg;
+    		   $result .= "$k -> $v\n";
+    	    }
+       
+         if ($resArray->{status} && $resArray->{status} eq 'COMPLETED') {        
+           $Paysys->change({ ID     =>  $line->[0],
+         	                 STATUS => 2,
+         	                 INFO   => "$result" 
+         	                 });
+	         
+	         my $user = $users->info($line->[8]);
+           my $ext_id    = "$Paysys->{TRANSACTION_ID}";
+           $payments->add($user, { SUM  => $Paysys->{SUM},
+ 	                     DESCRIBE     => 'Paypal', 
+ 	                     METHOD       => ($conf{PAYSYS_PAYMENTS_METHODS} && $PAYSYS_PAYMENTS_METHODS{$payment_system_id}) ? $payment_system_id : '2', 
+                       EXT_ID       => $ext_id,
+                       CHECK_EXT_ID => $ext_id,
+                        } );
+          }
+         elsif ($resArray->{status} eq 'EXPIRED') {
+	           $Paysys->change({ ID     =>  $line->[0],
+         	                 STATUS => 4,
+         	                 INFO   => "$result" 
+         	                 });
+
+          }
+         else {
+       	   print  "_FAILED ID: $line->[0] / $line->[5] / $resArray->{status}\n";
+          } 
+
+}
+
+
+}
+
+1

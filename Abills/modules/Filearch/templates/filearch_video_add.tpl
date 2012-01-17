@@ -1,12 +1,19 @@
 <FORM action='$SELF_URL' METHOD='POST'>
 <input type='hidden' name='index' value='$index'>
 <input type='hidden' name='ID' value='$FORM{ID}'>
+<input type='hidden' name='FILENAME' value='%FILENAME%'>
+<input type='hidden' name='FILEPATH' value='%PATH%'>
+<input type='hidden' name='extdb_type' value='$FORM{extdb_type}'>
+<input type='hidden' name='COUNTRY' value='%COUNTRY%'>
+
+
 
 <TABLE width='90%' border='0'>
 <tr><td>$_NAME:</td><td><input type='text' name='NAME' value='%NAME%'></td></tr>
 <tr><td>$_ORIGIN_NAME:</td><td><input type='text' name='ORIGIN_NAME' value='%ORIGIN_NAME%'></td></tr>
 <tr><td>$_YEAR:</td><td><input type='text' name='YEAR' value='%YEAR%'></td></tr>
-<tr><td>$_GENRE:</td><td>%GENRES%</td></tr>
+<tr><td>$_COUNTRY:</td><td>%COUNTRY_SEL% %COUNTRY%</td></tr>
+<tr><td>$_GENRE:</td><td>%GENRES% %GENRE%</td></tr>
 <tr><td>$_PRODUCER:</td><td><input type='text' name='PRODUCER' value='%PRODUCER%'></td></tr>
 <tr><td>$_ACTORS:</td><td><input type='text' name='ACTORS' value='%ACTORS%'></td></tr>
 <tr bgcolor='$_COLORS[0]'><th colspan=2>:$_DESCRIBE:</th></tr>
@@ -33,6 +40,8 @@
 
 <tr bgcolor='$_COLORS[0]'><th colspan=2>$_INFO:</th></tr>
 <tr><th colspan=2>%EXT_CHECK%</th></tr>
+<tr><td>$_RENAME_FILE:</td><td><input type=checkbox name=RENAME_FILE value=1 checked></td>
+<tr><td>$_PIN_ACCESS:</td><td><input type=checkbox name=PIN_ACCESS value=1></td>
 </TABLE>
 
 <input type='submit' name='%ACTION%' value='%LNG_ACTION%'>

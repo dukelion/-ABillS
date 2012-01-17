@@ -1,0 +1,36 @@
+#Apache 22
+#---
+check process apache with pidfile /var/run/httpd.pid
+ start = "/usr/local/etc/rc.d/apache22 start"
+ stop = "/usr/local/etc/rc.d/apache22 stop"
+   if cpu > 60% for 2 cycles then alert	             # если загрузка cpu > 60% послать 
+   if cpu > 80% for 5 cycles then restart	           # если загрузка cpu > 80% послать  
+   if totalmem > 200.0 MB for 5 cycles then restart  # если юзается
+   if children > 250 then restart	                   # если число дочерних процессов > 250 
+   if 3 restarts within 5 cycles then timeout        # если 3 раза уже перезапускали 
+
+
+#Mysql /var/db/mysql/.`hostname`.pid
+#---
+check process mysql with pidfile /var/db/mysql/%HOSTNAME%.pid
+    group database
+    start program = "/usr/local/etc/rc.d/mysql-server start"
+    stop program = "/usr/local/etc/rc.d/mysql-server stop"
+    if failed unixsocket /tmp/mysql.sock then restart
+    if failed host 127.0.0.1 port 3306 protocol mysql then restart
+    if 5 restarts within 5 cycles then timeout
+
+#FreeRadius
+#---
+check process freeradius with pidfile  /var/run/radiusd/radiusd.pid
+ start = "/usr/local/etc/rc.d/radiusd start"
+# stop = "/usr/local/etc/rc.d/radiusd stop"
+  stop = "killall -9 radiusd"
+   if cpu > 60% for 2 cycles then alert	             # если загрузка cpu > 60% послать 
+   if cpu > 80% for 5 cycles then restart	           # если загрузка cpu > 80% послать  
+   if totalmem > 300.0 MB for 5 cycles then restart  # если юзается
+   if children > 50 then restart	                   # если число дочерних процессов > 250 
+   if 3 restarts within 5 cycles then timeout        # если 3 раза уже перезапускали 
+
+
+

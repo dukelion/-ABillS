@@ -1,10 +1,14 @@
 #!/usr/bin/perl -w
 #Periodic process
 
-use vars  qw(%RAD %conf @MODULES $db $html $DATE $GZIP 
-$MYSQLDUMP 
-%ADMIN_REPORT 
-$DEBUG);
+
+use vars  qw(%RAD %conf @MODULES $db $html $DATE $TIME $GZIP $TAR
+  $MYSQLDUMP
+  %ADMIN_REPORT 
+  $DEBUG
+  $users
+  $Log
+ );
 
 
 #use strict;
@@ -18,7 +22,8 @@ require "Abills/defs.conf";
 require "Abills/templates.pl";
 
 require Abills::Base;
-Abills::Base->import();
+Abills::Base->import(qw{ check_time parse_arguments in_array mk_unique_value 
+sendmail int2byte  int2ml ip2int int2ip tpl_parse });
 my $begin_time = check_time();
 
 
@@ -32,7 +37,7 @@ require Abills::HTML;
 Abills::HTML->import();
 $html = Abills::HTML->new({ CONF => \%conf });
 
-my $sql = Abills::SQL->connect($conf{dbtype}, $conf{dbhost}, $conf{dbname}, $conf{dbuser}, $conf{dbpasswd});
+my $sql = Abills::SQL->connect($conf{dbtype}, $conf{dbhost}, $conf{dbname}, $conf{dbuser}, $conf{dbpasswd}, { CHARSET => ($conf{dbcharset}) ? $conf{dbcharset} : undef });
 my $db = $sql->{db};
 my $admin = Admins->new($db, \%conf);
 $admin->info($conf{SYSTEM_ADMIN_ID}, { IP => '127.0.0.1' });
@@ -40,25 +45,35 @@ $admin->info($conf{SYSTEM_ADMIN_ID}, { IP => '127.0.0.1' });
 
 
 if ($admin->{errno}) {
-	print  $admin->{errno};
-	exit 0;
+  if($admin->{errno} == 2) {
+    print "Can't find system administrator. ID $conf{SYSTEM_ADMIN_ID}\n";
+   }
+  else {
+    print "$admin->{errno} $admin->{errstr}\n";
+   }
+  exit 0;
 }
 
-my $users = Users->new($db, $admin, \%conf); 
+$users = Users->new($db, $admin, \%conf); 
 
 require "language/$conf{default_language}.pl";
 use POSIX qw(mktime strftime);
 my $YESTERDAY = (strftime "%Y-%m-%d", localtime(time - 86400));
 
 %ADMIN_REPORT = (DATE => $DATE);
+$admin->{DATE}= $DATE;
+$admin->{TIME}= $TIME;
+
 my $args = parse_arguments(\@ARGV);
 $ADMIN_REPORT{HOSTNAME}=hostname();
 
-#print $DATE;
-
 my @daily_functions=(
+                     'credit_operation',
+                     'reduction_operation',
                      'admin_report_daily'
                      );
+
+push @daily_functions, 'debetors_group_create' if ($conf{DEBETORS_GROUP});
 
 my @monthly_functions = ('admin_report_monthly',
                          'backup',
@@ -68,8 +83,10 @@ my @reports = ();
 
 #make periodic oparation only for selected modules
 if ($args->{MODULES}) {
+	@monthly_functions = ();
 	$args->{MODULES}=~s/ //g;
 	@MODULES = split(/,/, $args->{MODULES});
+  $args->{NO_ADM_REPORT}=1;
 }
 
 #Don't process for this modules
@@ -77,16 +94,20 @@ my @SKIP_MODULES = ();
 if ($args->{SKIP_MODULES}) {
 	$args->{SKIP_MODULES}=~s/ //g;
 	@SKIP_MODULES = split(/,/, $args->{SKIP_MODULES});
+	$args->{NO_ADM_REPORT}=1;
 }
 
-
-
+my $debug = 0;
 if ($args->{DEBUG}) {
+  $debug = $args->{DEBUG} || 0;
   $DEBUG = '';
 }
 
 
 
+  if (in_array('Extfin', \@SKIP_MODULES)) {
+  	@MODULES = ('Extfin', @MODULES);
+   }
 
   foreach my $m (@MODULES) {
     next if(in_array($m, \@SKIP_MODULES));
@@ -95,6 +116,7 @@ if ($args->{DEBUG}) {
     my $i=0;
     while(my($k, $v)= each %PERIODIC) {
       if ($k eq 'daily') {
+        
         foreach my $funtion_name (@{ $PERIODIC{$k} })  {
           push @daily_functions, $funtion_name;
          }
@@ -131,22 +153,24 @@ if ($args->{DEBUG}) {
  	   require "Abills/modules/$m/webinterface";
     }
    undef %PERIODIC;
+   push @SKIP_MODULES, $m;
   }
 
-push  @daily_functions, 'sheduler';
+push  @daily_functions, 'sheduler' if ($args->{SHEDULE} || ! $args->{MODULES});
 my($Y, $M, $D);
 
-
+  #Make date asign function
   if(defined($args->{DATE})) {
      if ($args->{DATE} !~ /\d{4}\-\d{2}\-\d{2}/) {
        print "Wrong date format. Format: YYYY-MM-DD\n";
        exit;
       }
-     ($Y, $M, $D)=split(/-/, $args->{DATE}, 3);
+     ($Y, $M, $D)=split(/-/, $args->{DATE}) ;
      $YESTERDAY = (strftime '%Y-%m-%d', localtime(POSIX::mktime( 0, 10, 1, $D, ($M-1), ($Y-1900)) - 86400));
 
      #$YESTERDAY=$args->{DATE};
      $ADMIN_REPORT{DATE} = $args->{DATE};
+     $admin->{DATE}=$args->{DATE};
    }
   
   if (defined($args->{NO_USERS_WARNINGS})) {
@@ -154,14 +178,17 @@ my($Y, $M, $D);
    }
 
   ($Y, $M, $D)=split(/-/, $ADMIN_REPORT{DATE}, 3);
- 
+
+$ADMIN_REPORT{YESTERDAY}=$YESTERDAY;
  
 if (defined($args->{monthly})) {
   for(my $i=$#monthly_functions; $i>-1; $i--) {
   	my $f = $monthly_functions[$i];
   	#$DEBUG .= 
   	print "==> FUNCTION: ". $f ."\n" if ($args->{DEBUG} && $args->{DEBUG} > 4);
-  	$f->({ DEBUG => $args->{DEBUG} });
+  	
+  	$f->({ %$args, 
+  		     %ADMIN_REPORT });
   }
 
   if ($begin_time > 0)  {
@@ -171,16 +198,18 @@ if (defined($args->{monthly})) {
     $ADMIN_REPORT{GT} = sprintf(" GT: %2.5f", $gen_time);
    }
   if (! $args->{NO_ADM_REPORT}) {
-    my $message = $html->tpl_show(templates('admin_report_month'), \%ADMIN_REPORT, { notprint => 'yes' });
+    my $message = $html->tpl_show(templates('admin_report_month'), \%ADMIN_REPORT, { notprint => 1 });
     sendmail("$conf{ADMIN_MAIL}", "$conf{ADMIN_MAIL}", "$ADMIN_REPORT{HOSTNAME}: Monthly billing report", 
               "$message", "$conf{MAIL_CHARSET}", "2 (High)");
    }
  }
 elsif (defined($args->{daily})) {
   for(my $i=$#daily_functions; $i>-1; $i--) {
+    
     my $f = $daily_functions[$i];
     $DEBUG .= "==> FUNCTION: ". $f ."\n" if ($args->{DEBUG} && $args->{DEBUG} > 4);
-    $f->({ %$args });
+    $f->({ %$args, 
+  		     %ADMIN_REPORT });
    }
 
   if ($begin_time > 0)  {
@@ -191,7 +220,7 @@ elsif (defined($args->{daily})) {
   }
 
   if (! $args->{NO_ADM_REPORT}) {
-    my $message = $html->tpl_show(templates('admin_report_day'), \%ADMIN_REPORT, { notprint => 'yes' });
+    my $message = $html->tpl_show(templates('admin_report_day'), \%ADMIN_REPORT, { notprint => 1 });
     sendmail("$conf{ADMIN_MAIL}", "$conf{ADMIN_MAIL}", "$ADMIN_REPORT{HOSTNAME}: Daily billing report ($YESTERDAY)", 
              "$message", "$conf{MAIL_CHARSET}", "2 (High)");
    }
@@ -207,6 +236,8 @@ else {
    MODULES=[modules_list,...] - Make periodic process only for this modules
    SKIP_MODULES=[modules_list]- Skip this module in periodic proccess
    NO_ADM_REPORT              - Don't send report to admin via e-mail
+   SHEDULE                    - Make Shedule
+   LOGIN                      - Periodic action for some login
    DEBUG                      - Show debug output\n";
  exit;
 }
@@ -221,12 +252,15 @@ if ($args->{DEBUG}) {
 # sheduler()
 #**********************************************************
 sub sheduler {
-	
-	
-my %shedule_type = ('tp'      => $_TARIF_PLAN, 
-                    'fees'    => $_FEES,
-                    'message' => $_MESSAGES
- );
+
+#my %shedule_type = ('tp'      => $_TARIF_PLAN, 
+#                    'fees'    => $_FEES,
+#                    'message' => $_MESSAGES,
+#                    'status'  => $_STATUS,
+#                    'sql'     => 'SQL'
+# );
+
+$DEBUG .= "Shedule\n" if ($debug > 1);
 
 #Change tp
  require Shedule;
@@ -238,36 +272,87 @@ my %shedule_type = ('tp'      => $_TARIF_PLAN,
  my $fees = Fees->new($db, $admin, \%conf);
 
 
- my $list = $shedule->list({ Y => $Y,
- 	                           M => $M,
- 	                           D => $D, 
- 	                           PAGE_ROWS => 100000 });
+ my $list = $shedule->list({ Y => "$Y,\\*",
+ 	                           M => "$M,\\*",
+ 	                           D => "$D,\\*", 
+ 	                           PAGE_ROWS => 100000 
+ 	                         });
 
- $ADMIN_REPORT{SHEDULE}=sprintf("%-14s| %-12s| %-8s| %-14s|%-14s|\n", "$_LOGIN", "$_MODULES", "$_TYPE", "$_VALUE", "$_ADMIN");
+ $ADMIN_REPORT{SHEDULE}=sprintf("%-14s| %-12s| %-8s| %-20s|%-14s|\n", "$_LOGIN", "$_MODULES", "$_TYPE", "$_VALUE", "$_ADMIN");
  $ADMIN_REPORT{SHEDULE}.= "---------------------------------------------------------\n";
  foreach my $line (@$list) {
-   if ($line->[6] eq 'fees') {
-    	 my $user = $users->info( $line->[12] );
-    	 my ($sum, $descr) = split(/:/, $line->[7], 2);
-    	 #my $module = $line->[8];
-    	 $fees->take($user, $sum, { DESCRIBE => "$_SHEDULE: $descr" } );  
-     }
+ 	 my $ret    = 0;
+ 	 my $error_text = '';
+ 	 my $count  = $line->[4] || 0;
+ 	 my $login  = $line->[5] || '-';
+ 	 my $type   = $line->[6];
+ 	 my $action = $line->[7];
+ 	 my $shedule_id = $line->[14];
+ 	 
+	 if ($debug > 0) {
+ 	 	 print "Shedule $type:  $action\n";
+	  }
+ 	 
+   if ($type eq 'fees') {
+   	 my $user = $users->info( $line->[13] );
+   	 my ($sum, $descr, $bill_id) = split(/:/,  $action);
+   	 if ($bill_id) {
+   	 	 if($bill_id =~ /(\S+)=(\S+)/) {
+   	 	  	$bill_id=$2;
+   	 	  }
+   	 	 $user->{BILL_ID}=$bill_id;  
+   	  }
+   	 
+   	 $fees->take($user, $sum, { DESCRIBE => "$_SHEDULE: $descr" } );
+      if ($fees->{errno}) {
+       	$error_text .= "Error: [ $user->{UID} ] $user->{LOGIN} SUM: $sum [$fees->{errno}] $fees->{errstr}";
+       	if ($fees->{errno} == 14 ) {
+   	 	    $error_text .= "  - Don't have money account";
+   	 	    $ret = 2;
+ 	       }
+        $error_text .= "\n";
+       }
+   	  else {
+   	    $ret = 1;
+   	   }
+    }
+   elsif ($type eq 'sql') {
+   	 $action =~ s/\n//g;
+   	 my @sqls = split(/;/, $action);
+   	 $ret = 1;
+   	 foreach my $sql  (@sqls) {
+   	 	 $admin->query($db, "$sql", 'do');
+   	 	 if ($admin->{errno}) {
+   	 	 	 $ret = 2;
+   	 	 	 $error_text = $admin->{errstr}
+   	 	  }
+   	  }
+    }
    #Required modules
-   elsif ($line->[8] ne '') {
-    	 my $function = lc  $line->[8] . "_sheduler";
-    	 $function->($line->[6], "$line->[7]", $line->[12]);
-     }
- 	 $shedule->del({ ID => $line->[13] });
+   elsif ($type ne '') {
+     my $function = lc  $line->[8] . "_sheduler";
+     $ret = $function->($line->[6], "$action", $line->[13]);
+    }
 
-	  $ADMIN_REPORT{SHEDULE}.=sprintf("%-14s| %-12s| %-8s| %-14s|\n", 
-	    $line->[5], $line->[8], $line->[6], $line->[7], $line->[9]);
+   my $text = sprintf("%-14s| %-12s| %-8s| %-20s| %-14s|", 
+	    $login, $line->[8], $type, $action, $line->[9]);
+
+   if ($ret > 1) {
+     $text .= ($err_strs{$ret}) ? $err_strs{$ret} : 'Error: '. $ret. ' ' .$error_text;
+    }
+
+   if ($count <= 1) {
+	   $shedule->del({ ID => $shedule_id, RESULT => $ret . $error_text });
+	  }
+   else {
+   	 $shedule->change({ SHEDULE_ID => $shedule_id, COUNTS => $count-1, RESULT=> $ret.$error_text });
+    }
+
+   $DEBUG .= $text ."\n" if ($debug > 1);
+   $ADMIN_REPORT{SHEDULE}.=$text ."\n";
   } 
 
 }
-
-
-
-
 
 
 
@@ -276,53 +361,31 @@ my %shedule_type = ('tp'      => $_TARIF_PLAN,
 # admin_report_daily
 #**********************************************************
 sub admin_report_daily {
-
-
-
-##closed users account
-#$ADMIN_REPORT{CLOSED} = sprintf ("%-14s| %4s|%-20s| %9s| %8s| %19s|\n", $_LOGIN, 'V', 
-#     $_NAME, $_DEPOSIT, $_CREDIT, $_LAST_LOGIN);
-#$ADMIN_REPORT{CLOSED}.= "---------------------------------------------------------\n";
-#my %LIST_PARAMS = ( DISABLE => 'y' ) ;
-#$LIST_PARAMS{PAGE_ROWS}=10000;
-#
-#my $list = $users->list( { %LIST_PARAMS } );
-#foreach my $line (@$list) {
-#   $ADMIN_REPORT{CLOSED} .= sprintf ("%-14s| %4d|%-20s| %9.4f| %8.2f| %19s|\n", 
-#     $line->[0], 
-#     $line->[9], 
-#     $line->[4], 
-#     $line->[2], 
-#     $line->[3], 
-#     $line->[10]);
-#}
-#$ADMIN_REPORT{CLOSED} .= "---------------------------------------------------------\n$_TOTAL: $users->{TOTAL}\n";
-
-
 #Payments
 require Finance;
 Finance->import();
 my $payments = Finance->payments($db, $admin, \%conf); 
 
-$ADMIN_REPORT{PAYMENTS}  =  sprintf("%-14s| %8s| %20s| %12s| %15s| %19s|\n", $_LOGIN, $_SUM, 
-    $_DESCRIBE, 'Admins.', 'IP', $_DATE);
+$ADMIN_REPORT{PAYMENTS}  =  sprintf("%-14s|%-28s| %20s| %8s| %12s| %15s| %19s|\n", $_LOGIN, "$_FIO", $_DESCRIBE, $_SUM, 'Admins.', 'IP', $_DATE);
 $ADMIN_REPORT{PAYMENTS} .= "---------------------------------------------------------\n";
 
 $LIST_PARAMS{DATE}=$YESTERDAY;
 $LIST_PARAMS{SORT}=2;
 $LIST_PARAMS{DESC}='DESC';
-$LIST_PARAMS{PAGE_ROWS}=10000;
+$LIST_PARAMS{PAGE_ROWS}=1000000;
 
-$list = $payments->list( { %LIST_PARAMS } );
+$list = $payments->list({ %LIST_PARAMS, FIO => '*' });
 
 foreach my $line (@$list) {
-   $ADMIN_REPORT{PAYMENTS} .= sprintf ("%-14s| %8.4f| %20s| %12s| %15s| %19s|\n", 
-    "$line->[1]", 
-    "$line->[3]", 
-    "$line->[4]", 
-    "$line->[5]", 
-    "$line->[6]", 
-    "$line->[2]");
+  $ADMIN_REPORT{PAYMENTS} .= sprintf("%-14s|%-28s| %20s| %8.4f| %12s| %15s| %19s|\n", 
+    $line->[1], 
+    $line->[2],
+    $line->[4], 
+    $line->[5], 
+    $line->[6], 
+    $line->[7], 
+    $line->[3]
+    );
 }
 
 $ADMIN_REPORT{PAYMENTS} .= "---------------------------------------------------------\n";
@@ -335,23 +398,23 @@ $ADMIN_REPORT{PAYMENTS} .= sprintf("%-14s| %8s|\n%-14s| %8s|\n",
 #Fees
 my $fees = Finance->fees($db, $admin, \%conf);
 
-
-# Daily fees
-$ADMIN_REPORT{FEES} .= sprintf ("%-14s| %8s| %20s| %12s| %15s| %8s\n", $_LOGIN, $_SUM, $_DESCRIBE, $_ADMINS, 'IP', $_DEPOSIT);
+# Daily fees report
+$ADMIN_REPORT{FEES} .= sprintf ("%-14s|%-28s| %8s| %20s| %12s| %15s| %8s\n", $_LOGIN, $_FIO, $_DESCRIBE, $_SUM, $_TYPE, $_ADMINS, 'IP', $_DEPOSIT);
 $ADMIN_REPORT{FEES} .= "---------------------------------------------------------\n";
 
-$LIST_PARAMS{PAGE_ROWS}=10000;
-$list = $fees->list( { %LIST_PARAMS } );
+
+$list = $fees->list( { %LIST_PARAMS, FIO => '*' } );
 foreach my $line (@$list) {
-#SELECT f.id, u.id, f.date, f.sum, f.dsc, a.name, INET_NTOA(f.ip), f.last_deposit, f.uid 
-  $ADMIN_REPORT{FEES} .= sprintf ("%-14s| %8.4f| %20s| %12s| %15s| %8.4f\n", 
-    $line->[1], 
-    $line->[3], 
-    $line->[4], 
+
+  $ADMIN_REPORT{FEES} .= sprintf ("%-14s|%-28s| %20s| %8.4f| %12s | %12s| %15s| %8.4f\n", 
+    ($line->[1]) ? $line->[1] : "!Unknown", 
+    ($line->[2]) ? $line->[2] : "", 
+    $line->[4],
     $line->[5], 
-    $line->[6],
+    $line->[6], 
+    $line->[9], 
+    $line->[10],
     $line->[7]);
-    
 }
 
 $ADMIN_REPORT{FEES} .= "---------------------------------------------------------\n";
@@ -364,8 +427,6 @@ $ADMIN_REPORT{FEES} .= sprintf("%-14s| %8s|\n%-14s| %8s|\n",
 foreach my $function (@reports) {
 	$ADMIN_REPORT{MODULES} .= $function->('daily', { LIST_PARAMS => \%LIST_PARAMS });
 }
-
-
 
 }
 
@@ -445,24 +506,31 @@ sub logrotate {
   # abills.log rotate
   #my ($Y, $M, $D)=split(/:/, $DATE, 3);
   my $rotate_level = 5;
+  
   if ($D == 1) {
      my $logfile = "$conf{LOGFILE}";
      my $cmd = '';
-
      for (my $i = 5; $i>0; $i--) {
        if ( -f $logfile.'.'. ($i-1) .'.gz') {
          $cmd = 'mv '. $logfile .'.'. ($i-1) .'.gz '. $logfile .'.'. $i .'.gz';
-         $DEBUG .= $cmd ."\n" if ($args->{DEBUG} && $args->{DEBUG} > 3);
-         #my $a = `$cmd`;
+         $DEBUG .= $cmd ."\n" if ($debug > 3);
+         my $a = `$cmd`;
         }
       }
 
-     $cmd = 'gzip -c '. $logfile. ' > '. $logfile . '.1.gz && >'. $logfile ;
-     $DEBUG .= $cmd."\n" if ($args->{DEBUG} && $args->{DEBUG} > 3);
+     $cmd = '$GZIP -c '. $logfile. ' > '. $logfile . '.1.gz && >'. $logfile ;
+     $DEBUG .= $cmd."\n" if ($debug > 3);
      my $r = `$cmd`;
    }
+
+#Bruteforce clear
+  $users->bruteforce_del({ DATE => $DATE });
+	$DEBUG .= "Brute force log cleaned\n" if ( $debug > 1);
 	
-	
+	 # Clean old backups
+   my $r = `find $conf{BACKUP_DIR} -type f -mtime +30 -delete`;
+ 
+   $DEBUG .= "Clean mysql old backups\n" if ( $debug > 1);
 }
 
 
@@ -474,9 +542,282 @@ sub backup {
  if(in_array('backup', \@SKIP_MODULES)) {
     return 0;
   }
+ elsif ($conf{nobackup}) {
+ 	 return 0;
+  }
 
- #print "$MYSQLDUMP --host=$conf{dbhost} --user=\"$conf{dbuser}\" --password=\"$conf{dbpasswd}\" $conf{dbname} | $GZIP > $conf{BACKUP_DIR}/stats-$DATE.sql.gz";
- my $res = `$MYSQLDUMP -v --host=$conf{dbhost} --user="$conf{dbuser}" --password="$conf{dbpasswd}" $conf{dbname} | $GZIP > $conf{BACKUP_DIR}/stats-$DATE.sql.gz`;
- #print $res;
- #my $message .= "Backup created: $res ($conf{BACKUP_DIR}/stats-$DATE.sql.gz)";
+ $admin->query($db, "SHOW TABLE STATUS");
+ my @ignore_tables_arr = ("--ignore-table=\"$conf{dbname}.ipn_traf_detail\"",
+                          "--ignore-table=\"$conf{dbname}.s_detail\"",
+                          "--ignore-table=\"$conf{dbname}.ipn_log_backup\"",
+                          "--ignore-table=\"$conf{dbname}.ipn_unknow_ips\"",
+                          "--ignore-table=\"$conf{dbname}.errors_log\"",
+                          "--ignore-table=\"$conf{dbname}.dhcphosts_log\""
+                           );
+
+ my @tables = ();
+ foreach my $table (@{ $admin->{list} }) {
+    if ($table->[0] =~ /_\d{4}_\d{2}_\d{2}$/){
+      if ($table->[1] eq 'MyISAM') {
+        push @tables, $table->[0];
+       }
+      if ($table->[0] =~ /^ipn_traf_detail|^s_detail|^errors_log/) {
+        push @ignore_tables_arr, " --ignore-table=\"$conf{dbname}.$table->[0]\"";
+       }
+     }
+  } 
+
+ my $ignore_tables = join(' ', @ignore_tables_arr);
+
+ $DEBUG .= "DB backup\n" if ($debug > 1);
+ $conf{dbcharset}='latin1' if (!$conf{dbcharset});
+ my $cmd = qq{ ( $MYSQLDUMP --default-character-set=$conf{dbcharset} -d --host=$conf{dbhost} --user="$conf{dbuser}" --password="$conf{dbpasswd}" $conf{dbname} ;$MYSQLDUMP --skip-triggers --no-create-info --default-character-set=$conf{dbcharset} -v $ignore_tables --host=$conf{dbhost} --user="$conf{dbuser}" --password="$conf{dbpasswd}" $conf{dbname}) | $GZIP > $conf{BACKUP_DIR}/stats-$DATE.sql.gz };
+  
+ $DEBUG .= $cmd."\n" if ($debug > 1);
+ if ($debug < 5) {
+   my $res = `$cmd`;
+   $DEBUG .= "Backup created: $res ($conf{BACKUP_DIR}/stats-$DATE.sql.gz)" if ($debug > 1);
+  }
+
+ return if ($D > 1) ;
+ #Move rotate tables
+ $DEBUG .= "Move rotate tables" if ($debug > 1);
+ $admin->query($db, "SHOW variables");
+ my %vars = ();
+ foreach my $var (@{ $admin->{list} }) {
+    $vars{$var->[0]}=$var->[1];
+  }
+
+ if ($#tables > -1) {
+   if (! -d "$conf{BACKUP_DIR}/$DATE") {
+     if(! mkdir ("$conf{BACKUP_DIR}/$DATE")) {
+   	   print "Can't Create file rotate backup dir '$conf{BACKUP_DIR}/$DATE' $!\n";
+      }
+    }
+
+   foreach my $table (@tables) {
+   	my $cmd = qq{ $TAR -c -f - $vars{datadir}/$conf{dbname}/$table.* | $GZIP  > $conf{BACKUP_DIR}/$DATE/$table.gz };
+    my $res = '';
+    if ($debug < 5) {
+      $res = `$cmd`;
+      $admin->query($db, "DROP TABLE $table;", 'do');
+     }
+
+    $DEBUG .= $vars{datadir}."/$conf{dbname}/$table.* -> $conf{BACKUP_DIR}/$DATE/$table".".gz ($res)\n" if ($debug > 2);
+    $DEBUG .= "$cmd\n" if ($debug > 4);
+   } 
+  }
+
+  return;
 }
+
+#*******************************************************************
+# Reset credit
+# 
+#*******************************************************************
+sub credit_operation {
+	$DEBUG .= "Reset Credit\n" if ($debug > 1);
+
+  # For users
+  $conf{MAX_STABLE_CREDIT}=0 if (! $conf{MAX_STABLE_CREDIT});
+
+  my $list = $users->list({
+                           CREDIT_DATE  => ">0000-00-00,<=$ADMIN_REPORT{DATE}",
+                           CREDIT       => ">$conf{MAX_STABLE_CREDIT}",
+  	                       PAGE_ROWS    => 1000000,
+  	                      });
+
+  foreach my $line (@$list) {
+  	$DEBUG .= "$line->[0] (". $line->[5 +  $users->{SEARCH_FIELDS_COUNT}] .") DEPOSIT: $line->[2] CREDIT: $line->[3] CREDIT_DATE: ". $line->[4+$users->{SEARCH_FIELDS_COUNT}] ."\n" if ($debug > 0);
+
+    if ($debug < 5) {
+    	$users->change($line->[5 + $users->{SEARCH_FIELDS_COUNT}], { CREDIT      => $conf{MAX_STABLE_CREDIT} ,
+    		                           CREDIT_DATE => '0000-00-00',
+    		                           DISABLE     => $line->[4] || 0,
+    		                           UID         => $line->[5 + $users->{SEARCH_FIELDS_COUNT}]
+    		                           });
+     }
+  }
+
+ #For company
+ require Customers;
+ Customers->import();
+
+ my $customer = Customers->new($db, $admin, \%conf);
+ my $Company = $customer->company();
+
+ $list = $Company->list({  
+                           CREDIT_DATE  => "$ADMIN_REPORT{DATE}",
+                           CREDIT       => ">$conf{MAX_STABLE_CREDIT}",
+  	                       PAGE_ROWS    => 1000000
+  	                      });
+
+  foreach my $line (@$list) {
+  	$DEBUG .= "$line->[0] (". $line->[5] .") DEPOSIT: $line->[1] CREDIT: $line->[8] CREDIT_DATE: $line->[9]\n" if ($debug > 0);
+
+    if ($debug < 5) {
+    	$Company->change({ CREDIT      => $conf{MAX_STABLE_CREDIT},
+    		                 COMPANY_ID  => $line->[5],
+    		                 CREDIT_DATE => '0000-00-00',
+                      });
+     }
+  }
+ return 0;
+}
+
+
+#*******************************************************************
+# Reset reduction
+# 
+#*******************************************************************
+sub reduction_operation {
+	$DEBUG .= "Reset reduction\n" if ($debug > 1);
+
+  # For users
+  my $list = $users->list({  
+                           REDUCTION_DATE  => ">0000-00-00,<=$ADMIN_REPORT{DATE}",
+                           REDUCTION       => ">0",
+  	                       PAGE_ROWS    => 1000000,
+  	                      });
+
+  foreach my $line (@$list) {
+  	$DEBUG .= "$line->[0] (". $line->[5 +  $users->{SEARCH_FIELDS_COUNT}] .") DEPOSIT: $line->[2] CREDIT: $line->[3] CREDIT_DATE: ". $line->[4+$users->{SEARCH_FIELDS_COUNT}] ."\n" if ($debug > 0);
+    if ($debug < 5) {
+    	$users->change($line->[5 + $users->{SEARCH_FIELDS_COUNT}], { REDUCTION      => '0.00',
+    		                           REDUCTION_DATE => '0000-00-00',
+    		                           DISABLE     => $line->[4] || 0,
+    		                           UID         => $line->[5 + $users->{SEARCH_FIELDS_COUNT}]
+    		                           });
+     }
+  }
+
+ return 0;
+}
+#*******************************************************************
+# Create debeters group
+# debeters_group_create()
+#*******************************************************************
+sub debetors_group_create {
+
+  return 0 if (! $conf{DEBETORS_GROUP});
+  $conf{DEBETORS_GROUP} =~ s/\n//g;
+
+
+  my @DEBETORS_GROUP = split(/,/, $conf{DEBETORS_GROUP});  
+  my %DEBETORS_GIDS = ();
+  my %USERS_GIDS = ();
+
+  foreach my $line (sort @DEBETORS_GROUP) {
+    # DEBETOR_GROUP_ID:DEPOSIT:LAST_PAYNMENT_DAYS:USER_GID
+    my ($GID, $DEPOSIT, $LAST_PAYMENTS_DAYS, $USER_GID, $LAST_FEES_DAYS) = split(/:/, $line);  
+    $USER_GID = -1 if (! defined($USER_GID) || $USER_GID eq '');
+    $DEBETORS_GIDS{$GID}="$USER_GID";
+    $LAST_FEES_DAYS = '' if (! defined($LAST_FEES_DAYS));
+    $USERS_GIDS{$USER_GID}="$GID:$DEPOSIT:$LAST_PAYMENTS_DAYS:$LAST_FEES_DAYS";
+   } 
+  
+  #Add to debetors group  
+  $DEBUG .= "Add to debetors group\n" if ($debug > 1);
+
+foreach my $USER_GID (sort { $b <=> $a } keys %USERS_GIDS) {
+	my $val = $USERS_GIDS{$USER_GID};
+  my ($GID, $DEPOSIT, $LAST_PAYMENTS_DAYS, $LAST_FEES_DAYS) = split(/:/, $val);
+  $users->group_info($GID);
+  if ($users->{TOTAL} < 1) {
+      print "DEBETORS Group [$GID] not Exist. Create it\n";
+      $users->group_add({ GID        => $GID,
+ 	                        G_NAME     => "$_DEBETORS $_GROUP $USER_GID", 
+ 	                        G_DESCRIBE => "$_DEBETORS $_GROUP $USER_GID" 
+    	                    });
+
+    }
+
+  %LIST_PARAMS = ();
+  if ($LAST_FEES_DAYS && $LAST_FEES_DAYS > 0) {
+  	$LIST_PARAMS{FEES_DAYS}="<$LAST_FEES_DAYS";
+   } 
+  else {
+  	$LIST_PARAMS{PAYMENT_DAYS}="<$LAST_PAYMENTS_DAYS";
+   }
+  
+  my $list = $users->list({  
+                           GID          => ($USER_GID == -1 && $#DEBETORS_GROUP == 0) ? "!$GID" : $USER_GID,
+  	                       DEPOSIT      => "<=$DEPOSIT",
+                           COMMENTS     => '*',               
+  	                       PAGE_ROWS    => 100000,
+  	                       %LIST_PARAMS,
+  	                      });
+  my %EXIST_GROUPS = ();
+  
+  if ($users->{errno}) {
+  	print "ERROR: $users->{errno} $users->{errstr} \n";
+  	exit;
+   }
+
+  foreach my $line (@$list) {
+    my $uid           = $line->[5 + $users->{SEARCH_FIELDS_COUNT}];
+    my $gid           = $line->[10 + $users->{SEARCH_FIELDS_COUNT}];
+    my $last_payments = $line->[4 + $users->{SEARCH_FIELDS_COUNT}];
+  	$DEBUG .= "$line->[0] ($uid) DEPOSIT: $line->[2] CREDIT: $line->[3] LAST_PAYMENT: $last_payments GID: $gid -> $GID\n" if ($debug > 0);
+
+    my $comments = "$line->[6]";
+    if ($debug < 5) {
+  	  #Check group if not exist create it  	  
+    	$users->change($uid, { GID     => $GID,
+    		                     UID     => $uid,
+    		                     DISABLE => $line->[4]
+    		               });
+
+      $users->pi_change({
+      	                 UID      => $uid,
+      	                 COMMENTS => "$comments $_GROUP $_DEBETORS: $DATE $TIME",
+      	                 SKIP_INFO_FIELDS  => 1
+      	               });
+     } 
+   }
+}
+
+
+#Flush from debetors group
+$DEBUG .= "Delete from debetors Group\n" if ($debug > 1) ;
+foreach my $DEBETOR_GID (sort { $b <=> $a } keys %DEBETORS_GIDS) {
+
+	my $val = $USERS_GIDS{$DEBETORS_GIDS{$DEBETOR_GID}};
+  my ($GID, $DEPOSIT, $LAST_PAYMENTS_DAYS) = split(/:/, $val);
+  $list = $users->list({  
+                        GID          => $DEBETOR_GID,
+  	                    DEPOSIT      => ">$DEPOSIT",
+  	                    COMMENTS     => "*$_DEBETORS:*",
+  	                    PAYMENT_DAYS => ">$LAST_PAYMENTS_DAYS",
+  	                    PAGE_ROWS    => 100000
+  	                   });
+
+
+
+
+  foreach my $line (@$list) {
+    my $uid           = $line->[5  + $users->{SEARCH_FIELDS_COUNT}];
+    my $gid           = $line->[10 + $users->{SEARCH_FIELDS_COUNT}];
+    my $last_payments = $line->[4  + $users->{SEARCH_FIELDS_COUNT}];
+
+  	$DEBUG .= "$line->[0] ($uid) DEPOSIT: $line->[2] CREDIT: $line->[3] LAST_PAYMENT: $last_payments GID: $gid -> $DEBETORS_GIDS{$DEBETOR_GID}\n" if ($debug > 0);
+
+  	my $comments = $line->[2  + $users->{SEARCH_FIELDS_COUNT}];
+  	$comments =~ s/$_GROUP $_DEBETORS: \d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}//gi;
+    if ($debug < 5) {
+    	$users->change($uid, { GID => $DEBETORS_GIDS{$DEBETOR_GID},
+    		                     UID => $uid 
+    		                    });
+ 
+      $users->pi_change({ 
+      	         UID      => $uid,
+      	         COMMENTS => "$comments", 
+      	         SKIP_INFO_FIELDS  => 1
+      	         });
+     } 
+   }
+}
+
+  return 0;
+}
+

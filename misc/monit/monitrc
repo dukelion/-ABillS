@@ -1,0 +1,94 @@
+###############################################################################
+## √лобальна€ секци€
+###############################################################################
+##
+## «апустить monit как депон и провер€ть процесс с интервалом в 2 минуты
+#
+set daemon  120
+#
+#
+## »спользовать syslog регистрирующий со средством 'демона'. ≈сли опци€
+# FACILITY будет опущенным, то monit будет использовать 'пользовательское'
+# средство по умолчанию. ¬ы можете определить 
+## путь к файлу дл€ monit.
+
+#
+set logfile syslog facility log_daemon 
+#
+#
+## —писок mailservers дл€ доставки оповещени€. ¬озможно, указать порт mailserver. ѕо 
+## умолчанию это 25 порт
+#
+set mailserver localhost,         # primary mailserver
+#     backup.bar.baz port 10025,  # backup mailserver on port 10025
+#     localhost                   # fallback relay
+#
+#
+## ≈сть возможность сохранить оповещение, если вдруг не один из
+# mailservers будет не доступен.
+## “ак есть возможность установить лимит дискового пространства,
+# дл€ предотвращени€ его переполнени€
+#
+set eventqueue
+    basedir /var/log/monit     # путь к каталогу, где будут хранитьс€ оповещени€
+    slots 100                  # лимит 
+#
+#
+## ‘ормат письма по умолчанию
+##
+## --8<--
+## From: monit@$HOST                         # отправитель
+## Subject: monit alert --  $EVENT $SERVICE  # тема
+##
+## $EVENT Service $SERVICE                   #
+##                                           #
+##      Date:        $DATE                   #
+##      Action:      $ACTION                 #
+##      Host:        $HOST                   # body
+##      Description: $DESCRIPTION            #
+##                                           #
+## Your faithful employee,                   #
+## monit                                     #
+## --8<--
+##
+## ¬ы можете самосто€тельно задать формат письма, использу€ макроопределени€.
+## Ќапример, дл€ изменени€ отправител€:
+#
+set mail-format { from: system-alert@isea.ru }
+#
+#
+## ¬ы можете задать получател€ оповещени€. ќповещени€ могут быть 
+## ограничен использу€ список. (похоже что дл€ каждого событи€ можно
+# задать определенный мыл)
+#
+set alert %ADMIN_MAIL%                       # все оповещени€
+# set alert manager@foo.bar only on { timeout }  # получатель оповещени€
+#                                                # при timeout 
+
+set httpd port %MONIT_WWW_PORT% and
+   use address %MONIT_WWW_HOST%  # задаем хост 
+   allow %MONIT_WWW_ALLOW_HOST%  # разрешаем, откуда можно подсоедин€тьс€
+   allow %MONIT_WWW_ADMIN%:%MONIT_WWW_PASSWD%  # задаем логин 'admin' и пароль 'monit'
+
+
+###############################################################################
+## ќбслуживание
+###############################################################################
+#
+# «десь задаютс€ отдельные правила дл€ управлени€ ресурсами.
+#  аждое правило определ€ет провер€емый ресурс и выполн€емые действи€
+# 
+
+check system %HOSTNAME%
+    if loadavg (1min) > 4 then alert
+    if loadavg (5min) > 2 then alert
+    if memory usage > 75% then alert
+    if cpu usage (user) > 70% then alert
+    if cpu usage (system) > 30% then alert
+    if cpu usage (wait) > 20% then alert
+  
+ 
+
+include /usr/local/etc/monit/*
+
+

@@ -1,5 +1,5 @@
 package Mdelivery;
-# Users manage functions
+# Mail delivery functions
 #
 
 use strict;
@@ -26,11 +26,11 @@ my $uid;
 sub new {
   my $class = shift;
   ($db, $admin, $CONF) = @_;
-  
+
+  $admin->{MODULE}='Mdelivery';  
   my $self = { };
   bless($self, $class);
   
-  #$self->{debug}=1;
   return $self;
 }
 
@@ -90,8 +90,6 @@ sub info {
      return $self;
    }
 
-  my $ar = $self->{list}->[0];
-
   ($self->{ID},
    $self->{DATE},
    $self->{SUBJECT},
@@ -102,7 +100,7 @@ sub info {
    $self->{PRIORITY},
    $self->{USER}, 
    $self->{GROUP}
- )= @$ar;
+ )= @{ $self->{list}->[0] };
   
   
   return $self;
@@ -117,9 +115,8 @@ sub change {
   my $self = shift;
   my ($attr) = @_;
 
-  $self->query($db, "UPDATE mdelivery_list SET STATUS=1
-     WHERE id='$attr->{ID}';");
-  
+  $self->query($db, "UPDATE mdelivery_list SET status=1 WHERE id='$attr->{ID}';", 'do');
+
   return $self;
 }
 
@@ -135,8 +132,11 @@ sub del {
   my ($id) = @_;
 
   $self->query($db, "DELETE from mdelivery_list WHERE id='$id';", 'do');
+  $self->user_list_del({ MDELIVERY_ID => $id });
 
-#  $admin->action_add($self->{UID}, "DELETE $self->{UID}:$self->{LOGIN}");
+
+  $admin->system_action_add("$id", { TYPE => 10 });
+
   return $self->{result};
 }
 
@@ -152,9 +152,6 @@ sub add {
   my $DATA = defaults();
   %DATA = $self->get_data($attr, { default => $DATA });
 
-
-
-
   $self->query($db, "INSERT INTO mdelivery_list (date, added, subject, sender, aid, text, uid, gid,
      priority)
      values ('$DATA{DATE}', now(), '$DATA{SUBJECT}', 
@@ -164,10 +161,202 @@ sub add {
      '$DATA{UID}',
      '$DATA{GID}',
      '$DATA{PRIORITY}');", 'do');
+   
+  $self->{MDELIVERY_ID}=$self->{INSERT_ID};
 
+  $self->user_list_add({ %$attr, MDELIVERY_ID => $self->{MDELIVERY_ID} });
 
+  $admin->system_action_add("$self->{MDELIVERY_ID}", { TYPE => 1 });
 
   return $self;
+}
+
+
+#**********************************************************
+# 
+# 
+#**********************************************************
+sub user_list_add {
+  my $self = shift;
+  my ($attr) = @_;
+
+  my @WHERE_RULES = ();
+  my $EXT_TABLES = '';
+
+  if (defined($attr->{STATUS}) && $attr->{STATUS} ne '') {
+    push @WHERE_RULES, @{ $self->search_expr($attr->{STATUS}, 'INT', "u.disable") };  
+   }
+
+  if ($attr->{GID}) {
+  	push @WHERE_RULES, @{ $self->search_expr($attr->{GID}, 'INT', "u.gid") };  
+   }
+
+  if (defined($attr->{DV_STATUS}) && $attr->{DV_STATUS} ne '') {
+  	push @WHERE_RULES, @{ $self->search_expr($attr->{DV_STATUS}, 'INT', "dv.disable") };  
+  	$EXT_TABLES = "LEFT JOIN dv_main dv ON (u.uid=dv.uid)";
+   }
+
+  if ($attr->{TP_ID}) {
+  	push @WHERE_RULES, @{ $self->search_expr($attr->{TP_ID}, 'INT', "dv.tp_id") };  
+  	$EXT_TABLES = "LEFT JOIN dv_main dv ON (u.uid=dv.uid)";
+   }
+
+ if ($CONF->{ADDRESS_REGISTER}) {
+   if ($attr->{LOCATION_ID}) {
+     push @WHERE_RULES, @{ $self->search_expr($attr->{LOCATION_ID}, 'INT', 'pi.location') };
+    }
+   elsif ($attr->{STREET_ID}) {
+     push @WHERE_RULES, @{ $self->search_expr($attr->{STREET_ID}, 'INT', 'builds.street_id', { EXT_FIELD => 'streets.name' }) };
+     $EXT_TABLES .= "INNER JOIN builds ON (builds.id=pi.location_id)";
+    }
+   elsif ($attr->{DISTRICT_ID}) {
+     push @WHERE_RULES, @{ $self->search_expr($attr->{DISTRICT_ID}, 'INT', 'streets.district_id', { EXT_FIELD => 'districts.name' }) };
+     $EXT_TABLES .= "INNER JOIN builds ON (builds.id=pi.location_id)
+      INNER JOIN streets ON (streets.id=builds.street_id)";
+    }
+
+
+   elsif ($attr->{STREET_ID}) {
+     push @WHERE_RULES, @{ $self->search_expr($attr->{STREET_ID}, 'STR', 'pi.address_street') };
+    }
+   elsif ($attr->{DISTRICT_ID}) {
+     push @WHERE_RULES, @{ $self->search_expr($attr->{DISTRICT_ID}, 'STR', 'pi.address_street') };
+    }
+  }
+ else {
+   if ($attr->{ADDRESS_STREET}) {
+     push @WHERE_RULES, @{ $self->search_expr($attr->{ADDRESS_STREET}, 'STR', 'pi.address_street') };
+    }
+
+   if ($attr->{ADDRESS_BUILD}) {
+     push @WHERE_RULES, @{ $self->search_expr($attr->{ADDRESS_BUILD}, 'STR', 'pi.address_build') };
+    }
+
+   if ($attr->{ADDRESS_FLAT}) {
+     push @WHERE_RULES, @{ $self->search_expr($attr->{ADDRESS_FLAT}, 'STR', 'pi.address_flat') };
+    }
+  }
+
+  $WHERE = ($#WHERE_RULES>-1) ? ' WHERE '. join(' AND ', @WHERE_RULES) : '';  
+
+  $self->query($db, "INSERT INTO mdelivery_users (uid, mdelivery_id) SELECT u.uid, $attr->{MDELIVERY_ID} FROM users u
+     LEFT JOIN users_pi pi ON (u.uid=pi.uid)
+     $EXT_TABLES
+     $WHERE
+     ORDER BY $SORT;");
+
+  return $self;
+}
+
+#**********************************************************
+# 
+# 
+#**********************************************************
+sub user_list_change {
+  my $self = shift;
+  my ($attr) = @_;
+
+  my @WHERE_RULES = ("mdelivery_id='$attr->{MDELIVERY_ID}'");
+
+  if ($attr->{UID}) {
+  	push @WHERE_RULES, @{ $self->search_expr($attr->{UID}, 'INT', "uid") };  
+   }
+  elsif ($attr->{ID}) {
+  	push @WHERE_RULES, @{ $self->search_expr($attr->{ID}, 'INT', "id") };
+   }
+
+  $WHERE = ($#WHERE_RULES>-1) ? join(' AND ', @WHERE_RULES) : '';
+
+
+  my $status = 1;
+  $self->query($db, "UPDATE mdelivery_users SET status='$status' WHERE $WHERE;", 'do');
+
+  return $self;
+}
+
+
+
+
+#**********************************************************
+# 
+# 
+#**********************************************************
+sub user_list_del {
+  my $self = shift;
+  my ($attr) = @_;
+
+  my @WHERE_RULES = ();
+
+  if ($attr->{UID}) {
+  	push @WHERE_RULES, @{ $self->search_expr($attr->{UID}, 'INT', "uid") };  
+   }
+
+  if ($attr->{MDELIVERY_ID}) {
+  	push @WHERE_RULES, @{ $self->search_expr($attr->{MDELIVERY_ID}, 'INT', "mdelivery_id") };
+   }
+  elsif ($attr->{ID}) {
+  	push @WHERE_RULES, @{ $self->search_expr($attr->{ID}, 'INT', "id") };
+   }
+
+  $WHERE = ($#WHERE_RULES>-1) ? join(' AND ', @WHERE_RULES) : '';
+
+  $self->query($db, "DELETE FROM mdelivery_users WHERE $WHERE;", 'do');
+
+  return $self;
+}
+
+
+
+#**********************************************************
+# 
+# 
+#**********************************************************
+sub user_list {
+  my $self = shift;
+  my ($attr) = @_;
+
+ $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
+ $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
+ $PG = ($attr->{PG}) ? $attr->{PG} : 0;
+ $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
+
+
+  my @WHERE_RULES = ("u.uid=mdl.uid");
+
+  if ($attr->{MDELIVERY_ID}) {
+  	push @WHERE_RULES, @{ $self->search_expr($attr->{MDELIVERY_ID}, 'INT', "mdl.mdelivery_id") };
+   } 
+
+  if (defined($attr->{STATUS})) {
+  	push @WHERE_RULES, @{ $self->search_expr($attr->{STATUS}, 'INT', "mdl.status") };
+   } 
+
+  if (defined($attr->{LOGIN})) {
+  	push @WHERE_RULES, @{ $self->search_expr($attr->{LOGIN}, 'INT', "u.id") };
+   } 
+
+
+  $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
+
+  $self->query($db, "SELECT u.id, pi.fio, mdl.status, mdl.uid, pi.email FROM (mdelivery_users mdl, users u)
+     LEFT JOIN users_pi pi ON (mdl.uid=pi.uid)
+     $WHERE
+     ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;");
+
+
+  my $list = $self->{list};
+  
+  if ($self->{TOTAL} > 0) {
+    $self->query($db, "SELECT count(*)
+     FROM mdelivery_users mdl, users u
+     $WHERE;");
+
+    ($self->{TOTAL}) = @{ $self->{list}->[0] };
+   }
+
+
+
+  return $list;
 }
 
 
@@ -179,6 +368,12 @@ sub list {
   my $self = shift;
   my ($attr) = @_;
 
+ $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
+ $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
+ $PG = ($attr->{PG}) ? $attr->{PG} : 0;
+ $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
+
+
   @WHERE_RULES = ();
   
  if (defined($attr->{STATUS})) {
@@ -186,7 +381,7 @@ sub list {
   }
 
  if ($attr->{DATE}) {
-    push @WHERE_RULES, "md.date='$attr->{DATE}'";
+    push @WHERE_RULES, @{ $self->search_expr($attr->{DATE}, 'INT', "md.date") }
   }
 
 
@@ -208,11 +403,89 @@ sub list {
      FROM mdelivery_list md
      LEFT JOIN admins a ON (md.aid=a.aid) $WHERE;");
 
-    my $a_ref = $self->{list}->[0];
-    ($self->{TOTAL}) = @$a_ref;
+    ($self->{TOTAL}) = @{ $self->{list}->[0] };
    }
   return $list;
 }
 
+
+
+#**********************************************************
+#
+#**********************************************************
+sub attachment_add () {
+  my $self = shift;
+  my ($attr) = @_;
+
+ $self->query($db,  "INSERT INTO mdelivery_attachments ".
+        " (message_id, filename, content_type, content_size, content, ".
+        " create_time, create_by, change_time, change_by) " .
+        " VALUES ".
+        " ('$attr->{MSG_ID}', '$attr->{FILENAME}', '$attr->{CONTENT_TYPE}', '$attr->{FILESIZE}', ?, ".
+        " current_timestamp, '$attr->{UID}', current_timestamp, '0')", 
+        'do', { Bind => [ $attr->{CONTENT}  ] } );
+
+  return $self;
+}
+
+
+#**********************************************************
+#
+#**********************************************************
+sub attachment_info () {
+  my $self = shift;
+  my ($attr) = @_;
+
+  my $WHERE  ='';
+  
+  if ($attr->{MSG_ID}) {
+    $WHERE = "message_id='$attr->{MSG_ID}'";
+   }
+  elsif ($attr->{ID}) {
+  	$WHERE = "id='$attr->{ID}'";
+   }
+
+  $self->query($db,  "SELECT id, filename, 
+    content_type, 
+    content_size,
+    content
+   FROM  mdelivery_attachments 
+   WHERE $WHERE" );
+
+
+  if ($self->{TOTAL} < 1) {
+    return $self 
+   }
+  elsif ($self->{TOTAL} == 1) {
+    ($self->{ATTACHMENT_ID},
+     $self->{FILENAME}, 
+     $self->{CONTENT_TYPE},
+     $self->{FILESIZE},
+     $self->{CONTENT}
+    )= @{ $self->{list}->[0] };
+    
+    return $self;
+   }
+  else {
+  	return $self->{list};
+   }
+}
+
+#**********************************************************
+#
+#**********************************************************
+sub reset {
+  my ($self) = shift;
+  my ( $attr )	= @_;
+	
+
+
+  $self->query($db, "UPDATE mdelivery_list SET status=0 WHERE id='$attr->{ID}';", 'do');
+  $self->query($db, "UPDATE mdelivery_users SET status=0 WHERE mdelivery_id='$attr->{ID}';", 'do');
+
+  
+  return $self;
+
+}
 
 1

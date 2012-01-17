@@ -2,19 +2,39 @@
 :DEFAULT:RADIUS_AUTH_PORT=1812:Radius auth port
 :DEFAULT:RADIUS_ACCT_SERVER=127.0.0.1:Radius accounting ip
 :DEFAULT:RADIUS_ACCT_PORT=1813:Radius accounting port
+:DEFAULT:RAD_ACCT_ALIVE=300:Radius Alive period. Recomended 300 sec
 :DEFAULT:MPD_CONSOLE_IP=127.0.0.1:Mpd console IP
 :DEFAULT:MPD_CONSOLE_PORT=5005:Mpd console port
 :DEFAULT:MPD_CONSOLE_USER=admin:Mpd console user
 :DEFAULT:MPD_CONSOLE_PASSWORD=secretpass:Mpd console password
 :DEFAULT:MPD_NETFLOW_IP=127.0.0.1:IP address port, where NetFlow export datagrams will be sent. 
+:DEFAULT:BILLING_IP=127.0.0.1:Billing server IP for hangup and CoA request
+:DEFAULT:POD_PASSWORD=secretpass:POD and CoA password
 :DEFAULT:MPD_NETFLOW_PORT=9996:port, where NetFlow export datagrams will be sent
 :DEFAULT:MPD_NETFLOW_SOURCE_IP=127.0.0.1:local IP to make NetFlow datagrams originate from a specific source.
 :DEFAULT:MPD_NETFLOW_SOURCE_PORT=9990:port binding to make NetFlow datagrams originate from a specific source.
 :DEFAULT:MPD_CONTROL_PASSWORD=secret:PPP control password
 :DEFAULT:FOR_RADIUS_IP=127.0.0.1:Ip address for radius server request
-mpd.conf           > [/usr/local/etc/mpd4]/mpd.conf
-#:TUNEL_TYPE=L2TP:mpd_l2tp.conf > [/usr/local/etc/mpd4]/mpd.conf
-#mpd_l2tp.conf > [/usr/local/etc/mpd4]/mpd.conf
-mpd.links          > [/usr/local/etc/mpd4]/mpd.links
-:PARAMS=FREEBSD:mpd_enable="YES"  >> [/etc]/rc.conf
+:DEFAULT:FIRST_INTERFACE=0:First interface number
+:DEFAULT:INTERFACE_COUNT=100:Create interfaces
+:DEFAULT:INTERFACE_TYPE=pptp:Interface type pptp, l2tp
+:DEFAULT:MPD_IPPOOL_FIRST=10.0.0.1:
+:DEFAULT:MPD_IPPOOL_LAST=10.0.0.10:
+:DEFAULT:MPD5=1:
+:OS=FREEBSD,!MPD5=1:exec:INTERFACES=%WORK_DIR%/mpd/if_create.sh -conf -s %FIRST_INTERFACE% -c %INTERFACE_COUNT% -t %INTERFACE_TYPE%
+:!MPD5=1:FILE=mpd.conf           > [/usr/local/etc/mpd4]/mpd.conf
+#MPD5 config
+:MPD5=1:FILE=mpd5.conf   > [/usr/local/etc/mpd5]/mpd.conf
+mpd.dictionary     >> [/usr/local/etc/raddb]/dictionary 
+:OS=FREEBSD,!MPD5=1:exec:IF_LINKS=%WORK_DIR%/mpd/if_create.sh -links -s %FIRST_INTERFACE% -c %INTERFACE_COUNT% -t %INTERFACE_TYPE%
+:!MPD5=1:mpd.links          > [/usr/local/etc/mpd4]/mpd.links
+:OS=FREEBSD:mpd_enable="YES"  >> [/etc]/rc.conf
 #radius.conf        > [/etc]/radius.conf
+#Logs
+:OS=FREEBSD:!mpd \n *.* /var/log/mpd.log >> [/etc]/syslog.conf
+:OS=FREEBSD:/var/log/mpd.log 600 5 100 * JC >> [/etc]/newsyslog.conf
+:OS=FREEBSD:exec: touch /var/log/mpd.log
+:OS=FREEBSD:exec: killall -1 syslogd
+:MPD5=1:exec:/usr/local/etc/rc.d/mpd5 start
+
+
