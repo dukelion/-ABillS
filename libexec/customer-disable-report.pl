@@ -149,10 +149,10 @@ foreach my $line (@$list) {
 };
 
 #exit(0) unless %tab;
-my $texttab = Text::Table->new("login",\' | ',"Deposit",\' | ',"Credit",\' | ',"Credit Expiry",\' | ',"Debit date",\' | ',"Month fee",\' | ',"Reason Code",\' | ',"Disable Date");
+my $texttab = Text::Table->new("login",\' | ',"Balance",\' | ',"Credit",\' | ',"Credit Expiry",\' | ',"Debit date",\' | ',"Month fee",\' | ',"Disable Date",\' | ',"Reason Code");
 
 foreach my $line (sort { $tab{$a}{'DisableDate'} cmp $tab{$b}{'DisableDate'} } keys(%tab)){
-$texttab->load( [$line,@{$tab{$line}}{qw/Deposit Credit CreditExpiryDate DebitDate MonthFee Errno DisableDate/}]);
+$texttab->load( [$line,@{$tab{$line}}{qw/Deposit Credit CreditExpiryDate DebitDate MonthFee DisableDate Errno/}]);
 }; 
 
 my $message = $texttab->title;
