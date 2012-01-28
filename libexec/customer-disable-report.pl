@@ -160,11 +160,12 @@ $message .= $texttab->rule('-','+');
 $message .= $texttab->body;
 
 $message .= <<EOF
+
 Possible reasons:
 	1: Current balance is less or equal to 0 (typically when account is already suspended)
-	2: Expiry date for Credit is near 
-	3: (Balance+Credit) is not enough to write off next monthly fee, debiting date is near
-	4: (Balance+Credit) is enough to write off next monthly fee, debiting date and credit expiry date are near
+	2: Expiry date for Credit is near,  Current balance is less or equal to 0.
+	3: (Balance+Credit) is not enough to write off next monthly fee, debiting date is near.
+	4: Balance is not enough to write off next monthly fee, debiting date and credit expiry date are near.
 EOF
 ;
 
