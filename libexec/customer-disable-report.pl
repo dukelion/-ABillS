@@ -126,7 +126,7 @@ foreach my $line (@$list) {
 	 	$warn = 2;
 		$disableDate = $creddate;
 	} elsif ($abondate and  ($abondate - $now < $WARN_DAYS*86400) and $monthAbon > 0.01) {
-		if ($user->{DEPOSIT} + $user->{CREDIT} - $monthAbon < 0 ) {
+		if ($user->{DEPOSIT} + $user->{CREDIT} - $monthAbon < 0.01 ) {
 			$warn = 3;
 			$disableDate = $abondate;
 		} elsif ( $creddate and $abondate and ($creddate - $now < $WARN_DAYS*86400) and $user->{DEPOSIT} - $monthAbon < 0 ) {
