@@ -71,8 +71,6 @@ my $Dv       = Dv->new($db, $admin, \%conf);
 foreach my $line (@$list) {
 	my $uid = @$line[7];
 
-	my $warn = 0;
-
         my $info = $Dv->info($uid);
 	my $user = $users->info($uid);
 
@@ -111,7 +109,7 @@ foreach my $line (@$list) {
 	      $info->{ABON_DATE} = sprintf("%d-%02d-%02d", $Y,$M,$D);
 	     }
 	  }
-	my ($creddate, $abondate) = 0;
+	my ($creddate, $abondate, $expireDate) = 0;
 	if ($user->{CREDIT_DATE} and $user->{CREDIT_DATE} != '0000-00-00') { 
 		my ($year,$month,$day) = split(/-/,$user->{CREDIT_DATE});
 		$creddate = timelocal(0,0,0,$day,--$month,$year);
@@ -122,26 +120,34 @@ foreach my $line (@$list) {
 	}
 	my $monthAbon = $info->{MONTH_ABON} * (100 - ($user->{REDUCTION}? $user->{REDUCTION} : 0))/100;
 
-	my $now = strftime("%s",localtime());
-	my $disableDate = 0;
-
-	if ( $user->{DEPOSIT} + $user->{CREDIT} < 0.01 ) {
-		$warn = 1;
-		$disableDate = $now;
-	} elsif ($creddate and ($creddate - $now < $WARN_DAYS*86400) and $user->{DEPOSIT} < 0.01) {
-	 	$warn = 2;
-		$disableDate = $creddate;
-	} elsif ($abondate and  ($abondate - $now < $WARN_DAYS*86400) and $monthAbon > 0.01) {
-		if ($user->{DEPOSIT} + $user->{CREDIT} - $monthAbon < 0.01 ) {
-			$warn = 3;
-			$disableDate = $abondate;
-		} elsif ( $creddate and $abondate and ($creddate - $now < $WARN_DAYS*86400) and $user->{DEPOSIT} - $monthAbon < 0 ) {
-			$warn = 4;
-			$disableDate = max($creddate, $abondate);
-		}
+	if ($user->{EXPIRE} and $user->{EXPIRE} != '0000-00-00') {
+		my ($year,$month,$day) = split(/-/,$user->{EXPIRE});
+                $expireDate = timelocal(0,0,0,$day,--$month,$year);
 	}
 
-	if ($warn > 0) { 
+	my $now = strftime("%s",localtime());
+	my $disableDate = 0;
+	my $disableCode = 0;
+
+	if ( $user->{DEPOSIT} + $user->{CREDIT} < 0.01 ) {
+		($disableDate,$disableCode) = &updateDisableDate($now,1,$disableDate,$disableCode);
+	} 
+	if ($creddate and ($creddate - $now < $WARN_DAYS*86400) and $user->{DEPOSIT} < 0.01) {
+		($disableDate,$disableCode) = &updateDisableDate($creddate,2,$disableDate,$disableCode);
+	} 
+	if ($abondate and  ($abondate - $now < $WARN_DAYS*86400) and $monthAbon > 0.01) {
+		if ($user->{DEPOSIT} + $user->{CREDIT} - $monthAbon < 0.01 ) {
+			($disableDate,$disableCode) = &updateDisableDate($abondate,3,$disableDate,$disableCode);
+		} elsif ( $creddate and $abondate and ($creddate - $now < $WARN_DAYS*86400) and $user->{DEPOSIT} - $monthAbon < 0 ) {
+			($disableDate,$disableCode) = &updateDisableDate(max($abondate,$creddate),3,$disableDate,$disableCode);
+		}
+	}
+	if ($expireDate and $expireDate - $now < $WARN_DAYS*86400) {
+		($disableDate,$disableCode) = updateDisableDate($expireDate,5);
+	}
+
+		warn "$disableCode:$disableDate";
+	if ($disableCode > 0) { 
 		my $pi = $users->pi({UID => $uid});
 		my $warncustomer;
 		$warncustomer->{'FIO'} = $pi->{FIO};
@@ -150,25 +156,26 @@ foreach my $line (@$list) {
 		$warncustomer->{'CreditExpiryDate'} = ($user->{CREDIT} < 0.01 || $user->{CREDIT_DATE} eq '0000-00-00' ) ? '' : $user->{CREDIT_DATE};
 		$warncustomer->{'DebitDate'} = $info->{ABON_DATE};
 		$warncustomer->{'MonthFee'} = $monthAbon;
-		$warncustomer->{'Errno'} = $warn;
+		$warncustomer->{'Errno'} = $disableCode;
 		$warncustomer->{'DisableDate'} = strftime("%Y-%m-%d",localtime($disableDate));
+		$warncustomer->{'ExpireDate'} = strftime("%Y-%m-%d",localtime($expireDate));
 		$warncustomer->{'UID'} = $user->{UID};
 		$tab{ $user->{LOGIN} } = $warncustomer;
 	};
 };
 
 #exit(0) unless %tab;
-my $texttab = Text::Table->new("login",\' | ',"Customer Name",\' | ',"Balance",\' | ',"Credit",\' | ',"Credit Expiry",\' | ',"Debit date",\' | ',"Month fee",\' | ',"Disable Date",\' | ',"Reason Code");
+my $texttab = Text::Table->new("login",\' | ',"Customer Name",\' | ',"Balance",\' | ',"Credit",\' | ',"Credit Expiry",\' | ',"Debit date",\' | ',"Month fee",\' | ',"Disable Date",\' | ',"Expire Date",\' | ',"Reason Code");
 my $htmltab = new HTML::Table(
 	-cols=>8,
-	-head=>["login","Customer Name","Balance","Credit","Credit Expiry","Debit date","Month fee","Disable Date","Reason Code"],
+	-head=>["login","Customer Name","Balance","Credit","Credit Expiry","Debit date","Month fee","Disable Date","Expire Date","Reason Code"],
 	-border=>1,
 	-bgcolor=>'WhiteSmoke',
 	-width=>'50%',
 );
 
 foreach my $line (sort { $tab{$a}{'DisableDate'} cmp $tab{$b}{'DisableDate'} } keys(%tab)){
-my @array = ($line,@{$tab{$line}}{qw/FIO Deposit Credit CreditExpiryDate DebitDate MonthFee DisableDate Errno/});
+my @array = ($line,@{$tab{$line}}{qw/FIO Deposit Credit CreditExpiryDate DebitDate MonthFee DisableDate ExpireDate Errno/});
 $texttab->load([@array]);
 $array[0] = sprintf '<a title="%s" href="https://bill.neda.af/admin/index.cgi?index=15&UID=%s">%s</a>',$line,$tab{$line}{UID},$line;
 $htmltab->addRow(@array); 
@@ -185,6 +192,8 @@ Possible reasons:
 	2: Expiry date for Credit is near,  Current balance is less or equal to 0.
 	3: (Balance+Credit) is not enough to write off next monthly fee, debiting date is near.
 	4: Balance is not enough to write off next monthly fee, debiting date and credit expiry date are near.
+	5: User expiration date is near or in past
+
 EOF
 ;
 
@@ -214,3 +223,14 @@ if ($DEBUG) {
 	my $sender = Email::Send->new({mailer => 'Sendmail'});
 	$sender->send($email);
 }
+
+sub updateDisableDate () {
+	my $_disableDate = shift;
+	my $_disableCode = shift;
+	my $disableDate = shift;
+	my $disableCode = shift;
+	if (!($disableDate) or $_disableDate < $disableDate) { $disableDate = $_disableDate; $disableCode = $_disableCode}
+	warn "$disableDate,$disableCode";
+	return ($disableDate,$disableCode);
+
+};
