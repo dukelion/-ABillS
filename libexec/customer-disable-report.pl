@@ -80,6 +80,7 @@ foreach my $line (@$list) {
 
 #	warn Dumper($info);
 #	warn Dumper($user);
+#	warn Dumper($pi);
 
 	  # Get next payment period
 	  if ($info->{MONTH_ABON}> 0 &&  ! $info->{STATUS} && ! $user->{DISABLE} &&
@@ -141,7 +142,9 @@ foreach my $line (@$list) {
 	}
 
 	if ($warn > 0) { 
+		my $pi = $users->pi({UID => $uid});
 		my $warncustomer;
+		$warncustomer->{'FIO'} = $pi->{FIO};
 		$warncustomer->{'Deposit'} = $user->{DEPOSIT};
 		$warncustomer->{'Credit'} = $user->{CREDIT};
 		$warncustomer->{'CreditExpiryDate'} = ($user->{CREDIT} < 0.01 || $user->{CREDIT_DATE} eq '0000-00-00' ) ? '' : $user->{CREDIT_DATE};
@@ -155,17 +158,17 @@ foreach my $line (@$list) {
 };
 
 #exit(0) unless %tab;
-my $texttab = Text::Table->new("login",\' | ',"Balance",\' | ',"Credit",\' | ',"Credit Expiry",\' | ',"Debit date",\' | ',"Month fee",\' | ',"Disable Date",\' | ',"Reason Code");
+my $texttab = Text::Table->new("login",\' | ',"Customer Name",\' | ',"Balance",\' | ',"Credit",\' | ',"Credit Expiry",\' | ',"Debit date",\' | ',"Month fee",\' | ',"Disable Date",\' | ',"Reason Code");
 my $htmltab = new HTML::Table(
 	-cols=>8,
-	-head=>["login","Balance","Credit","Credit Expiry","Debit date","Month fee","Disable Date","Reason Code"],
+	-head=>["login","Customer Name","Balance","Credit","Credit Expiry","Debit date","Month fee","Disable Date","Reason Code"],
 	-border=>1,
 	-bgcolor=>'WhiteSmoke',
 	-width=>'50%',
 );
 
 foreach my $line (sort { $tab{$a}{'DisableDate'} cmp $tab{$b}{'DisableDate'} } keys(%tab)){
-my @array = ($line,@{$tab{$line}}{qw/Deposit Credit CreditExpiryDate DebitDate MonthFee DisableDate Errno/});
+my @array = ($line,@{$tab{$line}}{qw/FIO Deposit Credit CreditExpiryDate DebitDate MonthFee DisableDate Errno/});
 $texttab->load([@array]);
 $array[0] = sprintf '<a title="%s" href="https://bill.neda.af/admin/index.cgi?index=15&UID=%s">%s</a>',$line,$tab{$line}{UID},$line;
 $htmltab->addRow(@array); 
@@ -185,9 +188,6 @@ Possible reasons:
 EOF
 ;
 
-my $htmlmessage = sprintf "<p>%s</p>\n%s\n",$htmltab->getTable,$footer;
-$textmessage .= $footer;
-
 if ($begin_time > 0)  {
 	Time::HiRes->import(qw(gettimeofday));
 	my $end_time = gettimeofday();
@@ -195,11 +195,12 @@ if ($begin_time > 0)  {
 	$footer .= sprintf("\n\n GT: %2.5f\n", $gen_time);
 }
 
+my $htmlmessage = sprintf "<p>%s</p>\n%s\n",$htmltab->getTable,$footer;
+$textmessage .= $footer;
+
 if ($DEBUG) {
 	print $textmessage;
 } else {
-#	sendmail("$conf{ADMIN_MAIL}", 'dev-team@neda.af', "Customers disabling report ".strftime("%Y-%m-%d",localtime()),
-#		      "$htmlmessage", "$conf{MAIL_CHARSET}", "2 (High)");
 	my $email = Email::MIME->create_html(
 		header => [
 			From => "$conf{ADMIN_MAIL}",
