@@ -146,7 +146,6 @@ foreach my $line (@$list) {
 		($disableDate,$disableCode) = updateDisableDate($expireDate,5);
 	}
 
-		warn "$disableCode:$disableDate";
 	if ($disableCode > 0) { 
 		my $pi = $users->pi({UID => $uid});
 		my $warncustomer;
@@ -230,7 +229,6 @@ sub updateDisableDate () {
 	my $disableDate = shift;
 	my $disableCode = shift;
 	if (!($disableDate) or $_disableDate < $disableDate) { $disableDate = $_disableDate; $disableCode = $_disableCode}
-	warn "$disableDate,$disableCode";
 	return ($disableDate,$disableCode);
 
 };
