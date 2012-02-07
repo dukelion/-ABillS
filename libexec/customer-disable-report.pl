@@ -10,6 +10,8 @@ use strict;
 use Data::Dumper::Simple;
 use Text::Table;
 use HTML::Table;
+use Email::MIME::CreateHTML;
+use Email::Send;
 use Time::Local;
 use List::Util qw[min max];
 
@@ -196,6 +198,18 @@ if ($begin_time > 0)  {
 if ($DEBUG) {
 	print $textmessage;
 } else {
-	sendmail("$conf{ADMIN_MAIL}", 'dev-team@neda.af', "Customers disabling report ".strftime("%Y-%m-%d",localtime()),
-		      "$htmlmessage", "$conf{MAIL_CHARSET}", "2 (High)");
+#	sendmail("$conf{ADMIN_MAIL}", 'dev-team@neda.af', "Customers disabling report ".strftime("%Y-%m-%d",localtime()),
+#		      "$htmlmessage", "$conf{MAIL_CHARSET}", "2 (High)");
+	my $email = Email::MIME->create_html(
+		header => [
+			From => "$conf{ADMIN_MAIL}",
+			To =>   "valferov@neda.af",
+#			To =>	"Billing Mailing list <billing@neda.af>, <devteam@neda.af>",
+			Subject => "Customers disabling report ".strftime("%Y-%m-%d",localtime()),
+		],
+		body => $htmlmessage,
+		text_body => $textmessage
+	);
+	my $sender = Email::Send->new({mailer => 'Sendmail'});
+	$sender->send($email);
 }
