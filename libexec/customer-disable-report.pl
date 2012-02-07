@@ -203,7 +203,7 @@ if ($DEBUG) {
 	my $email = Email::MIME->create_html(
 		header => [
 			From => "$conf{ADMIN_MAIL}",
-			To =>   "valferov@neda.af",
+			To =>   'valferov@neda.af',
 #			To =>	"Billing Mailing list <billing@neda.af>, <devteam@neda.af>",
 			Subject => "Customers disabling report ".strftime("%Y-%m-%d",localtime()),
 		],
