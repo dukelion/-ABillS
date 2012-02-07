@@ -187,11 +187,13 @@ $textmessage .= $texttab->body;
 my $footer = <<EOF
 
 Possible reasons:
-	1: Current balance is less or equal to 0 (typically when account is already suspended)
-	2: Expiry date for Credit is near,  Current balance is less or equal to 0.
-	3: (Balance+Credit) is not enough to write off next monthly fee, debiting date is near.
-	4: Balance is not enough to write off next monthly fee, debiting date and credit expiry date are near.
-	5: User expiration date is near or in past
+<dl>
+	<dt>1:</dt><dd> Current balance is less or equal to 0 (typically when account is already suspended)</dd>
+	<dt>2:</dt><dd> Expiry date for Credit is near,  Current balance is less or equal to 0.</dd>
+	<dt>3:</dt><dd> (Balance+Credit) is not enough to write off next monthly fee, debiting date is near.</dd>
+	<dt>4:</dt><dd> Balance is not enough to write off next monthly fee, debiting date and credit expiry date are near.</dd>
+	<dt>5:</dt><dd> User expiration date is near or in past</dd>
+</dl>
 
 EOF
 ;
