@@ -156,8 +156,8 @@ foreach my $line (@$list) {
 		$warncustomer->{'DebitDate'} = $info->{ABON_DATE};
 		$warncustomer->{'MonthFee'} = $monthAbon;
 		$warncustomer->{'Errno'} = $disableCode;
+		$warncustomer->{'ExpireDate'} = $user->{EXPIRE} eq '0000-00-00' ? '' : $user->{EXPIRE};
 		$warncustomer->{'DisableDate'} = strftime("%Y-%m-%d",localtime($disableDate));
-		$warncustomer->{'ExpireDate'} = strftime("%Y-%m-%d",localtime($expireDate));
 		$warncustomer->{'UID'} = $user->{UID};
 		$tab{ $user->{LOGIN} } = $warncustomer;
 	};
