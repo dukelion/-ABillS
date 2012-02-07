@@ -6,11 +6,10 @@ use vars  qw(%conf @MODULES $db $DATE $TIME $GZIP $TAR
   $Log
  );
 
-my $WARN_DAYS = 10;
-
 use strict;
 use Data::Dumper::Simple;
 use Text::Table;
+use HTML::Table;
 use Time::Local;
 use List::Util qw[min max];
 
@@ -18,6 +17,10 @@ use POSIX;
 
 use FindBin '$Bin';
 use Sys::Hostname;
+
+my ($WARN_DAYS,$DEBUG) = @ARGV;
+$WARN_DAYS = $WARN_DAYS ? $WARN_DAYS : 10;
+$DEBUG     = $DEBUG     ? 1 : 0  ;
 
 require $Bin . '/config.pl';
 unshift(@INC, $Bin . '/../', $Bin . '/../Abills', $Bin . "/../Abills/$conf{dbtype}");
@@ -144,22 +147,33 @@ foreach my $line (@$list) {
 		$warncustomer->{'MonthFee'} = $monthAbon;
 		$warncustomer->{'Errno'} = $warn;
 		$warncustomer->{'DisableDate'} = strftime("%Y-%m-%d",localtime($disableDate));
+		$warncustomer->{'UID'} = $user->{UID};
 		$tab{ $user->{LOGIN} } = $warncustomer;
 	};
 };
 
 #exit(0) unless %tab;
 my $texttab = Text::Table->new("login",\' | ',"Balance",\' | ',"Credit",\' | ',"Credit Expiry",\' | ',"Debit date",\' | ',"Month fee",\' | ',"Disable Date",\' | ',"Reason Code");
+my $htmltab = new HTML::Table(
+	-cols=>8,
+	-head=>["login","Balance","Credit","Credit Expiry","Debit date","Month fee","Disable Date","Reason Code"],
+	-border=>1,
+	-bgcolor=>'WhiteSmoke',
+	-width=>'50%',
+);
 
 foreach my $line (sort { $tab{$a}{'DisableDate'} cmp $tab{$b}{'DisableDate'} } keys(%tab)){
-$texttab->load( [$line,@{$tab{$line}}{qw/Deposit Credit CreditExpiryDate DebitDate MonthFee DisableDate Errno/}]);
+my @array = ($line,@{$tab{$line}}{qw/Deposit Credit CreditExpiryDate DebitDate MonthFee DisableDate Errno/});
+$texttab->load([@array]);
+$array[0] = sprintf '<a title="%s" href="https://bill.neda.af/admin/index.cgi?index=15&UID=%s">%s</a>',$line,$tab{$line}{UID},$line;
+$htmltab->addRow(@array); 
 }; 
 
-my $message = $texttab->title;
-$message .= $texttab->rule('-','+');
-$message .= $texttab->body;
+my $textmessage = $texttab->title;
+$textmessage .= $texttab->rule('-','+');
+$textmessage .= $texttab->body;
 
-$message .= <<EOF
+my $footer = <<EOF
 
 Possible reasons:
 	1: Current balance is less or equal to 0 (typically when account is already suspended)
@@ -169,14 +183,19 @@ Possible reasons:
 EOF
 ;
 
+my $htmlmessage = sprintf "<p>%s</p>\n%s\n",$htmltab->getTable,$footer;
+$textmessage .= $footer;
+
 if ($begin_time > 0)  {
 	Time::HiRes->import(qw(gettimeofday));
 	my $end_time = gettimeofday();
 	my $gen_time = $end_time - $begin_time;
-	$message .= sprintf("\n\n GT: %2.5f\n", $gen_time);
+	$footer .= sprintf("\n\n GT: %2.5f\n", $gen_time);
 }
 
-#sendmail("$conf{ADMIN_MAIL}", 'Artem Belotski <artem@neda.af>, Elena Yampolskaya <eyampolskaya@neda.af>, Igor Karmanov <ikarmanov@neda.af>, <valferov@neda.af>', "Customers disabling report ".strftime("%Y-%m-%d",localtime()),
-#              "$message", "$conf{MAIL_CHARSET}", "2 (High)");
-print $message;
-
+if ($DEBUG) {
+	print $textmessage;
+} else {
+	sendmail("$conf{ADMIN_MAIL}", 'dev-team@neda.af', "Customers disabling report ".strftime("%Y-%m-%d",localtime()),
+		      "$htmlmessage", "$conf{MAIL_CHARSET}", "2 (High)");
+}
