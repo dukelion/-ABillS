@@ -24,11 +24,14 @@ my ($WARN_DAYS,$DEBUG) = @ARGV;
 $WARN_DAYS = $WARN_DAYS ? $WARN_DAYS : 10;
 $DEBUG     = $DEBUG     ? 1 : 0  ;
 
+
 require $Bin . '/config.pl';
 unshift(@INC, $Bin . '/../', $Bin . '/../Abills', $Bin . "/../Abills/$conf{dbtype}");
 
 require "Abills/defs.conf";
 require "Abills/templates.pl";
+
+my @service_status = ( "Enabled", "Disabled", "Not Active", "Held Up", "Disabled: Non payment", "Too Small Deposit");
 
 require Abills::Base;
 Abills::Base->import(qw{check_time sendmail});
@@ -67,6 +70,7 @@ my $list = $users->list({
 my %tab;
 
 require "Abills/mysql/Dv.pm";
+
 my $Dv       = Dv->new($db, $admin, \%conf);
 foreach my $line (@$list) {
 	my $uid = @$line[7];
@@ -164,7 +168,7 @@ foreach my $line (@$list) {
 		$warncustomer->{'ExpireDate'} = $user->{EXPIRE} eq '0000-00-00' ? '' : $user->{EXPIRE};
 		$warncustomer->{'DisableDate'} = strftime("%Y-%m-%d",localtime($disableDate));
 		$warncustomer->{'UID'} = $user->{UID};
-		$warncustomer->{'TSTATUS'} = $info->{STATUS};
+		$warncustomer->{'TSTATUS'} = $service_status[$info->{STATUS}];
 		$tab{ $user->{LOGIN} } = $warncustomer;
 	};
 };
