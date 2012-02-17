@@ -112,11 +112,11 @@ foreach my $line (@$list) {
 	  }
 	}
 	my ($creddate, $abondate, $expireDate) = 0;
-	if ($user->{CREDIT_DATE} and $user->{CREDIT_DATE} != '0000-00-00') { 
+	if ($user->{CREDIT_DATE} and $user->{CREDIT_DATE} != '0000-00-00') {
 		my ($year,$month,$day) = split(/-/,$user->{CREDIT_DATE});
 		$creddate = timelocal(0,0,0,$day,--$month,$year);
 	}
-	if ($info->{ABON_DATE} and $info->{ABON_DATE} != '0000-00-00') { 
+	if ($info->{ABON_DATE} and $info->{ABON_DATE} != '0000-00-00') {
 		my ($year,$month,$day) = split(/-/,$info->{ABON_DATE});
 		$abondate = timelocal(0,0,0,$day,--$month,$year);
 	}
@@ -131,12 +131,15 @@ foreach my $line (@$list) {
 	my $disableDate = 0;
 	my $disableCode = 0;
 
+        if ($info->{STATUS} == 5) {
+		($disableDate,$disableCode) = &updateDisableDate($now,1,$disableDate,$disableCode);
+        }
 	if ( $user->{DEPOSIT} + $user->{CREDIT} < 0.01 ) {
 		($disableDate,$disableCode) = &updateDisableDate($now,1,$disableDate,$disableCode);
-	} 
+	}
 	if ($creddate and ($creddate - $now < $WARN_DAYS*86400) and $user->{DEPOSIT} < 0.01) {
 		($disableDate,$disableCode) = &updateDisableDate($creddate,2,$disableDate,$disableCode);
-	} 
+	}
 	if ($abondate and  ($abondate - $now < $WARN_DAYS*86400) and $monthAbon > 0.01) {
 		if ($user->{DEPOSIT} + $user->{CREDIT} - $monthAbon < 0.01 ) {
 			($disableDate,$disableCode) = &updateDisableDate($abondate,3,$disableDate,$disableCode);
@@ -148,7 +151,7 @@ foreach my $line (@$list) {
 		($disableDate,$disableCode) = updateDisableDate($expireDate,5);
 	}
 
-	if ($disableCode > 0) { 
+	if ($disableCode > 0) {
 		my $pi = $users->pi({UID => $uid});
 		my $warncustomer;
 		$warncustomer->{'FIO'} = $pi->{FIO};
@@ -161,26 +164,38 @@ foreach my $line (@$list) {
 		$warncustomer->{'ExpireDate'} = $user->{EXPIRE} eq '0000-00-00' ? '' : $user->{EXPIRE};
 		$warncustomer->{'DisableDate'} = strftime("%Y-%m-%d",localtime($disableDate));
 		$warncustomer->{'UID'} = $user->{UID};
+		$warncustomer->{'TSTATUS'} = $info->{STATUS};
 		$tab{ $user->{LOGIN} } = $warncustomer;
 	};
 };
 
 #exit(0) unless %tab;
-my $texttab = Text::Table->new("login",\' | ',"Customer Name",\' | ',"Balance",\' | ',"Credit",\' | ',"Credit Expiry",\' | ',"Debit date",\' | ',"Month fee",\' | ',"Disable Date",\' | ',"Expire Date",\' | ',"Reason Code");
+my $texttab = Text::Table->new(
+              "login",
+      \' | ', "Customer Name",
+      \' | ', "Balance",
+      \' | ', "Credit",
+      \' | ', "Credit Expiry",
+      \' | ', "Debit date",
+      \' | ', "Month fee",
+      \' | ', "Expire Date",
+      \' | ', "Tariff Status",
+      \' | ', "Disable Date",
+      \' | ', "Reason Code");
 my $htmltab = new HTML::Table(
 	-cols=>8,
-	-head=>["login","Customer Name","Balance","Credit","Credit Expiry","Debit date","Month fee","Disable Date","Expire Date","Reason Code"],
+	-head=>["login","Customer Name","Balance","Credit","Credit Expiry","Debit date","Month fee","Expire Date","Tariff Status","Disable Date","Reason Code"],
 	-border=>1,
 	-bgcolor=>'WhiteSmoke',
 	-width=>'50%',
 );
 
 foreach my $line (sort { $tab{$a}{'DisableDate'} cmp $tab{$b}{'DisableDate'} } keys(%tab)){
-my @array = ($line,@{$tab{$line}}{qw/FIO Deposit Credit CreditExpiryDate DebitDate MonthFee DisableDate ExpireDate Errno/});
+my @array = ($line,@{$tab{$line}}{qw/FIO Deposit Credit CreditExpiryDate DebitDate MonthFee ExpireDate TSTATUS DisableDate Errno/});
 $texttab->load([@array]);
 $array[0] = sprintf '<a title="%s" href="https://bill.neda.af/admin/index.cgi?index=15&UID=%s">%s</a>',$line,$tab{$line}{UID},$line;
-$htmltab->addRow(@array); 
-}; 
+$htmltab->addRow(@array);
+};
 
 my $textmessage = $texttab->title;
 $textmessage .= $texttab->rule('-','+');
