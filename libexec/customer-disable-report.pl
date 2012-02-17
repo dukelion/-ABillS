@@ -91,24 +91,26 @@ foreach my $line (@$list) {
 	      $M--;
 	      $info->{ABON_DATE} = strftime "%Y-%m-%d", localtime(  (mktime(0, 0, 0, $D, $M, ($Y-1900), 0, 0, 0)  + 31 * 86400) );
 	     }
-	    else {
-	      my ($Y, $M, $D)=split(/-/, $DATE, 3);
-	      $M++;
-	      if ($M == 13) {
-		$M = 1;
-		$Y++;
-	       }
-
-	      if ($conf{START_PERIOD_DAY}) {
-		$D=$conf{START_PERIOD_DAY};
-	       }
 	      else {
-		$D='01';
-	       }
-
-	      $info->{ABON_DATE} = sprintf("%d-%02d-%02d", $Y,$M,$D);
-	     }
+		my ($Y, $M, $D)=split(/-/, $DATE, 3);
+		if ($conf{START_PERIOD_DAY} && $conf{START_PERIOD_DAY} > $D) {
+		 }
+		else {
+		  $M++;
+		 }
+		if ($M == 13) {
+		  $M = 1;
+		  $Y++;
+		 }
+		if ($conf{START_PERIOD_DAY}) {
+		  $D=$conf{START_PERIOD_DAY};
+		 }
+		else {
+		  $D='01';
+		}
+		$Dv->{ABON_DATE} = sprintf("%d-%02d-%02d", $Y,$M,$D);
 	  }
+	}
 	my ($creddate, $abondate, $expireDate) = 0;
 	if ($user->{CREDIT_DATE} and $user->{CREDIT_DATE} != '0000-00-00') { 
 		my ($year,$month,$day) = split(/-/,$user->{CREDIT_DATE});
