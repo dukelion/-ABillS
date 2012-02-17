@@ -191,7 +191,6 @@ my $htmltab = new HTML::Table(
 	-head=>["login","Customer Name","Balance","Credit","Credit Expiry","Debit date","Month fee","Expire Date","Tariff Status","Disable Date","Reason Code"],
 	-border=>1,
 	-bgcolor=>'WhiteSmoke',
-	-width=>'50%',
 );
 
 foreach my $line (sort { $tab{$a}{'DisableDate'} cmp $tab{$b}{'DisableDate'} } keys(%tab)){
