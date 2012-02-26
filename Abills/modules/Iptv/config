@@ -13,7 +13,8 @@
                    "14:6:$_CLOSED $_PERIOD:iptv_close_period"=> 5,
                    "15:6:DVCrypt:dv_crypt:"                  => 5,
                    "20:0:$_TV:iptv_online:"                  => 6,
-                   "21:0:$_TV:iptv_report:"                  => 4,
+                   "30:0:$_TV:iptv_report:"                  => 4,
+                   "31:30:$_CHANNELS $_USED:iptv_reports_channels:" => 4,
                    );
 
 

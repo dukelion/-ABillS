@@ -7,9 +7,7 @@ use SNMP_Session;
 use SNMP_util;
 use BER;
 
-use Carp;
-use CGI::Carp;
-
+load_module('Snmputils', $html);
 
 #iso.3.6.1.2.1.3.1.1.1.2.1. show ip
 # Byte
@@ -517,8 +515,6 @@ print  $html->form_main({ CONTENT => "Command: ". $html->form_input('command', "
 #
 #**********************************************************
 sub Bsr1000_log {
-
-
     	my $table = $html->table({ width       => '100%',
                                  border      => 1,
                                  title_plain => ['-', '-'],
@@ -701,7 +697,7 @@ foreach my $line (@$list) {
       $total_active++ if ($result{docsIfCmtsCmStatusValue}{$k} == 6);
 
       foreach my $ft (@default_fields) {
-        $result{$ft}{$k} = data_convert($ft, $result{$ft}{$k}, { OIDS_EXINFO => $OIDS_EXINFO });
+        $result{$ft}{$k} = data_convert->($ft, $result{$ft}{$k}, { OIDS_EXINFO => $OIDS_EXINFO });
       	#push @arr, $result{$ft}{$k};
        }
     	
@@ -874,7 +870,7 @@ foreach my $line (@$list) {
        my $k = $RES_ARR[$i];
        my @arr = ($k);
        foreach my $ft (@CAPTION) {
-         #$result{$ft}{$k} = data_convert($ft, $result{$ft}{$k});
+         #$result{$ft}{$k} = data_convert->($ft, $result{$ft}{$k});
         if  ($ft eq 'docsDevEvLastTime'  || $ft eq 'docsDevEvFirstTime') {
         	#(my $str = shift) =~ s/([a-fA-F0-9]{2})/chr(hex $result{$ft}{$k})/eg;
           
@@ -897,42 +893,42 @@ print $table->show();
 }
 
 
-sub my_simple_hash {
-        my ($h_ref, $host, $name, $oid, $inst, $value) = @_;
-        $inst =~ s/^\.+//;
-        if ($name =~/ifPhysAddress/)
-        {
-                my $mac = '';
-                map { $mac .= sprintf("%02X:",$_) } unpack "CCCCCC", $value;
-                $value = $mac;
-        }
-        $h_ref->{$name}->{$inst} = $value;
-}
+#sub my_simple_hash {
+#        my ($h_ref, $host, $name, $oid, $inst, $value) = @_;
+#        $inst =~ s/^\.+//;
+#        if ($name =~/ifPhysAddress/)
+#        {
+#                my $mac = '';
+#                map { $mac .= sprintf("%02X:",$_) } unpack "CCCCCC", $value;
+#                $value = $mac;
+#        }
+#        $h_ref->{$name}->{$inst} = $value;
+#}
 
 
 
-sub snmputils_load_mibs  {
- my ($mib_array, $attr) = @_;
-
- my %OIDS_EXINFO = ();
-
-  foreach my $line (@$mib_array) {
-    next if (! -f "../../Abills/MIBs/$line");
-    my($ret, $oid_hash, $oid_ex) = snmpMIB_to_OID_extended("../../Abills/MIBs/$line");
-
-    print "MIBS: $line Loaded<br> " if ($debug == 1);
-
-    while(my($k, $v)=each %$oid_hash) {
-  	  $OIDS_EXINFO{$k}{DESCRIBE}=$oid_ex->{$k}{DESCRIPTION} if ($oid_ex->{$k}{DESCRIPTION});
-  	  $OIDS_EXINFO{$k}{ACCESS}=$oid_ex->{$k}{ACCESS} if ($oid_ex->{$k}{ACCESS});
-  	  $OIDS_EXINFO{$k}{SYNTAX}=$oid_ex->{$k}{SYNTAX} if ($oid_ex->{$k}{SYNTAX});
-  	  $OIDS_EXINFO{$k}{MIB}="$line" if (! $OIDS_EXINFO{$k}{MIB});
-  	  snmpmapOID("$k", "$v");
-     }
-   }
-  
-  return \%OIDS_EXINFO;
-}
+#sub snmputils_load_mibs  {
+# my ($mib_array, $attr) = @_;
+#
+# my %OIDS_EXINFO = ();
+#
+#  foreach my $line (@$mib_array) {
+#    next if (! -f "../../Abills/MIBs/$line");
+#    my($ret, $oid_hash, $oid_ex) = snmpMIB_to_OID_extended("../../Abills/MIBs/$line");
+#
+#    print "MIBS: $line Loaded<br> " if ($debug == 1);
+#
+#    while(my($k, $v)=each %$oid_hash) {
+#  	  $OIDS_EXINFO{$k}{DESCRIBE}=$oid_ex->{$k}{DESCRIPTION} if ($oid_ex->{$k}{DESCRIPTION});
+#  	  $OIDS_EXINFO{$k}{ACCESS}=$oid_ex->{$k}{ACCESS} if ($oid_ex->{$k}{ACCESS});
+#  	  $OIDS_EXINFO{$k}{SYNTAX}=$oid_ex->{$k}{SYNTAX} if ($oid_ex->{$k}{SYNTAX});
+#  	  $OIDS_EXINFO{$k}{MIB}="$line" if (! $OIDS_EXINFO{$k}{MIB});
+#  	  snmpmapOID("$k", "$v");
+#     }
+#   }
+#  
+#  return \%OIDS_EXINFO;
+#}
 
 
 
@@ -940,313 +936,252 @@ sub snmputils_load_mibs  {
 # Read in the passed MIB file, parsing it
 # for their text-to-OID mappings
 #
-sub snmpMIB_to_OID_extended ($) {
-  my($arg) = @_;
-  my($quote, $buf, $var, $code, $val, $tmp, $tmpv, $strt);
-  my($ret, $pass, $pos, $need2pass, $cnt, %prev);
-  my(%Link) = (
-    'org' => 'iso',
-    'dod' => 'org',
-    'internet' => 'dod',
-    'directory' => 'internet',
-    'mgmt' => 'internet',
-    'mib-2' => 'mgmt',
-    'experimental' => 'internet',
-    'private' => 'internet',
-    'enterprises' => 'private',
-  );
-
-
-
-
-
-
-
-
-  #my %OIDS_HASH = ();
-  my %OIDS_EX = ();
-  
-  if (!open(MIB, $arg)) {
-    carp "snmpMIB_to_OID: Can't open $arg: $!"
-      unless ($SNMP_Session::suppress_warnings > 1);
-    return -1;
-  }
-  print "snmpMIB_to_OID: loading $arg\n" if $SNMP_util::Debug;
-  $ret = 0;
-  $pass = 0;
-  $need2pass = 1;
-  $cnt = 0;
-  $pos = tell(MIB);
-  
-  my %DESCRIBE_OIDS = ();
-  #my @MIB_ARRAY =
-  my $MIB_NAME;
-  
-  while($need2pass) {
-    while(<MIB>) {
-      s/--.*--//g;	# throw away comments (-- anything --)
-      s/--.*//;		# throw away comments (-- anything EOL)
-      if ($quote) {
-	      next unless /"/;
-	      $quote = 0;
-       }
-      chop;
+#sub snmpMIB_to_OID_extended ($) {
+#  my($arg) = @_;
+#  my($quote, $buf, $var, $code, $val, $tmp, $tmpv, $strt);
+#  my($ret, $pass, $pos, $need2pass, $cnt, %prev);
+#  my(%Link) = (
+#    'org' => 'iso',
+#    'dod' => 'org',
+#    'internet' => 'dod',
+#    'directory' => 'internet',
+#    'mgmt' => 'internet',
+#    'mib-2' => 'mgmt',
+#    'experimental' => 'internet',
+#    'private' => 'internet',
+#    'enterprises' => 'private',
+#  );
 #
-#	$buf = "$buf $_";
-# Previous line removed (and following replacement)
-# suggested by Brian Reichert, reichert@numachi.com
+#  #my %OIDS_HASH = ();
+#  my %OIDS_EX = ();
+#  
+#  if (!open(MIB, $arg)) {
+#    carp "snmpMIB_to_OID: Can't open $arg: $!"
+#      unless ($SNMP_Session::suppress_warnings > 1);
+#    return -1;
+#  }
+#  print "snmpMIB_to_OID: loading $arg\n" if $SNMP_util::Debug;
+#  $ret = 0;
+#  $pass = 0;
+#  $need2pass = 1;
+#  $cnt = 0;
+#  $pos = tell(MIB);
+#  
+#  my %DESCRIBE_OIDS = ();
+#  #my @MIB_ARRAY =
+#  my $MIB_NAME;
+#  
+#  while($need2pass) {
+#    while(<MIB>) {
+#      s/--.*--//g;	# throw away comments (-- anything --)
+#      s/--.*//;		# throw away comments (-- anything EOL)
+#      if ($quote) {
+#	      next unless /"/;
+#	      $quote = 0;
+#       }
+#      chop;
+##
+##	$buf = "$buf $_";
+## Previous line removed (and following replacement)
+## suggested by Brian Reichert, reichert@numachi.com
+##
+#      $buf .= ' ' . $_;
+#      $buf =~ s/\s+/ /g;
 #
-      $buf .= ' ' . $_;
-      $buf =~ s/\s+/ /g;
-
- if ($buf =~ / DEFINITIONS ::= BEGIN/) {
-
-  if ($buf =~ /(\S+) DEFINITIONS/) {
-    $MIB_NAME = $1;
-    #print "$MIB_NAME\n";
-   }
-  
-	if ($pass == 0 && $need2pass) {
-	  seek(MIB, $pos, 0);
-	  $buf = "";
-	  $pass = 1;
-	  $need2pass = 0;
-	  $cnt = 0;
-	  next;
-	}
-	$need2pass = 0;
-	$pass = 0;
-	$pos = tell(MIB);
-	undef %Link;
-	undef %prev;
-	%Link = (
-	  'org' => 'iso',
-	  'dod' => 'org',
-	  'internet' => 'dod',
-	  'directory' => 'internet',
-	  'mgmt' => 'internet',
-	  'mib-2' => 'mgmt',
-	  'experimental' => 'internet',
-	  'private' => 'internet',
-	  'enterprises' => 'private',
-	);
-	$buf = "";
-	next;
- }
-elsif ($buf =~ /FROM (\S+)/) {
-	 if (! $loaded_mibs{$1}) {
-	   print "FROM $1\n" if ($debug == 1);
-	  }
-	 $buf =~ s/FROM $1//;
- }
-
-#print $buf."\n";
-
- if ($buf =~ /DESCRIPTION.+"(.+)"+/g) {
- 	 $DESCRIBE_OIDS{DESCRIPTION}=$1;
- 	 #print "DESCRIPTION: <b>$DESCRIBE_OIDS{DESCRIPTION}</b>\n";
- 	 #next;
-  }
- elsif ($buf =~ /ACCESS (\S+)/) {
-   $DESCRIBE_OIDS{ACCESS}=$1;
-   $buf =~ s/ACCESS $1//;
- 	 next;
-   #print "MAX-ACCESS <b>$DESCRIBE_OIDS{ACCESS}</b>\n";
-  }
- elsif ($buf =~ /(\S+) OBJECT-TYPE/) {
-   $DESCRIBE_OIDS{'OBJECT-TYPE'}=$1;
-   #print "OBJECT-TYPE <b>$DESCRIBE_OIDS{'OBJECT-TYPE'}</b>\n";
-   #next;
-  }
- elsif ($buf =~ /SYNTAX (\w+)/) {
- 	 #print "$buf<br>";
- 	 $DESCRIBE_OIDS{'SYNTAX'}=$1;
-   $buf =~ s/ SYNTAX .*//;
- 	 next;
-  }
-
-      $buf =~ s/OBJECT-TYPE/OBJECT IDENTIFIER/;
-      $buf =~ s/OBJECT-IDENTITY/OBJECT IDENTIFIER/;
-      $buf =~ s/OBJECT-GROUP/OBJECT IDENTIFIER/;
-      $buf =~ s/MODULE-IDENTITY/OBJECT IDENTIFIER/;
-      $buf =~ s/ IMPORTS .*\;//;
-      $buf =~ s/ SEQUENCE {.*}//;
-
-      $buf =~ s/ [\w-]+ ::= OBJECT IDENTIFIER//;
-      $buf =~ s/ OBJECT IDENTIFIER .* ::= {/ OBJECT IDENTIFIER ::= {/;
-      $buf =~ s/".*"//;
-
+# if ($buf =~ / DEFINITIONS ::= BEGIN/) {
 #
-
-
-  if ($buf =~ /"/) {
-	  $quote = 1;
-    }
-#      	print "----- $buf.\n";
-
-      if ($buf =~ / ([\w\-]+) OBJECT IDENTIFIER ::= {([^}]+)}/) {
-      	
-
-	$var = $1;
-	$buf = $2;
-#print "$var  // $buf.
-#      	DESCRIPTION: <b>$DESCRIBE_OIDS{DESCRIPTION}</b>
-#      	MAX-ACCESS <b>$DESCRIBE_OIDS{ACCESS}</b>
-#      	OBJECT-TYPE <b>$DESCRIBE_OIDS{'OBJECT-TYPE'}</b>
+#  if ($buf =~ /(\S+) DEFINITIONS/) {
+#    $MIB_NAME = $1;
+#    #print "$MIB_NAME\n";
+#   }
+#  
+#	if ($pass == 0 && $need2pass) {
+#	  seek(MIB, $pos, 0);
+#	  $buf = "";
+#	  $pass = 1;
+#	  $need2pass = 0;
+#	  $cnt = 0;
+#	  next;
+#	}
+#	$need2pass = 0;
+#	$pass = 0;
+#	$pos = tell(MIB);
+#	undef %Link;
+#	undef %prev;
+#	%Link = (
+#	  'org' => 'iso',
+#	  'dod' => 'org',
+#	  'internet' => 'dod',
+#	  'directory' => 'internet',
+#	  'mgmt' => 'internet',
+#	  'mib-2' => 'mgmt',
+#	  'experimental' => 'internet',
+#	  'private' => 'internet',
+#	  'enterprises' => 'private',
+#	);
+#	$buf = "";
+#	next;
+# }
+#elsif ($buf =~ /FROM (\S+)/) {
+#	 if (! $loaded_mibs{$1}) {
+#	   print "FROM $1\n" if ($debug == 1);
+#	  }
+#	 $buf =~ s/FROM $1//;
+# }
 #
-#";
+##print $buf."\n";
 #
-     
-	undef $val;
-	$buf =~ s/ +$//;
-	($code, $val) = split(' ', $buf, 2);
-
-  $OIDS_EX{$var}{SYNTAX}=$DESCRIBE_OIDS{SYNTAX};
-  $OIDS_EX{$var}{ACCESS}=$DESCRIBE_OIDS{ACCESS};
-  $OIDS_EX{$var}{DESCRIPTION}=$DESCRIBE_OIDS{DESCRIPTION};
-  
- 
-  %DESCRIBE_OIDS=();
-  
-	if (!defined($val) || (length($val) <= 0)) {
-	  #$SNMP_util::OIDS{$var} = $code;
-	  $OIDS_HASH{$var} = $code;
-	  $cnt++;
-	  print "'$var' => '$code'\n" if $SNMP_util::Debug;
-	} else {
-	  $strt = $code;
-	  while($val =~ / /) {
-	    ($tmp, $val) = split(' ', $val, 2);
-	    if ($tmp =~ /([\w\-]+)\((\d+)\)/) {
-	      $tmp = $1;
-	      if (exists($OIDS_HASH{$strt})) {
-		$tmpv = "$OIDS_HASH{$strt}.$2";
-	      } else {
-		$tmpv = $2;
-	      }
-	      $Link{$tmp} = $strt;
-	      if (!exists($prev{$tmp}) && exists($OIDS_HASH{$tmp})) {
-		if ($tmpv ne $OIDS_HASH{$tmp}) {
-		  $strt = "$strt.$tmp";
-		  $OIDS_HASH{$strt} = $tmpv;
-		  $cnt++;
-		}
-	      } else {
-		$prev{$tmp} = 1;
-		$OIDS_HASH{$tmp} = $tmpv;
-		$cnt++;
-		$strt = $tmp;
-	      }
-	    }
-	  }
-
-	  if (!exists($OIDS_HASH{$strt})) {
-	    if ($pass) {
-	      carp "snmpMIB_to_OID: $arg: \"$strt\" prefix unknown, load the parent MIB first.\n"
-		unless ($SNMP_Session::suppress_warnings > 1);
-		print "snmpMIB_to_OID: $arg: \"$strt\" prefix unknown, load the parent MIB first.<br>\n";
-	    } else {
-		$need2pass = 1;
-	    }
-	  }
-	  $Link{$var} = $strt;
-	  if (exists($OIDS_HASH{$strt})) {
-	    $val = "$OIDS_HASH{$strt}.$val";
-	  }
-	  if (!exists($prev{$var}) && exists($OIDS_HASH{$var})) {
-	    if ($val ne $OIDS_HASH{$var}) {
-	      $var = "$strt.$var";
-	    }
-	  }
-
-	  $OIDS_HASH{$var} = $val;
-	  $prev{$var} = 1;
-	  $cnt++;
-
-	  print "'$var' => '$val'\n" if $SNMP_util::Debug;
-	}
-	undef $buf;
-      }
-    }
-
-    if ($pass == 0 && $need2pass) {
-      seek(MIB, $pos, 0);
-      $buf = "";
-      $pass = 1;
-      $cnt = 0;
-    } else {
-      $ret += $cnt;
-      $need2pass = 0;
-    }
-  }
-  close(MIB);
-  $RevNeeded = 1;
-  
-  $loaded_mibs{$MIB_NAME}=1;
-  
-  return ($ret, \%OIDS_HASH, \%OIDS_EX);
-}
-
-
-
-
-
-#**********************************************************
+# if ($buf =~ /DESCRIPTION.+"(.+)"+/g) {
+# 	 $DESCRIBE_OIDS{DESCRIPTION}=$1;
+# 	 #print "DESCRIPTION: <b>$DESCRIBE_OIDS{DESCRIPTION}</b>\n";
+# 	 #next;
+#  }
+# elsif ($buf =~ /ACCESS (\S+)/) {
+#   $DESCRIBE_OIDS{ACCESS}=$1;
+#   $buf =~ s/ACCESS $1//;
+# 	 next;
+#   #print "MAX-ACCESS <b>$DESCRIBE_OIDS{ACCESS}</b>\n";
+#  }
+# elsif ($buf =~ /(\S+) OBJECT-TYPE/) {
+#   $DESCRIBE_OIDS{'OBJECT-TYPE'}=$1;
+#   #print "OBJECT-TYPE <b>$DESCRIBE_OIDS{'OBJECT-TYPE'}</b>\n";
+#   #next;
+#  }
+# elsif ($buf =~ /SYNTAX (\w+)/) {
+# 	 #print "$buf<br>";
+# 	 $DESCRIBE_OIDS{'SYNTAX'}=$1;
+#   $buf =~ s/ SYNTAX .*//;
+# 	 next;
+#  }
 #
-#**********************************************************
-sub snmp_form_footer {
-	my ($fields, $active_fields, $attr) = @_;
-
-
-
-  #if ($attr->{OIDS_EXINFO});
- 
-
-my $table2 = $html->table({ width => '100%' });
-my @arr = ();
-foreach my $name ( sort keys %$fields) {
-  my $ex_info = ($attr->{OIDS_EXINFO}->{$name}{DESCRIBE}) ?  " ($attr->{OIDS_EXINFO}->{$name}{ACCESS})<br>$attr->{OIDS_EXINFO}->{$name}{DESCRIBE}" : '';
-  push @arr, $html->form_input('fields', "$name", { TYPE => 'checkbox', STATE => (in_array($name, $active_fields)) ? 1 : undef  }). " <b>$name</b>$ex_info";
-
-  if ($#arr > 2) {
-    $table2->addrow(@arr);
-    @arr = ();
-  }
-}
-
-if ($#arr > -1 ) {
-  $table2->addrow(@arr);
- }
-
-
-
-
-my $table = $html->table( { width       => '100%',
-                         title_plain => [ 
-                                           "$_REFRESH (sec): ".   $html->form_input('REFRESH', int($FORM{REFRESH}), { SIZE => 4 } ),
-                                           $html->form_input('SHOW',  $_SHOW, { TYPE => 'SUBMIT'})  
-                                         ],
-                          cols_align => ['center:noprint', 'center:noprint'],
-                       });
-
-print  $output .= $html->form_main({ CONTENT => $table2->show(). $table->show(),
-	                                   HIDDEN  => { index         =>  "$index",
-	                                   	            NAS_TYPE      =>  "$FORM{NAS_TYPE}",
-	                                   	            NAS_HOST      =>  "$FORM{NAS_HOST}",
-	                                   	            NAS_COMMUNITY =>  "$FORM{NAS_COMMUNITY}"
-	                                   	           },
-	                                   METHOD  => 'GET'
-                                   });
-
-	
-}
+#      $buf =~ s/OBJECT-TYPE/OBJECT IDENTIFIER/;
+#      $buf =~ s/OBJECT-IDENTITY/OBJECT IDENTIFIER/;
+#      $buf =~ s/OBJECT-GROUP/OBJECT IDENTIFIER/;
+#      $buf =~ s/MODULE-IDENTITY/OBJECT IDENTIFIER/;
+#      $buf =~ s/ IMPORTS .*\;//;
+#      $buf =~ s/ SEQUENCE {.*}//;
+#
+#      $buf =~ s/ [\w-]+ ::= OBJECT IDENTIFIER//;
+#      $buf =~ s/ OBJECT IDENTIFIER .* ::= {/ OBJECT IDENTIFIER ::= {/;
+#      $buf =~ s/".*"//;
+#
+##
+#
+#
+#  if ($buf =~ /"/) {
+#	  $quote = 1;
+#    }
+##      	print "----- $buf.\n";
+#
+#      if ($buf =~ / ([\w\-]+) OBJECT IDENTIFIER ::= {([^}]+)}/) {
+#      	
+#
+#	$var = $1;
+#	$buf = $2;
+##print "$var  // $buf.
+##      	DESCRIPTION: <b>$DESCRIBE_OIDS{DESCRIPTION}</b>
+##      	MAX-ACCESS <b>$DESCRIBE_OIDS{ACCESS}</b>
+##      	OBJECT-TYPE <b>$DESCRIBE_OIDS{'OBJECT-TYPE'}</b>
+##
+##";
+##
+#     
+#	undef $val;
+#	$buf =~ s/ +$//;
+#	($code, $val) = split(' ', $buf, 2);
+#
+#  $OIDS_EX{$var}{SYNTAX}=$DESCRIBE_OIDS{SYNTAX};
+#  $OIDS_EX{$var}{ACCESS}=$DESCRIBE_OIDS{ACCESS};
+#  $OIDS_EX{$var}{DESCRIPTION}=$DESCRIBE_OIDS{DESCRIPTION};
+#  
+# 
+#  %DESCRIBE_OIDS=();
+#  
+#	if (!defined($val) || (length($val) <= 0)) {
+#	  #$SNMP_util::OIDS{$var} = $code;
+#	  $OIDS_HASH{$var} = $code;
+#	  $cnt++;
+#	  print "'$var' => '$code'\n" if $SNMP_util::Debug;
+#	} else {
+#	  $strt = $code;
+#	  while($val =~ / /) {
+#	    ($tmp, $val) = split(' ', $val, 2);
+#	    if ($tmp =~ /([\w\-]+)\((\d+)\)/) {
+#	      $tmp = $1;
+#	      if (exists($OIDS_HASH{$strt})) {
+#		$tmpv = "$OIDS_HASH{$strt}.$2";
+#	      } else {
+#		$tmpv = $2;
+#	      }
+#	      $Link{$tmp} = $strt;
+#	      if (!exists($prev{$tmp}) && exists($OIDS_HASH{$tmp})) {
+#		if ($tmpv ne $OIDS_HASH{$tmp}) {
+#		  $strt = "$strt.$tmp";
+#		  $OIDS_HASH{$strt} = $tmpv;
+#		  $cnt++;
+#		}
+#	      } else {
+#		$prev{$tmp} = 1;
+#		$OIDS_HASH{$tmp} = $tmpv;
+#		$cnt++;
+#		$strt = $tmp;
+#	      }
+#	    }
+#	  }
+#
+#	  if (!exists($OIDS_HASH{$strt})) {
+#	    if ($pass) {
+#	      carp "snmpMIB_to_OID: $arg: \"$strt\" prefix unknown, load the parent MIB first.\n"
+#		unless ($SNMP_Session::suppress_warnings > 1);
+#		print "snmpMIB_to_OID: $arg: \"$strt\" prefix unknown, load the parent MIB first.<br>\n";
+#	    } else {
+#		$need2pass = 1;
+#	    }
+#	  }
+#	  $Link{$var} = $strt;
+#	  if (exists($OIDS_HASH{$strt})) {
+#	    $val = "$OIDS_HASH{$strt}.$val";
+#	  }
+#	  if (!exists($prev{$var}) && exists($OIDS_HASH{$var})) {
+#	    if ($val ne $OIDS_HASH{$var}) {
+#	      $var = "$strt.$var";
+#	    }
+#	  }
+#
+#	  $OIDS_HASH{$var} = $val;
+#	  $prev{$var} = 1;
+#	  $cnt++;
+#
+#	  print "'$var' => '$val'\n" if $SNMP_util::Debug;
+#	}
+#	undef $buf;
+#      }
+#    }
+#
+#    if ($pass == 0 && $need2pass) {
+#      seek(MIB, $pos, 0);
+#      $buf = "";
+#      $pass = 1;
+#      $cnt = 0;
+#    } else {
+#      $ret += $cnt;
+#      $need2pass = 0;
+#    }
+#  }
+#  close(MIB);
+#  $RevNeeded = 1;
+#  
+#  $loaded_mibs{$MIB_NAME}=1;
+#  
+#  return ($ret, \%OIDS_HASH, \%OIDS_EX);
+#}
 
 
 
 #***********************************************************
 #
 #**********************************************************
-sub data_convert  {
+my $data_convert = sub {
 	my ($name, $data, $attr) = @_;
 	
 	my $ret = '';
@@ -1293,7 +1228,7 @@ sub data_convert  {
          }
 	
 	return $ret;
-}
+};
 
 
 

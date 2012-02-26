@@ -9,10 +9,12 @@
 
 debug=1
 
+echo "Content-Type: text/html\n\n";
+
 if [ -f /usr/abills/neg_deposit/index.htm ]; then
   cat /usr/abills/neg_deposit/index.htm
 else 
-
+ 
  echo "<h3>Negative Deposit</h3>"
 fi;
 

@@ -153,10 +153,33 @@ if ($FORM{OP_SID}) {
   $html->setCookie('OP_SID', $FORM{OP_SID}, "Fri, 1-Jan-2038 00:00:01", '', $domain, $secure);
 }
 
+if ($index == 2) {
+	if ($FORM{hold_date}) {
+	  $html->setCookie('hold_date', "$FORM{DATE}", "Fri, 1-Jan-2038 00:00:01", '', $domain, $secure);
+	  $COOKIES{hold_date}=$FORM{DATE};
+	 }
+  elsif($FORM{OP_SID}) {
+  	$html->setCookie('hold_date', "", "Fri, 1-Jan-2038 00:00:01", '', $domain, $secure);
+  	$COOKIES{hold_date}=undef;
+  	#$FORM{DATE}=undef;
+   }
+  
+    if($FORM{OP_SID}) {
+	    $html->setCookie('INNER_DESCRIBE', "$FORM{INNER_DESCRIBE}", "Fri, 1-Jan-2038 00:00:01", '', $domain, $secure);
+	    delete $COOKIES{INNER_DESCRIBE} if (! $FORM{INNER_DESCRIBE});
+	   }
+	
+	  if (!$FORM{INNER_DESCRIBE} && $COOKIES{INNER_DESCRIBE} && $conf{PAYMENTS_INNER_DESCRIBE_AUTOCOMPLETE}) {
+		  $FORM{INNER_DESCRIBE} = $COOKIES{INNER_DESCRIBE};
+	   }
+ }
+
+
 if (defined($FORM{DOMAIN_ID})) {
   $html->setCookie('DOMAIN_ID', "$FORM{DOMAIN_ID}", "Fri, 1-Jan-2038 00:00:01", $web_path, $domain, $secure);
   $COOKIES{DOMAIN_ID}=$FORM{DOMAIN_ID};
  }
+
 
 #Admin Web_options
 if ($FORM{AWEB_OPTIONS}) {
@@ -316,6 +339,11 @@ if ($FORM{qindex}) {
 }
 
 
+if($FORM{POPUP} == 1) {
+  print "Content/type: text/html\n\n";
+  get_popup_info();
+  exit;
+ }
 
 #Make active lang list
 if ($conf{LANGS}) {
@@ -581,7 +609,8 @@ for(my $parent=1; $parent<$#menu_sorted; $parent++) {
     $table = $html->table({ width       => '200',
                             title_plain => [ $html->button($html->b($val), "index=$parent") ],
                             border      => 1,
-                            cols_align  => ['left']
+                            cols_align  => ['left'],
+                            class       => 'form'
                           });
    }
 
@@ -773,33 +802,13 @@ elsif ($FORM{update}) {
  	  	      REGISTRATION=> 1,
  	  	      #USER        => \%FORM,
  	  	      USER_INFO   => ($FORM{UID}) ? $users : undef,
- 	  	      LNG_ACTION  => ($steps{$FORM{step}}) ? "$_NEXT " : "$_REGISTRATION_COMPLETE",
+ 	  	      LNG_ACTION  => ($steps{$FORM{step}}) ? "$_NEXT" : "$_REGISTRATION_COMPLETE",
  	  	      BACK_BUTTON => ($FORM{step} > 2) ? $html->form_input('finish', "$_FINISH", {  TYPE => 'submit' }).' '. $html->form_input('back', "$_BACK", {  TYPE => 'submit' }) : (! $FORM{back}) ? $html->form_input('add', "$_FINISH", {  TYPE => 'submit' }) : $html->form_input('change', "$_FINISH", {  TYPE => 'submit' }),
  	  	      UID         => $FORM{UID},
  	  	      SUBJECT     => $_REGISTRATION
  	  	     });
 #   }
 }
-
-#**********************************************************
-#
-#**********************************************************
-#sub form_user_wizard {
-#  my ($attr)=@_;
-#  
-#  
-#  my $main_account = $html->tpl_show(templates('form_user'), $user_info, { OUTPUT2RETURN => 1 });
-#  $main_account =~ s/<FORM.+>//ig;
-#  $main_account =~ s/<\/FORM>//ig;
-#  $main_account =~ s/<input.+type=submit.+>//ig;
-#  $main_account =~ s/<input.+index.+>//ig;
-#  $main_account =~ s/user_form/users_pi/ig;
-#   
-#  $html->tpl_show(templates('form_pi'), { %$user_info, MAIN_USER_TPL => $main_account }); 
-#  
-#  return 0;
-#}
-
 
 
 #**********************************************************
@@ -844,7 +853,7 @@ elsif ($FORM{import}) {
 
            next if ($USER_HASH{COMPANY_NAME} eq '');
             
-           for(my $i=1; $i<=$#params; $i++) {
+           for(my $i=0; $i<=$#params; $i++) {
            	 my($k, $v)=split(/=/, $params[$i], 2);
            	 $v =~ s/\"//g;
            	 $USER_HASH{$k}=$v;
@@ -855,7 +864,15 @@ elsif ($FORM{import}) {
           
           $company->add({ %USER_HASH });
           if ($company->{errno}) {
-            $html->message('err', $_ERROR, "Line:$impoted_named  '$USER_HASH{COMPANY_NAME}' [$company->{errno}] $err_strs{$company->{errno}}");
+       	  	my $message = "Line:$impoted_named\n $_COMPANY: '$USER_HASH{COMPANY_NAME}'"; 
+       	  	if ($company->{errno} == 7) {
+  		        $message .= "\n$_EXIST";
+  	         }
+          	else {
+          		$message .= "\n[$company->{errno}] $err_strs{$company->{errno}}";
+          	 }
+          	
+            $html->message('err', $_ERROR, $message);
             return 0;
            }
          }         
@@ -1003,8 +1020,7 @@ elsif($FORM{del} && $FORM{is_js_confirmed}  && $permissions{0}{5} ) {
    $company->del( $FORM{del} );
    $html->message('info', $_INFO, "$_DELETED # $FORM{del}");
  }
-else {
-	
+else {	
 	if ($FORM{letter}) {
     $LIST_PARAMS{COMPANY_NAME} = "$FORM{letter}*";
     $pages_qs .= "&letter=$FORM{letter}";
@@ -1055,7 +1071,12 @@ else {
    }
 }
   if ($company->{errno}) {
-    $html->message('info', $_ERROR, "[$company->{errno}] $err_strs{$company->{errno}}");
+  	if ($company->{errno} == 7) {
+  		$html->message('info', $_ERROR, "$_COMPANY $_EXIST");
+  	 }
+  	else {
+      $html->message('info', $_ERROR, "[$company->{errno}] $err_strs{$company->{errno}}");
+     }
    }
 
 }
@@ -1594,6 +1615,11 @@ sub user_info {
   my ($UID)=@_;
 
 	my $user_info = $users->info( $UID , { %FORM });
+	
+	if ($users->{TOTAL} == 0 && ! $FORM{UID}) {
+		return 0;
+	 }
+	
   my $deleted   = ($user_info->{DELETED}) ? $html->color_mark($html->b($_DELETED), '#FF0000') : '';
   my $ext_menu  = user_ext_menu($user_info->{UID}, $user_info->{LOGIN}, { SHOW_UID => 1 });
   
@@ -1649,7 +1675,7 @@ sub form_show_attach {
 sub form_address_sel {
 
    print "Content-Type: text/html\n\n";
-   my $js_list = ''; 	
+   my $js_list   = ''; 	
  	 my $id        =   $FORM{'JsHttpRequest'};
    my $jsrequest =   $FORM{'jsrequest'};
    ($id, undef)  = split(/-/,$id);   	
@@ -1712,10 +1738,6 @@ sub form_address_sel {
         "text": "" }) };
     }
  	 exit;
-
-
-
-
 }
 
 #**********************************************************
@@ -2922,6 +2944,8 @@ sub form_changes {
  my ($attr) = @_; 
  my %search_params = ();
  
+ my @service_status = ( "$_ENABLE", "$_DISABLE", "$_NOT_ACTIVE", "$_HOLD_UP", "$_DISABLE: $_NON_PAYMENT", "$ERR_SMALL_DEPOSIT");
+ 
  my %action_types = ( 0  => 'Unknown', 
                    1  => "$_ADDED",
                    2  => "$_CHANGED",
@@ -2939,8 +2963,8 @@ sub form_changes {
                    14 => "$_HOLD_UP",
                    15 => "$_HANGUP",
                    26 => "$_CHANGE $_GROUP",
-                   27 => "$_SHEDULE $_ADD",
-                   28 => "$_SHEDULE $_DEL",
+                   27 => "$_SHEDULE $_ADDED",
+                   28 => "$_SHEDULE $_DELETED",
                    31 => "$_CARDS $_USED"
                    );
  
@@ -3011,10 +3035,16 @@ foreach my $line (@$list) {
   else {
   	$table->{rowcolor}=undef;
    }
+  
+  my $message = $line->[3];
+  if ($line->[7] == 4) {
+  	$message = $service_status[$message];
+   }
+
   $table->addrow($html->b($line->[0]),
     $html->button($line->[1], "index=15&UID=$line->[8]"), 
     $html->color_mark($line->[2], $color), 
-    $html->color_mark($line->[3], $color), 
+    $html->color_mark($message, $color), 
     $line->[4],  
     $line->[5], 
     $line->[6], 
@@ -3154,7 +3184,8 @@ if(defined($attr->{TP})) {
        my $list_tt = $tarif_plan->tt_list({ TI_ID => $line->[0] });
        foreach my $line (@$list_tt) {
           $max_traffic_class_id=$line->[0] if ($line->[0] > $max_traffic_class_id);
-          $table2->addrow($line->[0], 
+          $table2->addrow(
+           ($line->[0] != 0) ? $html->color_mark($line->[0], 'red') :  $line->[0], 
            $line->[1], 
            $line->[2], 
            $line->[3], 
@@ -4151,7 +4182,8 @@ if ($nas->{errno}) {
   'qbridge'   => 'Q-BRIDGE',
   'dhcp'      => 'DHCP FreeRadius in DHCP mode',
   'ls_pap2t'  => 'Linksys pap2t',
-  'ls_spa8000'=> 'Linksys spa8000'
+  'ls_spa8000'=> 'Linksys spa8000',
+  'redback'   => 'Ericson CE1000 Redback'
  );
 
 
@@ -4453,15 +4485,15 @@ my $table = $html->table( { width      => '100%',
                             title      => ['', "NAS", "$_NAME", "$_BEGIN", "$_END", "$_COUNT", "$_PRIORITY", "$_SPEED (Kbits)", '-', '-'],
                             cols_align => ['right', 'left', 'right', 'right', 'right', 'right', 'center', 'center'],
                             qs         => $pages_qs,
-                            pages      => $payments->{TOTAL},
+                            pages      => $nas->{TOTAL},
                             ID         => 'NAS_IP_POOLS'
                            });
 
 
 
 foreach my $line (@$list) {
-  my $delete = $html->button($_DEL, "index=62$pages_qs&del=$line->[10]", { MESSAGE => "$_DEL POOL $line->[10]?", CLASS => 'del' }); 
-  my $change = $html->button($_CHANGE, "index=62$pages_qs&chg=$line->[10]", { CLASS => 'change' }); 
+  my $delete = ($FORM{NAS_ID}) ? $html->button($_DEL, "index=62$pages_qs&del=$line->[10]", { MESSAGE => "$_DEL POOL $line->[10]?", CLASS => 'del' }) : ''; 
+  my $change = ($FORM{NAS_ID}) ? $html->button($_CHANGE, "index=62$pages_qs&chg=$line->[10]", { CLASS => 'change' }) : ''; 
   $table->{rowcolor} = ($line->[10] eq $FORM{chg}) ? 'row_active' : undef;
 
   $table->addrow(
@@ -4482,8 +4514,8 @@ print $html->form_main({  CONTENT => $table->show(),
 	                        HIDDEN  => { index  => "62",
                                        NAS_ID => "$FORM{NAS_ID}",
                                      },
-	                        SUBMIT  => { set   => "$_SET"
-	                       	           } });
+                          ($FORM{NAS_ID}) ? ( SUBMIT  => {  set   => "$_SET" } ) : undef
+	                        });
 
 
 return 0;
@@ -5097,12 +5129,17 @@ sub report_payments {
  
 if ($FORM{DATE}) {
 	$graph_type = '';
+  my @caption = ('ID', $_LOGIN, $_DATE, $_DESCRIBE, $_SUM, $_DEPOSIT, 
+                                   $_PAYMENT_METHOD, 'EXT ID', "$_BILL", $_ADMINS, 'IP');
 
+  if ($conf{SYSTEM_CURRENCY}) {
+  	push @caption, "$_ALT $_SUM", "$_CURRENCY";
+   }
+                                     
   $list = $payments->list( { %LIST_PARAMS } );
   $table = $html->table( { width      => '100%',
                            caption    => "$_PAYMENTS",
-                              title    => ['ID', $_LOGIN, $_DATE, $_DESCRIBE, $_SUM, $_DEPOSIT, 
-                                   $_PAYMENT_METHOD, 'EXT ID', "$_BILL", $_ADMINS, 'IP'],
+                           title      => \@captions,
                            cols_align => ['right', 'left', 'right', 'right', 'left', 'left', 'right', 'right', 'left', 'left', 'center:noprint'],
                            qs         => $pages_qs,
                            pages      => $payments->{TOTAL},
@@ -5112,18 +5149,24 @@ if ($FORM{DATE}) {
 
   my $pages_qs .= "&subf=2" if (! $FORM{subf});
   foreach my $line (@$list) {
-    $table->addrow($html->b($line->[0]), 
-    $html->button($line->[1], "index=15&UID=$line->[11]"), 
+    my @rows = (    
+    $html->b($line->[0]), 
+    $html->button($line->[1], "index=15&UID=$line->[13]"), 
     $line->[2], 
     $line->[3], 
-    $line->[4] . ( ($line->[12] ) ? ' ('. $html->b($line->[12]) .') ' : '' ), 
+    $line->[4] . ( ($line->[14] ) ? ' ('. $html->b($line->[14]) .') ' : '' ), 
     "$line->[5]", 
     $PAYMENTS_METHODS{$line->[6]}, 
     "$line->[7]", 
     ($conf{EXT_BILL_ACCOUNT} && $attr->{USER_INFO}) ? $BILL_ACCOUNTS{$line->[8]} : "$line->[8]",
     "$line->[9]", 
-    "$line->[10]", 
-    );
+    "$line->[10]");
+    
+    if ($conf{SYSTEM_CURRENCY}) {
+    	push @rows, $line->[11], $line->[12];
+     }
+    
+    $table->addrow(@rows);
   }
  }   
 else { 
@@ -5518,11 +5561,11 @@ sub form_payments () {
 
  if ($FORM{print}) {
    load_module('Docs', $html);
-   if ($FORM{ACCOUNT_ID}) {
-   	 docs_account({ %FORM  });
+   if ($FORM{INVOICE_ID}) {
+   	 docs_invoice({ %FORM  });
     }
    else {
-     docs_invoice({ %FORM  });
+     docs_receipt({ %FORM  });
     }
    exit;
   }
@@ -5539,7 +5582,7 @@ if ($attr->{USER_INFO}) {
 
   if (in_array('Docs', \@MODULES) ) {
     $FORM{QUICK}=1;
-  	load_module('Docs', $html);
+        load_module('Docs', $html);
    }
 
   if(! $attr->{REGISTRATION}) {
@@ -5549,45 +5592,54 @@ if ($attr->{USER_INFO}) {
      }
    }
 
-  if ($FORM{DATE}) {
-    ($DATE, $TIME)=split(/ /, $FORM{DATE});
-   }
-
   if (defined($FORM{OP_SID}) and $FORM{OP_SID} eq $COOKIES{OP_SID}) {
  	  $html->message('err', $_ERROR, "$_EXIST");
    }
   elsif ($FORM{add} && $FORM{SUM}) {
   	$FORM{SUM} =~ s/,/\./g;
-  	
   	if ($FORM{SUM}!~/[0-9\.]+/) {
   	  $html->message('err', $_ERROR, "$ERR_WRONG_SUM");	
       return 1 if ($attr->{REGISTRATION});
   	 }
   	else {
-      if( $FORM{ACCOUNT_ID} && $FORM{ACCOUNT_ID} eq 'create') {
-    	  $LIST_PARAMS{UID}= $FORM{UID};
-    	  $FORM{create}    = 1;
-    	  $FORM{CUSTOMER}  = '-';
-    	  $FORM{ORDER}     = $FORM{DESCRIBE};
-    	  docs_account();    	
-       }
-      elsif($FORM{ACCOUNT_ID}) {
-    	  $Docs->account_info($FORM{ACCOUNT_ID});
-        if ($Docs->{TOTAL} == 0) {
-      	  $FORM{ACCOUNT_SUM}=0;
+  		$FORM{CURRENCY}=$conf{SYSTEM_CURRENCY};
+  		
+  		
+  		if ($FORM{ER}) {
+  			if ($FORM{DATE}) {
+  				my $list = $payments->exchange_log_list({ DATE      => "<=$FORM{DATE}",
+  					                                        ID        => $FORM{ER},
+  					                                        PAGE_ROWS => 1 });
+          $FORM{ER}       = $list->[0]->[2] || 1;
+          $FORM{CURRENCY} = $list->[0]->[4] || 0;
+  			 }
+  			else {
+          my $er = $payments->exchange_info($FORM{ER});
+          $FORM{ER}       = $er->{ER_RATE};
+          $FORM{CURRENCY} = $er->{ISO};
          }
-        else {
-      	  $FORM{ACCOUNT_SUM} = $Docs->{TOTAL_SUM};
-         }
        }
-
-   	  if ($FORM{ACCOUNT_SUM} && $FORM{ACCOUNT_SUM} != $FORM{SUM})  {
-        $html->message('err', "$_PAYMENTS: $ERR_WRONG_SUM", "$_ACCOUNT $_SUM: $Docs->{TOTAL_SUM} / $_PAYMENTS $_SUM: $FORM{SUM}");
+      
+            
+      if ($FORM{ER} && $FORM{ER} != 1) {
+      	#$FORM{MAIN_SUM} = $FORM{SUM};
+        $FORM{PAYMENT_SUM} = sprintf("%.2f", $FORM{SUM} / $FORM{ER});
        }
       else {
-        my $er = $payments->exchange_info($FORM{ER});
-        $FORM{ER} = $er->{ER_RATE};
-        $payments->add($user, { %FORM } );  
+      	$FORM{PAYMENT_SUM} = $FORM{SUM};
+       }
+      
+      #Make pre payments functions in all modules 
+      cross_modules_call('_pre_payment', { %$attr });
+      
+   	  if ($FORM{INVOICE_SUM} && $FORM{INVOICE_SUM} != $FORM{PAYMENT_SUM} )  {
+        $html->message('err', "$_PAYMENTS: $ERR_WRONG_SUM", " $_INVOICE $_SUM: $Docs->{TOTAL_SUM}\n $_PAYMENTS $_SUM: $FORM{SUM}");
+       }
+      else {
+        $payments->add($user, { %FORM,
+        	INNER_DESCRIBE => $FORM{INNER_DESCRIBE}. (($FORM{DATE} && $COOKIES{hold_date}) ? " $DATE $TIME" : '' )        	
+        	  } );  
+
         if ($payments->{errno}) {
       	  if ($payments->{errno}==12) {
       		  $html->message('err', $_ERROR, "$ERR_WRONG_SUM");	
@@ -5598,6 +5650,7 @@ if ($attr->{USER_INFO}) {
           return 1 if ($attr->{REGISTRATION});
          }
         else {
+        	$FORM{SUM}=$payments->{SUM};
           $html->message('info', $_PAYMENTS, "$_ADDED $_SUM: $FORM{SUM} $er->{ER_SHORT_NAME}");
         
           if ($conf{external_payments}) {
@@ -5609,7 +5662,7 @@ if ($attr->{USER_INFO}) {
           $attr->{USER_INFO}->{DEPOSIT}+=$FORM{SUM};
           $FORM{PAYMENTS_ID} = $payments->{PAYMENT_ID};
           cross_modules_call('_payments_maked', { %$attr, PAYMENT_ID => $payments->{PAYMENT_ID} });
-        }
+         }
        }
      }
    }
@@ -5632,13 +5685,28 @@ if ($attr->{USER_INFO}) {
 
 return 0 if ($attr->{REGISTRATION} && $FORM{add});
 #exchange rate sel
+
+
+
+my  $er_list = $payments->exchange_list({ %FORM });
+my %ER_ISO2ID = ();
+foreach my $line (@$er_list) {
+	$ER_ISO2ID{$line->[3]}=$line->[5];
+}
+
+if (! $FORM{ER} && $FORM{ISO}) {
+	$FORM{ER}=$ER_ISO2ID{$FORM{ISO}};
+}
+
 $payments->{SEL_ER}=$html->form_select('ER', 
                                 { 
- 	                                SELECTED          => undef,
- 	                                SEL_MULTI_ARRAY   => [ ['', '', '', '', ''], @{ $payments->exchange_list() } ],
- 	                                MULTI_ARRAY_KEY   => 4,
+ 	                                SELECTED          => $FORM{ER},
+ 	                                SEL_MULTI_ARRAY   => [ ['', '', '', '', '', ''], @{ $er_list } ],
+ 	                                MULTI_ARRAY_KEY   => 5,
  	                                MULTI_ARRAY_VALUE => '1,2',
- 	                                NO_ID             => 1
+ 	                                NO_ID             => 1,
+ 	                                MAIN_MENU         => get_function_index('form_exchange_rate'),
+ 	                                MAIN_MENU_AGRV    => "chg=$FORM{ER}"
  	                               });
 
 
@@ -5673,29 +5741,43 @@ if ($permissions{1} && $permissions{1}{1}) {
  	                             "</td></tr>\n";
     }
    
+   
+   
   if ($permissions{1}{4}) {
+  	if ($COOKIES{hold_date}) {
+  		($DATE, $TIME) = split(/ /, $COOKIES{hold_date}, 2);
+  	 }
+
+    if ($FORM{DATE}) {
+      ($DATE, $TIME)=split(/ /, $FORM{DATE});
+     }
+
     my $date_field = $html->date_fld2('DATE', { DATE=>$DATE, TIME => $TIME, MONTHES => \@MONTHES, FORM_NAME => 'user', WEEK_DAYS => \@WEEKDAYS });
-    $payments->{DATE} = "<tr><td colspan=2>$_DATE:</td><td>$date_field</td></tr>\n";
+    $payments->{DATE} = "<tr><td colspan=2>$_DATE:</td><td>$date_field  $_HOLD: <input type=checkbox name=hold_date value=1 ". 
+    (($COOKIES{hold_date}) ? 'checked' : '' )
+     ."> </td></tr>\n";
    }
 
   if (in_array('Docs', \@MODULES) ) {
-  	my $ACCOUNTS_SEL = $html->form_select("ACCOUNT_ID", 
-                                { SELECTED          => $FORM{ACCOUNT_ID},
- 	                                SEL_MULTI_ARRAY   => $Docs->accounts_list({ UID => $user->{UID}, PAYMENT_ID => 0, PAGE_ROWS => 100, SORT => 2, DESC => 'DESC' }), 
- 	                                MULTI_ARRAY_KEY   => 12,
+  	my $INVOICE_SEL = $html->form_select("INVOICE_ID", 
+                                { SELECTED          => $FORM{INVOICE_ID},
+ 	                                SEL_MULTI_ARRAY   => $Docs->invoices_list({ UID => $user->{UID}, PAYMENT_ID => 0, PAGE_ROWS => 100, SORT => 2, DESC => 'DESC' }), 
+ 	                                MULTI_ARRAY_KEY   => 13,
  	                                MULTI_ARRAY_VALUE => '0,1,3',
  	                                MULTI_ARRAY_VALUE_PREFIX => "$_NUM: ,$_DATE: ,$_SUM:",
- 	                                SEL_OPTIONS       => { 0 => '', create => $_CREATE },
+ 	                                SEL_OPTIONS       => { 0 => '', (! $conf{PAYMENTS_NOT_CREATE_INVOICE}) ? ( create => $_CREATE ) : undef },
  	                                NO_ID             => 1,
+ 	                                MAIN_MENU         => get_function_index('docs_invoices_list'),
+ 	                                MAIN_MENU_AGRV    => "UID=$FORM{UID}&INVOICE_ID=$FORM{INVOICE_ID}"
  	                               });
 
     $payments->{DOCS_ACCOUNT_ELEMENT}="<tr><th colspan=3 class='form_title'>$_DOCS</th></tr>\n".
-    "<tr><td colspan=2>$_ACCOUNT:</td><td>$ACCOUNTS_SEL</td></tr>";
+    "<tr><td colspan=2>$_INVOICE:</td><td>$INVOICE_SEL</td></tr>";
    }
 
 
    if (in_array('Docs', \@MODULES) ) {
-     $payments->{DOCS_ACCOUNT_ELEMENT} .= "<tr><td colspan=2>$_INVOICE:</td><td>". $html->form_input('CREATE_INVOICE', '1', { TYPE => 'checkbox', STATE => 1 }). "</td></tr>\n";
+     $payments->{DOCS_ACCOUNT_ELEMENT} .= "<tr><td colspan=2>$_RECEIPT:</td><td>". $html->form_input('CREATE_RECEIPT', '1', { TYPE => 'checkbox', STATE => 1 }). "</td></tr>\n";
     }   
    
    
@@ -5740,12 +5822,21 @@ if (! defined($FORM{sort})) {
 
 $LIST_PARAMS{ID}=$FORM{ID} if ($FORM{ID});
 
+my @caption = ('ID', $_LOGIN, $_DATE, $_DESCRIBE,  $_SUM, $_DEPOSIT, 
+                                   $_PAYMENT_METHOD, 'EXT ID', "$_BILL", $_ADMINS, 'IP');
+
+if ($conf{SYSTEM_CURRENCY}) {
+	push @caption, "$_ALT $_SUM", "$_CURRENCY";
+ }
+              
+
+push @caption,  '-';                                   
+
 my $list = $payments->list( { %LIST_PARAMS } );
 my $table = $html->table( { width      => '100%',
                             caption    => "$_PAYMENTS",
                             border     => 1,
-                            title      => ['ID', $_LOGIN, $_DATE, $_DESCRIBE,  $_SUM, $_DEPOSIT, 
-                                   $_PAYMENT_METHOD, 'EXT ID', "$_BILL", $_ADMINS, 'IP', '-'],
+                            title      => \@caption,
                             cols_align => ['right', 'left', 'right', 'right', 'left', 'left', 'right', 'right', 'left', 'left', 'center:noprint'],
                             qs         => $pages_qs,
                             pages      => $payments->{TOTAL},
@@ -5756,20 +5847,26 @@ my $table = $html->table( { width      => '100%',
 
 my $pages_qs .= "&subf=2" if (! $FORM{subf});
 foreach my $line (@$list) {
-  my $delete = ($permissions{1}{2}) ?  $html->button($_DEL, "index=2&del=$line->[0]&UID=". $line->[11] ."$pages_qs", { MESSAGE => "$_DEL [$line->[0]] ?", CLASS => 'del' }) : ''; 
+  my $delete = ($permissions{1}{2}) ?  $html->button($_DEL, "index=2&del=$line->[0]&UID=". $line->[13] ."$pages_qs", { MESSAGE => "$_DEL [$line->[0]] ?", CLASS => 'del' }) : ''; 
 
-  $table->addrow($html->b($line->[0]), 
-  $html->button($line->[1], "index=15&UID=$line->[11]"), 
+  my @rows = ( $html->b($line->[0]), 
+  $html->button($line->[1], "index=15&UID=$line->[13]"), 
   $line->[2], 
-  $line->[3].( ($line->[12] ) ? $html->br(). $html->b($line->[12]) : '' ), 
+  $line->[3].( ($line->[14] ) ? $html->br(). $html->b($line->[14]) : '' ), 
   $line->[4], 
   "$line->[5]", 
   $PAYMENTS_METHODS{$line->[6]}, 
   "$line->[7]", 
   ($conf{EXT_BILL_ACCOUNT} && $attr->{USER_INFO}) ? $BILL_ACCOUNTS{$line->[8]} : "$line->[8]",
   "$line->[9]", 
-  "$line->[10]",   
-  $delete);
+  "$line->[10]");
+
+  if ($conf{SYSTEM_CURRENCY}) {
+    push @rows, $line->[11], $line->[12];
+   }
+
+  push @rows, $delete;
+  $table->addrow(@rows);
 }
 
 print $table->show();
@@ -5836,12 +5933,26 @@ elsif($FORM{del} && $FORM{is_js_confirmed}) {
     $html->message('info', $_EXCHANGE_RATE, "$_DELETED");
    }
 }
+elsif($FORM{log_del} && $FORM{is_js_confirmed}) {
+	$finance->exchange_log_del("$FORM{log_del}");
+  if ($finance->{errno}) {
+    $html->message('err', $_ERROR, "[$finance->{errno}] $err_strs{$finance->{errno}}");	
+   }
+  else {
+    $html->message('info', $_EXCHANGE_RATE, "$_LOG $_DELETED");
+   }
+}
+
+
+
 	
 
 $html->tpl_show(templates('form_er'), $finance);
-my $table = $html->table({ width      => '640',
-                           title      => ["$_MONEY", "$_SHORT_NAME", "$_EXCHANGE_RATE (1 unit =)", "$_CHANGED", '-', '-'],
+my $table = $html->table({ caption    => $_EXCHANGE_RATE,
+	                         width      => '640',
+                           title      => ["$_MONEY", "$_SHORT_NAME", "$_EXCHANGE_RATE (1 unit =)", 'ISO', "$_CHANGED", '-', '-'],
                            cols_align => ['left', 'left', 'right', 'center', 'center'],
+                           ID         => 'EXCHANGE_RATE'
                           });
 
 my $list = $finance->exchange_list( {%LIST_PARAMS} );
@@ -5850,11 +5961,35 @@ foreach my $line (@$list) {
      $line->[1], 
      $line->[2], 
      $line->[3], 
-     $html->button($_CHANGE, "index=65&chg=$line->[4]", { CLASS => 'change' }), 
-     $html->button($_DEL, "index=65&del=$line->[4]", { MESSAGE => "$_DEL [$line->[0]]?", CLASS => 'del' } ));
+     $line->[4], 
+     $html->button($_CHANGE, "index=$index&chg=$line->[5]", { CLASS => 'change' }), 
+     $html->button($_DEL, "index=$index&del=$line->[5]", { MESSAGE => "$_DEL [$line->[0]]?", CLASS => 'del' } ));
 }
 
 print $table->show();
+
+
+$table = $html->table({ caption    => "$_LOG",
+	                      width      => '640',
+                        title      => ["$_MONEY", "$_SHORT_NAME", "$_EXCHANGE_RATE (1 unit =)", '-'],
+                        cols_align => ['left', 'left', 'right', 'center', 'center'],
+                        ID         => 'EXCHANGE_RATE_LOG',
+                        EXPORT     => $_EXPORT .' XML:&xml=1',                          
+                          });
+
+$list = $finance->exchange_log_list( { %LIST_PARAMS } );
+
+foreach my $line (@$list) {
+  $table->addrow($line->[0], 
+     $line->[1], 
+     $line->[2], 
+     $html->button($_DEL, "index=$index&log_del=$line->[3]", { MESSAGE => "$_DEL [$line->[0]]?", CLASS => 'del' } ));
+}
+
+print $table->show();
+
+
+
 }
 
 
@@ -5974,8 +6109,8 @@ if ($FORM{add}) {
       next   
      }    
 
-    $fees->take($attr->{USER_INFO}, $FORM{'SUM_'.$i}, { DESCRIBE       => $FORM{'DESCRIBE_'.$i},
-    	                                     INNER_DESCRIBE => $FORM{'INNER_DESCRIBE_'.$i} } );      
+    $fees->take($attr->{USER_INFO}, $FORM{'SUM_'.$i}, { DESCRIBE       => $FORM{'DESCRIBE_'.$i} || $FEES_METHODS{$FORM{'METHOD_'.$i}},
+    	                                                  INNER_DESCRIBE => $FORM{'INNER_DESCRIBE_'.$i} } );      
 
 
     $message .= "$type_describe $_SUM: ". sprintf('%.2f', $FORM{'SUM_'.$i}) .", ". $FORM{'DESCRIBE_'.$i}."\n";
@@ -6095,7 +6230,7 @@ if ($attr->{USER_INFO}) {
       my $er     = $fees->exchange_info($FORM{ER});
       $FORM{ER}  = $er->{ER_RATE};
       $FORM{SUM} = $FORM{SUM} / $FORM{ER};
-    }
+     }
 
     if ($period == 2) {
   	  use POSIX;
@@ -6131,7 +6266,7 @@ if ($attr->{USER_INFO}) {
          }
       }
      }
-    #Add now
+    #take now
     else {
     	delete $FORM{DATE};
       $fees->take($user, $FORM{SUM}, { %FORM } );  
@@ -6565,7 +6700,7 @@ elsif($search_form{$FORM{type}}) {
  	                                SEL_HASH   => {'' => '', %countries_hash },
  	                                NO_ID      => 1
  	                               });
-      $info{ADDRESS_FORM} = $html->tpl_show(templates('form_address'), $user_pi, { OUTPUT2RETURN => 1 });	
+      $info{ADDRESS_FORM} = $html->tpl_show(templates('form_address'), { %FORM, %$user_pi }, { OUTPUT2RETURN => 1 });	
      }
    }
   elsif ($FORM{type} == 13) {
@@ -6803,8 +6938,8 @@ my $table = $html->table( { width      => '100%',
                           });
 my ($y, $m, $d)=split(/-/, $DATE, 3);
 foreach my $line (@$list) {
-  my $delete = ($permissions{4}{3}) ?  $html->button($_DEL, "index=$index&del=$line->[14]", { MESSAGE =>  "$_DEL [$line->[14]]?",  CLASS => 'del' }) : '-'; 
-  my $value = "$line->[7]";
+  my $delete = ($permissions{4}{3} || $permissions{0}{4}) ?  $html->button($_DEL, "index=$index&del=$line->[14]", { MESSAGE =>  "$_DEL [$line->[14]]?",  CLASS => 'del' }) : '-'; 
+  my $value = convert("$line->[7]", { text2html => 1 });
   
   if ($line->[6] eq 'status') {
   	my @service_status_colors = ("$_COLORS[9]", "$_COLORS[6]", '#808080', '#0000FF', '#FF8000', '#009999');
@@ -6819,7 +6954,7 @@ foreach my $line (@$list) {
   else {
   	$table->{rowcolor}=undef;
    }
-  
+
   $table->addrow($html->b($line->[0]), $line->[1], $line->[2], 
     $line->[3],  $line->[4],  
     $html->button($line->[5], "index=15&UID=$line->[13]"), 
@@ -7610,9 +7745,10 @@ elsif($FORM{del} && $FORM{is_js_confirmed}) {
   my $table = $html->table( { width      => '600',
                               caption    => "$_SQL_BACKUP",
                               border     => 1,
-                              title      => ["$_NAME", $_DATE, $_SIZE, '-'],
+                              title_plain=> ["$_NAME", $_DATE, $_SIZE, '-'],
                               cols_align => ['left', 'right', 'right', 'center'],
-                              ID         => 'SQL_BACKUP_LIST'
+                              ID         => 'SQL_BACKUP_LIST',
+                              class      => 'form'
                           } );
 
 
@@ -7624,12 +7760,12 @@ elsif($FORM{del} && $FORM{is_js_confirmed}) {
   foreach my $filename (@contents) {
     my ($dev,$ino,$mode,$nlink,$uid,$gid,$rdev,$size,$atime,$mtime,$ctime,$blksize,$blocks)=stat("$conf{BACKUP_DIR}/$filename");
     my $date = strftime "%Y-%m-%d %H:%M:%S", localtime($mtime);
-    $table->addrow($filename,  $date, $size, $html->button($_DEL, "index=$index&del=$filename", { MESSAGE => "$_DEL $filename?",  CLASS => 'del' })
+    $table->addrow($filename,  $date, int2byte($size), $html->button($_DEL, "index=$index&del=$filename", { MESSAGE => "$_DEL $filename?",  CLASS => 'del' })
     );
    }
 
- print  $table->show();
- print  $html->button($_CREATE, "index=$index&mk_backup=1", { BUTTON => 1 });
+ print  $table->show().
+ $html->button($_CREATE, "index=$index&mk_backup=1", { BUTTON => 1 });
 }
 
 
@@ -8389,7 +8525,6 @@ sub cross_modules_call {
   	@skip_modules=split(/,/, $attr->{SKIP_MODULES});
    }
 
-
   foreach my $mod (@MODULES) {
     load_module("$mod", $html);
 
@@ -8398,6 +8533,7 @@ sub cross_modules_call {
   	 }
 
     my $function = lc($mod).$function_sufix;
+    
     my $return;
     if (defined(&$function)) {
      	$return = $function->($attr);
@@ -8532,6 +8668,100 @@ sub load_module {
 
 	return 0;
 }
+
+
+#**********************************************************
+#
+#**********************************************************
+sub form_nas_search {
+
+  my $sub_template = '';
+
+if($FORM{NAS_SEARCH} == 1) {
+  my $nas = Nas->new($db, \%conf);
+  my $table = $html->table({ width           => '100%',
+                             border          => 1,
+                             title           => ['ID', $_NAME,  'IP', $_TYPE, 'mac' ],
+                             cols_align      => ['left', 'right', 'center'],
+                             pages           => $nas->{TOTAL},
+                             ID              => 'NAS_SEARCH'
+                           });
+  $list = $nas->list({ %FORM });
+  foreach my $line ( @$list ) {
+        $table->addrow( $line->[0],
+          "<div class='clickSearchResult' name='$line->[1]'>$line->[1]</div>",
+          #$html->button("$line->[1]", "#", { GLOBAL_URL => '#', 
+          #	                                 ex_params => "class='nasClick' name='$line->[1]'" 
+          #	                                }),
+                         $line->[3],
+                         $line->[4],
+                         $line->[5],
+                      );
+    }
+
+  print $table->show();
+  return 0;
+ } 
+else {
+  my %nas_descr = (            
+                        '3com_ss'   => "3COM SuperStack Switch",
+                        'nortel_bs' => "Nortel Baystack Switch",
+                        'asterisk'  => "Asterisk",
+                        'usr'       => "USR Netserver 8/16",
+                        'pm25'      => 'LIVINGSTON portmaster 25',
+                        'ppp'       => 'FreeBSD ppp demon',
+                        'exppp'     => 'FreeBSD ppp demon with extended futures',
+                        'dslmax'    => 'ASCEND DSLMax',
+                        'celan'     => 'CeLAN Switch',
+                        'expppd'    => 'pppd deamon with extended futures',
+                        'edge_core' => 'EdgeCore Switch',
+                        'radpppd'   => 'pppd version 2.3 patch level 5.radius.cbcp',
+                        'lucent_max'=> 'Lucent MAX',
+                        'mac_auth'  => 'MAC auth',
+                        'mpd'       => 'MPD with kha0s patch',
+                        'mpd4'      => 'MPD 4.xx',
+                        'mpd5'      => 'MPD 5.xx',
+                        'ipcad'     => 'IP accounting daemon with Cisco-like ip accounting export',
+                        'lepppd'    => 'Linux PPPD IPv4 zone counters',
+                        'pppd'      => 'pppd + RADIUS plugin (Linux)',
+                        'dhcp'      => 'DHCP FreeRadius in DHCP mode',
+                        'ls_pap2t'  => 'Linksys pap2t',
+                        'ls_spa8000'=> 'Linksys spa8000'
+                );
+
+  if ($conf{nas_servers}) {
+    %nas_descr = ( %nas_descr,  %{$conf{nas_servers}} );
+    }
+
+  $nas->{SEL_TYPE} = $html->form_select('NAS_TYPE', {
+                                SELECTED   => $nas->{NAS_TYPE},
+                                SEL_HASH   => {'' => $_ALL, %nas_descr},
+                                SORT_KEY   => 1
+                              }
+                  );
+
+  $nas->{NAS_GROUPS_SEL}= sel_nas_groups({ GID => $nas->{GID} });
+  $sub_template = $html->tpl_show(templates('form_search_nas'), { %$nas }, { OUTPUT2RETURN => 1 });
+ }
+
+	return $html->tpl_show(templates($FORM{TEMPLATE}), { SUB_TEMPLATE => $sub_template} );
+}
+
+
+#**********************************************************
+# Popup window
+#**********************************************************
+sub get_popup_info {
+
+ if (defined($FORM{NAS_SEARCH})) {
+   form_nas_search();
+  }
+ 
+}
+
+
+
+
 
 
 1

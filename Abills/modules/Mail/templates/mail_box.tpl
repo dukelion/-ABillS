@@ -3,7 +3,7 @@
 <input type=hidden name='index' value='$index'>
 <input type=hidden name='UID' value='$FORM{UID}'>
 <input type=hidden name='MBOX_ID' value='%MBOX_ID%'>
-<table>
+<table class=form>
 <tr><td>Email:</td><td><input type=text name=USERNAME value='%USERNAME%'> <b>@</b> %DOMAINS_SEL%</td></tr>
 <tr><td>$_DESCRIBE:</td><td><input type=text name=COMMENTS value='%COMMENTS%'></td></tr>
 <tr><td>$_LIMIT:</td><td>$_COUNT: <input type=text name=MAILS_LIMIT value='%MAILS_LIMIT%' size=7> $_SIZE (Mb): <input type=text name=BOX_SIZE size=7 value='%BOX_SIZE%'></td></tr>
@@ -18,6 +18,7 @@
 %PASSWORD%
 
 <tr><th colspan=2><hr></th></tr>
+<tr><th colspan=2 class=even><input type=submit name=%ACTION% value='%LNG_ACTION%'></th></tr>
 </table>
-<input type=submit name=%ACTION% value='%LNG_ACTION%'>
+
 </form>

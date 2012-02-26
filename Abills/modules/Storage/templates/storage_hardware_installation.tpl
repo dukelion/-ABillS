@@ -12,6 +12,8 @@
 <input type=hidden name=ajax_index value=$index>
 <input type=hidden name=UID value=$FORM{UID}>
 <input type=hidden name=OLD_MAC value=%OLD_MAC%>
+<input type=hidden name=COUNT1 value=%COUNT1%>
+<input type=hidden name=ARTICLE_ID1 value=%ARTICLE_ID1%>
 <table border=\"0\" >
   <tr>
     <td>$_TYPE:</td>

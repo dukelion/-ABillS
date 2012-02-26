@@ -1626,6 +1626,7 @@ sub tpl_describe {
   	else { #if($line =~ /^(\S+):([\W ]+):(\w+):([\w \(\);=,]{0,500}):?([\w]{0,200}):?(.{0,200})$/) {
     	my ($name, $describe, $lang, $params, $default, $expr)=split(/:/, $line);
     	next if ($attr->{LANG} && $attr->{LANG} ne $lang);
+        next if(! $name);
     	$TPL_DESCRIBE{$name}{DESCRIBE}=$describe;
     	$TPL_DESCRIBE{$name}{LANG}    =$lang;
     	$TPL_DESCRIBE{$name}{PARAMS}  =$params;

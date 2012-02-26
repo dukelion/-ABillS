@@ -522,7 +522,7 @@ div#tcal td:hover {
 #mail_users_list {
 	background-image:url(/img/mail5.png);
 }
-#docs_accounts_list {
+#docs_invoices_list {
 	background-image:url(/img/documents.png);
 }
 #cards_user_payment {
@@ -560,7 +560,7 @@ div#tcal td:hover {
 #ashield_user,
 #msgs_user,
 #mail_users_list,
-#docs_accounts_list,
+#docs_invoices_list,
 #cards_user_payment,
 #voip_user_info,
 #logout,
@@ -598,9 +598,9 @@ div#tcal td:hover {
 .top_result_baloon {
   color: #FFF;
   cursor: pointer;
-  background: url('/img/mv_bg.png');
+  //background: url('/img/mv_bg.png');
   background: rgba(0, 0, 0, 0.75);
-	margin: 0 auto;
+  margin: 0 auto;
   -moz-border-radius: 5px;
   -webkit-border-radius: 5px;
   border-radius: 5px;

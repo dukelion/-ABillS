@@ -389,8 +389,6 @@ sub domain_list {
 
  my $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
 
-
-
  $self->query($db, "SELECT md.domain, md.comments, md.status, md.backup_mx, md.transport, md.create_date, 
 	    md.change_date, count(*) as mboxes, md.id
         FROM mail_domains md
@@ -404,7 +402,7 @@ sub domain_list {
 
   my $list = $self->{list};
 
-  if ($self->{TOTAL} >= $PAGE_ROWS) {
+  if ($self->{TOTAL} >= 0) {
     $self->query($db, "SELECT count(*) FROM mail_domains md $WHERE");
     ($self->{TOTAL}) = @{ $self->{list}->[0] };
    }

@@ -418,6 +418,13 @@ sub form_select {
   my $self = shift;
   my ($name, $attr)	= @_;
 	
+	
+	
+	if ($attr->{POPUP_WINDOW}) {		
+		return $self->form_window($name);
+	 }
+	
+	
 	my $ex_params =  (defined($attr->{EX_PARAMS})) ? $attr->{EX_PARAMS} : '';
 			
 	$self->{SELECT} = "<select name=\"$name\" $ex_params ID=\"$name\">\n";
@@ -532,11 +539,51 @@ sub form_select {
 
 	$self->{SELECT} .= "</select>\n";
 	
-	if ($attr->{MAIN_MENU}){
+	if ($attr->{MAIN_MENU}) {
 		$self->{SELECT} .= ' '. $self->button('info', "index=$attr->{MAIN_MENU}". (($attr->{MAIN_MENU_AGRV}) ? "&$attr->{MAIN_MENU_AGRV}" : ''), { CLASS=>'show rightAlignText' });
 	 }
 	
 	return $self->{SELECT};
+}
+
+
+#**********************************************************
+#
+#**********************************************************
+sub form_window {
+  my $self = shift;
+  my ($name, $attr)       = @_;
+
+  my $ex_params =  (defined($attr->{EX_PARAMS})) ? $attr->{EX_PARAMS} : '';
+
+  my $action         = $attr->{ACTION}   || $SELF_URL;
+  my $window_width   = $attr->{WIDTH}    || 600;
+  my $form_id        = $attr->{FORM_ID}  || 'POPUP_FORM';
+  my $template       = $attr->{TEMPLATE} || 'form_popup_window';
+  my $js_script      = $attr->{JS}       || 'search';
+
+
+  $self->{WINDOW} = "
+        <input type='text' value='". (($attr->{VALUE}) ? $attr->{VALUE} : '%'.$name.'%' ) ."' name='" . $name . "1'/>
+        <input type='hidden' value='%". $name ."%' name='$name'/>
+        <span>  </span>
+
+        <div style='display:none'>
+         <span id='popup_info_url'>$action</span>
+         <span id='popup_info_width'>$window_width</span>
+         <span id='popup_info_name'>$name</span>
+         <span id='popup_info_form_id'>$form_id</span>
+         <span id='popup_info_template'>$template</span>
+        </div>
+        <div id=\"popclick\" style='display:inline; cursor:pointer;'>
+         <img src=\"/img/button_search.png\" border=0 />
+        </div>
+        <div id=\"clear_results\" style='display:inline; cursor:pointer;'>
+         <img src=\"/img/button_del.png\" border=0/>
+        </div>
+        <script type=\"text/javascript\" src=\"/js/" . $js_script .".js\"></script> \n";
+
+   return $self->{WINDOW};
 }
 
 
@@ -547,6 +594,7 @@ sub dirname {
    }
   $x;
 }
+
 
 
 #*******************************************************************
@@ -1000,7 +1048,7 @@ sub table {
 
  if (defined($attr->{title})) {
    $SORT = $LIST_PARAMS{SORT};
-   $self->{table} .= $self->table_title($SORT, $DESC, $PG, $attr->{title}, $attr->{qs});
+   $self->{table} .= $self->table_title($SORT, $FORM{desc}, $PG, $attr->{title}, $attr->{qs});
    $self->{title_arr} = $attr->{title};
   }
  elsif(defined($attr->{title_plain})) {
@@ -1182,7 +1230,7 @@ sub table_title  {
   my ($op);
   my $img='';
 
-  $self->{table_title} = "<tr bgcolor=\"$_COLORS[0]\">";
+  $self->{table_title} = "<tr>";
   my $i=1;
   foreach my $line (@$caption) {
      $self->{table_title} .= "<th class='table_title'>$line ";

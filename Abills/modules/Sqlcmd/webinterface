@@ -164,13 +164,13 @@ if ($FORM{QUERY} && ! $FORM{xml}) {
       $show_query =~ s/ (\d+)|(\d+),/ <font color=\"red\">$1<\/font>/g;
      }
 
-    $show_query =~ s/(FROM[\/<>b]+\s+)([a-z0-9 _\s\n,]+)/\1 %TABLES% /gi;
+    $show_query =~ s/(FROM[\/<>b]+\s+)([a-z0-9 _\s\n,]+)/$1 %TABLES% /gi;
     my $tables = $2;
 
-    $tables =~s/(([a-z0-9_]+)([\sa-z0-9]{0,10})?)([,]?)/<a href="#" onclick="window.open('$SELF_URL?qindex=$index&TABLE_INFO=\2', null, 'toolbar=0,location=0,directories=0,status=1,menubar=0,'+'scrollbars=1,resizable=1,'+'width=640, height=600');">\2<\/a> \3\4/gi;
+    $tables =~s/(([a-z0-9_]+)([\sa-z0-9]{0,10})?)([,]?)/<a href="#" onclick="window.open('$SELF_URL?qindex=$index&TABLE_INFO=$2', null, 'toolbar=0,location=0,directories=0,status=1,menubar=0,'+'scrollbars=1,resizable=1,'+'width=640, height=600');">$2<\/a> $3$4/gi;
     $show_query =~ s/%TABLES%/$tables/g;
 
-    $show_query =~ s/(JOIN[\/<>b]+\s+)(\S+)/\1<a href="#" onclick="window.open('$SELF_URL?qindex=$index&TABLE_INFO=\2', null, 'toolbar=0,location=0,directories=0,status=1,menubar=0,'+'scrollbars=1,resizable=1,'+'width=640, height=600');">\2<\/a>/gi;
+    $show_query =~ s/(JOIN[\/<>b]+\s+)(\S+)/$1<a href="#" onclick="window.open('$SELF_URL?qindex=$index&TABLE_INFO=$2', null, 'toolbar=0,location=0,directories=0,status=1,menubar=0,'+'scrollbars=1,resizable=1,'+'width=640, height=600');">$2<\/a>/gi;
     
     $table->addrow("$show_query", "Ok");
   }
@@ -361,7 +361,7 @@ my %COLUMN_TYPES = (
                                                   );
 
     $Sqlcmd->query($db, "SHOW COLLATION");
-    my $COLLATION_HASH = ('' => '');
+    my %COLLATION_HASH = ('' => '');
     foreach my $line (@{ $Sqlcmd->{list} } ) {
     	push @{ $COLLATION_HASH{$line->[1]} }, $line->[0];
      }
@@ -605,7 +605,7 @@ sub sqlcmd_tables {
   
 my $table3 = $html->table({ width => '100%' });
 my @arr = ();
-my $i=0;
+$i=0;
 push @{ $Sqlcmd->{FIELD_NAMES} }, 'Size';
 foreach my $name ( @{ $Sqlcmd->{FIELD_NAMES} } ) {
   push @arr, $html->form_input('fields', "$name", { TYPE => 'checkbox', STATE => (in_array($name, \@ACTIVE_FIELDS)) ? 1 : undef  }). " <b>$name</b>";

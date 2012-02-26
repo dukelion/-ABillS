@@ -736,7 +736,7 @@ foreach my $USER_GID (sort { $b <=> $a } keys %USERS_GIDS) {
   if ($LAST_FEES_DAYS && $LAST_FEES_DAYS > 0) {
   	$LIST_PARAMS{FEES_DAYS}="<$LAST_FEES_DAYS";
    } 
-  else {
+  elsif($LAST_PAYMENTS_DAYS && $LAST_PAYMENTS_DAYS > 0) {
   	$LIST_PARAMS{PAYMENT_DAYS}="<$LAST_PAYMENTS_DAYS";
    }
   
@@ -787,8 +787,8 @@ foreach my $DEBETOR_GID (sort { $b <=> $a } keys %DEBETORS_GIDS) {
   $list = $users->list({  
                         GID          => $DEBETOR_GID,
   	                    DEPOSIT      => ">$DEPOSIT",
-  	                    COMMENTS     => "*$_DEBETORS:*",
-  	                    PAYMENT_DAYS => ">$LAST_PAYMENTS_DAYS",
+  	                    #COMMENTS     => "*$_DEBETORS:*",
+  	                    #PAYMENT_DAYS => ">$LAST_PAYMENTS_DAYS",
   	                    PAGE_ROWS    => 100000
   	                   });
 
@@ -802,16 +802,26 @@ foreach my $DEBETOR_GID (sort { $b <=> $a } keys %DEBETORS_GIDS) {
 
   	$DEBUG .= "$line->[0] ($uid) DEPOSIT: $line->[2] CREDIT: $line->[3] LAST_PAYMENT: $last_payments GID: $gid -> $DEBETORS_GIDS{$DEBETOR_GID}\n" if ($debug > 0);
 
-  	my $comments = $line->[2  + $users->{SEARCH_FIELDS_COUNT}];
-  	$comments =~ s/$_GROUP $_DEBETORS: \d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}//gi;
+  	#my $comments = $line->[2  + $users->{SEARCH_FIELDS_COUNT}];
+  	#$comments =~ s/$_GROUP $_DEBETORS: \d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}//gi;
+  	#Get last gid
+  	my $history_list = $admin->action_list({ TYPE => '26', UID => $uid, PAGE_ROWS => 1, DESC => 'desc' });
+  	my $prev_gid     = $DEBETORS_GIDS{$DEBETOR_GID};
+  	if ($admin->{TOTAL} > 0) {
+  		if($history_list->[0]->[3]=~/(^\d+)-/) {
+  			$prev_gid=$1;
+  		 }
+  	 }
+  	
+  	
     if ($debug < 5) {
-    	$users->change($uid, { GID => $DEBETORS_GIDS{$DEBETOR_GID},
+    	$users->change($uid, { GID => $prev_gid,
     		                     UID => $uid 
     		                    });
  
       $users->pi_change({ 
       	         UID      => $uid,
-      	         COMMENTS => "$comments", 
+      	         #COMMENTS => "$comments", 
       	         SKIP_INFO_FIELDS  => 1
       	         });
      } 

@@ -155,7 +155,8 @@ else {
 	
 	$graph_type='month_stats';
 }
-
+   
+   $LIST_PARAMS{CUR_DATE}=$DATE;
    my $list = $Ipn->reports_users({ %LIST_PARAMS });
    #Used Fraffic
    $table_sessions = $html->table( { width      => '100%',
@@ -462,18 +463,10 @@ sub ipn_use_users_allmonthes {
 #**********************************************************
 sub ipn_use {
 
-#  reports({ DATE       => $FORM{DATE}, 
-#  	        REPORT     => '',
-#  	        SHOW_HOURS => 1,
-#   	        EX_PARAMS  => { HOURS => "$_HOURS",
-#            	              USERS => "$_USERS" } 
-#  	       });
-
 my %HIDDEN = ();
 
-  $HIDDEN{COMPANY_ID}=$FORM{COMPANY_ID} if ($FORM{COMPANY_ID});
-  $HIDDEN{sid}=$sid if ($FORM{sid}); 
-
+$HIDDEN{COMPANY_ID}=$FORM{COMPANY_ID} if ($FORM{COMPANY_ID});
+$HIDDEN{sid}=$sid if ($FORM{sid}); 
 
   reports({ DATE          => $FORM{DATE}, 
   	        REPORT        => '',
@@ -501,6 +494,9 @@ my %HIDDEN = ();
   	       });
 
 
+
+
+
 my %totals = ();
 
 my %DATA_HASH2= ();
@@ -519,6 +515,8 @@ my %TRAFFIC_CLASS = ();
 
 if ($FORM{DATE} || ($FORM{TYPE} && $FORM{TYPE} eq 'DAYS_TCLASS')) {
    $LIST_PARAMS{INTERVAL_TYPE} = 2;
+
+   $LIST_PARAMS{CUR_DATE}=$DATE;
    my $list = $Ipn->reports_users({ %LIST_PARAMS });
    #Used Fraffic
    $table_sessions = $html->table( { width      => '100%',
@@ -744,6 +742,10 @@ else {
   elsif ($FORM{TYPE} eq 'HOURS')  {
   	$caption[1]="$_HOURS";
    } 
+  elsif ($FORM{TYPE} eq 'USER')  {
+  	$caption[0]="$_USERS";
+  	$caption[1]="UID";
+   } 
   
   $table_sessions = $html->table( { width      => '100%',
 	                                  caption    => "$_SESSIONS", 
@@ -755,20 +757,27 @@ else {
                                } );
 
   $LIST_PARAMS{INTERVAL_TYPE}=3;
-
-  my $list = $Ipn->reports_users({ %LIST_PARAMS });
-  $graph_type='month_stats';
+  $LIST_PARAMS{CUR_DATE}=$DATE;
+  my $list    = $Ipn->reports_users({ %LIST_PARAMS });
+  $graph_type = 'month_stats';
   
-  my $num = 0;
-  
+  my $num = 0; 
 
 
   foreach my $line (@$list) {
   	if ($FORM{TYPE} eq 'DAYS' ||  $FORM{TYPE} eq 'DAYS_TCLASS') {
-  		$pages_qs = ''; #"&DATE=$line->[0]";
+  		$pages_qs = ''; 
+  	 }
+  	elsif($FORM{TYPE} eq 'USER') {
+  		$index    = get_function_index('ipn_sessions2');
+  		$pages_qs = "&UID=$line->[1]"; 
+      $totals{USERS}++;
+  	 }
+  	else {
+  		$pages_qs = "$type=$line->[0]"
   	 }
   	
-    $table_sessions->addrow($html->button($line->[0], "index=$index&$type=$line->[0]$pages_qs"), 
+    $table_sessions->addrow($html->button($line->[0], "index=$index&$pages_qs"), 
        $line->[1],   
        int2byte($line->[2], { DIMENSION => $FORM{DIMENSION} }), 
        int2byte($line->[3], { DIMENSION => $FORM{DIMENSION} }),
@@ -776,11 +785,11 @@ else {
        $line->[4]
       );
    
-      $AVG{MONEY}      = $line->[4] if ($AVG{MONEY} < $line->[4]);
-      $AVG{USERS}      = $line->[1] if ($AVG{USERS} < $line->[1]);
+    $AVG{MONEY}      = $line->[4] if ($AVG{MONEY} < $line->[4]);
+    $AVG{USERS}      = $line->[1] if ($AVG{USERS} < $line->[1]);
 
       if ($line->[0] =~ /(\d+)-(\d+)-(\d+)/) {
-      	 $num = $3;
+      	$num = $3;
        }
       elsif ($line->[0] =~ /(\d+)-(\d+)/) {
       	$CHART{X_LINE}[$num]=$line->[0];
@@ -798,28 +807,28 @@ else {
       $totals{TRAFFIC_IN} += $line->[2];
       $totals{TRAFFIC_OUT}+= $line->[3];
       $totals{SUM}        += $line->[4];
-
+   }
+  
+  
+  if ($num > 0) {
+    $out = $html->make_charts({  
+	   PERIOD        => $graph_type,
+	   DATA          => \%DATA_HASH2,
+	   AVG           => \%AVG,
+	   TYPE          => ['column', 'line'],
+	   TRANSITION    => 1,
+	   %CHART,
+     OUTPUT2RETURN => 1	 
+    });
    }
 
-  $out = $html->make_charts({  
-	 PERIOD        => $graph_type,
-	 DATA          => \%DATA_HASH2,
-	 AVG           => \%AVG,
-	 TYPE          => ['column', 'line'],
-	 TRANSITION    => 1,
-	 %CHART,
-   OUTPUT2RETURN => 1	 
-  });
-
-
  @type = ('area', 'area');
-
 }
 
 
 $table = $html->table( { width => '100%',
 	    cols_align => ['right', 'right', 'right', 'right', 'right'],
-	          rows => [ [ '$_USERS: '. $html->b(int2byte($total_tunnel, { DIMENSION => $FORM{DIMENSION} })), 
+	          rows => [ [ "$_USERS: ". $html->b($totals{USERS}), 
 	                      'IN: '     . $html->b(int2byte($totals{TRAFFIC_IN}, { DIMENSION => $FORM{DIMENSION} })),
                         'OUT: '    . $html->b(int2byte($totals{TRAFFIC_OUT}, { DIMENSION => $FORM{DIMENSION} })), 
                         'TRAFFIC: '. $html->b(int2byte($totals{TRAFFIC_IN}+$totals{TRAFFIC_OUT}, { DIMENSION => $FORM{DIMENSION} })), 
@@ -831,7 +840,8 @@ $table = $html->table( { width => '100%',
 
 print $table_sessions->show() . $table->show() . $out;
 
-$html->make_charts({  
+if ($#{ keys %DATA_HASH } > -1) {
+  $html->make_charts({  
 	 PERIOD => $graph_type,
 	 DATA   => \%DATA_HASH,
 	 AVG    => \%AVG,
@@ -839,6 +849,8 @@ $html->make_charts({
 	 TRANSITION => 1,
 	 %CHART
   });
+}
+
 }
 
 
@@ -1223,7 +1235,7 @@ sub ipn_user_activate {
   if ($nas_id < 1) {
   	$html->message('err', $_ERROR, "$_NOT_EXIST IP '$ip' ", { ID => 161 });
   	if (! $user->{UID}) {
-      $IP_INPUT .= " $_NAS: ". $html->form_select('NAS_ID', 
+      $Ipn->{NAS_SEL} = $html->form_select('NAS_ID', 
                                     { 
  	                                   SELECTED          => $nas_id,
  	                                   SEL_MULTI_ARRAY   => $Nas->list({ DISABLE => 0  }),
@@ -1327,6 +1339,7 @@ sub ipn_user_activate {
                        ACTION   => 'AUTH', 
                        USER_NAME=> $user->{LOGIN} || '-',
                        MESSAGE  => "$RAD_PAIRS->{'Reply-Message'}",
+                       NAS_ID   => $nas_id
                       });
        }
       else {
@@ -1451,6 +1464,7 @@ $html->tpl_show(_include('ipn_form_active', 'Ipn'), { IP             => (! $IP_I
 	                                                    ACTION_LNG     => $ACTION[1],
 	                                                    ONLINE         => $online_session,
 	                                                    INDEX          => get_function_index('ipn_user_activate'),
+	                                                    NAS_SEL        => $Ipn->{NAS_SEL},
 	                                                    %HIDDEN
 	                                                    });
 }
@@ -1505,6 +1519,7 @@ sub ipn_change_status {
                     ACTION   => 'AUTH', 
                     USER_NAME=> $USER_NAME || '-',
                     MESSAGE  => "IP: $ip",
+                    NAS_ID   => $attr->{NAS_ID}
                    });
 
      
@@ -2292,6 +2307,7 @@ sub ipn_detail_rotate {
   my $debug_output = '';
   return '' if ($attr->{SRESTART});
 
+  $Ipn->{debug}=1 if ($debug>6);
   # Clean s_detail table
   my ($y, $m, $d)=split(/-/, $ADMIN_REPORT{DATE}, 3);
   if ($d == 1) {
@@ -2330,6 +2346,12 @@ sub ipn_periodic_session_restart {
 	  $DEBUG .= $debug_output;
     return $debug_output;
    }
+  
+  if ($attr->{LOG_ROTATE}) {
+	  $DEBUG .= $debug_output;
+    return $debug_output;
+   }
+
 
 
 #Get online
@@ -2475,6 +2497,12 @@ sub ipn_start_active {
     return $debug_output;
    }
 
+  if ($attr->{LOG_ROTATE}) {
+	  $DEBUG .= $debug_output;
+    return $debug_output;
+   }
+
+
   my @nas_types = ('ipcad', 'dhcp');
 
   if ($attr->{NAS_TYPES}) {
@@ -2548,6 +2576,7 @@ if($conf{IPN_DHCP_ACTIVE}) {
    }
  }
 
+  $Dv->{debug}=1 if ($debug > 5);
   $list = $Dv->list({ LOGIN      => $attr->{LOGINS} || undef,
                     ACTIVATE     => "<='$DATE'",
                     EXPIRE       => ">'$DATE'",
@@ -2557,7 +2586,8 @@ if($conf{IPN_DHCP_ACTIVE}) {
 	                  ALL_FILTER_ID=> '*',
 	                  PAGE_ROWS    => 1000000,
 	                  TP_ID        => $attr->{TP_IDS} || '>0',
-	                  PORT         => '>=0'
+	                  PORT         => '>=0',
+	                  TP_CREDIT    => '>=0',
                  });
 
 
@@ -2570,7 +2600,8 @@ foreach my $line (@$list) {
   my $nas_id       = 0;
   my $tp_id        = $line->[9 + $Dv->{SEARCH_FIELDS_COUNT}];
   my $port         = $line->[7];
-  
+  my $deposit      = $line->[2];
+  my $credit       = ($line->[3] > 0) ? $line->[3] : ($conf{user_credit_change}) ? 0 : $line->[5 + $Dv->{SEARCH_FIELDS_COUNT}];
  
   DHCP_IP_ASSIGN:
   if($conf{IPN_DHCP_ACTIVE} && $#{ $DHCP_IPS{$uid} } > -1) {
@@ -2583,15 +2614,15 @@ foreach my $line (@$list) {
   	next;
    }
   elsif ($online_uids{$uid}) {
-  	print "Account Online\n" if ($debug > 3);
+  	print "$login Online\n" if ($debug > 3);
   	next;
    }
-  elsif (! $line->[2]) {
+  elsif (! $deposit) {
   	print "Error: Can't finde bills  UID: '$uid'\n";
   	next;
    }
-  elsif ($line->[2]+$line->[3] <= 0 && !  $TPS{$tp_id}) {
-  	print "Small deposit or TP not defined\n" if ($debug > 3);
+  elsif ($deposit+$credit <= 0 && !  $TPS{$tp_id}) {
+  	print "$login Small deposit or TP not defined\n" if ($debug > 3);
   	next;
    }
    

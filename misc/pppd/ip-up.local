@@ -15,12 +15,15 @@ AWK=/usr/bin/awk;
 TC=/sbin/tc
 
 debug=0;
+NEW_MODEL=
 
-if [ -f /var/run/radattr.$1 ]
+if [ -f /var/run/radattr.$1 ];
    then
-   DOWNSPEED=`${AWK}  '/PPPD-Downstream-Speed-Limit/ {print $2}'  /var/run/radattr.$1`
-   UPSPEED=`${AWK}  '/PPPD-Upstream-Speed-Limit/ {print $2}'  /var/run/radattr.$1`
-   FILTERS=`${AWK}  '/Filter-Id/ {print $2}'  /var/run/radattr.$1`
+   IFNAME=$1
+   DOWNSPEED=`${AWK}  '/PPPD-Downstream-Speed-Limit/ {print $2}'  /var/run/radattr.${IFNAME}`
+   UPSPEED=`${AWK}  '/PPPD-Upstream-Speed-Limit/ {print $2}'  /var/run/radattr.${IFNAME}`
+   FILTERS=`${AWK}  '/Filter-Id/ {print $2}'  /var/run/radattr.${IFNAME}`
+   USER_NAME=`${AWK}  '/User-Name/ {print $2}'  /var/run/radattr.${IFNAME}`
 
    if [ w${debug} = w1 ] ; then
      echo "Debug mode"
@@ -29,19 +32,24 @@ if [ -f /var/run/radattr.$1 ]
      echo $FILTERS
    fi;
 
-    ${TC} qdisc del dev $1 root    > /dev/null
-    ${TC} qdisc del dev $1 ingress > /dev/null
+   if [ x${NEW_MODEL} != x ]; then
+     /usr/abills/libexec/linkupdown pppd up ${IFNAME} ${USER_NAME} $4 LINUX_NEW_MODEL=1
+     exit;
+   fi;
+
+    ${TC} qdisc del dev ${IFNAME} root    > /dev/null
+    ${TC} qdisc del dev ${IFNAME} ingress > /dev/null
 
 ##### speed server->client
    if [ "$UPSPEED" != "0" ] ; then
-     ${TC} qdisc add dev $1 root handle 1: htb default 20 r2q 1
-     ${TC} class add dev $1 parent 1: classid 1:1 htb rate ${UPSPEED}kbit burst 4k
-     ${TC} class add dev $1 parent 1:1 classid 1:10 htb rate ${UPSPEED}kbit burst 4k prio 1
-     ${TC} class add dev $1 parent 1:1 classid 1:20 htb rate ${UPSPEED}kbit burst 4k prio 2
-     ${TC} qdisc add dev $1 parent 1:10 handle 10: sfq perturb 10 quantum 1500
-     ${TC} qdisc add dev $1 parent 1:20 handle 20: sfq perturb 10 quantum 1500
-     ${TC} filter add dev $1 parent 1:0 protocol ip prio 10 u32 match ip tos 0x10 0xff flowid 1:10
-     ${TC} filter add dev $1 parent 1:0 protocol ip prio 10 u32 match ip protocol 1 0xff flowid 1:10
+     ${TC} qdisc add dev ${IFNAME} root handle 1: htb default 20 r2q 1
+     ${TC} class add dev ${IFNAME}  parent 1: classid 1:1 htb rate ${UPSPEED}kbit burst 4k
+     ${TC} class add dev ${IFNAME} parent 1:1 classid 1:10 htb rate ${UPSPEED}kbit burst 4k prio 1
+     ${TC} class add dev ${IFNAME} parent 1:1 classid 1:20 htb rate ${UPSPEED}kbit burst 4k prio 2
+     ${TC} qdisc add dev ${IFNAME} parent 1:10 handle 10: sfq perturb 10 quantum 1500
+     ${TC} qdisc add dev ${IFNAME} parent 1:20 handle 20: sfq perturb 10 quantum 1500
+     ${TC} filter add dev ${IFNAME} parent 1:0 protocol ip prio 10 u32 match ip tos 0x10 0xff flowid 1:10
+     ${TC} filter add dev ${IFNAME} parent 1:0 protocol ip prio 10 u32 match ip protocol 1 0xff flowid 1:10
 
 #     ${TC} filter add dev $1 parent 1: protocol ip prio 10 u32 match ip protocol 6 0xff match u8 0x05 0x0f at 0 match u160x0000 0xffc0 at 2 match u8 0x10 0xff at 33 flowid 1:10
    fi ;
@@ -49,9 +57,12 @@ if [ -f /var/run/radattr.$1 ]
 ##### speed client->server
    if [ "$DOWNSPEED" != "0" ] ; then
      burst=`echo $DOWNSPEED/16 | bc`
-     ${TC} qdisc add dev $1 handle ffff: ingress
-     ${TC} filter add dev $1 parent ffff: protocol ip prio 50 u32 match ip src 0.0.0.0/0 police rate ${DOWNSPEED}kbit burst ${burst}k drop flowid :1
+     ${TC} qdisc add dev ${IFNAME} handle ffff: ingress
+     ${TC} filter add dev ${IFNAME} parent ffff: protocol ip prio 50 u32 match ip src 0.0.0.0/0 police rate ${DOWNSPEED}kbit burst ${burst}k drop flowid :1
    fi;
+
+
+
 
 #### Filters
    if [ w${FILTERS} != w ] ; then

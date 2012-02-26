@@ -9,27 +9,27 @@
  <META HTTP-EQUIV=\"Content-Type\" CONTENT=\"text/html; charset=%CHARSET%\">
  <META name=\"Author\" content=\"~AsmodeuS~\">
  <META HTTP-EQUIV=\"content-language\" content=\"%CONTENT_LANGUAGE%\">
-
  <link rel=\"stylesheet\" media=\"print\" type=\"text/css\" href=\"%PRINTCSS%\" >
  <script src='%JAVASCRIPT%' type='text/javascript' language='javascript'></script>
  <script src='/calendar.js' type='text/javascript' language='javascript'></script>
+<script  src='/js/jquery.js' type='text/javascript'></script>
 
 <style type=\"text/css\">
 
 body {
-  background-color: $_COLORS[10];
+  background-color: %_COLOR_10%;
   color: %_COLOR_9%;
   font-family: Arial, Tahoma, Verdana, Helvetica, sans-serif;
   font-size: 14px;
   /* this attribute sets the basis for all the other scrollbar colors (Internet Explorer 5.5+ only) */
 }
 
-html,body{margin:0;padding:0}
-;.table_top{ background:url(/img/css_test/block_ad_top.gif) no-repeat; height:8px; width:735px; font-size:0px;}
-;.table_cont { background:#FFFFFF; width:735px;}
-;.table_cont TABLE{ width:98%; margin:0px 5px 0px 5px}
-;.table_cont td{ border:1px solid #F3F3F3}
-;.table_bot{ background:url(/img/css_test/block_ad_bot.gif) no-repeat; height:8px; width:735px; font-size:0px; margin-bottom:10px }
+//html,body{margin:0;padding:0}
+//;.table_top{ background:url(/img/css_test/block_ad_top.gif) no-repeat; height:8px; width:735px; font-size:0px;}
+//;.table_cont { background:%_COLOR_1%; width:735px;}
+//;.table_cont TABLE{ width:98%; margin:0px 5px 0px 5px}
+//;.table_cont td{ border:1px solid #F3F3F3}
+//;.table_bot{ background:url(/img/css_test/block_ad_bot.gif) no-repeat; height:8px; width:735px; font-size:0px; margin-bottom:10px }
 
 
 .header {
@@ -731,112 +731,108 @@ TABLE.border {
 
 /* popup window */
 .popup_title {
-        text-align: center;
-        font: 700 12 Verdana, Geneva, sans-serif;
-        color: #666
+  text-align: center;
+  font: 700 12 Verdana, Geneva, sans-serif;
+  color: #666
 }
 
 .popup_date {
-        padding-top:2px;
-        color:#666666;
-        font: 10px Verdana, Geneva, sans-serif;
-        text-align:right;
+  padding-top:2px;
+  color:#666666;
+  font: 10px Verdana, Geneva, sans-serif;
+  text-align:right;
 }
 
 #open_popup_block {
   position: absolute;
-        width: 320px;
-        left: 35%;
+  width: 320px;
+  left: 35%;
   top: 100px;
-        display: none;
+  display: none;
   z-index: 10;
   overflow: hidden;
-        background: #f6f6f6;
+  background: #f6f6f6;
 }
 #close_popup_window img {
-        position:absolute;
-        top: 12;
-        right: 7;
+  position:absolute;
+  top: 12;
+  right: 7;
 }
 
 
 #close_popup_window {
-        float: right;
-        font: 10px Verdana, Geneva, sans-serif;
-        color: #999;
-        margin: -15px 10px 0 0;
-        display:block
+  float: right;
+  font: 10px Verdana, Geneva, sans-serif;
+  color: #999;
+  margin: -15px 10px 0 0;
+  display:block
 }
 
 #close_popup_window:hover {
-        cursor:pointer;
-        color:#F00;
-
+  cursor:pointer;
+  color:#F00;
 }
 
 #popup_content {
-        margin-right:0;
-        padding-top:10px;
-        color:#999;
-        font: 11px Verdana, Geneva, sans-serif;
-        text-align:justify;
+  margin-right:0;
+  padding-top:10px;
+  color:#999;
+  font: 11px Verdana, Geneva, sans-serif;
+  text-align:justify;
 }
 
-
-
 .top_left0, .top_right0, .bottom_left0, .bottom_right0 {
-        width:22px;
-        height:22px;
+  width:22px;
+  height:22px;
 }
 
 .top_left0 {
-        background:url(/img/popup_window/top_left.png) no-repeat;
+  background:url(/img/popup_window/top_left.png) no-repeat;
 }
 
 .top_right0 {
-        background:url(/img/popup_window/top_right.png) no-repeat;
+  background:url(/img/popup_window/top_right.png) no-repeat;
 }
 
 .bottom_left0 {
-        background:url(/img/popup_window/bottom_left.png) no-repeat;
+  background:url(/img/popup_window/bottom_left.png) no-repeat;
 }
 
 .bottom_right0 {
-        background:url(/img/popup_window/bottom_right.png) no-repeat;
+  background:url(/img/popup_window/bottom_right.png) no-repeat;
 }
 
 .top0, .bottom0 {
-        height:22px;
+  height:22px;
 }
 
 .top0 {
-        background:url(/img/popup_window/top.png) repeat-x;
+  background:url(/img/popup_window/top.png) repeat-x;
 }
 
 .bottom0 {
-        background:url(/img/popup_window/bottom.png) repeat-x;
+  background:url(/img/popup_window/bottom.png) repeat-x;
 }
 
 .left0, .right0 {
-        width:22px;
+  width:22px;
 }
 
 .left0 {
-        background:url(/img/popup_window/left.png) repeat-y;
+  background:url(/img/popup_window/left.png) repeat-y;
 }
 
 .right0 {
-        background:url(/img/popup_window/right.png) repeat-y;
+  background:url(/img/popup_window/right.png) repeat-y;
 }
-
 
 
 /* calendar icon */
 /* input box in default state */ 
 .tcalInput {
-	background: url(/img/cal.gif) 100% 50% no-repeat;
-	padding-right: 20px;
-	cursor: pointer;
+  background: url(/img/cal.gif) 100% 50% no-repeat;
+  padding-right: 20px;
+  cursor: pointer;
 }
 
 /* additional properties for input boxe in activated state, above still applies unless in conflict */
@@ -1022,10 +1018,61 @@ TABLE.border {
 }
 
 
+#shadow {
+        position:fixed;
+        top:0px;
+        width:100%;
+        height:100%;
+        background-color:black;
+        opacity:0.6;
+        filter:alpha(opacity=60);
+        display:none;
+}
 
+#open_popup_block_middle {
+        position: fixed;
+                top: 50%;
+                left: 50%;
+        display: none;
+        z-index: 10;
+        overflow: hidden;
+        background: #f6f6f6;
+}
+#popup_window_content {
+        padding:30px 20px 20px;
+        font: 11px Verdana, Geneva, sans-serif;
+}
+
+#search_window, #result_window {
+        padding:5px 10px;
+}
+.search_window_colors {
+        background-color:%_COLOR_0%;
+        font-weight:bold;
+}
+
+#search_window a,
+#result_window a {
+        text-decoration: none;
+        color:black;
+        text-align:center;
+}
+
+#nas_ajax_content table {
+        margin: 0 auto;
+}
+#nas_ajax_content form {
+        text-align: center;
+}
+
+#loading {
+        padding-top:20px;
+}
 
 </style>
 
 <title>%title%</title>
 </head>
 <body style=\"margin: 0\" bgcolor=\"%_COLOR_10%\" text=\"%_COLOR_9%\" link=\"%_COLOR_8%\"  vlink=\"%_COLOR_7%\">
+
+<div id='popup_window'></div>

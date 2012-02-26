@@ -3,11 +3,11 @@
 
 if (! $conf{DOWNLOADS}) {
 
-$conf{DOWNLOADS}='%INFO% [ <a href="ftp://ftp.yes.ko.if.ua/Video/Movies/%FOLDER%/%FILE%">FTP</a> ]
+$conf{DOWNLOADS}='%INFO% [ <a href="ftp://your.host/Video/Movies/%FOLDER%/%FILE%">FTP</a> ]
 [ <a href="http://ftp.yes.ko.if.ua/ftp/Video/Movies/%FOLDER%/%FILE%">HTTP</a> ]
 [ <a href="file:\\\ftp.yes.ko.if.ua\Share\Video\Movies\%FOLDER%\%FILE%">SMB</a> ]'.
 " [ <a href=\"#\" 
-         onclick=\"window.open('$SELF_URL?qindex=$index&VOD=$FORM{ID}', null,
+         onclick=\"window.open('$SELF_URL?qindex=$index&VOD=". (($FORM{ID}) ? $FORM{ID}: 0) ."', null,
             'toolbar=0,location=0,directories=0,status=1,menubar=0,'+
             'scrollbars=1,resizable=1,'+
             'width=640, height=600');\";>VoD</a> ]";
@@ -70,58 +70,6 @@ my @VIDEO_STATE = ("$_NEW", "$_WATCHED", "$_FAVORIT");
 
 #terminator
 #http://www.kinopoisk.ru/index.php?level=7&m_act%5Bwhat%5D=item&from=forma&m_act%5Bfind%5D=Achtung%2Cfertig+Charliei&m_act%5Bid%5D=0
-
-
-#*******************************************************************
-# 
-#*******************************************************************
-sub filearch_chapters {
-  $Filearch->{ACTION}='add';
-  $Filearch->{LNG_ACTION}=$_ADD;
-
-	if ($FORM{add}) {
-  
-	if (! $Filearch->{errno}) {
-    $html->message('info', $_INFO, "$_ADDED ");	
-    return 0;
-   }
- }
-elsif ($FORM{change}) {
-  
-	if (! $Filearch->{errno}) {
-    $html->message('info', $_INFO, "$_CHANGED ");	
-    return 0;
-   }
- }
-elsif ($FORM{chg}) {
-  
-  $Filearch->{ACTION}='change';
-  $Filearch->{LNG_ACTION}=$_CHANGE;
-
-	if (! $Filearch->{errno}) {
-    $html->message('info', $_INFO, "$_CHANGING ");	
-    return 0;
-   }
-  
-  $html->tpl_show(_include('filearch_files', 'Filearch'), { %$Filearch });
- }
-elsif ($FORM{del} && $FORM{is_js_confirmed}) {
-	$Filearch->file_del($FORM{del});
-
-  if (! $Filearch->{errno}) {
-    $html->message('info', $_INFO, "$_DELETED $FORM{del}");	
-    return 0;
-   }
- }
-
-
-if ($Filearch->{errno}) {
-  $html->message('err', $_ERROR, "[$Filearch->{errno}] $err_strs{$Filearch->{errno}}");	
-  return 0;
- }
-	
-}
-
 
 #*******************************************************************
 # 

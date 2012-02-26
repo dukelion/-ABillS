@@ -200,7 +200,7 @@ for ( my $i = 0; $i<=$#{ $DATA_ARR }; $i++) {
        	   	  	$DATA_ARR->[$i]->{DATE_DMY}=~/(\d{2})(\d{2})(\d{4})/;
        	   	  	$DATA_ARR->[$i]->{DATE}="$3-$2-$1";
        	   	   }
-       	   	  $ext_id = $DATA_ARR->[$i]->{EXT_ID} || "$DATA_ARR->[$i]->{DATE}.$FORM{IMPORT_TYPE}.$ID"; 
+       	   	  $ext_id = $DATA_ARR->[$i]->{EXT_ID} || "$DATA_ARR->[$i]->{DATE}_$FORM{IMPORT_TYPE}.$ID"; 
               $payments->add($user, { SUM  => $DATA_ARR->[$i]->{SUM},
                        DESCRIBE     => $describe, 
  	                     METHOD       => $DATA_ARR->[$i]->{PAYMENT_METHOD} || $ARGV->{METHOD} || 2, 
@@ -244,7 +244,14 @@ for ( my $i = 0; $i<=$#{ $DATA_ARR }; $i++) {
                 push  @payments_arr, $DATA_ARR->[$i]->{EXT_ID};
               }
            }
-          $payments->{debug}=1 if ($debug > 5); 
+          $payments->{debug}=1 if ($debug > 5);
+          
+          if ($#payments_arr == -1) {
+           print "Select ext ID for cancel payments\n";
+           return 0;         	
+          }
+
+          
           my $list = $payments->list({ EXT_ID    => join(';', @payments_arr), 
           	                           PAGE_ROWS => 1000000 
           	                          });

@@ -116,7 +116,7 @@ CREATE TABLE `dv_calls` (
   `lupdated` int(11) unsigned NOT NULL default '0',
   `sum` double(14,6) NOT NULL default '0.000000',
   `CID` varchar(18) NOT NULL default '',
-  `CONNECT_INFO` varchar(20) NOT NULL default '',
+  `CONNECT_INFO` varchar(35) NOT NULL default '',
   `tp_id` smallint(5) unsigned NOT NULL default '0',
   `nas_id` smallint(6) unsigned NOT NULL default '0',
   `acct_input_gigawords` smallint(4) unsigned NOT NULL default '0',
@@ -126,6 +126,7 @@ CREATE TABLE `dv_calls` (
   `uid` int(11) unsigned NOT NULL default '0',
   `join_service` int(11) unsigned NOT NULL default '0',
   `turbo_mode` varchar(30) NOT NULL default '',
+  `guest` tinyint(1) unsigned NOT NULL default '0',
   KEY `user_name` (`user_name`),
   KEY `acct_session_id` (`acct_session_id`),
   KEY `uid` (`uid`)
@@ -200,14 +201,14 @@ CREATE TABLE `config` (
   UNIQUE KEY `param` (`domain_id`, `param`)
 ) COMMENT='System config' ;
 
-CREATE TABLE `docs_acct` (
+CREATE TABLE `docs_invoices` (
   `id` int(11) unsigned NOT NULL auto_increment,
   `date` date NOT NULL default '0000-00-00',
   `created` datetime NOT NULL default '0000-00-00 00:00:00',
   `customer` varchar(200) NOT NULL default '',
   `phone` varchar(16) NOT NULL default '0',
   `user` varchar(20) NOT NULL default '',
-  `acct_id` int(10) unsigned NOT NULL default '0',
+  `invoice_num` int(10) unsigned NOT NULL default '0',
   `uid` int(11) unsigned NOT NULL default '0',
   `aid` smallint(6) unsigned NOT NULL default '0',
   `vat` double(5,2) unsigned NOT NULL default '0.00',
@@ -215,19 +216,22 @@ CREATE TABLE `docs_acct` (
   `payment_id` int(11) unsigned NOT NULL default 0,
   `deposit` double(15,6) NOT NULL default '0.000000',
   `delivery_status` tinyint(2) unsigned NOT NULL default '0',
+  `exchange_rate` double(12,4) NOT NULL default '0.0000',
+  `currency` smallint unsigned  NOT NULL default 0,  
   PRIMARY KEY  (`id`),
   KEY `payment_id` (`payment_id`),
   KEY `domain_id` (`domain_id`)
-) COMMENT='Docs Accounts'  ;
+) COMMENT='Docs Invoices'  ;
 
-CREATE TABLE `docs_acct_orders` (
-  `acct_id` int(11) unsigned NOT NULL default '0',
+CREATE TABLE `docs_invoice_orders` (
+  `invoice_id` int(11) unsigned NOT NULL default '0',
   `orders` varchar(200) NOT NULL default '',
   `counts` int(10) unsigned NOT NULL default '0',
   `unit` tinyint(3) unsigned NOT NULL default '0',
   `price` double(10,2) unsigned NOT NULL default '0.00',
-  KEY `aid` (`acct_id`)
-)  COMMENT='Docs Accounts Orders' ;
+  `fees_id` int(11) unsigned NOT NULL default 0,
+  KEY `invoice_id` (`invoice_id`)
+)  COMMENT='Docs Invoice Orders' ;
 
 CREATE TABLE `docs_acts` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
@@ -247,7 +251,7 @@ CREATE TABLE `docs_acts` (
 
 
 
-CREATE TABLE `docs_invoice` (
+CREATE TABLE `docs_receipts` (
   `id` int(11) NOT NULL auto_increment,
   `date` date NOT NULL default '0000-00-00',
   `customer` varchar(200) NOT NULL default '',
@@ -255,33 +259,40 @@ CREATE TABLE `docs_invoice` (
   `aid` smallint(6) unsigned NOT NULL default '0',
   `uid` int(11) unsigned NOT NULL default '0',
   `created` datetime NOT NULL default '0000-00-00 00:00:00',
-  `invoice_id` int(10) unsigned NOT NULL default '0',
+  `reciept_num` int(10) unsigned NOT NULL default '0',
   `vat` double(5,2) unsigned NOT NULL default '0.00',
   `by_proxy_seria` varchar(40) NOT NULL default '',
   `by_proxy_person` varchar(15) NOT NULL default '',
   `by_proxy_date` date NOT NULL default '0000-00-00',
   `domain_id` smallint(6) unsigned not null default 0,
   `payment_id` int(11) unsigned NOT NULL default 0,
+  `deposit` double(15,6) NOT NULL default '0.000000',
+  `delivery_status` tinyint(2) unsigned NOT NULL default '0',
+  `exchange_rate` double(12,4) NOT NULL default '0.0000',
+  `currency` smallint(6) unsigned  NOT NULL default 0,
   PRIMARY KEY  (`id`),
   KEY `payment_id` (`payment_id`),
   KEY `domain_id` (`domain_id`)
-)  COMMENT='Docs invoices';
+)  COMMENT='Docs Receipts';
 
-CREATE TABLE `docs_invoice_orders` (
-  `invoice_id` int(11) unsigned NOT NULL default '0',
+CREATE TABLE `docs_receipt_orders` (
+  `receipt_id` int(11) unsigned NOT NULL default '0',
   `orders` varchar(200) NOT NULL default '',
   `counts` int(10) unsigned NOT NULL default '0',
   `unit` tinyint(3) unsigned NOT NULL default '0',
   `price` double(10,2) unsigned NOT NULL default '0.00',
   `fees_id` int(11) unsigned NOT NULL default 0,
-  KEY `invoice_id` (`invoice_id`)
-) COMMENT='Docs invoices orders';
+  KEY `receipt_id` (`receipt_id`)
+) COMMENT='Docs receipt orders';
 
 CREATE TABLE `docs_main` (
   `uid` int(11) unsigned NOT NULL default '0' PRIMARY KEY,
   `send_docs` tinyint(1) unsigned NOT NULL default '0',
+  `personal_delivery` tinyint(1) unsigned NOT NULL default '0',
+  `invoicing_period` tinyint(3) unsigned NOT NULL default '0',
   `periodic_create_docs` tinyint(1) unsigned NOT NULL default '0',
   `email` varchar(200) NOT NULL default '',
+  `invoice_date` date NOT NULL default '0000-00-00',
   `comments` text not null
 ) COMMENT='Docs users settings';
 
@@ -349,6 +360,7 @@ CREATE TABLE `exchange_rate_log` (
   `date` datetime NOT NULL default '0000-00-00 00:00:00',
   `exchange_rate_id` smallint unsigned  NOT NULL default 0,
   `rate` double(12,4) NOT NULL default '0.0000',
+  `id`  int(10) unsigned NOT NULL auto_increment primary key,
   KEY `date` (`date`) 
 ) COMMENT='Exchange rate log';
 
@@ -788,6 +800,8 @@ CREATE TABLE `payments` (
   `ext_id` varchar(28) NOT NULL default '',
   `bill_id` int(11) unsigned NOT NULL default '0',
   `inner_describe` varchar(80) NOT NULL default '',
+  `amount` double(10,2) NOT NULL default '0.00',
+  `currency` smallint unsigned not null default 0,
   PRIMARY KEY  (`id`),
   UNIQUE KEY `id` (`id`),
   KEY `date` (`date`),
@@ -1207,9 +1221,7 @@ CREATE TABLE `streets` (
   `district_id` SMALLINT(6) UNSIGNED NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`),
   UNIQUE KEY `id` (`id`),
-  UNIQUE KEY `name` (`name`),
-  UNIQUE KEY `name_district` (`name`, `district_id`),
-  UNIQUE KEY `name_2` (`name`)
+  UNIQUE KEY `name_district` (`name`, `district_id`)
 ) COMMENT='Locations streets';
 
 

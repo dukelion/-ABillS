@@ -3,6 +3,10 @@
 <input type=hidden name=ID value=%ID%>
 <table border=\"0\" >
   <tr>
+    <td>TESTING:</td>
+    <td>%WND%</td>
+  </tr>
+  <tr>
     <td>$_NAME:</td>
     <td><input name=\"NAME\" type=\"text\" value=\"%NAME%\" /></td>
   </tr>

@@ -121,8 +121,7 @@ if ($acct_status_type == 1) {
      }
 
     my $sql = "INSERT INTO dv_calls
-     (status, user_name, started, lupdated, nas_ip_address, nas_port_id, acct_session_id, acct_session_time,
-      acct_input_octets, acct_output_octets, framed_ip_address, CID, CONNECT_INFO, nas_id, tp_id,
+     (status, user_name, started, lupdated, nas_ip_address, nas_port_id, acct_session_id, framed_ip_address, CID, CONNECT_INFO, nas_id, tp_id,
       uid, join_service)
        values ('$acct_status_type', 
       '$RAD->{USER_NAME}', 
@@ -130,7 +129,7 @@ if ($acct_status_type == 1) {
       UNIX_TIMESTAMP(), 
       INET_ATON('$RAD->{NAS_IP_ADDRESS}'),
       '$RAD->{NAS_PORT}', 
-      '$RAD->{ACCT_SESSION_ID}', 0, 0, 0, 
+      '$RAD->{ACCT_SESSION_ID}',
       INET_ATON('$RAD->{FRAMED_IP_ADDRESS}'), 
       '$RAD->{CALLING_STATION_ID}', 
       '$RAD->{CONNECT_INFO}', 
@@ -326,8 +325,7 @@ elsif ($acct_status_type == 2) {
 }
 
   # Delete from session
-  $self->query($db, "DELETE FROM dv_calls WHERE acct_session_id='$RAD->{ACCT_SESSION_ID}' and user_name='$RAD->{USER_NAME}' 
-    and nas_id='$NAS->{NAS_ID}';", 'do');
+  $self->query($db, "DELETE FROM dv_calls WHERE acct_session_id='$RAD->{ACCT_SESSION_ID}' and nas_id='$NAS->{NAS_ID}';", 'do');
  }
 #Alive status 3
 elsif($acct_status_type eq 3) {
@@ -431,12 +429,11 @@ sub rt_billing {
         4294967296-acct_output_octets+4294967296*($RAD->{ACCT_OUTPUT_GIGAWORDS}-acct_output_gigawords-1)+$RAD->{OUTBYTE}),
    if($RAD->{INBYTE2}  >= ex_input_octets, $RAD->{INBYTE2}  - ex_input_octets, ex_input_octets),
    if($RAD->{OUTBYTE2} >= ex_output_octets, $RAD->{OUTBYTE2} - ex_output_octets, ex_output_octets),
-   acct_session_id,
    sum,
    tp_id,
    uid
    FROM dv_calls 
-  WHERE user_name='$RAD->{USER_NAME}' and acct_session_id='$RAD->{ACCT_SESSION_ID}';");
+  WHERE nas_id='$NAS->{NAS_ID}' and acct_session_id='$RAD->{ACCT_SESSION_ID}';");
 
   if($self->{errno}) {
  	  return $self;
@@ -453,7 +450,6 @@ sub rt_billing {
    $RAD->{INTERIUM_OUTBYTE},
    $RAD->{INTERIUM_INBYTE1},
    $RAD->{INTERIUM_OUTBYTE1},
-   $RAD->{ACCT_SESSION_ID},
    $self->{CALLS_SUM},
    $self->{TP_NUM},
    $self->{UID}

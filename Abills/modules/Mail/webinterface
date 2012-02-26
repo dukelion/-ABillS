@@ -682,8 +682,6 @@ else {
 #**********************************************************
 sub mail_domains {
   
-   
-  
   $Mail->{ACTION}='add';
   $Mail->{LNG_ACTION}=$_ADD;
 
@@ -718,7 +716,7 @@ sub mail_domains {
 	 }
 
 
-  my $list = $Mail->domain_list({ %FORM });
+  my $list = $Mail->domain_list({ %LIST_PARAMS, %FORM });
   my $table = $html->table( { width      => '100%',
                               border     => 1,
                               title      => [$_DOMAIN, "$_DESC", $_STATUS, 'Backup_MX', $_TRANSPORT, $_CREATE, $_CHANGE,  '-', '-'],
@@ -750,6 +748,12 @@ sub mail_domains {
 
   $Mail->{DISABLE}=' checked' if($Mail->{DISABL} == 1); 
   $Mail->{BACKUP_MX}=' checked' if($Mail->{BACKUP_MX} == 1);
+  
+  $Mail->{TRANSPORT_SEL}=$html->form_select('TRANSPORT', 
+                                { SELECTED      => $Mail->{TRANSPORT} || '',
+ 	                                SEL_ARRAY     => ['virtual:', 'maildrop:', 'local:', 'relay:' ],
+ 	                               });
+  
   $html->tpl_show(_include('mail_domain', 'Mail'), $Mail);
 }
 

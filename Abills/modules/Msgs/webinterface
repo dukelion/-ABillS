@@ -1792,7 +1792,7 @@ sub msgs_new {
     	$FUNCTIONS_LIST{"$id:10:$line->[1] $count:msgs_admin:CHAPTER=$line->[0]"}  = 8;
      }
     $id++;
-    $FUNCTIONS_LIST{"$id:10:$_RESPOSIBLE ". (($Msgs->{RESPOSIBLE} > 0) ? '('.$html->color_mark($Msgs->{RESPOSIBLE}, '#F07800', { SKIP_XML => 1 }).')': 0) .":msgs_admin:&STATE=8"}  = 8;
+    $FUNCTIONS_LIST{"$id:10:$_RESPOSIBLE ". (($Msgs->{RESPOSIBLE} && $Msgs->{RESPOSIBLE} > 0) ? '('.$html->color_mark($Msgs->{RESPOSIBLE}, '#F07800', { SKIP_XML => 1 }).')': 0) .":msgs_admin:&STATE=8"}  = 8;
     if ($Msgs->{OPENED} && $Msgs->{OPENED} > 0) {
       return '('. (($Msgs->{UNREAD} > 0) ? $html->color_mark($Msgs->{UNREAD}, $_COLORS[6], { SKIP_XML => 1 }) : 0) ."/$Msgs->{TODAY}/$Msgs->{OPENED})";
      }
@@ -2173,7 +2173,7 @@ if ($FORM{DATE}) {
 
 
     $table_sessions->addrow($html->b($line->[0]), 
-     $html->button($line->[1], "index=15&UID=$line->[11]"),
+     $html->button($line->[1], "index=15&UID=$line->[12]"),
      $line->[2], 
      $line->[3],
      $line->[4], 

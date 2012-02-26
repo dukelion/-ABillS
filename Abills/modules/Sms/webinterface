@@ -127,12 +127,11 @@ my $list = $Turbosms->info({ %LIST_PARAMS });
 
   use Encode; 
 
-
   foreach my $line (@$list) {
-  	 my $status  = $line->[11];
-     my $message = $line->[4];
-  	 ($conf{dbcharset} ne 'utf8') ? Encode::from_to($status, 'utf-8', 'windows-1251') : $status,
-  	 ($conf{dbcharset} ne 'utf8') ? Encode::from_to($message, 'utf-8', 'windows-1251') : $message,
+  	 my $status  = $line->[11] || 0;
+     my $message = $line->[4] || '';
+  	 if ($conf{dbcharset} ne 'utf8') { Encode::from_to($status, 'utf-8', 'windows-1251') }
+  	 if ($conf{dbcharset} ne 'utf8') { Encode::from_to($message, 'utf-8', 'windows-1251') }
 
      $table->addrow($line->[0],
      $line->[1],

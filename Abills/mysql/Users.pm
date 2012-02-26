@@ -280,7 +280,7 @@ sub pi_add {
   
   return $self if ($self->{errno});
   
-  $admin->action_add("$DATA{UID}", "ADD PI", { TYPE => 1 });
+  $admin->action_add("$DATA{UID}", "PI", { TYPE => 1 });
   return $self;
 }
 

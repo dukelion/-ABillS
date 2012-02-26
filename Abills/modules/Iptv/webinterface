@@ -339,7 +339,7 @@ return 0;
 sub iptv_user {
  	my ($attr)=@_;
  	$Iptv->{UID}=$FORM{UID};	  
-  
+
   if ($FORM{add}) {
     $Iptv->user_add({ %FORM });
     if (! $Iptv->{errno}) {
@@ -396,6 +396,7 @@ sub iptv_user {
     $user->{CHANGE_TP_BUTTON}=$html->button($_CHANGE, 'UID='. $FORM{UID}.'&index='. get_function_index('iptv_chg_tp'), { CLASS => 'change rightAlignText'  });
 	 } 
 
+
    $user->{STATUS_SEL}          = $html->form_select('STATUS', 
                                           { 
  	                                          SELECTED     => $Dv->{STATUS},
@@ -404,6 +405,7 @@ sub iptv_user {
  	                                        });
  
   $html->tpl_show(_include('iptv_user', 'Iptv'), { %$attr, %$user });
+
   
   if ($user->{TOTAL} > 0) {
     iptv_user_channels({ USER_INFO => $user });
@@ -1622,8 +1624,6 @@ sub iptv_user_channels {
     $Iptv->user_info($LIST_PARAMS{UID});
    }
 
-  require Tariffs;
-  Tariffs->import();
   my $Iptv_tp = Tariffs->new($db, \%conf);
 
 	my $list = $Iptv_tp->ti_list({ TP_ID => $Iptv->{TP_ID}  });
@@ -1643,15 +1643,16 @@ sub iptv_user_channels {
   #Active channels
   my %select_channels = ();
 
- 	$list = $Iptv->user_channels_list({ TP_ID => $Iptv->{TP_NUM},
+ 	$list = $Iptv->user_channels_list({ TP_ID => $Iptv->{TP_ID},
   		                                UID   => $Iptv->{UID}
   		                               });
   foreach my $line (@$list) {
   	$select_channels{$line->[2]}=$line->[3];
    }
 
-  my @mandatory_arr = '';
+  my @mandatory_arr = ();
 
+  #LIst channels
   $list = $Iptv->channel_ti_list({ %LIST_PARAMS, MANDATORY => 1 });	
 
   foreach my $line (@$list) {
@@ -1673,7 +1674,7 @@ sub iptv_user_channels {
           else {
             $Fees->take($users, $Iptv->{TP_INFO}->{DAY_FEE}, { %PARAMS } ); 
            }
-
+          
           push @mandatory_arr, $line->[9];  
          }
         else {
@@ -1791,8 +1792,6 @@ sub iptv_user_channels {
 
       delete $FORM{IDS};
       push @add_arr, @mandatory_arr;
-      
-      print "";
       $Iptv->user_channels({  UID   => $Iptv->{UID}, 
                               TP_ID => $Iptv->{TP_ID},
                               IDS   => join(', ', @add_arr) 
@@ -2542,6 +2541,41 @@ foreach my $line (@$tp_list) {
    }
 
   print "Generated '$filename'\n" if($debug > 1);
+}
+
+
+#**********************************************************
+#
+#**********************************************************
+sub iptv_reports_channels {
+	my ($attr)=@_;
+
+my $list = $Iptv->reports_channels_use({ %LIST_PARAMS  });
+my $table = $html->table( { width      => '100%',
+                            caption    => $_CHANNELS,
+                            border     => 1,
+                            title      => [$_NUM, $_NAME, $_USERS, $_DEBETORS ],
+                            cols_align => ['right', 'left', 'right', 'right' ],
+                            qs         => $pages_qs,
+                            pages      => $Iptv->{TOTAL},
+                            ID         => 'IPTV_CHANNELS',
+                         } );	
+
+foreach my $line (@$list) {
+  $table->addrow($html->b($line->[0]), 
+     $line->[1],
+     $line->[2], 
+     $line->[3], 
+   );
+}
+print $table->show();
+
+#$table = $html->table( { width      => '100%',
+#                         cols_align => ['right', 'right'],
+#                         rows       => [ [ "$_TOTAL:", $html->b($Iptv->{TOTAL}) ] ]
+#                     } );
+#print $table->show();
+
 }
 
 1

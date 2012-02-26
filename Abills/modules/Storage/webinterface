@@ -242,6 +242,10 @@ sub suppliers_main {
 	$Storage->{ACTION}='add';
 	$Storage->{ACTION_LNG}=$_ADD;
 	$Storage->{DATE}='0000-00-00';
+	
+	#$Storage->{WND} = $html->form_window("ARTICLE_TYPE_ID", { });
+	
+	
 
 	if ($FORM{del}) {
 		$list = $Storage->storage_incoming_articles_list( { SUPPLIER_ID =>$FORM{del}} );
@@ -1266,11 +1270,19 @@ sub storage_log {
 								}	
 	);
 	my @storage_id = split(/,/, $conf{STORAGE_STORAGES}); 
-	my @action = ("$_ARRIVAL_OF_THE_GOODS", "$_INSTALLATION", "$_DISCARDED", "$_NARRATED_TO_ACCOUNTABILITY", "$_RETURN_TO_THE_MANUFACTURER", "$_RESERVE", "$_RETURNED_STORAGE");
+	my @action = (	"$_ARRIVAL_OF_THE_GOODS", 
+					"$_INSTALLATION", "$_DISCARDED", 
+					"$_NARRATED_TO_ACCOUNTABILITY", 
+					"$_RETURN_TO_THE_MANUFACTURER", 
+					"$_RESERVE", 
+					"$_RETURNED_STORAGE", 
+					"$_RECORD_CREATED", 
+					"$_RECORD_CHANGED");
+	
 	#$Storage->{debug}=1;	
 	$list = $Storage->storage_log_list({});
 	if ($Storage->{errno}) {
-  	$html->message('err', $_ERROR, "[$Storage->{errno}] $err_strs{$Storage->{errno}}");
+  		$html->message('err', $_ERROR, "[$Storage->{errno}] $err_strs{$Storage->{errno}}");
 	}
 	
 	foreach my $line ( @$list ) {
@@ -1427,8 +1439,6 @@ sub storage_orders {
 											EX_PARAMS		  => 'onchange="autoReload();"'
 										});
 				
-				
-				
 				my $ARTICLE_ID = $Storage->{ARTICLE_ID}=$html->form_select("ARTICLE_ID", 
 										{	SELECTED          => $FORM{ARTICLE_ID},
 											SEL_MULTI_ARRAY   => [['', ''], @{ $Storage->storage_articles_list({ ARTICLE_TYPE => $FORM{ARTICLE_TYPE_ID} }) } ], 
@@ -1514,18 +1524,18 @@ sub storage_hardware {
 
 	
 
-
+# ADD HARDWARE TO USER -------------------------------------
 	
 	if($FORM{add} and defined($FORM{UID}) and $FORM{UID} ne '') {
 		
 
-	if(defined($FORM{MAC}) and $FORM{MAC} ne '') {		
-		if (in_array('Dhcphosts', \@MODULES)) {	
-			load_module('Dhcphosts', $html);
-			my $result = dhcphosts_user({ REGISTRATION => 1 });
-			#$FORM{AUTO_IP}=1;
+		if(defined($FORM{MAC}) and $FORM{MAC} ne '') {		
+			if (in_array('Dhcphosts', \@MODULES)) {	
+				load_module('Dhcphosts', $html);
+				my $result = dhcphosts_user({ REGISTRATION => 1 });
+				#$FORM{AUTO_IP}=1;
+			}
 		}
-	}
 		
 		
 		
@@ -1591,7 +1601,7 @@ sub storage_hardware {
 #						ARTICLE_TYPES 	=> $Storage->{ARTICLE_TYPES},
 #						STATUS 			=> $Storage->{STATUS},	
 #						#NAS	=> $NAS, 						
-#					});			
+#					});	
 			}
 
 		} else {
@@ -1608,14 +1618,17 @@ sub storage_hardware {
 		}
 		
 	}
-###
 
+
+# RETURN HARDWARE TO STORAGE -------------------------------
 
 	elsif ($FORM{return_storage} and defined($FORM{UID}) and $FORM{UID} ne '' ) {
 		
 	#$Storage->{debug}=1;
 	$list = $Storage->storage_installation_list({ ID => $FORM{return_storage}});		
 	
+	
+	print $FORM{COMMENTS};
 	if ($Storage->{errno}) {
 		$html->message('err', $_ERROR, "[$Storage->{errno}] $err_strs{$Storage->{errno}}");
 	}	
@@ -1632,7 +1645,9 @@ sub storage_hardware {
 											MAIN_ARTICLE_ID	=> $list2->[0]->[0],
 											COUNT 			=> $list->[0]->[6],
 											ID_INSTALLATION	=> $FORM{return_storage},
-											SUM 			=> $list->[0]->[19]	
+											SUM 			=> $list->[0]->[19],	
+											RETURN_STATUS	=> 1,
+											COMMENTS		=> $FORM{COMMENTS},
 										 });
 										 
 		if (! $Storage->{errno}){
@@ -1642,7 +1657,10 @@ sub storage_hardware {
 					MESSAGE => "$_RETURNED $list->[0]->[9] $list->[0]->[6] $list2->[0]->[15] $_AT_STORAGE  - $storage_storages[$list2->[0]->[24]]",
 				});
 		}	
+
 	}
+
+# CHANGE USER HARDWARE -------------------------------------
 
 	if ($FORM{change}) {
 
@@ -1666,9 +1684,13 @@ sub storage_hardware {
 		
 		#$Storage->suppliers_info({ ID => $FORM{chg} });
 		$Storage->storage_installation_info({ ID => $FORM{chg} });
+		$Storage->{ARTICLE_ID1} = $Storage->{ARTICLE_ID};
+		$Storage->{COUNT1} = $Storage->{COUNT};
+		
 		if (! $Storage->{errno}) {
 			$html->message('info', $_INFO, "$_CHANGING");	
 		}
+		
 
 	}
 	
@@ -1687,10 +1709,12 @@ sub storage_hardware {
 	
 	$val = $Storage->storage_types_list();
 	$FORM{ARTICLE_TYPE_ID} = defined($FORM{ARTICLE_TYPE_ID}) ? $FORM{ARTICLE_TYPE_ID} : (defined($Storage->{ARTICLE_TYPE_ID}) ? $Storage->{ARTICLE_TYPE_ID} : $val->[0]->[0]);
-
+	
+	#$Storage->{debug}=1;
+	
 	$Storage->{ARTICLE_ID}=$html->form_select("ARTICLE_ID", {
 										SELECTED          => defined($FORM{ARTICLE_ID}) ? $FORM{ARTICLE_ID} : $Storage->{ARTICLE_ID},
-										SEL_MULTI_ARRAY   => [ @{  $Storage->storage_incoming_articles_list({ ARTICLE_TYPES => $FORM{ARTICLE_TYPE_ID}, }) } ], 
+										SEL_MULTI_ARRAY   => [ @{  $Storage->storage_incoming_articles_list({ ARTICLE_TYPES => $FORM{ARTICLE_TYPE_ID}, HIDE_ZERO_VALUE => 1 }) } ], 
 										MULTI_ARRAY_KEY   => 0,
 										MULTI_ARRAY_VALUE => '14, 21',
 										NO_ID             => 1,
@@ -1698,7 +1722,7 @@ sub storage_hardware {
 	});
 		
 	
-	$FORM{STATUS} = defined($FORM{STATUS}) ? $FORM{STATUS} : (defined($Storage->{STATUS_ID}) ? $Storage->{STATUS_ID} : 1);
+	$FORM{STATUS} = defined($FORM{STATUS}) ? $FORM{STATUS} : (defined($Storage->{STATUS_ID}) ? $Storage->{STATUS_ID} : 0);
 	
 	$Storage->{STATUS} = $html->form_select("STATUS", {
 									SELECTED		=> $FORM{STATUS},
@@ -1735,8 +1759,7 @@ sub storage_hardware {
 	
 
 }	
-	#if (!$FORM{add} and !$FORM{change}) { 
-		
+	if (!defined($FORM{return_comment})) { 
 		
 		$html->tpl_show(_include('storage_hardware_installation', 'Storage'), {	
 			%FORM,
@@ -1745,7 +1768,18 @@ sub storage_hardware {
 			ARTICLE_TYPES 	=> $Storage->{ARTICLE_TYPES},
 			STATUS 			=> $Storage->{STATUS},		
 		});
-	#}
+	} else {
+		
+		
+		$Storage->{ACTION}='return';
+		$Storage->{ACTION_LNG}= "$_RETURN_STORAGE";
+		
+		$html->tpl_show(_include('storage_return_comment_add', 'Storage'), { %$Storage } );
+		
+	}
+	
+	
+	$FORM{SHOW_STATUS} = defined($FORM{SHOW_STATUS}) ? $FORM{SHOW_STATUS}: 5 ;
 	
 	if (defined($FORM{UID}) and $FORM{UID} ne '') {
 	
@@ -1757,9 +1791,11 @@ sub storage_hardware {
 			pages      => $Storage->{TOTAL},
 			ID         => 'STORAGE_ID',
 			header		=> 
-	((!defined($FORM{SHOW_STATUS}) && $FORM{SHOW_STATUS} != 0) ? $html->b($status[2]) : $html->button($status[2], "index=$index&UID=$FORM{UID}", { BUTTON => 1 })) . ' ' .
-	(($FORM{SHOW_STATUS} == 1 ) ? $html->b($status[1]) : $html->button($status[1], "index=$index&UID=$FORM{UID}&SHOW_STATUS=1", { BUTTON => 1 }))
-	#((defined($FORM{SHOW_STATUS}) && $FORM{SHOW_STATUS} == 0 ) ? $html->b($status[0]) : $html->button($status[0], "index=$index&UID=$FORM{UID}&SHOW_STATUS=0", { BUTTON => 1 }))	
+				((defined($FORM{SHOW_STATUS}) && $FORM{SHOW_STATUS} == 5) ? $html->b($_ALL) : $html->button($_ALL, "index=$index&UID=$FORM{UID}&SHOW_STATUS=5", { BUTTON => 1 })) . ' ' .
+				((defined($FORM{SHOW_STATUS}) && $FORM{SHOW_STATUS} == 2) ? $html->b($status[2]) : $html->button($status[2], "index=$index&UID=$FORM{UID}&SHOW_STATUS=2", { BUTTON => 1 })) . ' ' .
+				(($FORM{SHOW_STATUS} == 1 ) ? $html->b($status[1]) : $html->button($status[1], "index=$index&UID=$FORM{UID}&SHOW_STATUS=1", { BUTTON => 1 })) . ' ' .
+				(($FORM{SHOW_STATUS} == 4 ) ? $html->b($_RETURNED_STORAGE) : $html->button($_RETURNED_STORAGE, "index=$index&UID=$FORM{UID}&SHOW_STATUS=4", { BUTTON => 1 })) . ' ' .
+				((!defined($FORM{SHOW_STATUS}) or $FORM{SHOW_STATUS} == 0 ) ? $html->b($status[0]) : $html->button($status[0], "index=$index&UID=$FORM{UID}&SHOW_STATUS=0", { BUTTON => 1 }))	
 
 		});			
 		#$Storage->{debug}=1;	
@@ -1781,17 +1817,17 @@ sub storage_hardware {
 		foreach my $line ( @$list ) {
 			
 			$line->[26] =~ s/\r\n/<br>/g;
-			$dhcp_index = get_function_index('dhcphosts_user');
-			
-			$table->addrow(	$html->button($_INFO, "index=$index&chg=$line->[0]&UID=$FORM{UID}", { CLASS => 'change' }), 
-				(defined($permissions{0}{5})) ? $html->button($_DEL, "index=$index&return_storage=$line->[0]&UID=" . $FORM{UID}, { MESSAGE => "$_DEL  $line->[1]?", CLASS => 'del' }) : '',
+			$dhcp_index = get_function_index('dhcphosts_user');			
+			$table->addrow(	
+				($line->[25] == 4) ? '' : $html->button($_INFO, "index=$index&chg=$line->[0]&UID=$FORM{UID}", { CLASS => 'change' }),  
+				($line->[25] == 4) ? '' : (defined($permissions{0}{5})) ? $html->button($_RETURN_STORAGE, "index=$index&return_comment=$line->[0]&UID=" . $FORM{UID}, { MESSAGE => "$_RETURN_STORAGE $line->[9]?", CLASS => 'del' }) : '',
 				$line->[20],  
 				$line->[10], 
 				$line->[9], 
 				"<a href=$SELF_URL?index=$dhcp_index&UID=$FORM{UID}> $line->[21]</a>", 
 				$line->[27],  
 				$line->[26],
-				$status[$line->[25]],
+				($line->[25] != 4) ? $status[$line->[25]] : "$_RETURNED_STORAGE",
 				$line->[23],
 				$line->[7],
 				#$line->[2], DATE
@@ -1801,6 +1837,80 @@ sub storage_hardware {
 		
 		
 		print $table->show();
+		
+		
+		#$Storage->{debug}=1;
+
+		
+# USER HARDWARE LOG	----------------------------------------
+	
+		if($FORM{VIEW_HARDWARE_LOG}) {
+		
+			
+			my @action = (	"$_ARRIVAL_OF_THE_GOODS", 
+							"$_INSTALLATION", 
+							"$_DISCARDED", 
+							"$_NARRATED_TO_ACCOUNTABILITY", 
+							"$_RETURN_TO_THE_MANUFACTURER", 
+							"$_RESERVE", 
+							"$_RETURNED_STORAGE", 
+							"$_RECORD_CREATED", 
+							"$_RECORD_CHANGED",);
+			
+
+				print "<a href=$SELF_URL?index=$index&UID=$FORM{UID}&SHOW_STATUS=$FORM{SHOW_STATUS}>$_HIDE_HARDWARE_LOG</a></br>";	
+
+
+			
+			
+			my $table = $html->table({	
+				width      => '100%',
+				border     => 1,
+				title      => [$_LOGIN, $_NAME, 'MAC', IP, $_SERIAL, $_ACTION, $_STATUS, $_DATE, $_COMMENTS, $_GROUND],
+				pages      => $Storage->{TOTAL},
+				ID         => 'STORAGE_ID',
+			});				
+			
+			
+				#print 'ololo';	
+			$list = $Storage->storage_installation_log({ 
+				UID => $FORM{UID},
+				STATUS => defined($FORM{SHOW_STATUS}) ? $FORM{SHOW_STATUS} : 2,	
+			});
+			
+			if ($Storage->{errno}) {
+				$html->message('err', $_ERROR, "[$Storage->{errno}] $err_strs{$Storage->{errno}}");
+			}
+			
+			
+			
+			foreach my $line ( @$list ) {
+				
+				$line->[26] =~ s/\r\n/<br>/g;
+				$dhcp_index = get_function_index('dhcphosts_user');			
+				$table->addrow(	
+					$line->[14],  
+					$line->[9], 
+					"<a href=$SELF_URL?index=$dhcp_index&UID=$FORM{UID}> $line->[15]</a>", 
+					$line->[20],  
+					$line->[19],
+					$action[$line->[22]] . $html->br() . $_AUTHOR . $line->[8],
+					($line->[18] != 4) ? $status[$line->[18]] : "$_RETURNED_STORAGE",
+					$line->[21],
+					$line->[23],
+					$line->[16]
+		
+				);
+			}
+			
+			
+			print $table->show();						
+		}
+		else {
+					
+			print "<a href=$SELF_URL?index=$index&UID=$FORM{UID}&SHOW_STATUS=$FORM{SHOW_STATUS}&VIEW_HARDWARE_LOG=1>$_VIEW_HARDWARE_LOG</a></br>";		
+		
+		}
 	}
 }
 

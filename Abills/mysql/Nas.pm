@@ -71,7 +71,11 @@ sub list {
 
   if($attr->{NAS_IDS}) {
   	push @WHERE_RULES, "nas.id IN ($attr->{NAS_IDS})";
-  }
+   }  
+
+  if($attr->{NAS_TYPE}) {
+  	push @WHERE_RULES, @{ $self->search_expr($attr->{NAS_TYPE}, 'INT', 'nas.nas_type') };
+   }
 
   if($attr->{DOMAIN_ID}) {
   	push @WHERE_RULES, @{ $self->search_expr($attr->{DOMAIN_ID}, 'INT', 'nas.domain_id') };
@@ -79,6 +83,10 @@ sub list {
 
   if($attr->{MAC}) {
   	push @WHERE_RULES, @{ $self->search_expr($attr->{MAC}, 'INT', 'nas.mac') };
+   }
+
+  if($attr->{NAS_IP}) {
+  	push @WHERE_RULES, @{ $self->search_expr($attr->{NAS_IP}, 'STR', 'nas.ip') };
    }
 
   if($attr->{GID}) {

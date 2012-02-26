@@ -591,6 +591,64 @@ print $table->show();
 
 }
 
+#**********************************************************
+#
+#**********************************************************
+sub marketing_triplay_stats {
+ my ($attr)=@_;
+
+if (! $conf{ADDRESS_REGISTER} ) {
+	$html->message('err', "INFO", "Turn on address register");
+	return 0;
+}
+
+my $address =  $html->tpl_show(templates('form_address_sel'), { %FORM }, { OUTPUT2RETURN => 1 });
+$html->tpl_show(_include('marketing_search', 'Marketing'), { %$Marketing, %FORM, ADDRESS => $address } );
+
+
+if (! $FORM{show} ) {
+	return 0;
+}
+
+my $list = $Marketing->triplay_stats({ %FORM, %LIST_PARAMS  });
+#адрес, № квратиры, договор, Тариф Интернет, Тариф телевилиния, тариф телефонии, ФИО, телефон
+my $table = $html->table( { width      => '100%',
+                            caption    => $_CHANNELS,
+                            border     => 1,
+                            title      => ["$_ADDRESS", $_ADDRESS_FLAT, $_CONTRACT, 
+                              "Internet $_TARIF_PLAN",
+                              "Voip $_TARIF_PLAN",
+                              "$_TV $_TARIF_PLAN",
+                              $_FIO,
+                              $_PHONE
+                              ],
+                            cols_align => ['right', 'left', 'right', 'right' ],
+                            qs         => $pages_qs,
+                            pages      => $Marketing->{TOTAL},
+                            ID         => 'IPTV_CHANNELS',
+                         } );	
+
+foreach my $line (@$list) {
+  $table->addrow($html->b($line->[0]), 
+     $line->[1],
+     $line->[2], 
+     $line->[3], 
+     $line->[4], 
+     $line->[5], 
+     $html->button($line->[6], "index=11&UID=$line->[8]"), 
+     $line->[7], 
+   );
+}
+print $table->show();
+
+
+$table = $html->table( { width      => '100%',
+                         cols_align => ['right', 'right'],
+                         rows       => [ [ "$_TOTAL:", $html->b($Marketing->{TOTAL})
+                                           ] ]
+                     } );
+print $table->show();
+}
 
 
 1

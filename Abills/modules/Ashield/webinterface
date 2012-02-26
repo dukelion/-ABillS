@@ -299,6 +299,10 @@ $table = $html->table( { width      => '100%',
 sub ashield_user {
  	my ($attr) = @_;
 
+  use Encode;
+  Encode::_utf8_off($name); 	 
+
+
   if ($Ashield::VERSION < 6.06) {
   	$html->message('info', "UPDATE", "Please update module 'Ashield' to version 6.03 or higher. http://abills.net.ua/ (Current Version: $Ashield::VERSION)");
   	return 0;
@@ -474,13 +478,17 @@ sub ashield_user {
    
    foreach my $line (@$list) {
    	 my $radio_but = '';
-   	 if (! $user->{UID} || ($line->[5]+$line->[6] < $user->{DEPOSIT} + $user->{CREDIT} || $line->[17])) {
-   	   $radio_but = $html->form_input('TP_ID', "$line->[18]", { TYPE => 'radio', OUTPUT2RETURN => 1 }).
-   	    $html->form_input('AVD_TP_ID_'.$line->[0], "$ashield_tps_info->{$line->[1]}->{ID}", { TYPE => 'hidden', OUTPUT2RETURN => 1 });
-   	  }
+     if (! $user->{UID} || ($line->[5]+$line->[6] < $user->{DEPOSIT} + $user->{CREDIT} || $line->[17])) {
+       Encode::_utf8_off($ashield_tps_info->{$line->[1]}->{ID});
+       my $ashield_id = "$ashield_tps_info->{$line->[1]}->{ID}";
+       $radio_but = $html->form_input('TP_ID', "$line->[18]", { TYPE => 'radio', OUTPUT2RETURN => 1 }).
+       $html->form_input('AVD_TP_ID_'.$line->[0], $ashield_id , { TYPE => 'hidden', OUTPUT2RETURN => 1 });
+      }
    	 else {
    	 	  $radio_but = "$ERR_SMALL_DEPOSIT";
    	  }
+
+     Encode::_utf8_off($ashield_tps_info->{$line->[1]}->{GRACE_PERIOD});
    	 $table->addrow($line->[0], 
    	   $html->b($line->[1]).$html->br().$line->[19],
        $ashield_tps_info->{$line->[1]}->{GRACE_PERIOD},
@@ -593,8 +601,6 @@ sub ashield_user {
         	$download_url =~ s/http:\/\/([a-z\.\-0-9\_]+)\//$conf{ASHIELD_DRWEB_DOWNLOAD_PREFIX}/i;
          }
         
-        use Encode;
-        Encode::_utf8_off($name); 	 
         my $comp_name = ($conf{dbcharset} eq 'utf8') ?  $name : convert($name, { utf82win => 1 });        
         
     	  $table->addrow($html->color_mark( $comp_name , 'code'),

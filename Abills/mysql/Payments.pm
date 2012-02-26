@@ -34,7 +34,9 @@ my %FIELDS = (UID      => 'uid',
               AID      => 'aid',
               METHOD   => 'method',
               EXT_ID   => 'ext_id',
-              BILL_ID  => 'bill_id'
+              BILL_ID  => 'bill_id',
+              AMOUNT   => 'amount',
+              CURRENCY => 'currency'
              );
 
 
@@ -68,7 +70,9 @@ sub defaults {
            AID          => 0,
            METHOD       => 0,
            ER           => 1,
-           EXT_ID       => ''
+           EXT_ID       => '',
+           AMOUNT       => '0.00',
+           CURRENCY     => '0'
           );
 
   $self = \%DATA;
@@ -91,6 +95,8 @@ sub add {
      return $self;
    }
   
+
+  
   if ($DATA{CHECK_EXT_ID}) {
     $self->query($db, "SELECT id, date, sum, uid FROM payments WHERE ext_id='$DATA{CHECK_EXT_ID}';");
     if ($self->{TOTAL} > 0) {
@@ -107,9 +113,10 @@ sub add {
   $db->{AutoCommit}=0; 
   $user->{BILL_ID} = $attr->{BILL_ID} if ($attr->{BILL_ID});
   
+  $DATA{AMOUNT}=$DATA{SUM};
   if ($user->{BILL_ID} > 0) {
     if ($DATA{ER} && $DATA{ER} != 1) {
-      $DATA{SUM} = $DATA{SUM} / $DATA{ER} if (defined($DATA{ER}));
+      $DATA{SUM} = sprintf("%.2f", $DATA{SUM} / $DATA{ER});
      }
 
     $Bill->info( { BILL_ID => $user->{BILL_ID} } );
@@ -121,9 +128,9 @@ sub add {
     my $date = ($DATA{DATE}) ? "'$DATA{DATE}'" : 'now()';
     
     $self->query($db, "INSERT INTO payments (uid, bill_id, date, sum, dsc, ip, last_deposit, aid, method, ext_id,
-           inner_describe) 
+           inner_describe, amount, currency) 
            values ('$user->{UID}', '$user->{BILL_ID}', $date, '$DATA{SUM}', '$DATA{DESCRIBE}', INET_ATON('$admin->{SESSION_IP}'), '$Bill->{DEPOSIT}', '$admin->{AID}', '$DATA{METHOD}', 
-           '$DATA{EXT_ID}', '$DATA{INNER_DESCRIBE}');", 'do');
+           '$DATA{EXT_ID}', '$DATA{INNER_DESCRIBE}', '$DATA{AMOUNT}', '$DATA{CURRENCY}');", 'do');
     
     if (! $self->{errno}){
  	    if ($CONF->{payment_chg_activate} && $user->{ACTIVATE} ne '0000-00-00') {
@@ -132,6 +139,7 @@ sub add {
       	                              EXPIRE   => '0000-00-00' 
       	                             });
        }
+      $self->{SUM}=$DATA{SUM} ;
       $db->commit() if (! $attr->{TRANSACTION}); 
      }
     else {
@@ -226,6 +234,15 @@ sub list {
     push @WHERE_RULES, @{ $self->search_expr($attr->{SUM}, 'INT', 'p.sum') };
   }
 
+ if ($attr->{AMOUNT}) {
+    push @WHERE_RULES, @{ $self->search_expr($attr->{AMOUNT}, 'INT', 'p.amount') };
+  }
+
+ if ($attr->{CURRENCY}) {
+    push @WHERE_RULES, @{ $self->search_expr($attr->{CURRENCY}, 'INT', 'p.currency') };
+  }
+
+
  if (defined($attr->{METHOD})) {
    push @WHERE_RULES, "p.method IN ($attr->{METHOD}) ";
   }
@@ -245,6 +262,10 @@ sub list {
  elsif ($attr->{FROM_DATE}) {
    push @WHERE_RULES, @{ $self->search_expr(">=$attr->{FROM_DATE}", 'DATE', 'date_format(p.date, \'%Y-%m-%d\')') },
    @{ $self->search_expr("<=$attr->{TO_DATE}", 'DATE', 'date_format(p.date, \'%Y-%m-%d\')') };
+  }
+ elsif ($attr->{FROM_DATE_TIME}) {
+   push @WHERE_RULES, @{ $self->search_expr(">=$attr->{FROM_DATE_TIME}", 'DATE', 'p.date') },
+   @{ $self->search_expr("<=$attr->{TO_DATE_TIME}", 'DATE', 'p.date') };
   }
  elsif ($attr->{PAYMENT_DAYS}) {
  	 my $expr = '=';
@@ -290,8 +311,13 @@ sub list {
  $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
  
  $self->query($db, "SELECT p.id, u.id, $login_field p.date, p.dsc, p.sum, p.last_deposit, p.method, 
-      p.ext_id, p.bill_id, if(a.name is null, 'Unknown', a.name),  
-      INET_NTOA(p.ip), p.uid, p.inner_describe
+      p.ext_id, p.bill_id, 
+      if(a.name is null, 'Unknown', a.name),  
+      INET_NTOA(p.ip), 
+      p.amount,
+      p.currency,
+      p.uid, 
+      p.inner_describe
     FROM payments p
     LEFT JOIN users u ON (u.uid=p.uid)
     LEFT JOIN admins a ON (a.aid=p.aid)

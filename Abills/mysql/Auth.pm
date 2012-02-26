@@ -163,6 +163,7 @@ sub dv_auth {
    $self->{NEG_DEPOSIT_IP_POOL},
     ) = @{ $self->{list}->[0] };
 
+
 #DIsable
 if ($self->{DISABLE}) {
 	if ($self->{DISABLE} == 2) {
@@ -364,6 +365,7 @@ else {
   $self->{DEPOSIT}=0;
  }
 
+
   if ($self->{INTERVALS} > 0 && ($self->{DEPOSIT} > 0 || $self->{PAYMENT_TYPE} > 0))  {
      ($self->{TIME_INTERVALS}, $self->{INTERVAL_TIME_TARIF}, $self->{INTERVAL_TRAF_TARIF}) = $Billing->time_intervals($self->{TP_ID});
      ($remaining_time, $ATTR) = $Billing->remaining_time($self->{DEPOSIT}, {
@@ -387,6 +389,8 @@ if (defined($ATTR->{TT})) {
 else {
   $self->{TT_INTERVAL} = 0;
  }
+
+
 
 #check allow period and time out
  if ($remaining_time == -1) {
@@ -499,8 +503,14 @@ if ($self->{ACTIVE_DAY_FEE}) {
   }
 
 if ($NAS->{NAS_TYPE} && $NAS->{NAS_TYPE} eq 'ipcad') {
+	# SET ACCOUNT expire date
+  if( $self->{ACCOUNT_AGE} > 0 && $self->{ACCOUNT_ACTIVATE} eq '0000-00-00') {
+    $self->query($db, "UPDATE users SET  activate=curdate(), expire=curdate() + INTERVAL $self->{ACCOUNT_AGE} day 
+      WHERE uid='$self->{UID}';", 'do');
+   }
 	return 0, $RAD_PAIRS, '';
  }
+
 
 # Return radius attr
  if ($self->{IP} ne '0') {
@@ -545,7 +555,7 @@ if ($NAS->{NAS_TYPE} eq 'mpd5') {
   	my $class_id    = $line->[0];
     my $filter_name = 'flt';
 
-    if ($class_id == 0 && $line->[1] && $line->[1] =~ /0.0.0.0/) {
+    if ($self->{TOTAL} == 1 || ($class_id == 0 && $line->[1] && $line->[1] =~ /0.0.0.0/)) {
          my $shapper_type = ($line->[2] > 4048) ? 'rate-limit' : 'shape';         
          
          if ( $line->[2] == 0 || $CONF->{ng_car}) {
@@ -592,7 +602,6 @@ if ($NAS->{NAS_TYPE} eq 'mpd5') {
    }
   }
 	#$RAD_PAIRS->{'Session-Timeout'}=604800;
-$RAD_PAIRS->{'Acct-Interim-Interval'}=$NAS->{NAS_ALIVE} if ($NAS->{NAS_ALIVE});
  }
 elsif($CONF->{cisco_shaper} && $NAS->{NAS_TYPE} eq 'cisco') {
   #$traf_tarif 
@@ -674,8 +683,6 @@ elsif ($NAS->{NAS_TYPE} eq 'mikrotik') {
     #$RAD_PAIRS->{'Ascend-Xmit-Rate'} = int($EX_PARAMS->{speed}->{0}->{IN}) * $CONF->{KBYTE_SIZE};
     #$RAD_PAIRS->{'Ascend-Data-Rate'} = int($EX_PARAMS->{speed}->{0}->{OUT})* $CONF->{KBYTE_SIZE};
    }
-
-  $RAD_PAIRS->{'Acct-Interim-Interval'}=$NAS->{NAS_ALIVE} if ($NAS->{NAS_ALIVE});
  }
 # MPD4
 elsif ($NAS->{NAS_TYPE} eq 'mpd4' && $RAD_PAIRS->{'Session-Timeout'} > 604800) {
@@ -723,7 +730,6 @@ elsif ($NAS->{NAS_TYPE} eq 'accel_pptp' or ($NAS->{NAS_TYPE} eq 'lepppd') or
     $RAD_PAIRS->{'PPPD-Downstream-Speed-Limit'} = int($EX_PARAMS->{speed}->{0}->{OUT}); 
     $RAD_PAIRS->{'PPPD-Upstream-Speed-Limit'} = int($EX_PARAMS->{speed}->{0}->{IN}); 
    }
-  $RAD_PAIRS->{'Acct-Interim-Interval'}=$NAS->{NAS_ALIVE} if ($NAS->{NAS_ALIVE});
  }
 #Chillispot
 elsif ($NAS->{NAS_TYPE} eq 'chillispot') {
@@ -744,8 +750,9 @@ elsif ($NAS->{NAS_TYPE} eq 'chillispot') {
      $RAD_PAIRS->{'WISPr-Bandwidth-Max-Down'} = int($EX_PARAMS->{speed}->{0}->{IN}) * $CONF->{KBYTE_SIZE}; 
      $RAD_PAIRS->{'WISPr-Bandwidth-Max-Up'} = int($EX_PARAMS->{speed}->{0}->{OUT}) * $CONF->{KBYTE_SIZE}; 
    } 
-   $RAD_PAIRS->{'Acct-Interim-Interval'}=$NAS->{NAS_ALIVE} if ($NAS->{NAS_ALIVE});	
 }
+
+
 
 #Auto assing MAC in first connect
 if( $CONF->{MAC_AUTO_ASSIGN} && 
@@ -762,6 +769,8 @@ if( $self->{ACCOUNT_AGE} > 0 && $self->{ACCOUNT_ACTIVATE} eq '0000-00-00') {
   $self->query($db, "UPDATE users SET  activate=curdate(), expire=curdate() + INTERVAL $self->{ACCOUNT_AGE} day 
      WHERE uid='$self->{UID}';", 'do');
  }
+
+$RAD_PAIRS->{'Acct-Interim-Interval'}=$NAS->{NAS_ALIVE} if ($NAS->{NAS_ALIVE});
 
 #check TP Radius Pairs
   if ($self->{TP_RAD_PAIRS}) {

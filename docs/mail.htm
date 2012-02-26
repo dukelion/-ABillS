@@ -1,0 +1,113 @@
+<html>
+<head>
+<meta http-equiv="Content-Language" content="en-us">
+<meta http-equiv="Content-Type" content="text/html; charset=windows-1251">
+<title>Abills</title>
+</head>
+
+<body bgcolor=FFFFFF>
+<center>
+<b>ABILLS - Mail</b>
+<br><i>(<b>A</b>smodeus <b>BILL</b>ing <b>S</b>ystem)</i>
+</center>
+<Br>&nbsp;&nbsp;&nbsp;<A href="#mail">Mail Server</A>
+<Br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<A href="#postfix">Postfix</A>
+<Br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<A href="#Courier-IMAP">Courier-IMAP</A>
+<hr>
+
+<A NAME="mail"></A>
+<b>Mail Server</b>
+
+
+
+<Hr>
+<A NAME="postfix"></A>
+<b>Postfix</b>
+
+
+
+<Hr>
+<A NAME="Courier-IMAP"></A>
+<b>Courier-IMAP</b>
+<pre>
+<i>FreeBSD 5.xx</i>
+cd /usr/ports/mail/courier-imap && make WITH_CRAM=yes WITH_MYSQL=yes install clean
+
+ chmod 700 /usr/local/etc/courier-imap
+ chmod 750 /usr/local/var/spool/authdaemon
+ chgrp vmail /usr/local/var/spool/authdaemon
+
+Правим /usr/local/etc/authlib/authmysqlrc
+Для доступа к спулу почты /var/spool/virtual courier работает от юзера vmail (uid 1001, gid 1001) 
+
+
+authmysqlrc 
+==========================================================
+#DEFAULT_DOMAIN			domain.tld
+MYSQL_LOGIN_FIELD		CONCAT(username, domain)
+MYSQL_CRYPT_PWFIELD		password
+MYSQL_HOME_FIELD		'/usr/local/virtual'
+MYSQL_MAILDIR_FIELD		maildir
+#MYSQL_NAME_FIELD		name
+MYSQL_OPT			0
+#MYSQL_PORT			0
+# Uncomment below if you want quota support.
+#MYSQL_QUOTA_FIELD		quota
+MYSQL_UID_FIELD			'1001'
+MYSQL_GID_FIELD			'1001'
+MYSQL_SERVER			localhost
+MYSQL_USERNAME			abills
+MYSQL_PASSWORD			password
+MYSQL_DATABASE			abills
+MYSQL_USER_TABLE		mail_boxes
+#MYSQL_WHERE_CLAUSE		server='mailhost.example.com'
+
+Убедитесь что использована табуляция а не пробелы, иначе конфиг не будет работать.
+</pre>
+
+
+<Hr size=1>
+<font size=3>
+Author: <a href='http://www.asmodeus.com.ua'>~AsmodeuS~</i></a><br>
+ICQ: 50254692 <a href="http://wwp.mirabilis.com/scripts/Search.dll?to=50254692"><img src="http://wwp.icq.com/scripts/online.dll?icq=50254692&img=7" border=0></a><br>
+</font>
+
+<!-- Nabat Rate -->
+<p>
+<SCRIPT language="JavaScript">
+//<!--
+var id='336';
+var img='nabat1';
+var j=0;
+var an=navigator.appName; 
+var d=document; c=''; je='';
+var script='http://www.nabat.com.ua/cgi-bin/counter/hellping.cgi';
+//-->
+</SCRIPT>
+
+<SCRIPT language="javascript1.1"><!--
+j=1//--></SCRIPT><SCRIPT language="JavaScript1.2"><!--
+j=2//--></SCRIPT><SCRIPT language="JavaScript1.3"><!--
+j=3//--></SCRIPT>
+
+<SCRIPT language="JavaScript">
+<!--
+d.cookie="v=1;path=/";
+s=screen;
+an!="Netscape"?c=s.colorDepth:c=s.pixelDepth;
+r=escape(d.referrer);
+
+d.write('<a href="http://nabat.com.ua/"><img alt=nabat border=0 width=88 height=31 src="'+script+'?id='+id+'&img='+img+((typeof(s)=='undefined')?'':'&res='+s.width+'&c='+c) +
+ '&from='+r+'&pg='+escape(window.location.href)+(d.cookie?'&ce=1':'')+
+ '&j='+j+(navigator.javaEnabled()?'&je=1':'')+'"></a>');
+//-->
+</SCRIPT>
+
+<noscript>
+<a href="http://www.nabat.com.ua"><img src='http://www.nabat.com.ua/cgi-bin/counter/hellping.cgi?336+nabat1' width=88 height=31 border=0 alt="Nabat"></a>
+</noscript>
+</p>
+<!-- END Nabat Rate -->
+</body>
+
+</html>

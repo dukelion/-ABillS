@@ -35,3 +35,23 @@ countries.tpl:english:Countries list
 
 form_company.tpl:english:Company add/change template
 form_company.tpl:russian:Шаблон компании
+
+
+form_client_info.tpl:russian:форма информации по абоненту
+form_client_login.tpl:russian:Форма входа в систему абонентом
+form_client_main.tpl:russian:Общая форма клиентского интерфейса
+form_payments.tpl:russian:Форма оплаты
+msg_passwd_recovery.tpl:russian:Форма во становления пароля
+form_forgot_passwd.tpl:russian:Форма во становления пароля
+form_accept_rules.tpl:russian:Список правил для абонентов, отображается при первом входе в пользовательский кабинет
+form_address.tpl:russian:Форма ведения адресов
+form_address_sel.tpl:russian:Форма ведения адресов с Реестром адресов $conf{ADDRESS_REGISTER}=1
+form_client_chg_tp.tpl:russian:Форма изменения тарифного плана пользователем
+form_nas.tpl:russian:форма
+form_pi.tpl:russian:Сервера добавления/изменения доступа 
+form_neg_deposit.tpl:russian:Форма вывода сообщения о негативном депозите
+form_user.tpl:russian:Форма добавления/изменения аккаунта абонента
+
+form_client_info.tpl:english:User information form
+form_client_login.tpl:russian:Users Login form
+form_client_main.tpl:russian:Main user portal template

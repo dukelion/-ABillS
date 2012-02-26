@@ -137,7 +137,7 @@ BEGIN {
 
     if (eval {require Socket6;} &&
 	eval {require IO::Socket::INET6; IO::Socket::INET6->VERSION("1.26");}) {
-	import Socket6;
+        Socket6->import(qw(inet_pton getaddrinfo));
 	$ipv6_addr_len = length(pack_sockaddr_in6(161, inet_pton(AF_INET6(), "::1")));
 	$SNMP_Session::ipv6available = 1;
     }
@@ -591,7 +591,7 @@ use Carp;
 BEGIN {
     if($SNMP_Session::ipv6available) {
 	import IO::Socket::INET6;
-	import Socket6;
+        Socket6->import(qw(inet_pton getaddrinfo));
     }
 }
 

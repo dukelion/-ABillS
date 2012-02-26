@@ -43,7 +43,8 @@ sub new {
 sub defaults {
   my $self = shift;
 
-  %DATA = ( 
+  %DATA = (
+ COMPANY_ID      => 0, 
  COMPANY_NAME    => '',
  TAX_NUMBER      => '',
  BANK_ACCOUNT    => '',
@@ -79,7 +80,7 @@ sub add {
   my $name = (defined($attr->{COMPANY_NAME})) ? $attr->{COMPANY_NAME} : '';
   
   if ($name eq '') {
-    $self->{errno} = 8;
+    $self->{errno}  = 8;
     $self->{errstr} = 'ERROR_ENTER_NAME';
     return $self;
    }
@@ -89,7 +90,7 @@ sub add {
   my $info_fields = '';
   my $info_fields_val = '';
 
-	my $list = $users->config_list({ PARAM => 'ifc*'});
+	my $list = $users->config_list({ PARAM => 'ifc*' });
   if ($users->{TOTAL} > 0) {
     my @info_fields_arr = ();
     my @info_fields_val = ();
@@ -135,17 +136,21 @@ sub add {
 
 
   my %DATA = $self->get_data($attr, { default => defaults() }); 
-  $self->query($db, "INSERT INTO companies (name, tax_number, bank_account, bank_name, cor_bank_account, 
+  $self->query($db, "INSERT INTO companies (id, name, tax_number, bank_account, bank_name, cor_bank_account, 
      bank_bic, disable, credit, credit_date, address, phone, vat, contract_id, contract_date,
      bill_id, ext_bill_id, registration, domain_id, representative, contract_sufix
      $info_fields) 
-     VALUES ('$DATA{COMPANY_NAME}', '$DATA{TAX_NUMBER}', '$DATA{BANK_ACCOUNT}', '$DATA{BANK_NAME}', '$DATA{COR_BANK_ACCOUNT}', 
+     VALUES ('$DATA{COMPANY_ID}', '$DATA{COMPANY_NAME}', '$DATA{TAX_NUMBER}', '$DATA{BANK_ACCOUNT}', '$DATA{BANK_NAME}', '$DATA{COR_BANK_ACCOUNT}', 
       '$DATA{BANK_BIC}', '$DATA{DISABLE}', '$DATA{CREDIT}', '$DATA{CREDIT_DATE}',
       '$DATA{ADDRESS}', '$DATA{PHONE}',
       '$DATA{VAT}', '$DATA{CONTRACT_ID}', '$DATA{CONTRACT_DATE}',
       '$DATA{BILL_ID}', '$DATA{EXT_BILL_ID}', now(), '$admin->{DOMAIN_ID}', '$DATA{REPRESENTATIVE}', '$sufix'
       $info_fields_val
       );", 'do');
+
+  if ($self->{errno}) {
+  	return $self;
+   }
 
   $self->{COMPANY_ID} = $self->{INSERT_ID};
 

@@ -94,6 +94,10 @@ sub hangup {
  elsif ($nas_type eq 'accel_pptp') {
    hangup_radius($NAS, $PORT, "", $attr);
   }
+ 
+ elsif ($nas_type eq 'redback') {
+   hangup_radius($NAS, $PORT, "", $attr);
+  }
  elsif ($nas_type eq 'lisg_cst') {
    hangup_radius($NAS, $PORT, "$attr->{FRAMED_IP_ADDRESS}", $attr);
   }

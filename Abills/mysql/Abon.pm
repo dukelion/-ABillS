@@ -459,14 +459,16 @@ sub user_tariff_change {
  my $self = shift;
  my ($attr) = @_;
 
+ my $abon_add = '';
+ my $abon_del = '';
+
  if ($attr->{DEL}) {
    $self->query($db, "DELETE from abon_user_list WHERE uid='$attr->{UID}' AND  tp_id IN ($attr->{DEL});", 'do');
+   $abon_del = "$attr->{DEL}";
   }
 
  
  my @tp_array = split(/, /, $attr->{IDS});
- my $abon_log = "";
- 
 
  foreach my $tp_id (@tp_array) {
  	 my $date = '';
@@ -496,11 +498,11 @@ sub user_tariff_change {
    $self->query($db, "INSERT INTO abon_user_list (uid, tp_id, comments, date, discount, create_docs, send_docs) 
      VALUES ('$attr->{UID}', '$tp_id', '". $attr->{'COMMENTS_'. $tp_id} ."', $date, '". $attr->{'DISCOUNT_'. $tp_id} ."',
      '". $attr->{'CREATE_DOCS_'. $tp_id} ."', '". $attr->{'SEND_DOCS_'. $tp_id} ."');", 'do');
-   $abon_log.="$tp_id, ";
+   $abon_add.="$tp_id, ";
   }
 
-
- $admin->action_add($attr->{UID}, "$abon_log");
+ $admin->{MODULE}=$MODULE;
+ $admin->action_add($attr->{UID}, "ADD: $abon_add DEL: $abon_del", { TYPE => 3 });
  return $self;
 }
 

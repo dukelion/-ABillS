@@ -1,0 +1,92 @@
+<chart>
+	<series_color>
+	  <color>00EE00</color>
+		<color>FF8844</color>
+		<color>7e6cee</color>
+		<color>BBBBFF</color>
+		<color>E8AC71</color>
+		<color>99FB5E</color>
+	 </series_color>
+
+  <chart_grid_h alpha="10" color="0066FF" thickness="1"  />
+	<chart_grid_v alpha="10" color="0066FF" thickness="1" />
+  <chart_label shadow="low" color="000000" alpha="95" size="10" position="inside" as_percentage="true" />
+  <chart_border color="000000" top_thickness="1" bottom_thickness="2" left_thickness="0" right_thickness="0" />
+  <chart_rect x="50" y="70" width="500" height="280" positive_color="FFFFFF" positive_alpha="40" />
+  <chart_pref select="true" />
+
+	<axis_category font="arial" bold="1" size="11" color="000000" alpha="50" skip="2" />
+	<axis_ticks value_ticks="" category_ticks="1" major_thickness="2" minor_thickness="1" minor_count="3" major_color="000000" minor_color="888888" position="outside" />
+
+  <axis_value font="arial" size="7" color="000000" alpha="75" steps="4" prefix="" suffix="" 
+  decimals="0" separator="" show_min="1" orientation="diagonal_up" />
+
+
+  <legend shadow="low" fill_color="0" fill_alpha="5" line_alpha="0" line_thickness="0" bullet="circle" size="12" color="111111" alpha="75" margin="10" />
+
+
+
+
+	<draw>
+		<text layer="background" shadow="low" color="ffffff" alpha="5" size="30" x="0" y="0" width="400" height="150" >|||||||||||||||||||||||||||||||||||||||||||||||</text>
+		<text layer="background"  shadow="low" color="ffffff" alpha="5" size="30" x="0" y="140" width="400" height="150" v_align="bottom">|||||||||||||||||||||||||||||||||||||||||||||||</text>
+	</draw>
+
+	<filter>
+		<shadow id="low" distance="2" angle="45" color="0" alpha="50" blurX="5" blurY="5" />
+		<bevel id="data" angle="45" blurX="10" blurY="10" distance="3" highlightAlpha="5" highlightColor="ffffff" shadowColor="000000" shadowAlpha="50" type="full" />
+		<bevel id="bg" angle="10" blurX="20" blurY="20" distance="10" highlightAlpha="25" highlightColor="ff8888" shadowColor="8888ff" shadowAlpha="25" type="full" />
+		<glow id="glow1" color="ff88ff" alpha="75" blurX="30" blurY="30" inner="false" />
+	</filter>
+
+
+  <chart_data>
+<row>
+<null/>
+<string>1</string>
+<string>2</string>
+<string>3</string>
+<string>4</string>
+<string>5</string>
+<string>6</string>
+<string>7</string>
+<string>8</string>
+<string>9</string>
+<string>10</string>
+<string>11</string>
+<string>12</string>
+<string>13</string>
+<string>14</string>
+<string>15</string>
+<string>16</string>
+<string>17</string>
+<string>18</string>
+<string>19</string>
+<string>20</string>
+<string>21</string>
+<string>22</string>
+<string>23</string>
+<string>24</string>
+<string>25</string>
+<string>26</string>
+<string>27</string>
+<string>28</string>
+<string>29</string>
+<string>30</string>
+<string>31</string>
+</row>
+<row>
+<string>TOTALS</string>
+<number bevel='data'>100</number>
+</row>
+<row>
+<string>USERS</string>
+<number bevel='data'>100</number>
+</row>
+<row>
+<string>SUM</string>
+<number bevel='data'>100</number>
+</row>
+</chart_data>
+<chart_type> <value>area</value> <value>line</value> <value>column</value></chart_type>
+</chart>

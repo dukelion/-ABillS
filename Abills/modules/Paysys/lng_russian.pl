@@ -6,6 +6,7 @@ $_TRANSACTION_PROCESSING='Платёж обрабатывается';
 $_FAILED='Транзакация не выполнена';
 $ERR_INVALID_SIGNATURE='Неправильная подпись. ОБратитесь к администратору';
 $ERR_TRANSACTION_DECLINED='Транзакция отвергнута';
+$ERR_TERMINAL='Ошибка на терминале';
 $_GET_INVOICE='Получить счёт';
 $_INVOICE_SENDED='Счёт отправлен';
 $_TEST_PAYMENT='Тестовый платёж';

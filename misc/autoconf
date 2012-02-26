@@ -105,14 +105,13 @@ if(! -f $config_file ) {
      	 print "Config file maked...\n";
 
       if (! confirm_yn("Make ABillS mysql user account: ", "n")) {
-
          #Check mysql running
          my $proc_list = `ps ax`;
          print $proc_list if ($debug > 5);
 
          # Check /etc/my.cnf
          if (! -f '/etc/my.cnf') {
-         	 my $res = `cp mysq/my.cfn /etc/`;
+         	 my $res = `cp mysql/my.cnf /etc/`;
           }
 
          if ($proc_list !~  /mysqld/) {
@@ -120,21 +119,20 @@ if(! -f $config_file ) {
            check_install("mysql");
           }
 
-
+         my $mysql='/usr/local/bin/mysql';
          if ($conf{OS} eq 'FREEBSD') {
-
 
           }
          #Other OS
          else {
-
+           $mysql='/usr/bin/mysql';
           }
 
          print "Check DB configuretion\n";
 
          my $read;
          my $res;
-         my $mysql='/usr/local/bin/mysql';
+         
          MYSQL_PROGRAM:
          if ( ! -f $mysql) {
            print "Can't find '$mysql' enter path\n";
@@ -168,7 +166,7 @@ if(! -f $config_file ) {
            # if inodb engine convert tables
            
 
-           if (confirm_yn("Your DB not configure for ABillS using. Configure? ", "y")) {
+           if (confirm_yn("Your DB not configure for ABillS using. Configure? [Yes/No/Show conf] ", "y")) {
               print "Make users\n";
 
               $res = `$mysql --default-character-set=$mk_config{dbcharset} -u $mysql_root_user --password='$mysql_root_passwd' -e "$add_mysql_user"`;
@@ -633,7 +631,7 @@ sub confirm_yn {
     my $read;
     my $c;
 
-    if ($confirm && ($confirm =~ "$yes")) {
+    if ($confirm && ($confirm =~ /$yes/)) {
         $confirm = "y";
     } else {
         $confirm = "n";
@@ -644,12 +642,12 @@ sub confirm_yn {
     $read =~ s/\s*$//;
     return 1 unless $read;
 
-    if (($confirm eq "y" && $read =~ "$yes") ||
-        ($confirm eq "n" && $read =~ "$no")) {
+    if (($confirm eq "y" && $read =~ /$yes/i) ||
+        ($confirm eq "n" && $read =~ /$no/i)) {
         return 1;
     }
 
-    if ($read !~ "$yes" && $read !~ "$no") {
+    if ($read !~ "$yes" && $read !~ /$no/i) {
         warn "Wrong value. Enter again!\a\n";
      }
 }

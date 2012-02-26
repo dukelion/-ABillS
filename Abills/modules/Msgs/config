@@ -22,11 +22,11 @@ if (defined($user->{UID})) {
 elsif(defined($admin->{AID})) {
   my $count=msgs_new({ AID => $admin->{AID} });
   $FUNCTIONS_LIST{"10:0:$_MESSAGES $count:msgs_admin:"}   = 8;
-  $FUNCTIONS_LIST{"22:10:$_ADD:msgs_admin_add:"}          = 8;
-  $FUNCTIONS_LIST{"22:10:$_SHEDULE:msgs_shedule:"}        = 8;
-  $FUNCTIONS_LIST{"22:10:$_DISPATCH:msgs_dispatch:"}      = 8;
-  $FUNCTIONS_LIST{"23:10:$_REQUESTS:msgs_unreg_requests_list:"}= 8;
-  $FUNCTIONS_LIST{"24:23:$_ADD:msgs_unreg_requests:"}     = 8;
+  $FUNCTIONS_LIST{"32:10:$_ADD:msgs_admin_add:"}          = 8;
+  $FUNCTIONS_LIST{"32:10:$_SHEDULE:msgs_shedule:"}        = 8;
+  $FUNCTIONS_LIST{"32:10:$_DISPATCH:msgs_dispatch:"}      = 8;
+  $FUNCTIONS_LIST{"33:10:$_REQUESTS:msgs_unreg_requests_list:"}= 8;
+  $FUNCTIONS_LIST{"34:33:$_ADD:msgs_unreg_requests:"}     = 8;
  }   
 
 1

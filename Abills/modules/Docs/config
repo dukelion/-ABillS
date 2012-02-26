@@ -1,34 +1,35 @@
 #Iner_ID : Main or Sub or if -1 user menu func list
-%FUNCTIONS_LIST = ("01:-1:$_DOCS:docs_accounts_list:UID"        => 15,
-                   "02:1:$_ACCOUNTS:docs_accounts_list:UID"     => 15,
-                   "03:1:$_INVOICES:docs_invoice:UID"           => 15,
+%FUNCTIONS_LIST = ("01:-1:$_DOCS:docs_invoices_list:UID"        => 15,
+                   "02:1:$_INVOICES:docs_invoices_list:UID"     => 15,
+                   "03:1:$_RECEIPTS:docs_receipt:UID"           => 15,
                    "04:1:$_SETTINGS:docs_user:UID"              => 15,
                    
 
                    "05:0:$_DOCS:docs_acts:COMPANY_ID"           => 13,
                    "06:5:$_ACTS:docs_acts:COMPANY_ID"           => 13,
                    "07:5:$_TAX_INVOICE:docs_tax_invoice:COMPANY_ID" => 13,
-                   "08:5:$_ACCOUNTS:docs_accounts_list:COMPANY_ID"  => 13,
-#                  "08:7:$_ADD:docs_tax_invoice:COMPANY_ID"     => 13,
+                   "08:5:$_INVOICES:docs_invoices_list:COMPANY_ID"  => 13,
+                   "09:8:$_ADD:docs_invoice_company:COMPANY_ID"   => 13,
+#                  "10:7:$_ADD:docs_tax_invoice:COMPANY_ID"     => 13,
 
                    "09:0:$_DOCS:docs_summary:"                  => 5,
 
-                   "10:0:$_DOCS:docs_accounts_list:"            => 8,
-                   "11:10:$_ACCOUNTS:docs_accounts_list:"       => 8,
-                   "12:11:$_CREATE:docs_accounts_multi_create:"       => 8,
-                   "14:10:$_INVOICE:docs_invoice_list:"         => 8,
+                   "10:0:$_DOCS:docs_invoices_list:"            => 8,
+                   "11:10:$_INVOICES:docs_invoices_list:"       => 8,
+                   "12:11:$_CREATE:docs_invoices_multi_create:" => 8,
+                   "14:10:$_RECEIPTS:docs_receipt_list:"        => 8,
+                   "15:10:$_USERS:docs_users_list:"             => 8,
                    "21:0:$_DOCS:docs_reports:"                  => 4,
                    "22:21:$_TAX_INVOICE:docs_tax_invoice_list:" => 4,
                    "23:22:Export:docs_tax_exports:"             => 4,
                    "24:21:$_ACTS:docs_acts_list:"               => 4,
-                   "25:21:$_ACCOUNTS:docs_accounts_list:"       => 4,
-                   "26:21:$_INVOICE:docs_invoice_list:"         => 4,
-                   
+                   "25:21:$_INVOICES:docs_invoices_list:"       => 4,
+                   "26:21:$_RECEIPTS:docs_receipt_list:"         => 4,
 #                   "13:10:$_CONTRACTS:docs_contractst:"        => 8
 
                    );
 
-%USER_FUNCTION_LIST = ("01:0:$_DOCS:docs_accounts_list:"            => 0
+%USER_FUNCTION_LIST = ("01:0:$_DOCS:docs_invoices_list:"            => 0
                       );
 
 1

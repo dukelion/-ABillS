@@ -1,0 +1,686 @@
+<html>
+<head>
+<meta http-equiv="Content-Language" content="en-us">
+<meta http-equiv="Content-Type" content="text/html; charset=windows-1251">
+<title>Abills</title>
+
+<style type="text/css">
+body {
+  background-color: #FFFFFF;
+  color: #000000;
+  font-family: Arial, Tahoma, Verdana, Helvetica, sans-serif;
+  font-size: 14px;
+  /* this attribute sets the basis for all the other scrollbar colors (Internet Explorer 5.5+ only) */
+}
+
+pre, code {
+    font-family: "Courier New", Courier, monospace;
+}
+
+div.example {
+    background-color: #E2E2E2;
+    color: #000;
+    padding: 0.5em;
+    margin: 1em 2em 1em 1em;
+}
+
+span.indent {
+    padding-left: 1.5em;
+    display: block;
+}
+
+</style>
+</head>
+
+<body bgcolor=FFFFFF>
+<center>
+<h3 align=center>ABILLS</h3>
+<br /><i>(<b>A</b>smodeus <b>BILL</b>ing <b>S</b>ystem)</i>
+</center>
+<hr>
+<a href="http://sourceforge.net"><img src="http://sourceforge.net/sflogo.php?group_id=YOUR_GROUP_ID_GOES_HERE&amp;type=1" width="88" height="31" border="0" alt="SourceForge.net Logo" /></a>
+<p>
+<b><a href='#features'>Возможности</a></b>
+<br /><b><a href='#screens'>Скриншоты</a></b>
+<br /><a href='#install'><b>Установка.</b></a>
+<br />&nbsp;&nbsp;&nbsp;<a href='#abills'>Abills</a>
+<br />&nbsp;&nbsp;&nbsp;<a href='#mysql'>MySQL</a>
+<br />&nbsp;&nbsp;&nbsp;<a href='#radius'>Radius</a>
+<br />&nbsp;&nbsp;&nbsp;<a href='#webserver'>Web Server</a>
+<br />&nbsp;&nbsp;&nbsp;<a href='#perl'>Perl</a>
+<br /><b><a href='#soft'>Soft</a></b>
+<br /><b><a href='#conf'>Настройка</a></b>
+<br />&nbsp;&nbsp;&nbsp;<a href='#exppp'>ExPPP</a>
+<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href='#exppp_pppoe'>PPPoE</a>
+<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href='#exppp_pptp'>PPTP</a>
+<br />&nbsp;&nbsp;&nbsp;<a href='mpd.htm'>MPD</a>
+<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href='mpd.htm#mpd_pppoe'>PPPoE</a>
+<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href='mpd.htm#mpd_pptp'>PPTP</a>
+<br /><b><a href='misc.htm'>Дополнительно</a></b>
+<br />&nbsp;&nbsp;&nbsp;<a href='misc.htm#MCH'>MCH</a>
+<br /><b><a href='http://abills.sf.net/forum/'>Forum</a></b>
+<br /><b><a href='#cvs'>CVS</a></b>
+<A NAME="descr"></A>
+<hr>
+<h2>Возможности</h2>
+<p>
+<ul>
+<li>Тарификация по времени</li>
+<li>Тарификация по трафику</li>
+<li>Периодические отчисления (месячная и дневная абонплата)</li>
+<li>Возможность раздельной и совместной тарификации по времени и трафику </li>
+<li>Ограничение доступа в интернет по времени суток</li>
+<li>Система скидок</li>
+<li>Установка минимальной цены сесии</li>
+<li>Работа с неограниченым количеством NAS серверов</li>
+<li>Авторизация по SQL базе даных или по системной UNIX базе паролей</li>
+<li>Авторизация по PAP, CHAP, MS-CHAP, MS-CHAPv2 (CHAP при сохраниени паролей в SQL базе)</li>
+<li>Авторизация PPPOE по MAC адресу</li>
+<li>Авторизация PPTP по IP адресу (для MPD по IP и MAC одновременно)</li>
+<li>Изменение тарифного плана или снятие денег со счета по расписаню</li>
+<li>Разделение трафика на 3 вида (внутрений, внешний, бесплатный) (Только для VPN)</li>
+<li>Ограничение скорости в зависемости от вида трафика (Только для VPN)</li>
+<li>Создание месячных предоплаченых по трафику пакетов</li>
+<li>Дневные, недельные и месячные лимиты по трафику и времени</li>
+<li>Отчёты по работе системы и с остоянию счетов за любой период времени</li>
+<li>Генерация и отправка администратору добовых и месячных отчётов по работе системы</li>
+<li>Лог действий администратора, менеджера</li>
+<li>Ограничение сесий по количеству общего (in+out) трафика (для exppp, mpd, pppd + RADIUS plugin (Linux)) <font color=red>(new)</font></li>
+<li>WEB нтрефейс с ограничеными возможностями для касиров и сапорта (cgi-bin/manager.cgi) <font color=red>(new)</font></li>
+<li>Несёмный минимум для подключений к NAS серверам (Tarif Plans -> Credit Tresshold)<font color=red>(new)</font></li>
+<li>Выписка счётов из пользовательского интерфейса<font color=red> (new)</font></li>
+<li>Обратная связь<font color=red> (new)</font></li>
+</ul>
+</p>
+</pre>
+
+<hr>
+<A NAME="screens"></A>
+<h2>Скриншоты</h2>
+<p>
+<br /><a href="img/users_list.gif">Список пользователей</a>
+<br /><a href="img/user_manag.gif">Управление пользователем</a>
+<br /><a href="img/user_stats.gif">Статистика пользователя</a>
+<br /><a href="img/payments.gif">Оплаты</a>
+<br /><a href="img/user_fees.gif">Снятия денег со счёта</a>
+<br /><a href="img/inpayments.gif">Отчёты по трафику времени</a>
+<br /><a href="img/online.gif">Текущие сесии</a>
+<br /><a href="img/nas_servers.gif">Настройка серверов доступа</a>
+<br /><a href="img/user_interface.gif">Интерфейс пользователя</a>
+</p>
+
+
+
+<hr>
+<A NAME="install"></A>
+<h2>Установка</h2>
+<A NAME="abills"></A>
+<b>Abills</b>
+<p>
+</p>
+<pre>Загрузить пакет можно по адресу <A href="http://sourceforge.net/projects/abills/">http://sourceforge.net/projects/abills/</A> </p>
+
+tar zxvf abills-0.24b.tgz
+cp -Rf abills /usr/
+</pre>
+
+
+<p>Правим файлы</P>
+<p><b>/usr/abills/libexec/config.pl</b>
+<br /></p>
+<div class="example">
+<p>
+<code>
+#DB configuration<br />
+$conf{dbhost}='localhost';<br />
+$conf{dbname}='abills';<br />
+$conf{dblogin}='abills';<br />
+$conf{dbpasswd}='password';<br />
+$conf{ADMIN_MAIL}='info\@your.domain';<br />
+$conf{USERS_MAIL_DOMAIN}="your.domain";<br />
+$conf{secretkey}="test12345678901234567890";<br />
+</code></p></div>
+
+
+<p><b>/usr/abills/cgi-bin/admin/Abwconf.pm</b></p>
+<div class="example">
+<p>
+<code>
+$dbhost='localhost';<br />
+$dbname='abills';<br />
+$dbuser='abills';<br />
+$dbpasswd='password';<br />
+$mail_domain='your.domain';<br />
+$mail_from='abills@your.domain';<br />
+</code>
+</p>
+</div>
+
+
+<p><b>/etc/crontab</b></p>
+<div class="example">
+<p>
+<code>
+*/5    *      *       *      *         root    /usr/abills/libexec/billd -all<br />
+1      0      *       *      *         root    /usr/abills/libexec/periodic daily<br />
+1      0      1       *      *         root    /usr/abills/libexec/periodic monthly<br />
+</code>
+</p>
+</div>
+
+
+<hr>
+<A NAME="mysql"></A>
+<b>MySQL</b>
+<p>
+</p>
+<pre>Загрузить пакет MySQL можно по адресу <A href="http://www.mysql.com">http://www.mysql.com</A> </p>
+
+tar xvfz mysql-4.0.23a.tar.gz
+cd mysql-4.0.23a
+./configure
+make
+make install
+
+Создаём пользователя и базу.
+
+use mysql;
+INSERT INTO user (Host, User, Password) VALUES ('%','abills', password('******'));
+
+INSERT INTO db (Host, Db, User, Select_priv, Insert_priv, Update_priv, Delete_priv, Create_priv, Drop_priv, Index_priv, Alter_priv)
+VALUES ('localhost', 'abills', 'abills', 'Y', 'Y', 'Y', 'Y', 'Y', 'Y', 'Y', 'Y');
+
+CREATE DATABASE abills;
+
+mysqladmin flush-privileges
+
+Загружаем таблицы в базу.
+mysql -D abills < abills.sql
+</pre>
+<A NAME="radius"></A>
+<hr>
+<b>Radius</b>
+<p>
+<pre>Загрузить пакет FreeRadius можно по адресу <A href="http://www.freeradius.org">http://www.freeradius.org</A>
+
+tar zxvf freeradius-1.0.1.tar.gz
+freeradius-1.0.1
+./configure --prefix=/usr/local/radiusd/
+make
+make install
+</pre>
+<p>
+После успешной установки правим файлы:</p>
+<p><b>/usr/local/radiusd/etc/raddb/users</b></p>
+<div class="example">
+<p>
+<code>
+DEFAULT Auth-Type = Accept<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Exec-Program-Wait = "/usr/abills/libexec/rauth.pl"<br />
+</code>
+</p>
+</div>
+
+
+<p><b>/usr/local/radiusd/etc/raddb/acct_users</b></p>
+<div class="example">
+<p>
+<code>
+DEFAULT Acct-Status-Type == Start<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Exec-Program = "/usr/abills/libexec/racct.pl"<br />
+
+DEFAULT Acct-Status-Type == Alive<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Exec-Program = "/usr/abills/libexec/racct.pl"<br />
+
+DEFAULT Acct-Status-Type == Stop<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Exec-Program = "/usr/abills/libexec/racct.pl"<br />
+</code></p></div>
+
+<p>
+<b>/usr/local/radiusd/etc/raddb/clients.conf</b><br />
+В этот файл нужно вписать IP адрес или имя NAS сервера с
+которого будут поступать данные для радиуса и пароль доступа.
+</p>
+<div class="example">
+<p>
+<code>
+client nashost.nasdomain {<br />
+<span class="indent">
+   secret = radsecret<br />
+   shortname = shorrname<br />
+</span>
+}
+</code></p></div>
+
+
+<p><b>/usr/local/radiusd/etc/raddb/radiusd.conf</b><br />
+В этом файле нужно закоментировать использование модулей
+'chap' и 'mschap' в разделе 'authorize'</p>
+<div class="example">
+<p>
+<code>
+authorize {<br />
+<span class="indent">
+	preprocess<br />
+#	chap<br />
+#	counter<br />
+#	attr_filter<br />
+#	eap<br />
+	suffix<br />
+	files<br />
+#	etc_smbpasswd<br />
+#	sql<br />
+#	mschap<br />
+</span>
+}<br />
+</code></p></div>
+<hr>
+<b>ABillS</b>
+<p>
+Отрываем веб интерфейс http://your.host/billing/admin/
+</p>
+<p>
+Прежде всего надо скунфигурировать NAS сервер. <br />
+Переходим в меню<br> 
+<b>Other->NAS configuration</b>
+
+<p>
+<br /><b>IP</b>   - IP адрес NAS сервера
+<br /><b>Name</b> - Название  
+<br /><b>Radius NAS-Identifier</b> - Индентификатор сервера (можно не вписывать)
+<br /><b>Describe</b>  -  Описание сервера
+<br /><b>Type</b> - Тип сервера. В зависимости от типа по разному обрабатываются запроси на авторизацию и акаунтинг информация.
+<br /><b>Authorization</b> - Тип авторизации.  <b>SYSTEM</b> - При хранении паролей в UNIX базе (/etc/passwd) <b>SQL</b> - при хранении паролей SQL базе (MySQL, PosgreSQL)
+<br /><b>:Manage:</b> - Секция менеджмента NAS сервера
+<br /><b>IP:PORT</b> - IP адрес и порт для контроля соединения. Например для отключения пользователя с веб интерфейса.
+<br /><b>User</b> - Пользователь для контроля
+<br /><b>Password</b> - Пароль
+<br /><b>RADIUS Parameters</b> - Дополнительные параметры которые передаются NAS серверу после успешной авторизации.
+</p>
+
+<p>Создание тарифного плана
+Меню<br> <b>Tarif Plans</b>
+</p>
+
+<p>
+Регистрация пользователя
+<br>
+<b>Users->Add</b>
+</p>
+<hr>
+<b>Проверяем</b>
+<p>
+<code>
+ # radtest testuser testpassword 127.0.0.1:1812 0 radsecret 0 127.0.0.1
+</code>
+</p>
+<p>
+Если всё правильно настроено в файле логов '/usr/abills/var/log/abills.log' должна появится строка 
+</p>
+
+
+<p>
+<div class="example">
+2005-02-23 12:55:55 LOG_INFO: AUTH [testuser] NAS: 1 (xxx.xxx.xxx.xxx) GT: 0.03799
+</div>
+</p>
+
+<A NAME="webserver"></A>
+<hr>
+<b>Web Server</b>
+<p><b>Apache</b></p>
+<p>В случае использования веб сервера Apache вносим в <b>httpd.conf</b></p>
+<div class="example">
+<p>
+<code>
+Alias /billing "/usr/abills/cgi-bin/"<br />
+&lt;Directory "/usr/abills/cgi-bin"&gt;<br />
+<span class="indent">
+  &lt;IfModule mod_rewrite.c&gt;<br />
+ <span class="indent">
+     RewriteEngine on<br />
+     RewriteCond %{HTTP:Authorization} ^(.*)<br />
+     RewriteRule ^(.*) - [E=HTTP_CGI_AUTHORIZATION:%1]<br />
+     Options Indexes ExecCGI SymLinksIfOwnerMatch<br />
+  </span>
+  &lt;/IfModule&gt;<br />
+
+  Options Indexes ExecCGI FollowSymLinks<br />
+  AllowOverride none<br />
+  DirectoryIndex users.cgi<br />
+  AddHandler cgi-script .cgi<br />
+  Order allow,deny<br />
+  Allow from all<br />
+</span>
+&lt;/Directory&gt;<br />
+<br />
+
+<br />
+&lt;Directory "/usr/abills/cgi-bin/admin"&gt;<br />
+<span class="indent">
+  Options Indexes ExecCGI SymLinksIfOwnerMatch<br />
+  AllowOverride none<br />
+  DirectoryIndex users.cgi<br />
+  order deny,allow<br />
+  deny from all<br />
+  AuthType Basic<br />
+  AuthName "ABillS"<br />
+  AuthUserFile /usr/abills/cgi-bin/admin/admins<br />
+  Satisfy Any<br />
+  require valid-user<br />
+</span>
+&lt;/Directory&gt;<br />
+</code></p></div>
+
+
+
+
+
+<P>Создаём файл <b>/usr/abills/cgi-bin/admin/admins</b> с паролями администратора
+</p>
+<p>
+<code>
+# htpasswd -c /usr/abills/cgi-bin/admin/admins admin
+</code>
+</p>
+
+<p>
+Установить права на чтение и запись вебсервером для файлов веб интерфейса
+</p>
+<p>
+<code>
+chown -Rf www /usr/abills/cgi-bin
+</code>
+</p>
+
+
+<A NAME="perl"></A>
+<hr>
+<b>Perl modules</b>
+<p>Для работы системы нужны модули.</p>
+<br /><b>DBI</b>
+<br /><b>DBD::mysql</b>
+<br /><b>Digest-MD5</b> - для Chap авторизации
+<br /><b>Digest-MD4</b> - для MS-Chap авторизации
+<br /><b>Crypt-DES</b> - для MS-Chap авторизации
+<br /><b>Digest-SHA1$</b> - для MS-ChapV2 авторизации
+<br /><b>libnet</b> - Нужен только при авторизации из UNIX passwd
+<br /><b>Time-HiRes</b> - Нужен только для тестирования скорости выполнения авторизаци, акаунтинга, и страниц веб интерфейса.
+
+<p>Эти модули можно загрузить с сайта <A href='http://www.cpan.org'>http://www.cpan.org</a></p>
+
+</p>
+
+
+<A NAME="Soft"></A>
+<hr>
+<h2>Soft</h2>
+
+<pre>exppp_asm-0.2.4.tar.gz - стандартный FreeBSD ppp демон с возможностью разделять трафик,
+установкой лимита трафика на сесию и другими улутшениями.
+expppd-0.2.1.tar.gz - pppd c радиус авторизацией и акаунтингом.
+radpppd.tar.gz - pppd c радиус авторизацией и акаунтингом.
+</pre>
+<hr>
+
+
+
+<A NAME="exppp"></A>
+<h2>Настройка</h2>
+
+<A NAME="exppp_pppoe"></A>
+<b>PPPoE</b>
+<pre>
+
+Переходим в каталог с програмами
+cd abills/soft
+
+tar zxvf exppp_asm-0.2.4.tar.gz
+cd exppp_asm-0.2.4
+make
+cp ppp /usr/sbin/
+cp etc/shape.ppp /etc/ppp
+cp raddb/exppp /usr/local/radiusd/etc/raddb/
+</pre>
+
+<p>Дописываем в файл</p>
+<b>/usr/local/radiusd/etc/raddb/dictionary</b>
+<div class="example">
+<p>
+<code>
+$INCLUDE /usr/local/radiusd/etc/raddb/exppp
+</p></code></div>
+
+<br>перезагружаем радиус
+
+
+<p>Правим файл настройки ppp
+<br><b>/etc/ppp/ppp.conf</b></p>
+
+<div class="example">
+<p>
+<code>
+default:<br />
+<span class="indent">
+ set log Warning<br />
+</span>
+
+<br />
+pppoe-in:   # Метка (индентификатор правил) <br />
+<span class="indent">
+  set mtu 1492<br />
+  set mru 1492<br />
+  allow mode direct<br />
+  enable lqr<br />
+  set timeout 6000<br />
+  disable acfcomp protocomp<br />  
+  deny acfcomp<br />
+  # если авторизация из UNIX базы паролей enable pap<br />
+  enable chap<br />
+  set speed sync<br />
+  accept dns<br />
+  #set dns xxx.xxx.xxx.xxx<br />
+  # Номер порта для контроля и пароль<br />
+  set server +3000 password<br />   
+  set radius /etc/radius.conf<br />
+  set rad_service_type 11<br />
+  # Таймаут для Alive пакетов<br />
+  set rad_alive 60<br />
+  # Скрипт для поднятия шейпера<br />
+ set ip-up   /etc/ppp/shape.ppp<br />
+ set ip-down /etc/ppp/shape.ppp<br />
+</span>
+</code></p></div>
+
+<p><font color=red>Не забывайте делать отступы для правил расположеных после мотки. В противном случае они не будут приниматься.</font></p>
+
+<p>Если нужна независимая обрезка трафика по категориям коментируем последние две строчики и 
+правим файлы<br>
+<b>/etc/ppp/ppp.linkup</b></p>
+<div class="example">
+<p>
+<code>
+MYADDR:<br />
+  !bg /usr/abills/libexec/linkupdown up INTERFACE USER HISADDR<br />
+</code></p></div>
+
+
+<p><b>/etc/ppp/ppp.linkdown</b></p>
+<div class="example">
+<p>
+<code>
+MYADDR:<br />
+ !bg /usr/abills/libexec/linkupdown down INTERFACE USER HISADDR
+</code></p></div>
+
+
+<p>Конфигурационный файл для подключения к радиусу<br>
+<b>/etc/radius.conf</b></p>
+
+<div class="example">
+<p>
+<code>
+auth    radius.hostname:1812      radsecret   4    4<br />
+acct    radius.hostname:1813      radsecret   4    4<br />
+</code></p></div>
+
+
+<p>Запускаем PPPoE демон<br />
+/usr/libexec/pppoed -l pppoe-in -p * fxp2
+</p>
+
+<p>Для автоматического поднятия PPPoE демона после перезагрузки правим файл<br />
+<b>/etc/rc.conf</b></p>
+<div class="example">
+<p>
+<code>
+pppoed_enable="YES"<br />
+pppoed_flags="-l pppoe-in"<br />
+pppoed_interface="fxp2"&nbsp;&nbsp;&nbsp;&nbsp;   # Интерфейс на котором демон будет слушать<br />
+</code></p></div>
+
+<Hr>
+
+
+<A NAME="exppp_pptp"></A>
+<b>PPTP</b>
+<p>Правим файл настройки ppp<br>
+<b>/etc/ppp/ppp.conf</b></p>
+
+<div class="example">
+<p>
+<code>
+default:<br />
+<span class="indent">
+ set log Warning<br />
+</span>
+
+<br />
+pptp:<br />
+<span class="indent">
+ set mtu 1460<br />
+ set mru 1460<br />
+ allow mode direct<br />
+ enable lqr<br />
+ set timeout 6000<br />
+ disable acfcomp protocomp<br />  
+ deny acfcomp<br />
+ # если авторизация из UNIX базы паролей enable pap<br />
+ enable chap<br />
+ accept dns<br />
+ #set dns xxx.xxx.xxx.xxx<br />
+ # Номер порта для контроля и пароль<br />
+ set server +3000 password<br />   
+ set radius /etc/radius.conf<br />
+ set rad_service_type 11<br />
+ # Таймаут для Alive пакетов<br />
+ set rad_alive 60<br />
+ # Скрипт для поднятия шейпера<br />
+ set ip-up   /etc/ppp/shape.ppp<br />
+ set ip-down /etc/ppp/shape.ppp<br />
+</span>
+</code></p></div>
+
+
+<p>Если нужна независимая обрезка трафика по категориям коментируем последние две строчики и 
+правим файлы<br>
+<b>/etc/ppp/ppp.linkup</b></p>
+<div class="example">
+<p>
+<code>
+MYADDR:<br />
+ !bg /usr/abills/libexec/linkupdown up INTERFACE USER HISADDR<br />
+</code></p></div>
+
+
+<p><b>/etc/ppp/ppp.linkdown</b></p>
+<div class="example">
+<p>
+<code>
+MYADDR:
+ !bg /usr/abills/libexec/linkupdown down INTERFACE USER HISADDR
+</code></p></div>
+
+
+<p>Конфигурационный файл для подключения к радиусу<br>
+<b>/etc/radius.conf</b></p>
+
+<div class="example">
+<p>
+<code>
+auth    radius.hostname:1812      password   4    4<br>
+acct    radius.hostname:1813      password   4    4<br />
+</code></p></div>
+
+
+<p>Настройка pptp демона</p>
+<pre>
+cd /usr/ports/net/poptop/
+make
+make install
+/usr/local/sbin/pptpd
+
+Для автоматического запуска после перезагрузки
+cp /usr/local/etc/rc.d/pptpd.sh.sample /usr/local/etc/rc.d/pptpd.sh
+</pre>
+<Hr size=1>
+<A NAME="cvs"></A>
+<h2>CVS</h2>
+<p>Для получения регулярных обновлений и баг фиксов Вы можете пользоваться <a href='http://sourceforge.net/cvs/?group_id=115151'>CVS</a> репозитарием.</p>
+
+<p>Получить последнюю версию можно при помощи команд</p>
+<code>
+# cvs -d:pserver:anonymous@cvs.sourceforge.net:/cvsroot/abills login <br>
+ 
+# cvs -z3 -d:pserver:anonymous@cvs.sourceforge.net:/cvsroot/abills co -P abills
+</code>
+
+
+
+
+
+<Hr size=1>
+<font size=3>
+Author: <a href='http://www.asmodeus.com.ua'>~AsmodeuS~</i></a><br />
+ICQ: 50254692 <a href="http://wwp.mirabilis.com/scripts/Search.dll?to=50254692"><img src="http://wwp.icq.com/scripts/online.dll?icq=50254692&img=7" border=0></a><br />
+</font>
+
+<!-- Nabat Rate -->
+<p>
+<SCRIPT language="JavaScript">
+//<!--
+var id='336';
+var img='nabat1';
+var j=0;
+var an=navigator.appName; 
+var d=document; c=''; je='';
+var script='http://www.nabat.com.ua/cgi-bin/counter/hellping.cgi';
+//-->
+</SCRIPT>
+
+<SCRIPT language="javascript1.1"><!--
+j=1//--></SCRIPT><SCRIPT language="JavaScript1.2"><!--
+j=2//--></SCRIPT><SCRIPT language="JavaScript1.3"><!--
+j=3//--></SCRIPT>
+
+<SCRIPT language="JavaScript">
+<!--
+d.cookie="v=1;path=/";
+s=screen;
+an!="Netscape"?c=s.colorDepth:c=s.pixelDepth;
+r=escape(d.referrer);
+
+d.write('<a href="http://nabat.com.ua/"><img alt=nabat border=0 width=88 height=31 src="'+script+'?id='+id+'&img='+img+((typeof(s)=='undefined')?'':'&res='+s.width+'&c='+c) +
+ '&from='+r+'&pg='+escape(window.location.href)+(d.cookie?'&ce=1':'')+
+ '&j='+j+(navigator.javaEnabled()?'&je=1':'')+'"></a>');
+//-->
+</SCRIPT>
+
+<noscript>
+<a href="http://www.nabat.com.ua"><img src='http://www.nabat.com.ua/cgi-bin/counter/hellping.cgi?336+nabat1' width=88 height=31 border=0 alt="Nabat"></a>
+</noscript>
+</p>
+<!-- END Nabat Rate -->
+</body>
+
+</html>

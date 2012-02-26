@@ -1,20 +1,20 @@
 #
-docs_account.tpl:russian:печатная фома счёта
-docs_account_add.tpl:russian:Форма создания счёта
-docs_account_company.tpl:russian:Печатная форма счёта для компаний
-docs_account_multi_add.tpl:russian:Форма содания группы документов
-docs_account_multi_sel.tpl:russian:Выбор группы документов
-docs_account_order_row.tpl:russian:Шаблон табличной части печатного документа счёта
-docs_account_orders.tpl:russian:Форма добавления  сервисов в счет
-docs_account_search.tpl:russian:Форма поиска счетов
+docs_invoice.tpl:russian:печатная фома счёта
+docs_invoice_add.tpl:russian:Форма создания счёта
+docs_invoice_company.tpl:russian:Печатная форма счёта для компаний
+docs_invoice_multi_add.tpl:russian:Форма содания группы документов
+docs_invoice_multi_sel.tpl:russian:Выбор группы документов
+docs_invoice_order_row.tpl:russian:Шаблон табличной части печатного документа счёта
+docs_invoice_orders.tpl:russian:Форма добавления  сервисов в счет
+docs_invoice_search.tpl:russian:Форма поиска счетов
 docs_act.tpl:russian:Печатная форма акта оказания услуг
 docs_company_contract.tpl:russian:Печатная форма договора для компаний
 docs_contract.tpl:russian:Печатная форма договора
 docs_contract_company.tpl:russian:Печатная форма договора для компаний
-docs_invoice.tpl:russian:Печатная форма счета фактуры
-docs_invoice_add.tpl:russian:форма добавления счета фактуры
-docs_invoice_search.tpl:russian:Форма поиска счета фактуры
-docs_multi_invoice.tpl:russian:Форма группы счетов фактуры
+docs_receipt.tpl:russian:Печатная форма счета фактуры
+docs_receipt_add.tpl:russian:форма добавления счета фактуры
+docs_receipt_search.tpl:russian:Форма поиска счета фактуры
+docs_multi_receipt.tpl:russian:Форма группы счетов фактуры
 docs_search.tpl:russian:Форма поискад окументов
 docs_tax_export.tpl:russian:Форма експорта налоговых накладных в електнонном виде
 docs_tax_invoice.tpl:russian:Печатная форма налоговой

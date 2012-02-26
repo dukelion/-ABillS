@@ -4,10 +4,9 @@
 <input type='hidden' name='ID' value='%ID%'/>
 <input type='hidden' name='PARENT' value='%PARENT%'/>
 
-<TABLE width='100%' class=form>
+<TABLE width='100%' class=form cellspacing='1' cellpadding='0' border='0'>
 <TR><TD class=cel_border valign='top'>
 <TABLE width='100%' cellspacing='1' cellpadding='0' border='0' style='height: 100%'>
-<!-- <tr class='odd'><TD>%THREADS%</td></tr> -->
 
 <tr><th colspan=4 align=left class='even'> > %SUBJECT%</th></tr>
 <tr><td colspan=4>
@@ -16,6 +15,9 @@
 <tr><td  class='odd'>ID:</td><td  class='odd'>%ID%</td><td  class='odd'>$_CHAPTERS:</td><td  class='odd'>%CHAPTER%</td></tr>
 <tr><td  class='odd'>$_STATUS:</td><td  class='odd'>%STATE_SEL%</td><td  class='odd'>$_PRIORITY:</td><td  class='odd'>%PRIORITY_SEL%</td></tr>
 <tr><td  class='odd'>$_CREATED:</td><td  class='odd'>%DATETIME%</td><td  class='odd'>$_CLOSED:</td><td  class='odd'>%CLOSED_DATE%</td></tr>
+<tr><td  class='odd'>$_CONNECTION_TIME:</td><td  class='odd' colspan=3><input type='text' name='CONNECTION_TIME' value='%CONNECTION_TIME%' ID='CONNECTION_TIME'/></td></tr>
+
+
 </table>
 
 </th></tr>

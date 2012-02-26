@@ -170,7 +170,7 @@ if($AUTH{$nas->{NAS_TYPE}}) {
 
   $auth_mod{"$nas->{NAS_TYPE}"}->{INFO}=undef;
   $auth_mod{"$nas->{NAS_TYPE}"} = $AUTH{$nas->{NAS_TYPE}}->new($db, \%conf);
-  ($r, $RAD_PAIRS) = $auth_mod{"$nas->{NAS_TYPE}"}->auth($RAD, $nas);
+  ($r, $RAD_PAIRS) = $auth_mod{"$nas->{NAS_TYPE}"}->auth($RAD, $nas, { RAD_REQUEST => \%RAD_REQUEST });
 }
 else {
   $auth_mod{'default'} = Auth->new($db, \%conf); 

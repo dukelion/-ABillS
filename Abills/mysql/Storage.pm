@@ -420,7 +420,9 @@ sub storage_incoming_articles_list {
 	if(defined($attr->{SUPPLIER_ID}) and $attr->{SUPPLIER_ID} !='') {
 		push @WHERE_RULES, "si.supplier_id='$attr->{SUPPLIER_ID}'";
 	}       
-
+	if(defined($attr->{HIDE_ZERO_VALUE})) {
+		push @WHERE_RULES, "sia.count - (if(ssub.count IS NULL, 0, (SELECT sum(count) FROM storage_accountability WHERE storage_incoming_articles_id = sia.id GROUP BY storage_incoming_articles_id )) + if(sr.count IS NULL, 0, (SELECT sum(count) FROM storage_reserve WHERE storage_incoming_articles_id = sia.id GROUP BY storage_incoming_articles_id )))";
+	}  
 
 
  	$WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
@@ -446,7 +448,7 @@ sub storage_incoming_articles_list {
 								ss.name,
 								a.name,
 								ssub.count,
-								sia.count - (if(ssub.count IS NULL, 0, (SELECT sum(count) FROM storage_accountability WHERE storage_incoming_articles_id = sia.id GROUP BY storage_incoming_articles_id )) + if(sr.count IS NULL, 0, (SELECT sum(count) FROM storage_reserve WHERE storage_incoming_articles_id = sia.id GROUP BY storage_incoming_articles_id ))),
+								sia.count - (if(ssub.count IS NULL, 0, (SELECT sum(count) FROM storage_accountability WHERE storage_incoming_articles_id = sia.id GROUP BY storage_incoming_articles_id )) + if(sr.count IS NULL, 0, (SELECT sum(count) FROM storage_reserve WHERE storage_incoming_articles_id = sia.id GROUP BY storage_incoming_articles_id ))) as total,
 								sia.sum / sia.count,
 								sia.sum,
 								si.storage_id,
@@ -1009,7 +1011,8 @@ sub storage_log_add {
 												comments,  
 												action,
 												ip,
-												count 
+												count,
+												storage_installation_id
 
 											)	  
 										VALUES 
@@ -1018,10 +1021,11 @@ sub storage_log_add {
 												'$admin->{AID}',
 												'$attr->{STORAGE_MAIN_ID}', 
 												'$attr->{STORAGE_ID}',
-												'', 
+												'$attr->{COMMENTS}', 
 												'$attr->{ACTION}', 
 												INET_ATON('$admin->{SESSION_IP}'),
-												'$attr->{COUNT}'
+												'$attr->{COUNT}',
+												'$attr->{STORAGE_INSTALLATION_ID}'
 												);", 'do' 																											
 											);
 	return 0;	
@@ -1300,11 +1304,12 @@ sub storage_installation_list {
 	if(defined($attr->{AID}) and $attr->{AID} != 0) {
   		push @WHERE_RULES, "i.aid='$attr->{AID}'";
 	}
+	
 	if(defined($attr->{UID}) and $attr->{UID} != 0) {
   		push @WHERE_RULES, "i.uid='$attr->{UID}'";
 	}
 	
-	if(defined($attr->{STATUS}) and $attr->{STATUS} != 0) {
+	if(defined($attr->{STATUS}) and $attr->{STATUS} != 5) {
   		push @WHERE_RULES, "i.type='$attr->{STATUS}'";
 	}
 	
@@ -1316,7 +1321,6 @@ sub storage_installation_list {
   		push @WHERE_RULES, "str.id='$attr->{STREETS}'";
 	}
 	     
- 
  	$WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
  
 	$self->query($db, "SELECT	i.id, 
@@ -1359,12 +1363,79 @@ sub storage_installation_list {
 							LEFT JOIN users u ON ( u.uid = i.uid )
 							LEFT JOIN storage_sn sn ON ( i.id = sn.storage_installation_id )
 							LEFT JOIN dhcphosts_hosts dh ON ( dh.mac = i.mac )
+
 								$WHERE
 								ORDER BY $SORT DESC;");
 	return $self->{list};
 }
 
 
+
+#**********************************************************
+# Storage installation log
+#**********************************************************
+sub storage_installation_log {
+	my $self = shift;
+	my ($attr) = @_;
+	
+	my @WHERE_RULES  = ();
+	
+	my $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
+	my $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
+		
+	if(defined($attr->{ID}) and $attr->{ID} != 0) {
+  		push @WHERE_RULES, "i.id='$attr->{ID}'";
+	}
+	
+	if(defined($attr->{AID}) and $attr->{AID} != 0) {
+  		push @WHERE_RULES, "i.aid='$attr->{AID}'";
+	}
+	
+	if(defined($attr->{UID}) and $attr->{UID} != 0) {
+  		push @WHERE_RULES, "i.uid='$attr->{UID}'";
+	}
+	 
+ 	$WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
+ 
+	$self->query($db, "SELECT	i.id, 
+								i.storage_incoming_articles_id, 
+								i.location_id, 
+								i.aid,   
+								i.uid, 
+								i.nas_id,
+								i.count,
+								i.comments,
+								adm.name,
+								sta.name,
+								sat.name,
+								i.count * (sia.sum / sia.count),
+								sta.measure,
+								i.sum,
+								u.id,
+								i.mac,
+								i.grounds,
+								sia.sn,
+								i.type,
+								sn.serial,
+								inet_ntoa(dh.ip),
+								log.date,
+								log.action,
+								log.comments
+								FROM storage_log AS log
+							LEFT JOIN storage_installation i ON ( i.id = log.storage_installation_id )
+							LEFT JOIN admins adm ON ( adm.aid = log.aid )
+							LEFT JOIN storage_incoming_articles sia ON ( sia.id = i.storage_incoming_articles_id )
+							LEFT JOIN storage_articles sta ON ( sta.id = sia.article_id )
+							LEFT JOIN storage_article_types sat ON ( sat.id = sta.article_type )
+
+							LEFT JOIN users u ON ( u.uid = i.uid )
+							LEFT JOIN storage_sn sn ON ( i.id = sn.storage_installation_id )
+							LEFT JOIN dhcphosts_hosts dh ON ( dh.mac = i.mac )
+							
+								$WHERE
+								ORDER BY log.date DESC;");
+	return $self->{list};
+}
 
 
 
@@ -1602,10 +1673,30 @@ sub storage_installation_return {
 	if (defined($attr->{ID_INSTALLATION})) {
 		push @WHERE_RULES,  " id='$attr->{ID_INSTALLATION}' ";
 	}
+	
+	
 	if ($#WHERE_RULES > -1) {
 		$WHERE = join(' and ', @WHERE_RULES);
-		$self->query($db, "DELETE from storage_installation WHERE $WHERE;", 'do');
+	
+		if(!defined($attr->{RETURN_STATUS})){
+			
+			$self->query($db, "DELETE from storage_installation WHERE $WHERE;", 'do');
+		}
+		else {	
+			
+			$self->query($db, "UPDATE storage_installation SET type=4 WHERE $WHERE;", 'do');
+		}
 	}
+
+	if (! $self->{errno}) {
+		$self->storage_log_add({ %$attr, 
+								STORAGE_MAIN_ID => $attr->{MAIN_ARTICLE_ID}, 
+								ACTION => 8, 
+								STORAGE_INSTALLATION_ID => $attr->{ID_INSTALLATION},
+								COMMENTS => $attr->{COMMENTS},  
+		});
+	}
+
 																																								
 	return 0;	
 }
@@ -1939,7 +2030,10 @@ sub storage_installation_user_add {
 							
 	
 	if (! $self->{errno}) {
-		$self->storage_log_add({ %$attr, STORAGE_MAIN_ID => $attr->{MAIN_ARTICLE_ID}, ACTION => 1  })
+		$self->storage_log_add({ %$attr, 
+								STORAGE_MAIN_ID => $attr->{MAIN_ARTICLE_ID}, 
+								ACTION => 7,
+								STORAGE_INSTALLATION_ID => $storage_installation_id })
 	}
 																																								
 	return 0;	
@@ -1965,20 +2059,20 @@ sub storage_installation_change {
 
 	);
 	
-	my %FIELDS_HOSTS = ( 	OLD_MAC 		=> 'mac',
+	my %FIELDS_HOSTS = ( 	OLD_MAC 		=>	'mac',
 							IP				=> 	'ip',
 							HOSTNAME		=>	'hostname',
 							NETWORK			=>  'network',
-							MAC			=>  'mac',
+							MAC				=>  'mac',
 	);
 		
 
 	$self->changes($admin,	{
-							CHANGE_PARAM => 'OLD_MAC',
-							TABLE        => 'dhcphosts_hosts',
-							FIELDS       => \%FIELDS_HOSTS,
-							OLD_INFO     => $self->storage_installation_info({ ID => $attr->{ID} }),
-							DATA         => $attr,
+							CHANGE_PARAM	=> 'OLD_MAC',
+							TABLE			=> 'dhcphosts_hosts',
+							FIELDS			=> \%FIELDS_HOSTS,
+							OLD_INFO		=> $self->storage_installation_info({ ID => $attr->{ID} }),
+							DATA			=> $attr,
 						}
 	);	
 
@@ -2001,6 +2095,17 @@ sub storage_installation_change {
 							DATA         => $attr,
 						}
 	);
+	
+	
+	if (! $self->{errno}) {
+		$self->storage_log_add({ 
+			%$attr, 
+			STORAGE_MAIN_ID => $attr->{ARTICLE_ID1}, 
+			ACTION => 8,
+			STORAGE_INSTALLATION_ID => $attr->{ID},
+			COUNT					=> $attr->{COUNT1},
+		})
+	}								
 	
 
 	
