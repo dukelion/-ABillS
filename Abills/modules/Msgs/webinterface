@@ -1367,6 +1367,39 @@ $table = $html->table( { width      => '100%',
                          rowcolor   => 'total'
                         } );
 print $table->show();
+
+### OTRS interop PoC
+use SOAP::Lite( 'autodispatch', proxy => 'http://127.0.0.1:9443/otrs/rpc.pl' );
+my $User = 'soapuser';
+my $Pw   = 'soappassword';
+my $RPC = Core->new();
+
+my %TicketSearchData = (
+Limit=>3,
+Result => 'HASH',
+StateType  => 'Open',
+OrderBy    => 'Down',
+SortBy     => 'Age',
+UserID     => 1,
+Permission => 'ro',
+);
+my %searchResult = $RPC->Dispatch( $User, $Pw, 'TicketObject', 'TicketSearch', %TicketSearchData => 1 );
+if (%searchResult) {
+$table = $html->table( { width      => '100%',
+                         cols_align => ['left', 'right' ],
+                         rows       => [ 
+        [ 
+                                           "Last OTRS tickets: ",
+                                        ],
+                                        ],
+                         rowcolor   => 'total'
+                        } );
+foreach $k (keys %searchResult) {
+$table->addrow(     "".        $html->b( $searchResult{$k} ), '<a href="/otrs/index.pl?Action=AgentTicketZoom;TicketID='.$k.'">'.$searchResult{$k}.'</a>' );
+}
+print $table->show();
+}
+### end OTRS interop PoC
 }
 
 
@@ -2109,6 +2142,10 @@ foreach my $line (@main_table_rows) {
 #
 #**********************************************************
 sub msgs_reports {
+	print '<div style="margin-top:50px;"><a href="/otrs/index.pl?Action=AgentDashboard" target="_blank">Neda OTRS Helpdesk System</a></div>' ;
+	print "<script>var w = window.open('/otrs/index.pl?Action=AgentDashboard','','')</script>";
+	return;
+	
 	my %CAPTIONS_HASH = ();
   
   reports({ DATE          => $FORM{DATE}, 
