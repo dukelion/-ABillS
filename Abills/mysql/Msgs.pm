@@ -389,10 +389,12 @@ sub message_add {
   $self->{MSG_ID} = $self->{INSERT_ID};
   
 ### OTRS interop PoC
-use SOAP::Lite( 'autodispatch', proxy => 'https://127.0.0.1:9443/otrs/rpc.pl' );
-my $User = 'soapuser';
-my $Pw   = 'soappassword';
+my $User = $CONF->{otrsSoapUser};
+my $Pw   = $CONF->{otrsSoapPassword};
+my $soapProxyURL = $CONF->{otrsUrl}.'/rpc.pl';
+eval "use SOAP::Lite( 'autodispatch', proxy => '$soapProxyURL' ); 1" or return $self;
 my $RPC = Core->new();
+
 my %TicketData = (
     Title        => $DATA{SUBJECT},
     Queue	     => 'Raw',
@@ -425,7 +427,6 @@ my %ArticleData = (
 );
 my $ArticleID = $RPC->Dispatch($User, $Pw, 'TicketObject', 'ArticleSend', %ArticleData =>1);
 ### end OTRS interop PoC
-  
 	return $self;
 }
 

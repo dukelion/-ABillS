@@ -1369,9 +1369,11 @@ $table = $html->table( { width      => '100%',
 print $table->show();
 
 ### OTRS interop PoC
-use SOAP::Lite( 'autodispatch', proxy => 'http://127.0.0.1:9443/otrs/rpc.pl' );
-my $User = 'soapuser';
-my $Pw   = 'soappassword';
+#use SOAP::Lite( 'autodispatch' );
+my $soapProxyURL = $conf{otrsUrl}.'/rpc.pl';
+eval "use SOAP::Lite( 'autodispatch', proxy => '$soapProxyURL' ); 1" or return;
+my $User = $conf{otrsSoapUser};
+my $Pw   = $conf{otrsSoapPassword};
 my $RPC = Core->new();
 
 my %TicketSearchData = (
@@ -1395,7 +1397,7 @@ $table = $html->table( { width      => '100%',
                          rowcolor   => 'total'
                         } );
 foreach $k (keys %searchResult) {
-$table->addrow(     "".        $html->b( $searchResult{$k} ), '<a href="/otrs/index.pl?Action=AgentTicketZoom;TicketID='.$k.'">'.$searchResult{$k}.'</a>' );
+$table->addrow(     "".        $html->b( $searchResult{$k} ), '<a href="/otrs/index.pl?Action=AgentTicketZoom;TicketID='.$k.'" target="_blank">'.$searchResult{$k}.'</a>' );
 }
 print $table->show();
 }
