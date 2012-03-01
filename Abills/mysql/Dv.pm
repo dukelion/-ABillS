@@ -278,6 +278,19 @@ sub change {
      if($CONF->{FEES_PRIORITY} && $CONF->{FEES_PRIORITY}=~/bonus/  && $user->{EXT_BILL_DEPOSIT}) {
        $user->{DEPOSIT}+=$user->{EXT_BILL_DEPOSIT};
       }
+     
+     my $skip_change_fee = 0;
+ 	   if ($CONF->{DV_TP_CHG_FREE}) {
+        use POSIX qw(mktime);
+	  	
+	  	  my ($y, $m, $d)  = split(/-/, $user->{REGISTRATION}, 3);
+	  	  my $cur_date     = time();
+	  	  my $registration = mktime(0, 0, 0, $d, ($m - 1), ($y - 1900));
+      	if(($cur_date-$registration)/86400 > $CONF->{DV_TP_CHG_FREE}) {
+      		$skip_change_fee=1;
+      	 }
+      }
+
 
      #Active TP     
      if ($old_info->{STATUS} == 2 && (defined($attr->{STATUS}) && $attr->{STATUS} == 0) && $tariffs->{ACTIV_PRICE} > 0) {
@@ -292,7 +305,8 @@ sub change {
        $tariffs->{ACTIV_PRICE}=0;
       }
      # Change TP
-     elsif($tariffs->{CHANGE_PRICE} > 0 && 
+     elsif( ! $skip_change_fee &&
+       $tariffs->{CHANGE_PRICE} > 0 && 
        ($self->{TP_INFO_OLD}->{PRIORITY} - $tariffs->{PRIORITY} > 0 || $self->{TP_INFO_OLD}->{PRIORITY} + $tariffs->{PRIORITY} == 0) && ! $attr->{NO_CHANGE_FEES} ) {
 
        if ($user->{DEPOSIT} + $user->{CREDIT} < $tariffs->{CHANGE_PRICE}) {
@@ -310,8 +324,8 @@ sub change {
        use POSIX qw(strftime);
        my $EXPITE_DATE = strftime( "%Y-%m-%d", localtime(time + 86400 * $tariffs->{AGE}) );
        $user->change($attr->{UID}, { EXPIRE => $EXPITE_DATE, UID => $attr->{UID} });
-     }
-    else {
+      }
+     else {
        my $user = Users->new($db, $admin, $CONF);
        $user->change($attr->{UID}, { EXPIRE => "0000-00-00", UID => $attr->{UID} });
      }

@@ -2374,9 +2374,7 @@ sub docs_print {
    }
 
 
-
-
-  if ($attr->{SEND_EMAIL} && ! $attr->{OUTPUT2RETURN}) {
+  if ($attr->{SEND_EMAIL} && ! $attr->{OUTPUT2RETURN} && ! $FORM{SKIP_SEND_EMAIL}) {
     # Email not specified
     if (! $attr->{EMAIL} && ! $users->{EMAIL}) {
     	$FORM{ERR_MESSAGE}="Email $_NOT_EXIST";

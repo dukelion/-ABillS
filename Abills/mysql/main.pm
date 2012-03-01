@@ -267,8 +267,8 @@ sub search_expr {
     	$v = "$1$4-$3-$2";
      }
 
-    if($type eq 'INT' && $v =~ s/\*//g) {
-      $expr = '>';
+    if($type eq 'INT' && $v =~ s/\*/\%/g) {
+      $expr = ' LIKE ';
      }
     elsif ($v =~ s/^!//) {
     	$expr = ' <> ';

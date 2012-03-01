@@ -14,7 +14,7 @@
 <input type=hidden name=OLD_MAC value=%OLD_MAC%>
 <input type=hidden name=COUNT1 value=%COUNT1%>
 <input type=hidden name=ARTICLE_ID1 value=%ARTICLE_ID1%>
-<table border=\"0\" >
+<table class=form >
   <tr>
     <td>$_TYPE:</td>
     <td>%ARTICLE_TYPES%</td>
@@ -65,6 +65,11 @@
     <td>$_COMMENTS:</td>
     <td><input name=\"COMMENTS\" type=\"text\" value=\"%COMMENTS%\" /></td>
   </tr>
+
+  <tr>
+    <th colspan=2 class=even><input type=submit name=%ACTION% value=%ACTION_LNG%></td>
+  </tr>
+
 </table>
-<input type=submit name=%ACTION% value=%ACTION_LNG%>
+
 </form>

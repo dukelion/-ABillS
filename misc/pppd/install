@@ -8,6 +8,7 @@
 :DEFAULT:DAE_HOST=127.0.0.1:PoD/CoA host
 :DEFAULT:DAE_PASSWORD=secretpass:POD and CoA password
 :DEFAULT:DAE_PORT=3799:PoD/CoA Port
+:DEFAUKT:PPP_VERSION=4:pppd version 2.4.4
 
 #:DEFAULT:PPP_CONTROL_PASSWORD=secret:PPP control password 
 #
@@ -21,10 +22,12 @@ pppoe-server-options > [/etc/ppp]/pppoe-server-options
 :PPPOE_ENABLE=y:/sbin/modprobe pppoe >> /etc/rc.local
 :PPPOE_ENABLE=y:/usr/sbin/pppoe-server -k -N 500 -I %PPPOE_INTERFACE% -L %LOCAL_PPPOE_IP% -O /etc/ppp/pppoe-server-options >> /etc/rc.local
 #Patch for gigawords
-exec:mkdir ~/src/ && cd ~/src && wget ftp://ftp.samba.org/pub/ppp/ppp-2.4.4.tar.gz && wget http://bugs.gentoo.org/attachment.cgi?id=102981 -O radius-gigawords.patch
-exec:tar zxvf ppp-2.4.4.tar.gz && cd ppp-2.4.4 && patch -p1 -l < ../radius-gigawords.patch && ./configure --prefix=/usr && make && make install
+PPP_VERSION=4:exec:mkdir ~/src/ && cd ~/src && wget ftp://ftp.samba.org/pub/ppp/ppp-2.4.4.tar.gz && wget http://bugs.gentoo.org/attachment.cgi?id=102981 -O radius-gigawords.patch
+PPP_VERSION=4:exec:tar zxvf ppp-2.4.4.tar.gz && cd ppp-2.4.4 && patch -p1 -l < ../radius-gigawords.patch && ./configure --prefix=/usr && make && make install
 
 #Accel-pptp
 :ACCEL_PPTP=1:accel-pptp > /etc/init.d/accel-pptp
 :ACCEL_PPTP=1:accel-pptp.conf /etc/accel-pptp.conf
-
+:ACCEL_PPTP=1:pppd.dictionary >> /usr/local/share/accel-ppp/radius/dictionary
+:ACCEL_PPTP=1:exec:update-rc.d accel-ppp defaults
+:ACCEL_PPTP=1:exec:/etc/init.d/accel-pptp restart

@@ -5630,7 +5630,7 @@ if ($attr->{USER_INFO}) {
        }
       
       #Make pre payments functions in all modules 
-      cross_modules_call('_pre_payment', { %$attr });
+      cross_modules_call('_pre_payment', { %$attr  });
       
    	  if ($FORM{INVOICE_SUM} && $FORM{INVOICE_SUM} != $FORM{PAYMENT_SUM} )  {
         $html->message('err', "$_PAYMENTS: $ERR_WRONG_SUM", " $_INVOICE $_SUM: $Docs->{TOTAL_SUM}\n $_PAYMENTS $_SUM: $FORM{SUM}");
@@ -5976,6 +5976,11 @@ $table = $html->table({ caption    => "$_LOG",
                         ID         => 'EXCHANGE_RATE_LOG',
                         EXPORT     => $_EXPORT .' XML:&xml=1',                          
                           });
+
+if(! $FORM{sort}) {
+	$LIST_PARAMS{SORT}=1;
+	$LIST_PARAMS{DESC}='desc';
+}
 
 $list = $finance->exchange_log_list( { %LIST_PARAMS } );
 

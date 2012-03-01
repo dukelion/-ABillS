@@ -96,8 +96,8 @@ sub user_info {
    $self->{TP_ID}, 
    $self->{TP_NAME}, 
    $self->{TP_NUM}, 
-   $self->{CID}, 
    $self->{FILTER_ID}, 
+   $self->{CID},    
    $self->{STATUS},
    $self->{PIN},
    $self->{VOD},
@@ -177,14 +177,16 @@ sub user_add {
              filter_id,
              pin,
              vod,
-             dvcrypt_id
+             dvcrypt_id,
+             cid
              )
         VALUES ('$DATA{UID}', now(),
         '$DATA{TP_ID}', '$DATA{STATUS}',
         '$DATA{FILTER_ID}',
         '$DATA{PIN}',
         '$DATA{VOD}',
-        '$DATA{DVCRYPT_ID}'
+        '$DATA{DVCRYPT_ID}',
+        '$DATA{CID}'
          );", 'do');
 
   return $self if ($self->{errno});
@@ -211,7 +213,8 @@ sub user_change {
               FILTER_ID        => 'filter_id',
               PIN              => 'pin',
               VOD              => 'vod',
-              DVCRYPT_ID       => 'dvcrypt_id'
+              DVCRYPT_ID       => 'dvcrypt_id',
+              CID              => 'cid'
              );
   
   $attr->{VOD} = (! defined($attr->{VOD})) ? 0 : 1;
@@ -303,7 +306,7 @@ sub user_list {
 
  $self->{SEARCH_FIELDS} = '';
  $self->{SEARCH_FIELDS_COUNT}=0;
-
+ my $EXT_TABLE = '';
  undef @WHERE_RULES;
  push @WHERE_RULES, "u.uid = service.uid";
  
@@ -385,6 +388,17 @@ sub user_list {
   }
 
 
+ if($attr->{SHOW_CONNECTIONS}) {
+ 	 $EXT_TABLE = "LEFT JOIN dhcphosts_hosts dhcp ON (dhcp.uid=u.uid)
+ 	               LEFT JOIN nas  ON (nas.id=dhcp.nas)"; 	
+  
+   $self->{SEARCH_FIELDS}="nas.ip, dhcp.ports, nas.nas_type, nas.mng_user, DECODE(nas.mng_password, '$CONF->{secretkey}'),";
+   $self->{SEARCH_FIELDS_COUNT}+=5;
+   
+  }
+ 
+
+
  $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
 
 
@@ -421,6 +435,7 @@ if ($attr->{SHOW_CHANNELS}) {
      LEFT JOIN bills b ON (u.bill_id = b.id)
      LEFT JOIN companies company ON  (u.company_id=company.id) 
      LEFT JOIN bills cb ON  (company.bill_id=cb.id)
+     $EXT_TABLE
 $WHERE 
   AND i.id=ti_c.interval_id
   AND uc.channel_id=c.id
@@ -455,6 +470,7 @@ else {
      LEFT JOIN tarif_plans tp ON (tp.id=service.tp_id) 
      LEFT JOIN companies company ON  (u.company_id=company.id) 
      LEFT JOIN bills cb ON  (company.bill_id=cb.id)
+     $EXT_TABLE
      $WHERE 
      GROUP BY u.uid
      ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;");

@@ -36,7 +36,7 @@
 
 
 CLASSES_NUMS='2 3'
-VERSION=5.81
+VERSION=5.83
 
 
 name="abills_shaper"
@@ -71,119 +71,112 @@ if [ x${abills_mikrotik_shaper} != x ]; then
   ${BILLING_DIR}/libexec/billd checkspeed mikrotik NAS_IDS="${abills_mikrotik_shaper}" RECONFIGURE=1
 fi;
 
-
-if [ x${abills_shaper_enable} = xNO ]; then
-  exit;
-fi;
-
-
-
 #Negative deposit forward (default: )
 NEG_DEPOSIT_FWD=${abills_neg_deposit};
 FWD_WEB_SERVER_IP=127.0.0.1;
 #Your user portal IP (Default: me)
 USER_PORTAL_IP=${abills_portal_ip}
-
 #Session Limit per IP
 SESSION_LIMIT=${abills_ip_sessions}
 
-
-if [ w${abills_shaper_if} != w ]; then
-  INTERNAL_INTERFACE=${abills_shaper_if}
-else 
-  EXTERNAL_INTERFACE=`/sbin/route get default | grep interface: | awk '{ print $2 }'`
-  INTERNAL_INTERFACE="ng*"
-fi;
-
-
-#Octets direction
-PKG_DIRECTION=`cat ${BILLING_DIR}/libexec/config.pl | grep octets_direction | ${SED} "s/\\$conf{octets_direction}='\(.*\)'.*/\1/"`
-
-if [ w${PKG_DIRECTION} = wuser ] ; then
-  IN_DIRECTION="in recv ${INTERNAL_INTERFACE}"
-  OUT_DIRECTION="out xmit ${INTERNAL_INTERFACE}"
-else
-  IN_DIRECTION="out xmit ${EXTERNAL_INTERFACE}"
-  OUT_DIRECTION="in recv ${EXTERNAL_INTERFACE}"
-fi; 
-
-
-
-#Enable NG shapper
-if [ w != w`grep '^\$conf{ng_car}=1;' ${BILLING_DIR}/libexec/config.pl` ]; then
-  NG_SHAPPER=1
-fi;
-
-#Main users table num
-USERS_TABLE_NUM=10
-#First Class traffic users
-USER_CLASS_TRAFFIC_NUM=10
 ACTION=$1
 echo -n ${ACTION}
 if [ w${ACTION} = wfaststart ]; then
   ACTION=start
 fi;
 
-#NG Shaper enable
-if [ w${ACTION} = wstart -a w$2 = w -a w${NG_SHAPPER} != w ]; then
-  echo -n "ng_car shapper"
-  #Load kernel modules
-  kldload ng_ether
-  kldload ng_car
-  kldload ng_ipfw
 
-for num in ${CLASSES_NUMS}; do
-  #  FW_NUM=`expr  `;
-  echo "Traffic: ${num} "
-  #Shaped traffic
-  ${IPFW} add ` expr 10000 - ${num} \* 10 ` skipto ` expr 10100 + ${num} \* 10 ` ip from table\(` expr ${USER_CLASS_TRAFFIC_NUM} + ${num} \* 2 - 2  `\) to table\(${num}\) ${IN_DIRECTION}
-  ${IPFW} add ` expr 10000 - ${num} \* 10 + 5 ` skipto ` expr 10100 + ${num} \* 10 + 5 ` ip from table\(${num}\) to table\(` expr ${USER_CLASS_TRAFFIC_NUM} + ${num} \* 2 - 2 + 1 `\) ${OUT_DIRECTION}
+if [ x${abills_shaper_enable} != xNO ]; then
+  #Get external interface
+  if [ w${abills_shaper_if} != w ]; then
+    INTERNAL_INTERFACE=${abills_shaper_if}
+  else 
+    EXTERNAL_INTERFACE=`/sbin/route get default | grep interface: | awk '{ print $2 }'`
+    INTERNAL_INTERFACE="ng*"
+  fi; 
 
 
-  ${IPFW} add ` expr 10100 + ${num} \* 10 ` netgraph tablearg ip from table\(` expr ${USER_CLASS_TRAFFIC_NUM} + ${num} \* 2 - 2  `\) to any ${IN_DIRECTION}
-  ${IPFW} add ` expr 10100 + ${num} \* 10 + 5 ` netgraph tablearg ip from any to table\(` expr ${USER_CLASS_TRAFFIC_NUM} + ${num} \* 2 - 2 + 1 `\) ${OUT_DIRECTION}
+  #Octets direction
+  PKG_DIRECTION=`cat ${BILLING_DIR}/libexec/config.pl | grep octets_direction | ${SED} "s/\\$conf{octets_direction}='\(.*\)'.*/\1/"`
 
-  #Unlim traffic
-  ${IPFW} add ` expr 10200 + ${num} \* 10 ` allow ip from table\(9\) to table\(${num}\) ${IN_DIRECTION}
-  ${IPFW} add ` expr 10200 + ${num} \* 10 + 5 ` allow ip from table\(${num}\) to table\(9\) ${OUT_DIRECTION}
-done;
+  if [ w${PKG_DIRECTION} = wuser ] ; then
+    IN_DIRECTION="in recv ${INTERNAL_INTERFACE}"
+    OUT_DIRECTION="out xmit ${INTERNAL_INTERFACE}"
+  else
+    IN_DIRECTION="out xmit ${EXTERNAL_INTERFACE}"
+    OUT_DIRECTION="in recv ${EXTERNAL_INTERFACE}"
+  fi; 
 
-  echo "Global shaper"
-  ${IPFW} add 10000 netgraph tablearg ip from table\(10\) to any ${IN_DIRECTION}
-  ${IPFW} add 10010 netgraph tablearg ip from any to table\(11\) ${OUT_DIRECTION}
-  ${IPFW} add 10020 allow ip from table\(9\) to any ${IN_DIRECTION}
-  ${IPFW} add 10025 allow ip from any to table\(9\) ${OUT_DIRECTION}
-  if [ ${INTERNAL_INTERFACE} = w"ng*" ]; then
-    ${IPFW} add 10030 allow ip from any to any via ${INTERNAL_INTERFACE} 
+
+
+  #Enable NG shapper
+  if [ w != w`grep '^\$conf{ng_car}=1;' ${BILLING_DIR}/libexec/config.pl` ]; then
+    NG_SHAPPER=1
   fi;
-#done
-#Stop ng_car shaper
-else if [ w${ACTION} = wstop -a w$2 = w ]; then
-  echo -n "ng_car shapper" 
 
-  for num in ${CLASSES_NUMS}; do
-    ${IPFW} delete ` expr 9100 + ${num} \* 10 + 5 ` ` expr 9100 + ${num} \* 10 `  ` expr 9000 + ${num} \* 10 ` ` expr 10100 + ${num} \* 10 ` ` expr 9000 + ${num} \* 10 + 5 ` ` expr 10100 + ${num} \* 10 + 5 ` 
-  done;
+  #Main users table num
+  USERS_TABLE_NUM=10
+  #First Class traffic users
+  USER_CLASS_TRAFFIC_NUM=10
 
-  ${IPFW} delete 9000 9005 10000 10010 10015
-else if [ w${ACTION} = w ]; then
+  #NG Shaper enable
+  if [ w${ACTION} = wstart -a w$2 = w -a w${NG_SHAPPER} != w ]; then
+    echo -n "ng_car shapper"
+    #Load kernel modules
+    kldload ng_ether
+    kldload ng_car
+    kldload ng_ipfw
+
+    for num in ${CLASSES_NUMS}; do
+      #  FW_NUM=`expr  `;
+      echo "Traffic: ${num} "
+      #Shaped traffic
+      ${IPFW} add ` expr 10000 - ${num} \* 10 ` skipto ` expr 10100 + ${num} \* 10 ` ip from table\(` expr ${USER_CLASS_TRAFFIC_NUM} + ${num} \* 2 - 2  `\) to table\(${num}\) ${IN_DIRECTION}
+      ${IPFW} add ` expr 10000 - ${num} \* 10 + 5 ` skipto ` expr 10100 + ${num} \* 10 + 5 ` ip from table\(${num}\) to table\(` expr ${USER_CLASS_TRAFFIC_NUM} + ${num} \* 2 - 2 + 1 `\) ${OUT_DIRECTION}
+
+      ${IPFW} add ` expr 10100 + ${num} \* 10 ` netgraph tablearg ip from table\(` expr ${USER_CLASS_TRAFFIC_NUM} + ${num} \* 2 - 2  `\) to any ${IN_DIRECTION}
+      ${IPFW} add ` expr 10100 + ${num} \* 10 + 5 ` netgraph tablearg ip from any to table\(` expr ${USER_CLASS_TRAFFIC_NUM} + ${num} \* 2 - 2 + 1 `\) ${OUT_DIRECTION}
+
+     #Unlim traffic
+     ${IPFW} add ` expr 10200 + ${num} \* 10 ` allow ip from table\(9\) to table\(${num}\) ${IN_DIRECTION}
+     ${IPFW} add ` expr 10200 + ${num} \* 10 + 5 ` allow ip from table\(${num}\) to table\(9\) ${OUT_DIRECTION}
+    done;
+
+    echo "Global shaper"
+    ${IPFW} add 10000 netgraph tablearg ip from table\(10\) to any ${IN_DIRECTION}
+    ${IPFW} add 10010 netgraph tablearg ip from any to table\(11\) ${OUT_DIRECTION}
+    ${IPFW} add 10020 allow ip from table\(9\) to any ${IN_DIRECTION}
+    ${IPFW} add 10025 allow ip from any to table\(9\) ${OUT_DIRECTION}
+    if [ ${INTERNAL_INTERFACE} = w"ng*" ]; then
+      ${IPFW} add 10030 allow ip from any to any via ${INTERNAL_INTERFACE} 
+    fi;
+  #done
+  #Stop ng_car shaper
+  else if [ w${ACTION} = wstop -a w$2 = w ]; then
+    echo -n "ng_car shapper" 
+
+    for num in ${CLASSES_NUMS}; do
+      ${IPFW} delete ` expr 9100 + ${num} \* 10 + 5 ` ` expr 9100 + ${num} \* 10 `  ` expr 9000 + ${num} \* 10 ` ` expr 10100 + ${num} \* 10 ` ` expr 9000 + ${num} \* 10 + 5 ` ` expr 10100 + ${num} \* 10 + 5 ` 
+    done;
+
+    ${IPFW} delete 9000 9005 10000 10010 10015
+  else if [ w${ACTION} = w ]; then
     echo "(start|stop|start nat|stop nat)"
-#Start DUMMYNET shaper
-else   
-  echo "DUMMYNET shaper"
-  if [ w${abills_nas_id} = w ]; then
-    abills_nas_id=1;
-  fi;
+  #Start DUMMYNET shaper
+  else   
+    echo "DUMMYNET shaper"
+    if [ w${abills_nas_id} = w ]; then
+      abills_nas_id=1;
+    fi;
 
-  ${BILLING_DIR}/libexec/billd checkspeed NAS_IDS=${abills_nas_id} RECONFIGURE=1 FW_DIRECTION_OUT="${OUT_DIRECTION}" FW_DIRECTION_IN="${IN_DIRECTION}";
-  if [ ${firewall_type} = "/etc/fw.conf" ]; then
-    ${IPFW} ${firewall_type}
+    ${BILLING_DIR}/libexec/billd checkspeed NAS_IDS=${abills_nas_id} RECONFIGURE=1 FW_DIRECTION_OUT="${OUT_DIRECTION}" FW_DIRECTION_IN="${IN_DIRECTION}";
+    if [ ${firewall_type} = "/etc/fw.conf" ]; then
+      ${IPFW} ${firewall_type}
+    fi;
+    fi;
+   fi;
   fi;
-  fi;
- fi;
 fi;
-
-
 
 #IPoE Shapper for dhcp connections
 if [ x${abills_dhcp_shaper} != xNO ]; then
@@ -235,33 +228,32 @@ fi;
 # options         IPFIREWALL_NAT          #ipfw kernel nat support
 # options         LIBALIAS
 #Nat Section
-if [ w"${abills_nat}" != w ] ; then
-# NAT External IP
-NAT_IPS=`echo ${abills_nat} | awk -F: '{ print $1 }'`;
-# Fake net 
-FAKE_NET=`echo ${abills_nat} | awk -F: '{ print $2 }'`;
-#NAT IF
-NAT_IF=`echo ${abills_nat} | awk -F: '{ print $3 }'`;
+if [ x"${abills_nat}" != x ] ; then
+  # NAT External IP
+  NAT_IPS=`echo ${abills_nat} | awk -F: '{ print $1 }'`;
+  # Fake net 
+  FAKE_NET=`echo ${abills_nat} | awk -F: '{ print $2 }'`;
+  #NAT IF
+  NAT_IF=`echo ${abills_nat} | awk -F: '{ print $3 }'`;
 
 
+  echo -n " NAT "
+  NAT_TABLE=20
+  NAT_FIRST_RULE=20
+  NAT_REAL_TO_FAKE_TABLE_NUM=33;
+  NAT_FAKE_IP_TABLE_NUM=33;
 
-echo "NAT"
-NAT_TABLE=20
-NAT_FIRST_RULE=20
-NAT_REAL_TO_FAKE_TABLE_NUM=33;
-NAT_FAKE_IP_TABLE_NUM=33;
+  # nat configuration
+  for IP in ${NAT_IPS}; do
+    if [ w${ACTION} = wstart ]; then
+      ${IPFW} nat ` expr ${NAT_FIRST_RULE} + 1 ` config ip ${IP} log
+      ${IPFW} table ${NAT_REAL_TO_FAKE_TABLE_NUM} add ${IP} ` expr ${NAT_FIRST_RULE} + 1 `
 
-# nat configuration
-for IP in ${NAT_IPS}; do
-  if [ w${ACTION} = wstart ]; then
-    ${IPFW} nat ` expr ${NAT_FIRST_RULE} + 1 ` config ip ${IP} log
-    ${IPFW} table ${NAT_REAL_TO_FAKE_TABLE_NUM} add ${IP} ` expr ${NAT_FIRST_RULE} + 1 `
-
-    for f_net in ${FAKE_NET}; do
-      ${IPFW} table ` expr ${NAT_REAL_TO_FAKE_TABLE_NUM} + 1` add ${f_net} ` expr ${NAT_FIRST_RULE} + 1 `
-    done;
-  fi;
-done;
+      for f_net in ${FAKE_NET}; do
+        ${IPFW} table ` expr ${NAT_REAL_TO_FAKE_TABLE_NUM} + 1` add ${f_net} ` expr ${NAT_FIRST_RULE} + 1 `
+      done;
+    fi;
+  done;
 
   # ISP_GW2=1 For redirect to second way
   if [ w${ISP_GW2} != w ]; then

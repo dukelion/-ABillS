@@ -514,55 +514,6 @@ sub rule_list {
   return $list;
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 #**********************************************************
 # User information
 # info()
@@ -931,6 +882,163 @@ sub bonus_operation_list {
  ( $self->{TOTAL},
    $self->{SUM},
    $self->{TOTAL_USERS} )= @{ $self->{list}->[0] };
+
+ return $list;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+#**********************************************************
+# 
+# service_discount_info()
+#**********************************************************
+sub service_discount_info {
+  my $self = shift;
+  my ($id) = @_;
+  
+  my $WHERE = "WHERE uid='$id'";
+
+  $self->query($db, "SELECT id,
+    service_period,
+    registration_days,
+    discount,
+    discount_days
+     FROM bonus_service_discount
+   $WHERE;");
+
+  if ($self->{TOTAL} < 1) {
+     $self->{errno} = 2;
+     $self->{errstr} = 'ERROR_NOT_EXIST';
+     return $self;
+   }
+
+  (
+   $self->{ID}, 
+   $self->{SERVICE_PERIOD}, 
+   $self->{REGISTRATION_DAY}, 
+   $self->{DISCOUNT}, 
+   $self->{DISCOUNT_DAYS}
+  )= @{ $self->{list}->[0] };
+
+  return $self;
+}
+
+
+
+#**********************************************************
+# service_discount_add()
+#**********************************************************
+sub service_discount_add {
+  my $self = shift;
+  my ($attr) = @_;
+  my %DATA = $self->get_data($attr); 
+
+
+  $self->{debug}=1;
+  
+  $self->query($db,  "INSERT INTO bonus_service_discount (service_period, registration_days, discount, discount_days)
+        VALUES ('$DATA{SERVICE_PERIOD}', '$DATA{REGISTRATION_DAYS}', '$DATA{DISCOUNT}', '$DATA{DISCOUNT_DAYS}');", 'do');
+
+  return $self;
+}
+
+
+
+
+#**********************************************************
+# change()
+#**********************************************************
+sub service_discount_change {
+  my $self = shift;
+  my ($attr) = @_;
+  
+  my %FIELDS = ( ID               => 'id', 
+                 SERVICE_PERIOD   => 'service_period', 
+                 REGISTRATION_DAY => 'registration_day', 
+                 DISCOUNT         => 'discount', 
+                 DISCOUNT_DAYS    => 'discount_days'
+               );
+  
+  $attr->{STATE} = ($attr->{STATE}) ? 1 : 0;
+  
+  $self->changes($admin, { CHANGE_PARAM => 'ID',
+                   TABLE        => 'bonus_service_discount',
+                   FIELDS       => \%FIELDS,
+                   OLD_INFO     => $self->service_discount_info($attr->{ID}),
+                   DATA         => $attr
+                  } );
+
+  return $self;
+}
+
+
+
+#**********************************************************
+#
+# service_discount_del(attr);
+#**********************************************************
+sub service_discount_del {
+  my $self = shift;
+  my ($attr) = @_;
+  $self->query($db, "DELETE from bonus_service_discount WHERE id='$attr->{ID}';", 'do');
+
+  return $self;
+}
+
+
+#**********************************************************
+# service_discount_list()
+#**********************************************************
+sub service_discount_list {
+ my $self = shift;
+ my ($attr) = @_;
+
+ $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
+ $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
+ $PG = ($attr->{PG}) ? $attr->{PG} : 0;
+ $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
+
+ undef @WHERE_RULES;
+ 
+ if ($attr->{TP_ID}) {
+ 	 push @WHERE_RULES, "tp_id='$attr->{TP_ID}'"; 
+  }
+
+
+ if ($attr->{REGISTRATION_DAYS}) {
+ 	 push @WHERE_RULES, @{ $self->search_expr("$attr->{REGISTRATION_DAYS}", 'INT', 'registration_days') };
+  }
+
+ if ($attr->{PERIODS}) {
+ 	 push @WHERE_RULES, @{ $self->search_expr("$attr->{PERIODS}", 'INT', 'service_period') };
+  }
+
+
+
+
+
+ 
+ $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
+ 
+ $self->query($db, "SELECT service_period, registration_days, discount, discount_days, id
+     FROM bonus_service_discount
+     $WHERE 
+     ORDER BY $SORT $DESC
+     LIMIT $PG, $PAGE_ROWS;");
+
+ return $self if($self->{errno});
+
+ my $list = $self->{list};
 
  return $list;
 }
