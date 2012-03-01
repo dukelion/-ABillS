@@ -339,7 +339,8 @@ return 0;
 sub iptv_user {
  	my ($attr)=@_;
  	$Iptv->{UID}=$FORM{UID};	  
-
+  
+  
   if ($FORM{add}) {
     $Iptv->user_add({ %FORM });
     if (! $Iptv->{errno}) {
@@ -349,6 +350,11 @@ sub iptv_user {
       if ($conf{IPTV_DVCRYPT_FILENAME}) {
       	 dv_crypt();
        }
+      if ($conf{IPTV_USER_EXT_CMD}) {
+   	    $cmd = $conf{IPTV_USER_EXT_CMD};
+        $cmd = tpl_parse("$cmd", { %$users, %$Iptv });
+        my $output = `$cmd`;
+       }
      }
    }
 	elsif($FORM{set}) {
@@ -357,10 +363,17 @@ sub iptv_user {
     if (! $Iptv->{errno}) {
     	$Iptv->{ACCOUNT_ACTIVATE}=$attr->{USER_INFO}->{ACTIVATE};
       iptv_get_month_fee($Iptv) if (! $FORM{STATUS});
-      $Iptv->user_channels();
+      $Iptv->user_channels({ UID => $FORM{UID} });
       $html->message('info', $_INFO, "$_CHANGED");	
       if ($conf{IPTV_DVCRYPT_FILENAME}) {
       	 dv_crypt();
+       }
+
+
+      if ($conf{IPTV_USER_EXT_CMD}) {
+   	    $cmd = $conf{IPTV_USER_EXT_CMD};
+        $cmd = tpl_parse("$cmd", { %$users, %$Iptv });
+        my $output = `$cmd`;
        }
      }
    }
@@ -403,6 +416,22 @@ sub iptv_user {
  	                                          SEL_ARRAY    => \@service_status,
  	                                          ARRAY_NUM_ID => 1
  	                                        });
+
+   eval { require Iptv_stalker; };
+   if (! $@) {
+     Iptv_stalker->import();
+     my $Iptv_stalker    = Iptv_stalker->new($db, $admin, \%conf);
+     
+     $user->{MODEMS}= $html->form_select('CID', 
+                                          { 
+ 	                                          SELECTED          => $FORM{TP_ID},
+ 	                                          SEL_MULTI_ARRAY   => $Iptv_stalker->stalker_users_list({ UNREGISTER => 1 }),
+ 	                                          MULTI_ARRAY_KEY   => 0,
+ 	                                          MULTI_ARRAY_VALUE => 1,
+ 	                                        });
+    
+     $user->{IPTV_MODEMS}=$html->tpl_show(_include('iptv_modems', 'Iptv'), { %$attr, %$user }, { OUTPUT2RETURN => 1 });    
+    }
  
   $html->tpl_show(_include('iptv_user', 'Iptv'), { %$attr, %$user });
 
@@ -412,6 +441,29 @@ sub iptv_user {
    }
 }
 
+
+
+#**********************************************************
+#
+#**********************************************************
+#sub iptv_payments_maked {
+#	my ($attr) = @_;
+#	
+#	return '' if ($FORM{DISABLE});
+#	
+#	$Iptv->info($attr->{USER_INFO}->{UID});
+#
+#  my $deposit = $attr->{USER_INFO}->{DEPOSIT} + (($attr->{USER_INFO}->{CREDIT} > 0) ? $attr->{USER_INFO}->{CREDIT} : $Dv->{TP_CREDIT});
+#  
+#  my $abon_fees = ($attr->{USER_INFO}->{REDUCTION} ) ? $Dv->{MONTH_ABON} + $Dv->{DAY_ABON} : ($Dv->{MONTH_ABON} + $Dv->{DAY_ABON}) * (100 - $attr->{USER_INFO}->{REDUCTION}) / 100;
+#
+#	if ($Iptv->{STATUS} > 3 && ($deposit > $abon_fees || $Iptv->{ABON_DISTRIBUTION})) {
+#		$Iptv->change({ UID     => $attr->{USER_INFO}->{UID},
+#			            STATUS  => 0  });
+#    $Iptv->{ACCOUNT_ACTIVATE}=$attr->{USER_INFO}->{ACTIVATE} || '0000-00-00';
+#		iptv_get_month_fee($Iptv, $attr);
+#	 }
+#}
 
 
 #**********************************************************
@@ -2439,7 +2491,7 @@ sub iptv_get_month_fee {
          }
       }
 
-  $html->message('info', $_INFO, $info_message) if (! $attr->{QUIET});;	
+  $html->message('info', $_INFO, $info_message) if ($info_message && ! $attr->{QUIET});;	
 }
 
 

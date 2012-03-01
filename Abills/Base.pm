@@ -324,19 +324,23 @@ sub sendmail {
    }
 
 #  $attr->{TEST}=1;
-  
+  my $ext_header = '';
   $message =~ s/#.+//g;
-  if ($message =~ s/Subject: (.+)//g ) {
+  if ($message =~ s/Subject: (.+)[\n\r]+//g ) {
   	$subject=$1;
    }
-  if ($message =~ s/From: (.+)//g ) {
+  if ($message =~ s/From: (.+)[\n\r]+//g ) {
   	$from=$1;
    }
-  if ($message =~ s/X-Priority: (.+)//g ) {
+  if ($message =~ s/X-Priority: (.+)[\n\r]+//g ) {
   	$priority=$1;
    }
-  if ($message =~ s/To: (.+)//gi ) {
+  if ($message =~ s/To: (.+)[\r\n]+//gi ) {
   	$to_addresses=$1;
+   }
+
+  if ($message =~ s/Bcc: (.+)[\r\n]+//gi ) {
+  	$ext_header="Bcc: $1\n";
    }
 
   $to_addresses =~ s/[\n\r]//g;
@@ -371,6 +375,7 @@ $message .= "--$boundary"."--\n\n";
     if ($attr->{TEST}) {
       print "To: $to\n";
       print "From: $from\n";
+      print $ext_header;
       print "Content-Type: text/plain; charset=$charset\n";
       print "X-Priority: $priority\n" if ($priority);
       print $header;
@@ -381,6 +386,7 @@ $message .= "--$boundary"."--\n\n";
       open(MAIL, "| $SENDMAIL -t") || die "Can't open file '$SENDMAIL' $!\n";
         print MAIL "To: $to\n";
         print MAIL "From: $from\n";
+        print MAIL $ext_header;
         print MAIL "Content-Type: text/plain; charset=$charset\n" if (! $attr->{ATTACHMENTS});
         print MAIL "X-Priority: $priority\n" if ($priority);
         print MAIL "X-Mailer: ABillS\n";
@@ -937,7 +943,10 @@ sub tpl_parse {
 	my ($string, $HASH_REF) = @_;
 	
 	while(my($k, $v)= each %$HASH_REF) {
-		$string =~ s/\%$k\%/$v/g;
+          if(! defined($v)) {
+            $v='';
+           }
+     	  $string =~ s/\%$k\%/$v/g;
 	 }
 
 	return $string;

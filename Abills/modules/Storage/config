@@ -1,24 +1,12 @@
 #Iner_ID : Main or Sub or if -1 user menu func list
-%FUNCTIONS_LIST = ("01:0:$_STORAGE:storage_main:"				=> 5,
-				   "02:1:$_LOG:storage_log:"					=> 5,
-				   "03:1:$_OPTIONS:storage_main:"				=> 5,			
-                   "04:3:$_SUPPLIERS:suppliers_main:"			=> 5,
-                   "05:3:$_ARTICLE:storage_articles:"			=> 5,
-                   "06:3:$_TYPE:storage_articles_types:"		=> 5,
-                   "01:0:Hardware:storage_hardware:UID"				=> 20,
-                   "01:0:Hardware:storage_hardware:UID"				=> 15,
-			
-                   
+%FUNCTIONS_LIST = ("01:0:$_STORAGE:storage_main:"		=> 5,
+				   "02:1:$_LOG:storage_log:"					      => 5,
+				   "03:1:$_OPTIONS:storage_main:"				    => 5,			
+           "04:3:$_SUPPLIERS:suppliers_main:"		  	=> 5,
+           "05:3:$_ARTICLE:storage_articles:"		   	=> 5,
+           "06:3:$_TYPE:storage_articles_types:"		=> 5,
+           "01:0:Hardware:storage_hardware:UID"			=> 20,
                  );
-                 
-#  Old Menu style
-#                 	 "02:1:$_SUPPLIERS:suppliers_main:"				=> 5,
-#                 	 "03:1:$_ARTICLE:storage_main:"					=> 5,
-#                 	 "04:1:$_ADD $_TYPE:storage_articles_types:"	=> 5,
-#                 	 "05:1:INSTALLED:storage_installed:"			=> 5,
-#                 	 "06:1:$_ACCOUNTABILITY:storage_accountability:"=> 5,
-#                 	 "07:1:$_LOG:storage_log:"						=> 5,
-#                 	 "08:1:$_DISCARD:storage_discard:"				=> 5,
  
 %PERIODIC = (
 	monthly => [ 'storage_monthly_fees' ]

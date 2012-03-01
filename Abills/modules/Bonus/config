@@ -2,7 +2,8 @@
 %FUNCTIONS_LIST = (
                    "01:0:$_BONUS:bonus_users_list:"   => 11,
                    "02:0:$_BONUS:bonus_user_log:UID"  => 20,
-                   "08:0:$_BONUS:bonus_tp:"           => 5
+                   "08:0:$_BONUS:bonus_tp:"           => 5,
+                   "09:8:$_SERVICE $_REDUCTION:bonus_service_discount:"       => 5
                    );
 
 

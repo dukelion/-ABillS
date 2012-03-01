@@ -24,14 +24,6 @@ body {
   /* this attribute sets the basis for all the other scrollbar colors (Internet Explorer 5.5+ only) */
 }
 
-//html,body{margin:0;padding:0}
-//;.table_top{ background:url(/img/css_test/block_ad_top.gif) no-repeat; height:8px; width:735px; font-size:0px;}
-//;.table_cont { background:%_COLOR_1%; width:735px;}
-//;.table_cont TABLE{ width:98%; margin:0px 5px 0px 5px}
-//;.table_cont td{ border:1px solid #F3F3F3}
-//;.table_bot{ background:url(/img/css_test/block_ad_bot.gif) no-repeat; height:8px; width:735px; font-size:0px; margin-bottom:10px }
-
-
 .header {
   background-color: %_COLOR_3%;
   height: 45;

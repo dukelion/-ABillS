@@ -71,8 +71,8 @@ sub dv_chg_tp {
   }
 
  my $TARIF_PLAN = $FORM{tarif_plan} || $_DEFAULT_TARIF_PLAN;
- my $period = $FORM{period} || 0;
- my $Shedule = Shedule->new($db, $admin, \%conf);
+ my $period     = $FORM{period} || 0;
+ my $Shedule    = Shedule->new($db, $admin, \%conf);
 
 #Get next period
 if ($Dv->{MONTH_ABON}> 0 && ! $Dv->{STATUS} && ! $users->{DISABLE} &&
@@ -5762,13 +5762,13 @@ sub dv_cards {
   $FROM{CARDS_FORM}=1;
   
   
-  
+  my $expire = $FORM{EXPIRE};
   my $dv_tpl = dv_wizard_user({ OUTPUT2RETURN => 1,
   	                            NO_EXTRADATA  => 1,
   	                            TPLS          => { '2:' => '',
                                                    '3:' => '' } 
                               });
-
+  $FORM{EXPIRE}=$expire;
 	my $cards_hash = cards_users_add({ EXTRA_TPL => $dv_tpl  });
 
   $FORM{add}=1;
