@@ -1,1 +1,1 @@
-<iframe src=\"/otrs/index.pl?Action=AgentTicketPhone\" width=\"98%\" height=\"1100\">
+<iframe src=\"/otrs/index.pl?Action=AgentTicketPhone&FromCustomerUser=$FORM{UID}\" width=\"98%\" height=\"1100\">
