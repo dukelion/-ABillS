@@ -410,7 +410,7 @@ sub user_list {
      FROM (users u, voip_main service)
      LEFT JOIN users_pi pi ON (u.uid = pi.uid)
      LEFT JOIN bills b ON u.bill_id = b.id
-     LEFT JOIN tarif_plans tp ON (tp.id=service.tp_id) 
+     LEFT JOIN tarif_plans tp ON (tp.tp_id=service.tp_id) 
      LEFT JOIN companies company ON  (u.company_id=company.id) 
      LEFT JOIN bills cb ON  (company.bill_id=cb.id)
 

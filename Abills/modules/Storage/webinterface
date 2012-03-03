@@ -350,14 +350,14 @@ sub suppliers_main {
 #***********************************************************
 sub storage_main {
 
-	if($FORM{''}) {
-		
-		$FORM{storage_status} = 1;
-	}
+#	if($FORM{''}) {
+#		
+#		$FORM{storage_status} = 1;
+#	}
 
-		$Storage->{ACTION}='add';
-		$Storage->{ACTION_LNG}=$_ADD;
-		$Storage->{DATE}='0000-00-00 00:00:00';	
+		$Storage->{ACTION}    = 'add';
+		$Storage->{ACTION_LNG}= $_ADD;
+		$Storage->{DATE}      = '0000-00-00 00:00:00';	
 
 	if ($FORM{message}) {				
 		$html->message('info', $_INFO, "$FORM{message}");	
@@ -416,7 +416,8 @@ sub storage_main {
 										MULTI_ARRAY_KEY   => 0,
 										MULTI_ARRAY_VALUE => 1,
 										NO_ID             => 1,
-										EX_PARAMS		  => 'onchange="autoReload();"'
+										EX_PARAMS		      => 'onchange="autoReload();"',
+										MAIN_MENU         => get_function_index('storage_articles_types'),
 									});
 			
 			
@@ -671,7 +672,8 @@ sub storage_main {
 											SEL_MULTI_ARRAY   => [['', ''], @{ $Storage->storage_articles_list({ ARTICLE_TYPE => $FORM{ARTICLE_TYPE_ID}, }) } ], 
 											MULTI_ARRAY_KEY   => 0,
 											MULTI_ARRAY_VALUE => 1,
-											NO_ID             => 1
+											NO_ID             => 1,
+								      MAIN_MENU         => get_function_index('storage_articles'),
 										});
 		
 		$Storage->{ARTICLE_TYPES}=$html->form_select("ARTICLE_TYPE_ID", 
@@ -759,7 +761,8 @@ sub storage_main {
 										MULTI_ARRAY_KEY   => 0,
 										MULTI_ARRAY_VALUE => 1,
 										NO_ID             => 1,
-										EX_PARAMS		  => 'onchange="autoReload();"'
+										EX_PARAMS		  => 'onchange="autoReload();"',
+										MAIN_MENU         => get_function_index('storage_articles_types'),
 									});
 			
 			
@@ -808,7 +811,8 @@ sub storage_main {
 									MULTI_ARRAY_KEY   => 0,
 									MULTI_ARRAY_VALUE => 1,
 									NO_ID             => 1,
-									EX_PARAMS		  => 'onchange="autoReload();"'
+									EX_PARAMS		      => 'onchange="autoReload();"',
+									MAIN_MENU         => get_function_index('storage_articles_types'),
 								});
 			
 			
@@ -1346,7 +1350,8 @@ sub storage_orders {
 											MULTI_ARRAY_KEY   => 0,
 											MULTI_ARRAY_VALUE => 1,
 											NO_ID             => 1,
-											EX_PARAMS		  => 'onchange="autoReload();"'
+											EX_PARAMS		      => 'onchange="autoReload();"',
+											MAIN_MENU         => get_function_index('storage_articles_types'),
 										});
 				
 				
@@ -1641,13 +1646,13 @@ sub storage_hardware {
 	
 		$Storage->storage_installation_return ({
 											COUNT_INCOMING	=> $list2->[0]->[2],
-											SUM_TOTAL		=> $list2->[0]->[23],
+											SUM_TOTAL		    => $list2->[0]->[23],
 											MAIN_ARTICLE_ID	=> $list2->[0]->[0],
-											COUNT 			=> $list->[0]->[6],
+											COUNT 			    => $list->[0]->[6],
 											ID_INSTALLATION	=> $FORM{return_storage},
-											SUM 			=> $list->[0]->[19],	
-											RETURN_STATUS	=> 1,
-											COMMENTS		=> $FORM{COMMENTS},
+											SUM 			      => $list->[0]->[19],	
+											RETURN_STATUS	  => 1,
+											COMMENTS		    => $FORM{COMMENTS},
 										 });
 										 
 		if (! $Storage->{errno}){
@@ -1702,7 +1707,8 @@ sub storage_hardware {
 										MULTI_ARRAY_KEY   => 0,
 										MULTI_ARRAY_VALUE => 1,
 										NO_ID             => 1,
-										EX_PARAMS			=> 'onchange=autoReload() ' . $Storage->{DISABLE},						
+										EX_PARAMS			    => 'onchange=autoReload() ' . $Storage->{DISABLE},
+										MAIN_MENU         => get_function_index('storage_articles_types'),
 	});
 	
 
@@ -1790,6 +1796,7 @@ sub storage_hardware {
 			cols_align => ['left', 'right', 'right', 'right', 'center', 'center'],
 			pages      => $Storage->{TOTAL},
 			ID         => 'STORAGE_ID',
+			EXPORT     => $_EXPORT .' XML:&xml=1',
 			header		=> 
 				((defined($FORM{SHOW_STATUS}) && $FORM{SHOW_STATUS} == 5) ? $html->b($_ALL) : $html->button($_ALL, "index=$index&UID=$FORM{UID}&SHOW_STATUS=5", { BUTTON => 1 })) . ' ' .
 				((defined($FORM{SHOW_STATUS}) && $FORM{SHOW_STATUS} == 2) ? $html->b($status[2]) : $html->button($status[2], "index=$index&UID=$FORM{UID}&SHOW_STATUS=2", { BUTTON => 1 })) . ' ' .
@@ -1815,16 +1822,16 @@ sub storage_hardware {
 		
 		
 		foreach my $line ( @$list ) {
-			
-			$line->[26] =~ s/\r\n/<br>/g;
-			$dhcp_index = get_function_index('dhcphosts_user');			
+			my $br = $html->br();
+			$line->[26] =~ s/\r\n/$br/g;
+			my $dhcp_index = get_function_index('dhcphosts_user');			
 			$table->addrow(	
 				($line->[25] == 4) ? '' : $html->button($_INFO, "index=$index&chg=$line->[0]&UID=$FORM{UID}", { CLASS => 'change' }),  
 				($line->[25] == 4) ? '' : (defined($permissions{0}{5})) ? $html->button($_RETURN_STORAGE, "index=$index&return_comment=$line->[0]&UID=" . $FORM{UID}, { MESSAGE => "$_RETURN_STORAGE $line->[9]?", CLASS => 'del' }) : '',
 				$line->[20],  
 				$line->[10], 
 				$line->[9], 
-				"<a href=$SELF_URL?index=$dhcp_index&UID=$FORM{UID}> $line->[21]</a>", 
+				$html->button($line->[21], "index=$dhcp_index&UID=$FORM{UID}"),
 				$line->[27],  
 				$line->[26],
 				($line->[25] != 4) ? $status[$line->[25]] : "$_RETURNED_STORAGE",
@@ -1858,9 +1865,7 @@ sub storage_hardware {
 							"$_RECORD_CHANGED",);
 			
 
-				print "<a href=$SELF_URL?index=$index&UID=$FORM{UID}&SHOW_STATUS=$FORM{SHOW_STATUS}>$_HIDE_HARDWARE_LOG</a></br>";	
-
-
+				print $html->button("$_HIDE_HARDWARE_LOG", "index=$index&UID=$FORM{UID}&SHOW_STATUS=$FORM{SHOW_STATUS}", { BUTTON => 1 });
 			
 			
 			my $table = $html->table({	
@@ -1885,13 +1890,13 @@ sub storage_hardware {
 			
 			
 			foreach my $line ( @$list ) {
-				
-				$line->[26] =~ s/\r\n/<br>/g;
+				my $br = $html->br();
+			  $line->[26] =~ s/[\r\n]+/$br/g;
 				$dhcp_index = get_function_index('dhcphosts_user');			
 				$table->addrow(	
 					$line->[14],  
 					$line->[9], 
-					"<a href=$SELF_URL?index=$dhcp_index&UID=$FORM{UID}> $line->[15]</a>", 
+					$html->button("$line->[15]", "index=$dhcp_index&UID=$FORM{UID}", { BUTTON => 1 }),		
 					$line->[20],  
 					$line->[19],
 					$action[$line->[22]] . $html->br() . $_AUTHOR . $line->[8],
@@ -1899,7 +1904,6 @@ sub storage_hardware {
 					$line->[21],
 					$line->[23],
 					$line->[16]
-		
 				);
 			}
 			
@@ -1907,9 +1911,7 @@ sub storage_hardware {
 			print $table->show();						
 		}
 		else {
-					
-			print "<a href=$SELF_URL?index=$index&UID=$FORM{UID}&SHOW_STATUS=$FORM{SHOW_STATUS}&VIEW_HARDWARE_LOG=1>$_VIEW_HARDWARE_LOG</a></br>";		
-		
+      print $html->button("$_HIDE_HARDWARE_LOG", "index=$index&UID=$FORM{UID}&SHOW_STATUS=$FORM{SHOW_STATUS}&VIEW_HARDWARE_LOG=1", { BUTTON => 1 });		
 		}
 	}
 }

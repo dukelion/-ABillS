@@ -1108,6 +1108,7 @@ CREATE TABLE `voip_main` (
   `logins` tinyint(3) unsigned NOT NULL default '0',
   `provision_nas_id` smallint(6) unsigned NOT NULL default '0',
   `provision_port` smallint(6) unsigned NOT NULL default '0',
+  `nat` tinyint(1) unsigned NOT NULL default '1',
   PRIMARY KEY (`number`),
   KEY `uid` (`uid`)
 ) ;

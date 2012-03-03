@@ -18,3 +18,12 @@ CREATE TABLE `bonus_log` (
   KEY `date` (`date`),
   KEY `uid` (`uid`)
 ) COMMENT "Bonus log"  ;
+
+CREATE TABLE `bonus_service_discount` (
+  `id` int(11) unsigned NOT NULL auto_increment,
+  `service_period` smallint(4) unsigned NOT NULL default '0',
+  `registration_days` smallint(4) unsigned NOT NULL default '0',
+  `discount` double(10,2) NOT NULL default '0.00',
+  `discount_days` smallint(4) unsigned NOT NULL default '0',
+  PRIMARY KEY  (`id`)
+) COMMENT "Bonus service discount"  ;
