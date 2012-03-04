@@ -453,7 +453,9 @@ sub msgs_admin_add {
 if (in_array('Sms', \@MODULES) ) {
   $Msgs->{EXTRA_PARAMS} = $html->tpl_show(_include('sms_check_form', 'Sms'), $Msgs, { OUTPUT2RETURN => 1 });
 }
-
+if (!$FORM{LOGIN}) {
+	$FORM{LOGIN} = $ui->{LOGIN};
+}
   my $message_form = $html->tpl_show(_include('msgs_send_form', 'Msgs'), { %$attr, %FORM, %$Msgs  }, { OUTPUT2RETURN => 1 });
 
   if ($attr->{OUTPUT2RETURN}) {
