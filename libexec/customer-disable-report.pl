@@ -178,8 +178,8 @@ foreach my $line (@$list) {
 	};
 };
 
-sub generate_htmltab(%tab) {
-	my %tab = shift;
+sub generate_htmltab {
+	my (%tab) = @_;
 	my $htmltab = new HTML::Table(
 		-cols=>8,
 		-head=>["login","Customer Name","Balance","Credit","Credit Expiry","Debit date","Month fee","Expire Date","Tariff Status","Disable Date","Reason Code"],
@@ -195,9 +195,8 @@ sub generate_htmltab(%tab) {
 	return $htmlmessage;
 }
 
-sub generate_texttab(%tab) {
-	my %tab = shift;
-
+sub generate_texttab {
+	my (%tab) = @_;
 	my $texttab = Text::Table->new(
 		      "login",
 	      \' | ', "Customer Name",
