@@ -67,7 +67,8 @@ my $list = $users->list({
 			PAGE_ROWS    => 1000000,
                               });
 
-my %tab;
+my %disabled_tab;
+my %active_tab;
 
 require "Abills/mysql/Dv.pm";
 
@@ -169,40 +170,58 @@ foreach my $line (@$list) {
 		$warncustomer->{'DisableDate'} = strftime("%Y-%m-%d",localtime($disableDate));
 		$warncustomer->{'UID'} = $user->{UID};
 		$warncustomer->{'TSTATUS'} = $service_status[$info->{STATUS}];
-		$tab{ $user->{LOGIN} } = $warncustomer;
+		if ($info->{STATUS} == 1 or $info->{STATUS}==4) {
+			$disabled_tab{ $user->{LOGIN} } = $warncustomer;
+		} else {
+			$active_tab{ $user->{LOGIN} } = $warncustomer;
+		}
 	};
 };
 
-#exit(0) unless %tab;
-my $texttab = Text::Table->new(
-              "login",
-      \' | ', "Customer Name",
-      \' | ', "Balance",
-      \' | ', "Credit",
-      \' | ', "Credit Expiry",
-      \' | ', "Debit date",
-      \' | ', "Month fee",
-      \' | ', "Expire Date",
-      \' | ', "Tariff Status",
-      \' | ', "Disable Date",
-      \' | ', "Reason Code");
-my $htmltab = new HTML::Table(
-	-cols=>8,
-	-head=>["login","Customer Name","Balance","Credit","Credit Expiry","Debit date","Month fee","Expire Date","Tariff Status","Disable Date","Reason Code"],
-	-border=>1,
-	-bgcolor=>'WhiteSmoke',
-);
+sub generate_htmltab(%tab) {
+	my %tab = shift;
+	my $htmltab = new HTML::Table(
+		-cols=>8,
+		-head=>["login","Customer Name","Balance","Credit","Credit Expiry","Debit date","Month fee","Expire Date","Tariff Status","Disable Date","Reason Code"],
+		-border=>1,
+		-bgcolor=>'WhiteSmoke',
+	);
+	foreach my $line (sort { $tab{$a}{'DisableDate'} cmp $tab{$b}{'DisableDate'} } keys(%tab)){
+		my @array = ($line,@{$tab{$line}}{qw/FIO Deposit Credit CreditExpiryDate DebitDate MonthFee ExpireDate TSTATUS DisableDate Errno/});
+		$array[0] = sprintf '<a title="%s" href="https://bill.neda.af/admin/index.cgi?index=15&UID=%s">%s</a>',$line,$tab{$line}{UID},$line;
+		$htmltab->addRow(@array);
+	};
+	my $htmlmessage = sprintf "<p>%s</p>\n",$htmltab->getTable;
+	return $htmlmessage;
+}
 
-foreach my $line (sort { $tab{$a}{'DisableDate'} cmp $tab{$b}{'DisableDate'} } keys(%tab)){
-my @array = ($line,@{$tab{$line}}{qw/FIO Deposit Credit CreditExpiryDate DebitDate MonthFee ExpireDate TSTATUS DisableDate Errno/});
-$texttab->load([@array]);
-$array[0] = sprintf '<a title="%s" href="https://bill.neda.af/admin/index.cgi?index=15&UID=%s">%s</a>',$line,$tab{$line}{UID},$line;
-$htmltab->addRow(@array);
-};
+sub generate_texttab(%tab) {
+	my %tab = shift;
 
-my $textmessage = $texttab->title;
-$textmessage .= $texttab->rule('-','+');
-$textmessage .= $texttab->body;
+	my $texttab = Text::Table->new(
+		      "login",
+	      \' | ', "Customer Name",
+	      \' | ', "Balance",
+	      \' | ', "Credit",
+	      \' | ', "Credit Expiry",
+	      \' | ', "Debit date",
+	      \' | ', "Month fee",
+	      \' | ', "Expire Date",
+	      \' | ', "Tariff Status",
+	      \' | ', "Disable Date",
+	      \' | ', "Reason Code");
+	foreach my $line (sort { $tab{$a}{'DisableDate'} cmp $tab{$b}{'DisableDate'} } keys(%tab)){
+		my @array = ($line,@{$tab{$line}}{qw/FIO Deposit Credit CreditExpiryDate DebitDate MonthFee ExpireDate TSTATUS DisableDate Errno/});
+		$texttab->load([@array]);
+	};
+
+	my $textmessage = $texttab->title;
+	$textmessage .= $texttab->rule('-','+');
+	$textmessage .= $texttab->body;
+
+	return $textmessage;
+}
+
 
 my $footer = <<EOF
 
@@ -225,7 +244,18 @@ if ($begin_time > 0)  {
 	$footer .= sprintf("\n\n GT: %2.5f\n", $gen_time);
 }
 
-my $htmlmessage = sprintf "<p>%s</p>\n%s\n",$htmltab->getTable,$footer;
+my $htmlmessage;
+$htmlmessage .=  "<p>customers who are suspended or going to be suspended automatically</p>";
+$htmlmessage .= generate_htmltab(%active_tab);
+$htmlmessage .=  "<p>customers who was cancelled or suspended manually by request</p>";
+$htmlmessage .= generate_htmltab(%disabled_tab);
+$htmlmessage .= "\n$footer\n";
+
+my $textmessage;
+$textmessage .=  "customers who are suspended or going to be suspended automatically\n";
+$textmessage .= generate_texttab(%active_tab);
+$textmessage .=  "customers who was cancelled or suspended manually by request\n";
+$textmessage .= generate_texttab(%disabled_tab);
 $textmessage .= $footer;
 
 if ($DEBUG) {
