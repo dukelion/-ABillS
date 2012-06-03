@@ -24,13 +24,13 @@
 <link rel="alternate" type="application/rss+xml" title="Current Namespace" href="/wiki/feed.php?mode=list&amp;ns=abills:docs_03:install"/>
 <link rel="alternate" type="text/html" title="Plain HTML" href="/wiki/doku.php/abills:docs_03:install:en?do=export_xhtml"/>
 <link rel="alternate" type="text/plain" title="Wiki Markup" href="/wiki/doku.php/abills:docs_03:install:en?do=export_raw"/>
-<link rel="stylesheet" media="screen" type="text/css" href="/wiki/lib/exe/css.php?t=sidebar&amp;tseed=1327656554"/>
-<link rel="stylesheet" media="all" type="text/css" href="/wiki/lib/exe/css.php?s=all&amp;t=sidebar&amp;tseed=1327656554"/>
-<link rel="stylesheet" media="print" type="text/css" href="/wiki/lib/exe/css.php?s=print&amp;t=sidebar&amp;tseed=1327656554"/>
+<link rel="stylesheet" media="screen" type="text/css" href="/wiki/lib/exe/css.php?t=sidebar&amp;tseed=1318248920"/>
+<link rel="stylesheet" media="all" type="text/css" href="/wiki/lib/exe/css.php?s=all&amp;t=sidebar&amp;tseed=1318248920"/>
+<link rel="stylesheet" media="print" type="text/css" href="/wiki/lib/exe/css.php?s=print&amp;t=sidebar&amp;tseed=1318248920"/>
 <script type="text/javascript"><!--//--><![CDATA[//><!--
 var NS='abills:docs_03:install';var JSINFO = {"id":"abills:docs_03:install:en","namespace":"abills:docs_03:install"};
 //--><!]]></script>
-<script type="text/javascript" charset="utf-8" src="/wiki/lib/exe/js.php?tseed=1327656554"></script>
+<script type="text/javascript" charset="utf-8" src="/wiki/lib/exe/js.php?tseed=1318248920"></script>
 
   <link rel="shortcut icon" href="/wiki/lib/tpl/sidebar/images/favicon.ico" />
 
@@ -118,19 +118,9 @@ pageTracker._trackPageview();
 </li>
 <li class="level2"><div class="li"> <a href="/wiki/doku.php/abills:docs:features:ru" class="wikilink1" title="abills:docs:features:ru">Возможности</a></div>
 </li>
-</ul>
-</li>
-<li class="level1"><div class="li"> Установка</div>
+<li class="level2"><div class="li"> Documentation</div>
 <ul>
-<li class="level3"><div class="li"> <a href="/wiki/doku.php/abills:docs:manual:install:ru" class="wikilink1" title="abills:docs:manual:install:ru">Установка Универсальная</a></div>
-</li>
-<li class="level3"><div class="li"> <a href="/wiki/doku.php/abills:docs:manual:install_freebsd:ru" class="wikilink1" title="abills:docs:manual:install_freebsd:ru">FreeBSD</a></div>
-</li>
-<li class="level3"><div class="li"> <a href="/wiki/doku.php/abills:docs:manual:install_ubuntu:ru" class="wikilink1" title="abills:docs:manual:install_ubuntu:ru">Ubuntu</a></div>
-</li>
-<li class="level3"><div class="li"> <a href="/wiki/doku.php/abills:docs:manual:install_debian:ru" class="wikilink1" title="abills:docs:manual:install_debian:ru">Debian</a></div>
-</li>
-<li class="level3"><div class="li"> <a href="/wiki/doku.php/abills:docs:ipv6:ru" class="wikilink1" title="abills:docs:ipv6:ru">IPv6</a></div>
+<li class="level3"><div class="li"> <a href="/wiki/doku.php/abills:docs:manual:install:ru" class="wikilink1" title="abills:docs:manual:install:ru">Установка</a></div>
 </li>
 <li class="level3"><div class="li"> <a href="/wiki/doku.php/abills:docs:other:migration:ru" class="wikilink1" title="abills:docs:other:migration:ru">Миграция</a></div>
 </li>
@@ -138,6 +128,10 @@ pageTracker._trackPageview();
 </li>
 </ul>
 </li>
+</ul>
+</li>
+</ul>
+<ul>
 <li class="level1"><div class="li"> Modules</div>
 <ul>
 <li class="level4"><div class="li"> <a href="/wiki/doku.php/abills:docs:abon:ru" class="wikilink1" title="abills:docs:abon:ru">Abon</a></div>
@@ -202,7 +196,7 @@ pageTracker._trackPageview();
 </li>
 </ul>
 </li>
-<li class="level1"><div class="li"> Конфигурация</div>
+<li class="level3"><div class="li"> Конфигурация</div>
 <ul>
 <li class="level4"><div class="li"> <a href="/wiki/doku.php/abills:docs:mschap_mppe:ru" class="wikilink1" title="abills:docs:mschap_mppe:ru">MS-CHAP &amp; MPPE</a></div>
 </li>
@@ -214,13 +208,13 @@ pageTracker._trackPageview();
 </li>
 </ul>
 </li>
-<li class="level1"><div class="li"> Frequently Asked Questions</div>
+<li class="level3"><div class="li"> Frequently Asked Questions</div>
 <ul>
 <li class="level4"><div class="li"> <a href="/wiki/doku.php/abills:docs:faq:ru" class="wikilink1" title="abills:docs:faq:ru">Russian</a></div>
 </li>
 </ul>
 </li>
-<li class="level1"><div class="li"> Misc</div>
+<li class="level3"><div class="li"> Misc</div>
 <ul>
 <li class="level4"><div class="li"> <a href="/wiki/doku.php/abills:docs:abm:ru" class="wikilink1" title="abills:docs:abm:ru">ABM</a></div>
 </li>
@@ -232,7 +226,7 @@ pageTracker._trackPageview();
 </li>
 </ul>
 </li>
-<li class="level1"><div class="li"> NAS Configuration</div>
+<li class="level3"><div class="li"> NAS Configuration</div>
 <ul>
 <li class="level4"><div class="li"> <a href="/wiki/doku.php/abills:docs:asterisk" class="wikilink1" title="abills:docs:asterisk">Asterisk</a></div>
 </li>
@@ -278,7 +272,7 @@ pageTracker._trackPageview();
 </li>
 </ul>
 </li>
-<li class="level1"><div class="li"> Development</div>
+<li class="level3"><div class="li"> Development</div>
 <ul>
 <li class="level4"><div class="li"> <a href="/wiki/doku.php/abills:docs:development:nas_integration:ru" class="wikilink1" title="abills:docs:development:nas_integration:ru">NAS Integration</a></div>
 </li>
@@ -286,7 +280,7 @@ pageTracker._trackPageview();
 </li>
 </ul>
 </li>
-<li class="level1"><div class="li"> <a href="/wiki/doku.php/abills:docs:download:download" class="wikilink1" title="abills:docs:download:download">Скачать</a></div>
+<li class="level3"><div class="li"> <a href="/wiki/doku.php/abills:docs:download:download" class="wikilink1" title="abills:docs:download:download">Скачать</a></div>
 </li>
 </ul>
 <ul>
@@ -333,7 +327,7 @@ pageTracker._trackPageview();
       <div class="bar-left" id="bar__bottomleft">
         <form class="button btn_source" method="post" action="/wiki/doku.php/abills:docs_03:install:en"><div class="no"><input type="hidden" name="do" value="edit" /><input type="hidden" name="rev" value="" /><input type="submit" value="Показать исходный текст" class="button" accesskey="v" title="Показать исходный текст [V]" /></div></form>        <form class="button btn_revs" method="get" action="/wiki/doku.php/abills:docs_03:install:en"><div class="no"><input type="hidden" name="do" value="revisions" /><input type="submit" value="История страницы" class="button" accesskey="o" title="История страницы [O]" /></div></form>      </div>
       <div class="bar-right" id="bar__bottomright">
-                                <form class="button btn_login" method="get" action="/wiki/doku.php/abills:docs_03:install:en"><div class="no"><input type="hidden" name="do" value="login" /><input type="hidden" name="sectok" value="08a85a8deb4f20d448f04df54c2add69" /><input type="submit" value="Войти" class="button" title="Войти" /></div></form>        <form class="button btn_index" method="get" action="/wiki/doku.php/abills:docs_03:install:en"><div class="no"><input type="hidden" name="do" value="index" /><input type="submit" value="Все страницы" class="button" accesskey="x" title="Все страницы [X]" /></div></form>        <a class="nolink" href="#dokuwiki__top"><input type="button" class="button" value="Наверх" onclick="window.scrollTo(0, 0)" title="Наверх" /></a>&nbsp;
+                                <form class="button btn_login" method="get" action="/wiki/doku.php/abills:docs_03:install:en"><div class="no"><input type="hidden" name="do" value="login" /><input type="hidden" name="sectok" value="b687780d8f9891272fe44e6fa5916992" /><input type="submit" value="Войти" class="button" title="Войти" /></div></form>        <form class="button btn_index" method="get" action="/wiki/doku.php/abills:docs_03:install:en"><div class="no"><input type="hidden" name="do" value="index" /><input type="submit" value="Все страницы" class="button" accesskey="x" title="Все страницы [X]" /></div></form>        <a class="nolink" href="#dokuwiki__top"><input type="button" class="button" value="Наверх" onclick="window.scrollTo(0, 0)" title="Наверх" /></a>&nbsp;
       </div>
       <div class="clearer"></div>
     </div>

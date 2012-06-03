@@ -507,12 +507,6 @@ sub reports_users {
  my $self=shift;
  my ($attr) = @_;
  
- $PG = ($attr->{PG}) ? $attr->{PG} : 0;
- $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
- $SORT = ($attr->{SORT}) ? $attr->{SORT} : 2;
- $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
-
-
  $self->query($db, "SET SQL_BIG_SELECTS=1;");
 
 my $GROUP   = '1';
@@ -532,33 +526,9 @@ if ($attr->{SESSION_ID}) {
 	push @WHERE_RULES, "session_id='$attr->{SESSION_ID}'";
 }
  
-
-my @tables = ();
-#Interval from date to date
+ #Interval from date to date
 if ($attr->{INTERVAL}) {
-	 my ($from, $to)=split(/\//, $attr->{INTERVAL}, 2);
-
-   my ($from_y, $from_m, $from_d)=split(/-/, $from);
-   my ($to_y, $to_m, $to_d)=split(/-/, $to);
-	 my ($y, $m, $d)  =split(/-/, $attr->{CUR_DATE});
-   my $START_DATE   = "$from_y$from_m";
-   my $FINISH_DATE  = "$to_y$to_m";
-
-   $self->query($db, "SHOW TABLES LIKE 'ipn_log_%';");
-   my $list = $self->{list};
-   
-   foreach my $line (@$list) {
-     my $table = $line->[0];
-     if ($table =~ m/ipn_log_(\d{4})_(\d{2})/) {
-  	   my $table_date="$1$2";
-  	   if ($table_date >= $START_DATE && $table_date <= $FINISH_DATE) {
-  	 	   print $table."\n" if ($debug > 1);
-  	 	   push @tables, $table;
-  	   }
-      }
-    }
-	
-	
+ 	my ($from, $to)=split(/\//, $attr->{INTERVAL}, 2);
   push @WHERE_RULES, "date_format(start, '%Y-%m-%d')>='$from' and date_format(start, '%Y-%m-%d')<='$to'";
 
    $attr->{TYPE}='-' if (! $attr->{TYPE});
@@ -581,10 +551,6 @@ if ($attr->{INTERVAL}) {
    elsif ($attr->{TYPE} eq 'GID') {
      $date = "u.gid"
     }
-   elsif ($attr->{TYPE} eq 'USER') {
-     $date = "u.id, u.uid"
-    }
-
 #   elsif ($attr->{GID} eq 'GID') {
 #   	 $date = "u.gid"
 #    }
@@ -660,59 +626,26 @@ if ($attr->{FROM_TIME} && $attr->{TO_TIME}) {
 
  $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
 
- my $sql = "SELECT $date,
+ $self->query($db, "SELECT $date,
    sum(l.traffic_in), sum(l.traffic_out), sum(l.sum),
    l.nas_id, l.uid
-   from %TABLE% l
+   from ipn_log l
    LEFT join  users u ON (l.uid=u.uid)
    LEFT join  trafic_tarifs tt ON (l.interval_id=tt.interval_id and l.traffic_class=tt.id)
-   $WHERE
-   GROUP BY $GROUP";
-
- my $sql2 = "SELECT count(*),  sum(l.traffic_in), sum(l.traffic_out)
-  from  %TABLE% l
-  $WHERE ";
-
-
- my $full_sql = '';
- my $full_sql2 = '';
-
- if ($#tables > -1) {
- 	 for(my $i=0; $i<=$#tables; $i++) {
- 	 	 my $table = $tables[$i];
- 	 	 my $sql3  = $sql;
- 	 	 $sql3     =~ s/\%TABLE\%/$table/g;
-	 	 
- 	 	 $full_sql .= "$sql3\n";
-
- 	 	 my $sql4 = $sql2;
- 	 	 $sql4    =~ s/\%TABLE\%/$table/g;
-     $full_sql2 .= "$sql4\n";
-
- 	 	 #if ($i<$#tables) {
- 	 	 	 $full_sql .= " UNION ";
- 	 	 	 $full_sql2 .= " UNION ";
- 	 	 # }
- 	  }
-  }
-# else {
- 	 $sql =~ s/\%TABLE\%/ipn_log/g;
- 	 $sql2 =~ s/\%TABLE\%/ipn_log/g;
- 	 $full_sql.=$sql;
- 	 $full_sql2.=$sql2;
-#  }
-
- $full_sql .= " 
-   ORDER BY $SORT $DESC ";
-
-
- $self->query($db, $full_sql);
+   $WHERE 
+   GROUP BY $GROUP
+  ;");
   #
 
  my $list = $self->{list};
 
 
- $self->query($db, $full_sql2);
+ $self->query($db, "SELECT 
+  count(*),  sum(l.traffic_in), sum(l.traffic_out)
+  from  ipn_log l
+
+  $WHERE
+  ;");
 
   ($self->{COUNT},
    $self->{SUM}) = @{ $self->{list}->[0] };
@@ -1118,38 +1051,56 @@ sub ipn_log_rotate {
   
   my ($Y, $M, $D)=split(/_/, $DATE);
   
- 
+   
+  $self->query($db, "SHOW TABLES LIKE 'ipn_traf_detail_$DATE';");
+  return $self if ($self->{TOTAL} > 0);
+  
+  
  my @rq = (); 
  my $version = $self->db_version();
-
  #Detail Daily rotate
- if ( $attr->{DETAIL} ) {
- 	 $self->query($db, "SELECT count(*) FROM ipn_traf_detail;");
- 	 
-   if ($self->{list}->[0]->[0] > 0) {
-     $self->query($db, "SHOW TABLES LIKE 'ipn_traf_detail_$DATE';");  
-     if ($self->{TOTAL} > 0 && $version > 4.1) {
-         @rq = (
-          'CREATE TABLE IF NOT EXISTS ipn_traf_detail_new LIKE ipn_traf_detail;',
-          'RENAME TABLE ipn_traf_detail TO ipn_traf_detail_'. $DATE .
-          ', ipn_traf_detail_new TO ipn_traf_detail;',
-          'DELETE FROM ipn_unknow_ips;',
-          );
-      }
-     else {
-       @rq = ("DELETE FROM ipn_traf_detail WHERE f_time < f_time - INTERVAL $attr->{PERIOD} DAY;");
-      }
-    }
+ if ($attr->{DETAIL} && $version > 4.1 ) {
+   @rq = (
+    'CREATE TABLE IF NOT EXISTS ipn_traf_detail_new LIKE ipn_traf_detail;',
+    'RENAME TABLE ipn_traf_detail TO ipn_traf_detail_'. $DATE .
+    ', ipn_traf_detail_new TO ipn_traf_detail;',
+    'DELETE FROM ipn_unknow_ips;',
+      );
   }
-
+ else {
+   @rq = ("DELETE FROM ipn_traf_detail WHERE f_time < f_time - INTERVAL $attr->{PERIOD} DAY;");
+  }
 
  #IPN log rotate
  if ($attr->{LOG} && $version > 4.1) {
+#   push @rq, 
+#    'DROP TABLE IF EXISTS ipn_log_new;',
+#    'CREATE TABLE ipn_log_new LIKE ipn_log;',
+#
+#    'INSERT INTO ipn_log_new (
+#         uid,
+#         start,
+#         stop,
+#         traffic_class,
+#         traffic_in,
+#         traffic_out,
+#         session_id,
+#         sum
+#    ) 
+#    SELECT uid, start, start, traffic_class, traffic_in, traffic_out,  session_id, sum FROM ipn_log 
+#      WHERE start >= \''. $admin->{DATE} .'\' - INTERVAL '. $attr->{PERIOD} .' DAY; ',
+#
+#
+#    'DROP TABLE IF EXISTS ipn_log_backup;',
+#    'RENAME TABLE 
+#      ipn_log  TO ipn_log_backup, 
+#      ipn_log_new TO ipn_log;',
+#    'DELETE FROM ipn_log_backup  WHERE start >= \''. $admin->{DATE}. '\' - INTERVAL '. $attr->{PERIOD} .' DAY; ';
    push @rq, 'DROP TABLE IF EXISTS ipn_log_new;',
              'CREATE TABLE ipn_log_new LIKE ipn_log;',
              'DROP TABLE IF EXISTS ipn_log_backup;',
              'RENAME TABLE ipn_log TO ipn_log_backup, ipn_log_new TO ipn_log;',
-             'CREATE TABLE IF NOT EXISTS ipn_log_'. $Y .'_'. $M .' LIKE ipn_log;',
+             'CREATE TABLE ipn_log_'. $Y .'_'. $M .' LIKE ipn_log;',
              'INSERT INTO ipn_log_'. $Y .'_'. $M ." (
         uid, 
         start,
@@ -1325,7 +1276,7 @@ if ($#GROUP_RULES > -1) {
 
 my @tables = ();
 
-$self->query($db, "SHOW TABLES LIKE 'ipn_traf_detail_%';");
+$self->query($db, "SHOW TABLES;");
 $list = $self->{list};
 
 foreach my $line (@$list) {
@@ -1365,6 +1316,8 @@ foreach my $table (@tables) {
  $self->query($db, "$sql LIMIT $PG,$PAGE_ROWS");
  $list = $self->{list};
 
+  
+  
   if ($self->{TOTAL} > 0 && $#GROUP_RULES < 0) {
     #$self->{debug}=1;
     my $totals = 0;

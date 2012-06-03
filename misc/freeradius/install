@@ -1,5 +1,4 @@
 :DEFAULT:RLM_PERL=1:Configure RLM_PERL
-:DEFAULT:RADIUS_CLIENT_IP=127.0.0.1:Radius client IP address
 :DEFAULT:FREERADIUS=2:Radius Version 1 fo 1.xx or 2 for 2.xx
 :FREERADIUS=1,RLM_PERL=0:FILE=users            > [/usr/local/etc/raddb]/users
 :FREERADIUS=1,RLM_PERL=0:FILE=acct_users       > [/usr/local/etc/raddb]/acct_users
@@ -27,5 +26,4 @@ clients.conf     > [/usr/local/etc/raddb]/clients.conf
 
 
 #:OS=FREEBSD:exec: LD_P=`grep -c LD_PRELOAD /usr/local/etc/rc.d/radiusd`; if [ w$LD_P = w0 ]; then  PERL_VERSION=`pkg_info | grep perl- | sed "s/.*-\([0-9\.]*\).*/\1/g"`; sed -i '' -e "s,run_rc_command,start_precmd=\\\"export LD_PRELOAD=/usr/local/lib/perl5/${PERL_VERSION}/mach/CORE/libperl.so\\\"; run_rc_command,g" "/usr/local/etc/rc.d/radiusd"; fi; /usr/local/etc/rc.d/radiusd restart
-:OS=FREEBSD:exec:/usr/local/etc/rc.d/radiusd restart
 

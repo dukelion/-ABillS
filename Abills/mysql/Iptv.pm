@@ -96,8 +96,8 @@ sub user_info {
    $self->{TP_ID}, 
    $self->{TP_NAME}, 
    $self->{TP_NUM}, 
+   $self->{CID}, 
    $self->{FILTER_ID}, 
-   $self->{CID},    
    $self->{STATUS},
    $self->{PIN},
    $self->{VOD},
@@ -177,16 +177,14 @@ sub user_add {
              filter_id,
              pin,
              vod,
-             dvcrypt_id,
-             cid
+             dvcrypt_id
              )
         VALUES ('$DATA{UID}', now(),
         '$DATA{TP_ID}', '$DATA{STATUS}',
         '$DATA{FILTER_ID}',
         '$DATA{PIN}',
         '$DATA{VOD}',
-        '$DATA{DVCRYPT_ID}',
-        '$DATA{CID}'
+        '$DATA{DVCRYPT_ID}'
          );", 'do');
 
   return $self if ($self->{errno});
@@ -213,8 +211,7 @@ sub user_change {
               FILTER_ID        => 'filter_id',
               PIN              => 'pin',
               VOD              => 'vod',
-              DVCRYPT_ID       => 'dvcrypt_id',
-              CID              => 'cid'
+              DVCRYPT_ID       => 'dvcrypt_id'
              );
   
   $attr->{VOD} = (! defined($attr->{VOD})) ? 0 : 1;
@@ -306,7 +303,7 @@ sub user_list {
 
  $self->{SEARCH_FIELDS} = '';
  $self->{SEARCH_FIELDS_COUNT}=0;
- my $EXT_TABLE = '';
+
  undef @WHERE_RULES;
  push @WHERE_RULES, "u.uid = service.uid";
  
@@ -388,17 +385,6 @@ sub user_list {
   }
 
 
- if($attr->{SHOW_CONNECTIONS}) {
- 	 $EXT_TABLE = "LEFT JOIN dhcphosts_hosts dhcp ON (dhcp.uid=u.uid)
- 	               LEFT JOIN nas  ON (nas.id=dhcp.nas)"; 	
-  
-   $self->{SEARCH_FIELDS}="nas.ip, dhcp.ports, nas.nas_type, nas.mng_user, DECODE(nas.mng_password, '$CONF->{secretkey}'),";
-   $self->{SEARCH_FIELDS_COUNT}+=5;
-   
-  }
- 
-
-
  $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
 
 
@@ -435,7 +421,6 @@ if ($attr->{SHOW_CHANNELS}) {
      LEFT JOIN bills b ON (u.bill_id = b.id)
      LEFT JOIN companies company ON  (u.company_id=company.id) 
      LEFT JOIN bills cb ON  (company.bill_id=cb.id)
-     $EXT_TABLE
 $WHERE 
   AND i.id=ti_c.interval_id
   AND uc.channel_id=c.id
@@ -470,7 +455,6 @@ else {
      LEFT JOIN tarif_plans tp ON (tp.id=service.tp_id) 
      LEFT JOIN companies company ON  (u.company_id=company.id) 
      LEFT JOIN bills cb ON  (company.bill_id=cb.id)
-     $EXT_TABLE
      $WHERE 
      GROUP BY u.uid
      ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;");
@@ -899,60 +883,5 @@ sub channel_ti_list {
 
   return $list;
 }
-
-
-#**********************************************************
-#
-#**********************************************************
-sub reports_channels_use  {
-  my $self = shift;
-	my ($attr)=@_;
-	
-	
- $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
- $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
- $PG = ($attr->{PG}) ? $attr->{PG} : 0;
- $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
-	my $sql = "SELECT c.num,  c.name, count(uc.uid), sum(if(if(company.id IS NULL, b.deposit, cb.deposit)>0, 0, 1))
-FROM iptv_channels c
-LEFT JOIN iptv_users_channels uc ON (c.id=uc.channel_id)
-LEFT JOIN users u ON (uc.uid=u.uid)
-LEFT JOIN bills b ON (u.bill_id = b.id)
-LEFT JOIN companies company ON  (u.company_id=company.id) 
-LEFT JOIN bills cb ON  (company.bill_id=cb.id)
-GROUP BY c.id
-ORDER BY $SORT $DESC ";
-
-
-#	$sql = "select c.num, c.name, count(*), c.id
-#FROM iptv_channels c 
-#LEFT JOIN iptv_ti_channels ic  ON (c.id=ic.channel_id)
-#LEFT JOIN intervals i ON (ic.interval_id=i.id)
-#LEFT JOIN tarif_plans tp ON (tp.tp_id=i.tp_id)
-#LEFT JOIN iptv_main u ON (tp.tp_id=u.tp_id)
-#group BY c.id
-#     ORDER BY $SORT $DESC ;";
-	
-	
-	$self->query($db, $sql);
-
- return $self if($self->{errno});
-
- my $list = $self->{list};
-
-# if ($self->{TOTAL} >= 0) {
-#    $self->query($db, "SELECT count(*), sum(if (ic.channel_id IS NULL, 0, 1)) 
-#     FROM iptv_channels c
-#     LEFT JOIN iptv_ti_channels ic ON (c.id=ic.channel_id and ic.interval_id='$attr->{TI}')
-#     $WHERE
-#    ");
-#
-#    ($self->{TOTAL}, $self->{ACTIVE}) = @{ $self->{list}->[0] };
-#   }
-
-  return $list;	
-}
-
-
 
 1

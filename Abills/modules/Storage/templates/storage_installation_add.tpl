@@ -1,5 +1,5 @@
 
-<table clas=form>
+<table>
 <form action=$SELF_URL ID=mapForm name=adress align=center>
 <input type=hidden name=index value=$index>
 <input type=hidden name=ID value=%ID%>

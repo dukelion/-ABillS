@@ -417,12 +417,10 @@ sub form_info {
      form_neg_deposit($user) ;
     }
   else {
-  	if (! $conf{DOCS_SKIP_NEXT_PERIOD_ACCOUNT}) {
-  	  if (in_array('Docs', \@MODULES) ) {
-    	  $FORM{ALL_SERVICES}=1;
-    	  load_module('Docs', $html);
-    	  docs_invoice();
-       }
+  	if (in_array('Docs', \@MODULES) ) {
+    	$FORM{ALL_SERVICES}=1;
+    	load_module('Docs', $html);
+    	docs_account();
      }
    }
   
@@ -462,7 +460,7 @@ sub form_info {
   my $sum  = ($user->{DEPOSIT} < 0) ? abs($user->{DEPOSIT}*2) : 0;
   $pages_qs = "&SUM=$sum&sid=$sid";
   if (in_array('Docs', \@MODULES) ) {
-  	my $fn_index = get_function_index('docs_invoices_list');
+  	my $fn_index = get_function_index('docs_accounts_list');
     $user->{DOCS_ACCOUNT} = $html->button("$_INVOICE_CREATE", "index=$fn_index$pages_qs", { BUTTON => 1} );
    }
 
@@ -509,10 +507,12 @@ sub form_info {
 sub form_login {
  my %first_page = ();
 
+
  if ($conf{tech_works}) {
  	  $html->message('info', $_INFO, "$conf{tech_works}");
  	  return 0;
   }
+
  
 #Make active lang list
 if ($conf{LANGS}) {
@@ -523,7 +523,7 @@ if ($conf{LANGS}) {
 		my ($lang, $lang_name)=split(/:/, $l);
 		$lang =~ s/^\s+//;
 		$LANG{$lang}=$lang_name;
-	 }
+	 } 
 }
  
  my %QT_LANG = (
@@ -616,26 +616,11 @@ if ($conf{PASSWORDLESS_ACCESS}) {
       $ret     = $list->[0]->[11];
       #$time    = time;
       $sid     = mk_unique_value(14);
+      $action  = 'Access';
       $user->info($ret);
 
       $user->{REMOTE_ADDR}=$REMOTE_ADDR;
       return ($ret, $sid, $login);
-    }
-   else {
-     require  Dv;
-     Dv->import();
-     my $Dv   = Dv->new($db, $admin, \%conf);
-	   my $list = $Dv->info(0, { IP => "$REMOTE_ADDR" });
-
-     if ($Dv->{TOTAL} == 1) {
-       $login   = $Dv->{LOGIN} || '';
-       $ret     = $Dv->{UID};
-       #$time    = time;
-       $sid     = mk_unique_value(14);
-       $user->info($ret);
-       $user->{REMOTE_ADDR}=$REMOTE_ADDR;
-       return ($ret, $sid, $user->{LOGIN});      
-      }
     }
   }
 
@@ -707,9 +692,12 @@ if (defined($res) && $res > 0) {
     	                       REMOTE_ADDR => $REMOTE_ADDR,
     	                       EXT_INFO    => $ENV{HTTP_USER_AGENT}
     	                     });
+
+    $action = 'Access';
    }
   else {
     $html->message('err', "$_ERROR", "$ERR_WRONG_PASSWD");
+    $action = 'Error';
    }
  }
 else {
@@ -720,6 +708,7 @@ else {
 
    $html->message('err', "$_ERROR", "$ERR_WRONG_PASSWD");
    $ret = 0;
+   $action = 'Error';
  }
 
  return ($ret, $sid, $login);
@@ -1299,7 +1288,7 @@ sub form_neg_deposit {
   my ($user, $attr)=@_;
 
   if (in_array('Docs', \@MODULES) ) {
-   	my $fn_index = get_function_index('docs_invoices_list');
+   	my $fn_index = get_function_index('docs_accounts_list');
     $user->{DOCS_BUTTON} = $html->button("$_INVOICE_CREATE", "index=$fn_index$pages_qs", { BUTTON => 1} );
    }
 

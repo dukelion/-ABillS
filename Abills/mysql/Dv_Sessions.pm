@@ -248,8 +248,7 @@ sub online {
    DV_STATUS       => 'dv.disable',
    
    TP_NAME            => 'tp.tp_name',
-   TP_BILLS_PRIORITY  => 'tp.bills_priority',
-   TP_CREDIT          => 'tp.credit',
+   TP_BILLS_PRIORITY  => 'tp.bills_priority'
   );
 
 
@@ -261,8 +260,6 @@ sub online {
   
   my $fields = '';
   my $port_id=0;
-  
-  
   for(my $i=0; $i<=$#RES_FIELDS; $i++) {
   	if ($RES_FIELDS[$i] == 2) {
   		$port_id=$i;
@@ -272,10 +269,6 @@ sub online {
         LEFT JOIN streets ON (streets.id=builds.street_id)";
       $FIELDS_ALL[16]='concat(streets.name,\' \', builds.number, \'/\', pi.address_flat) AS ADDRESS';  
   	 }
- 	  elsif ($RES_FIELDS[$i] == 11){
- 	 	  $FIELDS_ALL[11] = "CONCAT(dv.tp_id, '/', tp.name)";
- 	 	  $EXT_TABLE .= "LEFT JOIN tarif_plans tp ON (tp.id=dv.tp_id AND tp.module='Dv')";
- 	   }
     
     $fields .= "$FIELDS_ALL[$RES_FIELDS[$i]], ";
    }
@@ -287,7 +280,7 @@ sub online {
     $RES_FIELDS_COUNT = 0;
   	foreach my $field ( @{ $attr->{FIELDS_NAMES} } ) {
   	  $fields .= "$FIELDS_NAMES_HASH{$field},\n ";	
-  	  if ($field =~ /TP_BILLS_PRIORITY|TP_NAME|FILTER_ID|TP_CREDIT/ && $EXT_TABLE !~ /tarif_plans/) {
+  	  if ($field =~ /TP_BILLS_PRIORITY|TP_NAME|FILTER_ID/ && $EXT_TABLE !~ /tarif_plans/) {
   	  	$EXT_TABLE .= "LEFT JOIN tarif_plans tp ON (tp.id=dv.tp_id AND tp.module='Dv')";
   	   }
   	  $RES_FIELDS_COUNT++;
@@ -361,17 +354,14 @@ sub online {
  	 if ($attr->{FILTER_FIELD} == 3){
  	 	 $filter_field = "INET_NTOA(framed_ip_address)";
  	  }
- 	 #elsif ($attr->{FILTER_FIELD} == 11){
- 	 #	 $filter_field = "CONCAT(dv.tp_id, tp.name)";
- 	 #	 $EXT_TABLE .= "LEFT JOIN tarif_plans tp ON (tp.id=dv.tp_id AND tp.module='Dv')"
- 	 # }
  	 elsif($attr->{FILTER_FIELD} == 16 && $CONF->{ADDRESS_REGISTER}) {
      if ($EXT_TABLE !~ /builds/) {
        $EXT_TABLE .= "INNER JOIN builds b ON (builds.id=pi.location_id)
        INNER JOIN streets s ON (streets.id=builds.street_id)";
  	 	  }
 
- 	 	 $filter_field = 'concat(streets.name, \', \', builds.number)'; 	 	 
+ 	 	 $filter_field = 'concat(streets.name, \', \', builds.number)';
+ 	 	 
  	  }
  	 else {
  	 	 $filter_field = $FIELDS_ALL[$attr->{FILTER_FIELD}];

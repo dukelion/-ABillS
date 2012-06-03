@@ -98,29 +98,22 @@ sub voip_chg_tp {
   }
 
  my $period = $FORM{period} || 0;
+
  use Shedule;
  $shedule = Shedule->new($db, $admin);
 
 if ($FORM{set}) {
-  if ($period > 0) {
-
-    my ($year, $month, $day);
-    if ($period == 1) {
-      ($year, $month, $day)=split(/-/, $Voip->{ABON_DATE}, 3);
-     }
-    else {
-    	($year, $month, $day)=split(/-/, $FORM{DATE}, 3);
-     }
-
-    $shedule->add( {UID     => $user->{UID},
-                   TYPE     => 'tp',
-                   ACTION   => $FORM{TP_ID},
-    	             D        => $day,
-                   M        => $month,
-                   Y        => $year,
+  if ($period == 1) {
+    $FORM{date_M}++;
+    $shedule->add( {UID => $user->{UID},
+                   TYPE => 'tp',
+                   ACTION => $FORM{TP_ID},
+    	             D => $FORM{date_D},
+                   M => $FORM{date_M},
+                   Y => $FORM{date_Y},
                    DESCRIBE => "$message<br>
-                   $_FROM: '$year-$month-$day'",
-                   MODULE   => 'Voip'
+                   $_FROM: '$FORM{date_Y}-$FORM{date_M}-$FORM{date_D}'",
+                   MODULE => 'Voip'
                     });
 
     if ($shedule->{errno}) {
@@ -143,8 +136,8 @@ if ($FORM{set}) {
     }
 
   }
- }
-elsif($FORM{del}) {
+}
+elsif($FORM{del} && $FORM{is_js_confirmed}) {
   $shedule->del( { UID => $user->{UID},
    	               ID  => $FORM{SHEDULE_ID}  } 
    	            );
@@ -152,7 +145,10 @@ elsif($FORM{del}) {
   $html->message('info', $_DELETED, "$_DELETED [$FORM{SHEDULE_ID}]");
 }
 
-  my $tariffs;
+my $tariffs;
+
+
+
   $shedule->info( {UID     => $user->{UID},
                    TYPE    => 'tp',
                    MODULE  => 'Voip'
@@ -171,8 +167,8 @@ elsif($FORM{del}) {
                                       ]
                                } );
   	$tariffs->{TARIF_PLAN_SEL} = $table->show(). $html->form_input('SHEDULE_ID', "$shedule->{SHEDULE_ID}", {TYPE => 'HIDDEN' });
-  	$tariffs->{ACTION}         = 'del';
-  	$tariffs->{LNG_ACTION}     = $_DEL;
+  	$tariffs->{ACTION}='del';
+  	$tariffs->{LNG_ACTION}=$_DEL;
   }
  else {
    $tariffs->{TARIF_PLAN_SEL}=$html->form_select('TP_ID', 
@@ -181,13 +177,12 @@ elsif($FORM{del}) {
  	                                          SEL_MULTI_ARRAY   => $Voip->tp_list(),
  	                                          MULTI_ARRAY_KEY   => 8,
  	                                          MULTI_ARRAY_VALUE => '0,1',
- 	                                          NO_ID             => 1,
- 	                                          MAIN_MENU         => get_function_index('voip_tp'),
+ 	                                          NO_ID             => 1
  	                                        });
 
-   $tariffs->{PARAMS}    .= form_period($period);	
-   $tariffs->{ACTION}    = 'set';
-   $tariffs->{LNG_ACTION}= $_CHANGE;
+   $tariffs->{PARAMS} .= form_period($period);	
+   $tariffs->{ACTION}='set';
+   $tariffs->{LNG_ACTION}=$_CHANGE;
   }
 
  
@@ -195,8 +190,9 @@ elsif($FORM{del}) {
 my $tp_index = get_function_index('voip_tp');
 
 $tariffs->{UID}     = $attr->{USER_INFO}->{UID};
+$tariffs->{m}       = $m;
 $tariffs->{TP_ID}   = $user->{TP_NUM};
-$tariffs->{TP_NAME} = "$user->{TP_NUM}:$user->{TP_NAME} ";
+$tariffs->{TP_NAME} = "$user->{TP_ID}:$user->{TP_NAME} ". $html->button("$_TARIF_PLANS", "index=$tp_index&TP_ID=$user->{TP_ID}", { TITLE => "$_TP", CLASS => 'show rightAlignText' } ). "";
 
 print $html->tpl_show(templates('form_chg_tp'), $tariffs);
 }
@@ -221,34 +217,13 @@ sub voip_users_list {
    $pages_qs .= "&TP_ID=$FORM{TP_ID}";
   }
 
-  $Voip->{STATUS_SEL}   = $html->form_select('DISABLE', 
-                                          { 
- 	                                          SELECTED     => $FORM{DISABLE} || '',
- 	                                          SEL_HASH     => { '' => $_ALL,
- 	                                          	                0  => $service_status[0],
- 	                                          	                1  => $service_status[1],
- 	                                          	                2  => $service_status[2],
- 	                                          	                3  => $service_status[3],  
- 	                                          	                },
-                                            NO_ID       => 1,
-                                            STYLE        => \@service_status_colors,
- 	                                        });
 
-  $Voip->{GROUP_SEL}  = sel_groups();
-  $Voip->{TP_SEL}     = $html->form_select('TP_ID', 
-                                          { 
- 	                                          SELECTED          => $FORM{TP_ID},
- 	                                          SEL_MULTI_ARRAY   => [[ '', '' ],  @{ $Voip->tp_list() } ],
- 	                                          MULTI_ARRAY_KEY   => 8,
- 	                                          MULTI_ARRAY_VALUE => '0,1',
- 	                                          NO_ID             => 1,
- 	                                          MAIN_MENU         => get_function_index('voip_tp'),
- 	                                        });
-
-  
-  form_search({ SEARCH_FORM => $html->tpl_show(_include('voip_users_search', 'Voip'),
- 	                                            { %$Voip, %FORM },
- 	                                            { OUTPUT2RETURN => 1 }) });
+  form_search({ SEARCH_FORM =>  	
+  	"<tr><td colspan=2><hr></td></tr>
+     <tr><td>IP (>,<)</td><td><input type=text name=IP value='%IP%'></td></tr>
+     <tr><td>CID</td><td><input type=text name=CID value='%CID%'></td></tr>
+     <tr><td>NAMBER (>,<):</td><td><input type=text name=NUMBER value='%NUMBER%'></td></tr>\n"
+   });
  
 
  print $html->letters_list({ pages_qs => $pages_qs  }); 
@@ -283,7 +258,6 @@ elsif ($Voip->{TOTAL} == 1) {
 
 
 my $table = $html->table( { width      => '100%',
-                            caption    => "Voip $_USERS",
                             border     => 1,
                             title      => \@TITLE,
                             cols_align => ['left', 'left', 'right', 'right', 'left', 'center', 'left', 'center', 'center', 'center'],
@@ -358,7 +332,7 @@ sub voip_user {
 	elsif($FORM{del} && $FORM{is_js_confirmed}) {
     $Voip->user_del();
     if (! $Voip->{errno}) {
-      $html->message('info', $_INFO, "$_DELETED");	
+      $html->message('info', $_INFO, "$_CHANGED");	
      }
 	 }
 
@@ -373,26 +347,25 @@ sub voip_user {
 	  $html->message('info', $_INFO, $_NOT_ACTIVE);
 	  $user              = $Voip->defaults();
 	  $user->{ACTION}    = 'add';
-	  $user->{LNG_ACTION}= $_ACTIVATE;	  
+	  $user->{LNG_ACTION}= $_ACTIVATE;
+	  
 	  $user->{TP_NAME}   = $html->form_select('TP_ID', 
                                           { 
  	                                          SELECTED          => $FORM{TP_ID},
  	                                          SEL_MULTI_ARRAY   => $Voip->tp_list(),
  	                                          MULTI_ARRAY_KEY   => 8,
  	                                          MULTI_ARRAY_VALUE => '0,1',
- 	                                          NO_ID             => 1,
- 	                                          MENU              => get_function_index('voip_tp')
+ 	                                          NO_ID             => 1
  	                                        });
 	  
 	 }
 	else {
-		$user->{CHANGE_TP_BUTTON}= $html->button($_CHANGE, 'UID='.$user->{UID}.'&index='.  get_function_index('voip_chg_tp'), { CLASS => 'change rightAlignText' });
-	  $user->{DEL_BUTTON}      = "$_CONFIRM:".$html->form_input('is_js_confirmed', "1", { TYPE => 'checkbox' }).
-	  $html->form_input('del', "$_DEL", { TYPE => 'submit' });
-	  $user->{ACTION}          = 'set';
-	  $user->{LNG_ACTION}      = $_CHANGE;
+		$user->{CHANGE_TP_BUTTON}=$html->button($_CHANGE, 'UID='.$user->{UID}.'&index='.  get_function_index('voip_chg_tp'), { CLASS => 'change rightAlignText' });
+	  $user->{ACTION}='set';
+	  $user->{LNG_ACTION}=$_CHANGE;
 	 }
 
+  #$user->{DISABLE}     = ($user->{DISABLE} == 1) ?  ' checked' : '';
   $user->{ALLOW_ANSWER}= ' checked' if($user->{ALLOW_ANSWER} == 1);
   $user->{ALLOW_CALLS} = ' checked' if($user->{ALLOW_CALLS} == 1);
   
@@ -412,6 +385,10 @@ sub voip_user {
   if ($user->{DISABLE} > 0) { 
     $user->{STATUS_COLOR} = $service_status_colors[$user->{DISABLE}] ;
    }
+  
+  
+  
+
   
   $user->{NAS_SEL} = $html->form_select('PROVISION_NAS_ID', 
                                          { 
@@ -1885,6 +1862,7 @@ if ($conf{ERROR2DB}) {
  	                                          SELECTED     => $FORM{ACTION},
  	                                          SEL_ARRAY    => \@ACTIONS,
  	                                        });
+
 
   form_search({ SEARCH_FORM => $html->tpl_show(_include('voip_errors_search', 'Voip'),
  	                                            { %FORM, %$Voip },

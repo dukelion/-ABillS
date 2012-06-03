@@ -13,9 +13,7 @@
 
 <tr><td>$_STATUS:</td><td bgcolor=%STATUS_COLOR%>%STATUS_SEL%</td></tr>
 %PROVISION%
-<tr><th class=even>
-%DEL_BUTTON%</th>
-<th><input type=submit name='%ACTION%' value='%LNG_ACTION%'></th></tr>
+<tr><th colspan=2 class=even><input type=submit name='%ACTION%' value='%LNG_ACTION%'></th></tr>
 </table>
 
 </form>

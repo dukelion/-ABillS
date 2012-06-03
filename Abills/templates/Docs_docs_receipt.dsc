@@ -1,7 +1,0 @@
-DATE:Дата создания счета:russian:(font_size=9 x=340;y=669, x=500;y=482)
-INVOICE_NUM:Номер счёта:russian:(font_size=8 x=490;y=568, x=240;y=524)
-RECEIPT_NUM:Номер счёта:russian:(x=150;y=669, x=505;y=653)
-FIO:Наименование лиента:russian:(x=155;y=564, x=450;y=614)
-A_FIO:УХНБ:russian:(x=280;y=405)
-ORDER_SUM_1:Сума по товару:russian:(font_size=9 x=245;y=590)
-SUM_LIT:УХНБ:russian:(x=74;y=485, x=450;y=510)

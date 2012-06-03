@@ -3,7 +3,7 @@
 
 AUTH_LOG=/usr/abills/var/log/abills.log
 ACCT_LOG=/usr/abills/var/log/acct.log
-VERSION=0.13
+VERSION=0.12
 
 
 USER_NAME=test
@@ -146,27 +146,19 @@ if [ x${RADIUS_ACTION} = x1 ]; then
 
   if [ x${RADIUS_IP} = x ]; then
     RADIUS_IP=127.0.0.1;
-  else 
-    PORT=`echo ${RADIUS_IP}  | awk -F : '{ print $2 }'`
-    RADIUS_IP=`echo ${RADIUS_IP}  | awk -F : '{ print $1 }'`
   fi;
 
-  echo "RAD FILE: ${RAD_FILE}";
-  
+echo "RAD FILE: ${RAD_FILE}";
+
   if [ x${RAD_FILE} != x ]; then
     if [ x${ACTION} = xacct ]; then
-      if [ x${PORT} = x ]; then      
-        PORT=1813;
-      fi;
+      PORT=1813;
     fi;
     
-    radclient -x -f ${RAD_FILE}  ${RADIUS_IP}:${PORT} ${ACTION} ${RADIUS_SECRET}
-    echo "radclient -x -f ${RAD_FILE}  ${RADIUS_IP}:${PORT} ${ACTION} ${RADIUS_SECRET}";
+    radclient -f ${RAD_FILE}  ${RADIUS_IP}:${PORT} ${ACTION} ${RADIUS_SECRET}
+    echo "radclient -f ${RAD_FILE}  ${RADIUS_IP}:${PORT} ${ACTION} ${RADIUS_SECRET}";
   else
-     if [ x${PORT} = x ]; then      
-        PORT=1812;
-     fi;
-
+    PORT=1812
     ${RADTEST} ${USER_NAME} ${USER_PASSWORD} ${RADIUS_IP}:${PORT} 0 ${RADIUS_SECRET} 0 ${NAS_IP_ADDRESS}
   fi;
 

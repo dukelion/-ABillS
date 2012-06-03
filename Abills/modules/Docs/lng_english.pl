@@ -30,16 +30,3 @@ $_AMOUNT_FOR_PAY='Amount for pay';
 $_ACTIVATE_NEXT_PERIOD='For next activation period';
 $_CURENT_BILLING_PERIOD='Current Billing Period';
 $_NEXT_PERIODS='Next billing periods';
-
-$_INCLUDE_CUR_BILLING_PERIOD='Include fees for the current period';
-$_NOT_INCLUDE_CUR_BILLING_PERIOD='Not include fees for the  current period';
-
-
-$_INVOICE_AUTO_GEN='Generate invoices automatically';
-$_INVOICING_PERIOD='Periods for invoicing';
-$_PERSONAL_DELIVERY='Personal invoice delivery';
-$_ALT='Alt.';
-$_CURRENCY='Currency';
-
-$_LAST_INVOICE_DATE='Last Invoice date';
-$_NEXT_INVOICE_DATE='Next Invoice Date';

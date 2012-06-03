@@ -71,8 +71,8 @@ sub dv_chg_tp {
   }
 
  my $TARIF_PLAN = $FORM{tarif_plan} || $_DEFAULT_TARIF_PLAN;
- my $period     = $FORM{period} || 0;
- my $Shedule    = Shedule->new($db, $admin, \%conf);
+ my $period = $FORM{period} || 0;
+ my $Shedule = Shedule->new($db, $admin, \%conf);
 
 #Get next period
 if ($Dv->{MONTH_ABON}> 0 && ! $Dv->{STATUS} && ! $users->{DISABLE} &&
@@ -263,7 +263,7 @@ $tariffs->{m}       = $m;
 $tariffs->{TP_ID}   = $Dv->{TP_NUM};
 
 $tariffs->{TP_NAME} = "$Dv->{TP_ID}:$Dv->{TP_NAME} "; #. $html->button("$_TARIF_PLANS", "index=". get_function_index('dv_tp') ."&TP_ID=$Dv->{TP_NUM}", { TITLE => "$_TP", CLASS => 'show rightAlignText' });
-$html->tpl_show(templates('form_chg_tp'), $tariffs);
+print $html->tpl_show(templates('form_chg_tp'), $tariffs);
 }
 
 
@@ -2327,10 +2327,10 @@ if ($attr->{USER_INFO}) {
   $login   = $user->{LOGIN};
   $LIST_PARAMS{LOGIN_EXPR} = $user->{LOGIN};
 }
-elsif ($FORM{LOGIN}) {
-  $login     = $FORM{LOGIN};
-  $LIST_PARAMS{LOGIN_EXPR} = $FORM{LOGIN};
-  $pages_qs .= "&LOGIN=$FORM{LOGIN}";
+elsif ($FORM{LOGIN_EXPR}) {
+  $login     = $FORM{LOGIN_EXPR};
+  $LIST_PARAMS{LOGIN_EXPR} = $FORM{LOGIN_EXPR};
+  $pages_qs .= "&LOGIN_EXPR=$FORM{LOGIN_EXPR}";
  }
 elsif($FORM{UID}) {
   dv_users();
@@ -2385,6 +2385,7 @@ if ($conf{ERROR2DB}) {
     $LIST_PARAMS{INTERVAL} = "$FORM{FROM_DATE}/$FORM{TO_DATE}";
    }
 
+  
   $list = $Log->log_list({ %LIST_PARAMS  });
   my $table = $html->table( { 
   	                    caption    => $_TOTAL,
@@ -4534,7 +4535,6 @@ sub dv_daily_fees {
  foreach my $line (@$list) {
  	 if ($line->[5] > 0) {
      my $TP_ID          = $line->[0];
-     my $TP_NAME        = $line->[1];
      my $active_day_fee = $line->[20];
      my $fine           = $line->[21];
      my %TP_INFO = ();
@@ -4599,8 +4599,8 @@ sub dv_daily_fees {
                $sum = $sum * (100 - $user{REDUCTION}) / 100;
               }
 
-             my %PARAMS = (
-               DESCRIBE => "Internet: $_DAY_FEE_SHORT $TP_NAME ($TP_ID)",
+             my %PARAMS = ( 
+               DESCRIBE => "$_DAY_FEE ($TP_ID)",
                DATE     => "$ADMIN_REPORT{DATE} $TIME",
                METHOD   => ($TP_INFO{FEES_METHOD}) ? $TP_INFO{FEES_METHOD} : 1 
                );
@@ -4947,8 +4947,6 @@ sub dv_monthly_fees {
 
  my ($y, $m, $d)=split(/-/, $ADMIN_REPORT{DATE}, 3);
  my $days_in_month=($m!=2?(($m%2)^($m>7))+30:(!($y%400)||!($y%4)&&($y%25)?29:28));
- my $cure_month_begin = "$y-$m-01";
- my $cure_month_end   = "$y-$m-$days_in_month";
  $m--;
  my $date_unixtime =  mktime(0, 0, 0, $d, $m, $y - 1900, 0, 0, 0);
 
@@ -4962,12 +4960,11 @@ sub dv_monthly_fees {
  my $days_in_pre_month=($m!=2?(($m%2)^($m>7))+30:(!($y%400)||!($y%4)&&($y%25)?29:28));
 
  my $pre_month_begin = "$y-$m-01";
- my $pre_month_end   = "$y-$m-$days_in_pre_month";
+ my $pre_month_end = "$y-$m-$days_in_pre_month";
 
  foreach my $line (@$list) {
    my %TP_INFO     = ();
  	 my $TP_ID       = $line->[0];
- 	 my $TP_NAME     = $line->[1];
  	 my $min_use_sum = $line->[16];
  	 my $abon_distrib= $line->[17];
  	 my $postpaid    = $line->[4];
@@ -5170,8 +5167,7 @@ sub dv_monthly_fees {
            	      else {
            	        my $ext_deposit_sum = $user{EXT_DEPOSIT};
 
-                    $FEES_PARAMS{DESCRIBE}="Internet: $_MONTH_FEE_SHORT $TP_NAME ($TP_ID)";
-                    #"$_MONTH_FEE ($TP_ID)";  
+                    $FEES_PARAMS{DESCRIBE}="$_MONTH_FEE ($TP_ID)";  
             	      $fees->take(\%user, $ext_deposit_sum, { %FEES_PARAMS } );
            	        $sum = $sum - $user{EXT_DEPOSIT};
            	        $user{BILL_ID}= $user{MAIN_BILL_ID};
@@ -5198,8 +5194,7 @@ sub dv_monthly_fees {
               }
 
              #take fees in first day of month
-             $FEES_PARAMS{DESCRIBE}="Internet: $_MONTH_FEE_SHORT $TP_NAME ($TP_ID)";
-             #"$_MONTH_FEE ($TP_ID)";  
+             $FEES_PARAMS{DESCRIBE}="$_MONTH_FEE ($TP_ID)";  
              $FEES_PARAMS{DESCRIBE} .= " - $_ABON_DISTRIBUTION" if ($abon_distrib);
              if($user{DV_STATUS} == 5 && $fine > 0) {
                if ($conf{DV_FINE_LIMIT} && $user{DEPOSIT}+$user{CREDIT} < $conf{DV_FINE_LIMIT}) {
@@ -5241,8 +5236,6 @@ sub dv_monthly_fees {
                     $debug_output .= " $user{LOGIN} UID: $user{UID} SUM: $sum REDUCTION: $user{REDUCTION}\n";
                    }
                   else {
-                  	$FEES_PARAMS{DESCRIBE} .= " ($ADMIN_REPORT{DATE}-". (strftime "%Y-%m-%d", localtime($date_unixtime + 86400 * 30))   .')' if (! $abon_distrib);
-
                     $fees->take(\%user, $sum, { %FEES_PARAMS } );
                     $debug_output .= " $user{LOGIN} UID: $user{UID} SUM: $sum REDUCTION: $user{REDUCTION} CHANGE ACTIVATE\n" if ($debug > 0);
                     if ($fees->{errno}) {
@@ -5256,7 +5249,7 @@ sub dv_monthly_fees {
                       $users->change($user{UID}, { 
                 	                        UID      => $user{UID},
                 	                        ACTIVATE => $ADMIN_REPORT{DATE} } 
-                 	                   );
+                 	             );
                      }
                     next;
                    }
@@ -5292,8 +5285,6 @@ sub dv_monthly_fees {
                 $debug_output .= " UID: $user{UID} SUM: $sum REDUCTION: $user{REDUCTION}\n";
                }
               else {
-              	$FEES_PARAMS{DESCRIBE} .= " ($cure_month_begin-$cure_month_end)" if (! $abon_distrib);
-
                 $fees->take(\%user, $sum, { %FEES_PARAMS } );  
                 $debug_output .= " $user{LOGIN}  UID: $user{UID} SUM: $sum REDUCTION: $user{REDUCTION} $EXT_INFO\n" if ($debug > 0);
                }
@@ -5762,13 +5753,13 @@ sub dv_cards {
   $FROM{CARDS_FORM}=1;
   
   
-  my $expire = $FORM{EXPIRE};
+  
   my $dv_tpl = dv_wizard_user({ OUTPUT2RETURN => 1,
   	                            NO_EXTRADATA  => 1,
   	                            TPLS          => { '2:' => '',
                                                    '3:' => '' } 
                               });
-  $FORM{EXPIRE}=$expire;
+
 	my $cards_hash = cards_users_add({ EXTRA_TPL => $dv_tpl  });
 
   $FORM{add}=1;
@@ -5840,7 +5831,7 @@ sub dv_wizard_user {
       docs_contract({ %$Dv });
     } 
    else {
-     docs_invoice();
+     docs_account();
     }
    return 0;
   }
@@ -6105,7 +6096,7 @@ sub dv_wizard_user {
              }
 
             $FORM{'create'}  = 1;
-        	  docs_invoice();
+        	  docs_account();
         	}
         }
        }
@@ -6576,13 +6567,12 @@ sub dv_get_month_fee {
      #Current Month
      my ($y, $m, $d)=split(/-/, $DATE, 3);
 
-     my ($active_y, $active_m, $active_d)=split(/-/, $Dv->{ACCOUNT_ACTIVATE} || $users->{ACTIVATE}, 3);	 
-    
+     my ($active_y, $active_m, $active_d)=split(/-/, $Dv->{ACCOUNT_ACTIVATE}, 3);	 
      if (int("$y$m$d") < int("$active_y$active_m$active_d")) {
      	  return \%total_sum;
       }
 
-     if ($Dv->{TP_INFO}->{PERIOD_ALIGNMENT} && ! $Dv->{TP_INFO}->{ABON_DISTRIBUTION}) {
+        if ($Dv->{TP_INFO}->{PERIOD_ALIGNMENT} && ! $Dv->{TP_INFO}->{ABON_DISTRIBUTION}) {
         	$message = "$_MONTH_ALIGNMENT, ";
           my $days_in_month=($m!=2?(($m%2)^($m>7))+30:(!($y%400)||!($y%4)&&($y%25)?29:28));
 
@@ -6593,22 +6583,20 @@ sub dv_get_month_fee {
 
           $conf{START_PERIOD_DAY} = 1 if (! $conf{START_PERIOD_DAY});
           $sum = sprintf("%.5f", ($sum / $days_in_month) * ($days_in_month - $d + $conf{START_PERIOD_DAY}));
-      }
+         }
        
-     return \%total_sum if ($sum == 0);
+        return \%total_sum if ($sum == 0);
+        
         
         my $periods = 0;
-        if (int($active_m) > 0 && int($active_m) < $m) {
+        if ($active_m > 0 && $active_m < $m) {
         	$periods = $m - $active_m;
-        	if (int($active_d) > int($d)) {
+        	if ($active_d > $d) {
         		$periods--;
         	 };
          }
-        elsif (int($active_m) > 0 && ( int($active_m) >= int($m)  && int($active_y) < int($y))) {
+        elsif ($active_m > 0 && ( $active_m >= $m  && $active_y < $y)) {
         	$periods = 12 - $active_m + $m; 
-        	if (int($active_d) > int($d)) {
-        		$periods--;
-        	 };
          }
         
         #Make reduction
@@ -6616,8 +6604,7 @@ sub dv_get_month_fee {
          	$sum = $sum * (100 - $users->{REDUCTION}) / 100;
          }          
 
-        #$message .= "$_MONTH_FEE: $sum ($Dv->{TP_INFO}->{ID})";
-        $message .= "Internet: $_MONTH_FEE_SHORT $Dv->{TP_INFO}->{NAME} ($Dv->{TP_INFO}->{ID})";
+        $message .= "$_MONTH_FEE: $sum ($Dv->{TP_INFO}->{ID})";
         
         if ($Dv->{TP_INFO}->{ABON_DISTRIBUTION}) {
         	$sum = $sum / ( ($m!=2?(($m%2)^($m>7))+30:(!($y%400)||!($y%4)&&($y%25)?29:28)) );
@@ -6648,24 +6635,8 @@ sub dv_get_month_fee {
             if ($users->{REDUCTION} > 0 && $Dv->{TP_INFO}->{REDUCTION_FEE}) {
          	    $sum = $Dv->{TP_INFO}->{MONTH_FEE} * (100 - $users->{REDUCTION}) / 100;
              }          
-            #$message = "$_MONTH_FEE: $sum ($Dv->{TP_INFO}->{ID})";
-            $message = "Internet: $_MONTH_FEE_SHORT $Dv->{TP_INFO}->{NAME} ($Dv->{TP_INFO}->{ID})";
-
-            if ($Dv->{ACCOUNT_ACTIVATE}) {
-            	$DATE    = $Dv->{ACCOUNT_ACTIVATE};
-            	my $end_period =  strftime "%Y-%m-%d", localtime(  (mktime(0, 0, 0, $active_d, ($m-1), ($active_y-1900), 0, 0, 0)  + 30 * 86400 ) );
-            	$message .= " ($DATE-$end_period)";
-            	
-              $users->change($Dv->{UID}, { ACTIVATE => "$DATE",
-              	                           UID      => $Dv->{UID} 
-              	                          });
-            	
-             }
-            else {
-              $DATE    = "$active_y-$m-01";
-              my $days_in_month=($m!=2?(($m%2)^($m>7))+30:(!($active_y%400)||!($active_y%4)&&($active_y%25)?29:28));
-              $message .= " ($DATE-$active_y-$m-$days_in_month)";
-             }
+            $message = "$_MONTH_FEE: $sum ($Dv->{TP_INFO}->{ID})";
+            $DATE    = "$active_y-$m-01";
            }
           elsif ($Dv->{ACCOUNT_ACTIVATE} && $Dv->{ACCOUNT_ACTIVATE} ne '0000-00-00'){
             if ($Dv->{TP_INFO}->{PERIOD_ALIGNMENT}) {
@@ -6677,17 +6648,10 @@ sub dv_get_month_fee {
               	                           UID      => $Dv->{UID} });
              } 
             else {
-            	$DATE    = "$active_y-$m-$active_d";
+            	$DATE    = "$active_y-$m-$active_d";            
              }
-            my $end_period =  strftime "%Y-%m-%d", localtime(  (mktime(0, 0, 0, $active_d, ($m-1), ($active_y-1900), 0, 0, 0)  + 30 * 86400 ) );
-            $Dv->{ACCOUNT_ACTIVATE}=strftime "%Y-%m-%d", localtime(  (mktime(0, 0, 0, $active_d, ($m-1), ($active_y-1900), 0, 0, 0)  + 31 * 86400 ) );
-            $message .= " ($active_y-$m-$active_d-$end_period)";
            }
-          else {
-            my $days_in_month=($m!=2?(($m%2)^($m>7))+30:(!($active_y%400)||!($active_y%4)&&($active_y%25)?29:28));
-            $message .= " ($y-$m-01-$y-$m-$days_in_month)";
-           }
-
+          
           $TIME    = "00:00:00";
           if ($conf{EXT_BILL_ACCOUNT}) {
           	if ($user->{EXT_BILL_DEPOSIT} < $sum && $user->{MAIN_BILL_ID}) {
@@ -6701,21 +6665,19 @@ sub dv_get_month_fee {
           	 }
            }
 
-          if ($sum > 0) {
-            $fees->take($users, $sum, { DESCRIBE  => $message, 
+          $fees->take($users, $sum, { DESCRIBE  => $message, 
         	                            METHOD    => ($Dv->{TP_INFO}->{FEES_METHOD}) ? $Dv->{TP_INFO}->{FEES_METHOD} : 1, 
         	                            DATE      => "$DATE $TIME"
         	                           });  
         
-            $total_sum{MONTH_FEE} += $sum;
-            if ($fees->{errno}) {
-        	    $html->message('err', $_ERROR, "[$fees->{errno}] $fees->{errstr}") if (! $attr->{QUITE});	
-             }
-            else {
-              $html->message('info', $_INFO, $message) if ($html && ! $attr->{QUITE});
-             }
+          $total_sum{MONTH_FEE} += $sum;
+        
+          if ($fees->{errno}) {
+        	  $html->message('err', $_ERROR, "[$fees->{errno}] $fees->{errstr}") if (! $attr->{QUITE});	
            }
-
+          else {
+            $html->message('info', $_INFO, $message) if ($html && ! $attr->{QUITE});
+           }
           $m++;
          }
       }
@@ -7063,7 +7025,7 @@ elsif ($FORM{del} && $FORM{is_js_confirmed}) {
                           });
 
 foreach my $line (@$list) {
-  my $delete = ($permissions{0}{4}) ?  $html->button($_DEL, "index=$index&del=$line->[14]&UID=$line->[13]", { MESSAGE =>  "$_DEL [$line->[13]]?", CLASS => 'del', TEXT => $_DEL }) : '-'; 
+  my $delete = ($permissions{4}{3}) ?  $html->button($_DEL, "index=$index&del=$line->[14]&UID=$line->[13]", { MESSAGE =>  "$_DEL [$line->[13]]?", CLASS => 'del', TEXT => $_DEL }) : '-'; 
 
 
   $table->addrow($html->b($line->[0]), $line->[1], $line->[2], 
@@ -7249,13 +7211,10 @@ sub dv_pay_to {
 sub dv_docs {
 	my ($attr)=@_;
 	
-	my $uid = $attr->{UID} || $FORM{UID};
-
-	$Dv->info($uid);
+	$Dv->info($FORM{UID});
   my @services = ();
   if ($Dv->{MONTH_ABON} > 0) {
-    push @services, "Internet: $_MONTH_FEE_SHORT $Dv->{TP_NAME} ($Dv->{TP_ID})||$Dv->{MONTH_ABON}";
-    #"$_MONTH_FEE: ($Dv->{TP_ID})||$Dv->{MONTH_ABON}";
+    push @services, "$_MONTH_FEE||$Dv->{MONTH_ABON}";
    }
   
   if ($Dv->{DAY_ABON} > 0) {
@@ -7269,8 +7228,7 @@ sub dv_docs {
      }
      
 		my $days_in_month = ($M!=2?(($M%2)^($M>7))+30:(!($Y%400)||!($Y%4)&&($Y%25)?29:28));
-		
-    push @services, "Internet: $_DAY_FEE_SHORT: $Dv->{TP_NAME} ($Dv->{TP_ID})|$days_in_month $_DAY|". sprintf("%.2f", ($Dv->{DAY_ABON}*$days_in_month));
+    push @services, "$_DAY_FEE|$days_in_month $_DAY|". sprintf("%.2f", ($Dv->{DAY_ABON}*$days_in_month));
    }
 	
 	return \@services

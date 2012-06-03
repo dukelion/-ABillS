@@ -87,7 +87,7 @@ sub abon_user {
             next;
            }
 
-          my %PARAMS = ( DESCRIBE => "$_ABON: ($line->[7]) " . (($FORM{'COMMENTS_'.$line->[7]})? $FORM{'COMMENTS_'.$line->[7]} : "$line->[0]"),
+          my %PARAMS = ( DESCRIBE => "$_ABON: [$line->[7]]" . (($FORM{'COMMENTS_'.$line->[7]})? $FORM{'COMMENTS_'.$line->[7]} : "$line->[0]"),
                          METHOD   => $Abon->{TP_INFO}->{FEES_TYPE}  );
 
           if ($FORM{'DISCOUNT_'.$Abon->{TP_INFO}->{TP_ID}}) {
@@ -97,8 +97,6 @@ sub abon_user {
             $Abon->{TP_INFO}->{MONTH_FEE} = $Abon->{TP_INFO}->{MONTH_FEE} * ((100 - $users->{REDUCTION}) / 100);          	
            }
 
-
-
           if (time() < $seltime) {
 
            }
@@ -106,10 +104,10 @@ sub abon_user {
             $Abon->{ACTIVATE}=$users->{ACTIVATE};
             $message .= abon_get_month_fee($Abon);
            }
-          elsif($FORM{'DISCOUNT_'.$Abon->{TP_INFO}->{TP_ID}} < 100) {
+          else {
             $fees->take($users, $Abon->{TP_INFO}->{MONTH_FEE}, { %PARAMS } ); 
             if ($fees->{errno}) {
-        	    $html->message('err', "$_FEES : $_ERROR", "-[$fees->{errno}] $fees->{errstr}");	
+        	    $html->message('err', "$_FEES : $_ERROR", "[$fees->{errno}] $fees->{errstr}");	
              }
             else {
             	$message .= "$_ABON: $Abon->{TP_INFO}->{MONTH_FEE} ($Abon->{TP_INFO}->{TP_ID})\n";
@@ -131,7 +129,7 @@ sub abon_user {
    	        $FORM{CUSTOMER}  = '-';
    	        $FORM{ORDER}     = "[$Abon->{TP_INFO}->{TP_ID}] $Abon->{TP_INFO}->{NAME} $Abon->{COMMENTS}";
     	      $FORM{SEND_EMAIL}= $FORM{'SEND_DOCS_'.$Abon->{TP_INFO}->{TP_ID}} || undef;
-    	      docs_invoice({ QUITE => 1 });    	
+    	      docs_account({ QUITE => 1 });    	
            }
 
           if ($activate_notification) {
@@ -546,7 +544,7 @@ sub abon_periodic {
        BILL_ID => $info{BILL_ID}
       );
 
-     my %PARAMS = ( DESCRIBE  => "$_ABON: ($info{TP_ID}) $info{TP_NAME}",
+     my %PARAMS = ( DESCRIBE  => "$_ABON: [$info{TP_ID}] $info{TP_NAME}",
                     METHOD    => $info{FEES_TYPE},
                     DATE      => $ADMIN_REPORT{DATE}
                    );
@@ -560,10 +558,11 @@ sub abon_periodic {
       if($line->[8] && ($info{DEPOSIT} + $info{CREDIT} > 0 || $line->[11] == 1) && $line->[9] == 0) {
       	
 
-         $fees->take(\%user, $info{SUM}, { %PARAMS } ) if ($info{DISCOUNT} < 100); 
+         $fees->take(\%user, $info{SUM}, { %PARAMS } ); 
          $Abon->user_tariff_update({ UID   => "$info{UID}", 
          	                           DATE  => $ADMIN_REPORT{DATE}, 
          	                           TP_ID => "$info{TP_ID}" });
+
 
          if ($info{CREATE_ACCOUNT} && $info{CREATE_DOCS}) {
          	 $FORM{SUM}       = $info{SUM};
@@ -572,7 +571,7 @@ sub abon_periodic {
    	       $FORM{CUSTOMER}  = '-';
    	       $FORM{ORDER}     = "$info{TP_NAME} $info{COMMENT}";
    	       $FORM{SEND_EMAIL}= $info{SEND_DOCS} || 0;
-   	       docs_invoice({ QUITE => 1 });
+   	       docs_account({ QUITE => 1 });
           }
 
          if ($ext_cmd) {
@@ -602,12 +601,12 @@ sub abon_periodic {
    	       $FORM{create}    = 1;
    	       $FORM{CUSTOMER}  = '-';
    	       $FORM{ORDER}     = "$info{TP_NAME} $info{COMMENT}";
-   	       my $content = docs_invoice({ QUITE => 1, OUTPUT2RETURN => 1 });
+   	       my $content = docs_account({ QUITE => 1, OUTPUT2RETURN => 1 });
    	       
    	       if ($info{SEND_DOCS}) {
    	         $attach = [ { CONTENT      => $content,
        	  	             CONTENT_TYPE => 'Content-type: application/pdf',
-       	  	             FILENAME     => 'invoice.pdf' }
+       	  	             FILENAME     => 'account.pdf' }
 	  	                 ];
     	      }
 
@@ -646,10 +645,10 @@ sub abon_periodic {
    	       $FORM{ORDER}     = "$info{TP_NAME} $info{COMMENT}";
    	       $FORM{SEND_EMAIL}= $info{SEND_DOCS} || undef;
    	       $FORM{pdf}       = $conf{DOCS_PDF_PRINT};
-   	       my $content      = docs_invoice({ QUITE => 1, OUTPUT2RETURN => 1 });
+   	       my $content      = docs_account({ QUITE => 1, OUTPUT2RETURN => 1 });
    	       $attach = [ { CONTENT      => $content,
        	  	             CONTENT_TYPE => 'Content-type: application/pdf',
-       	  	             FILENAME     => 'invoice.pdf' }
+       	  	             FILENAME     => 'account.pdf' }
 	  	                 ];
 	  	                 
       	  	                 
@@ -678,11 +677,11 @@ sub abon_periodic {
    	     $FORM{print}            = $notification1_account_id;
    	     $FORM{CHECK_PEYMENT_ID} = 1;
    	     $FORM{pdf}              = $conf{DOCS_PDF_PRINT};
-   	     my $content = docs_invoice({ QUITE => 1, OUTPUT2RETURN => 1  });
+   	     my $content = docs_account({ QUITE => 1, OUTPUT2RETURN => 1  });
    	     if ($content) {
    	       $attach = [ { CONTENT      => $content,
        	  	             CONTENT_TYPE => 'Content-type: application/pdf',
-       	  	             FILENAME     => 'invoice.pdf' }
+       	  	             FILENAME     => 'account.pdf' }
 	  	                 ];
    	      }
     	 }
@@ -815,7 +814,7 @@ sub abon_docs {
     		$line->[3] = $line->[3] * ((100 - $line->[7]) / 100);
     	 }
     	# NAME| ID | SUM 
-      push @services, "$_ABON: ($line->[0]) " . "$line->[1]". "|$line->[2]|$line->[3]";
+      push @services, "$line->[1]|$line->[2]|$line->[3]";
      }
    }
 	

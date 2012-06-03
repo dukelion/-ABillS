@@ -89,8 +89,7 @@ CREATE TABLE IF NOT EXISTS `storage_installation` (
 ) DEFAULT CHARSET=utf8;
 
 
-
-CREATE TABLE `storage_log` (
+CREATE TABLE IF NOT EXISTS `storage_log` (
   `id` int(11) NOT NULL auto_increment,
   `date` datetime NOT NULL,
   `aid` tinyint(4) unsigned NOT NULL default '0',
@@ -99,10 +98,9 @@ CREATE TABLE `storage_log` (
   `comments` text,
   `action` tinyint(3) unsigned NOT NULL default '0',
   `ip` int(10) unsigned NOT NULL default '0',
-  `count` int(10) unsigned NOT NULL default '0',
-  `storage_installation_id` int(10) unsigned NOT NULL default '0',
   PRIMARY KEY  (`id`)
 ) DEFAULT CHARSET=utf8;
+
 
 CREATE TABLE IF NOT EXISTS `storage_reserve` (
   `id` int(10) unsigned NOT NULL auto_increment,

@@ -1,6 +1,10 @@
 #!/usr/bin/perl -w
 # Provision 
 
+
+
+
+
 use vars qw( $db $DATE $TIME $var_dir %log_levels $domain_path $html);
 #use strict;
 
@@ -99,10 +103,9 @@ foreach my $line (@$list) {
 #  <Password_". $line->[8] ."_>$line->[9]</Password_". $line->[8] ."_>
 #  
 #  --->$line->[6] / $line->[7] / $line->[8]\n";
-  $info{'Password_'. $line->[9] .'_'}  = $line->[10];
-  $info{'Auth_ID_'. $line->[9] .'_'}   = $line->[6];
-  $info{'Caller_ID_'. $line->[9] .'_'} = $line->[7];
-  $info{'Line_'. $line->[9] .'_Status'}= ($line->[5]) ? 'no' : 'yes'; 
+  $info{'Password_'. $line->[9] .'_'}=$line->[10];
+  $info{'Auth_ID_'. $line->[9] .'_'}=$line->[6];
+  $info{'Caller_ID_'. $line->[9] .'_'}=$line->[7];
 }
 
 

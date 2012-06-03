@@ -53,7 +53,6 @@ my %PAY_SYSTEMS = (41 => "Webmoney",
                    74 => 'Alpha-pay',
                    75 => 'Zaplati',
                    76 => 'Paynet',
-                   77 => 'CyberPlat Visa/Master cards'
                   );
 
 my %CONF_OPTIONS = (PAYSYS_WEBMONEY_ACCOUNTS => 41,
@@ -92,11 +91,10 @@ my %CONF_OPTIONS = (PAYSYS_WEBMONEY_ACCOUNTS => 41,
                    PAYSYS_ALFA_PAY_ACCOUNT_KEY  => 74,
                    PAYSYS_ZAPLATI_SUMY_ACCOUNT_KEY => 75,
                    PAYSYS_USMP_ACCOUNT_KEY      => 76,
-                   PAYSYS_CP_VISA               => 77
                   );
 
 
-my @status = ('UNKNOWN', 'IN PROCCESS', 'COMPLETE', 'CANCELED', 'EXPIRED', 
+my @status = ('UNKNOWN', 'IN PROCCESS', 'COMLETE', 'CANCELED', 'EXPIRED', 
    'INCORRECT_CHECKSUM', 
    'PAYMENT_ERROR', 
    'DUBLICATE', 
@@ -206,7 +204,6 @@ sub paysys_import_form {
        	 	   DATE           => $FORM{'DATE_'.$ID},
        	 	   TYPE           => $FORM{'TYPE_'.$ID},
        	 	   PAYMENT_METHOD => $FORM{'PAYMENT_METHOD_'.$ID},
-       	 	   METHOD         => $FORM{'METHOD_'.$ID},
        	 	   DESCRIBE       => $FORM{'DESCRIBE_'.$ID},
        	 	   INNER_DESCRIBE => $FORM{'INNER_DESCRIBE_'.$ID},
        	 	   ADDRESS        => $FORM{'ADDRESS_'.$ID},
@@ -229,20 +226,7 @@ sub paysys_import_form {
         print $table2->show();
        }
 
-
        push @PAYMENT_METHODS, @EX_PAYMENT_METHODS if (@EX_PAYMENT_METHODS);
-
-       for(my $i=0; $i<=$#PAYMENT_METHODS; $i++) {
-	       $PAYMENTS_METHODS{"$i"}="$PAYMENT_METHODS[$i]";
-        }
-
-       my %PAYSYS_PAYMENT_METHODS = %{ cfg2hash($conf{PAYSYS_PAYMENTS_METHODS}) };
-
-       while(my($k, $v) = each %PAYSYS_PAYMENT_METHODS ) {
-	       $PAYMENTS_METHODS{$k}=$v;
-        }
-
-
        my $ids = join(';', @$BINDING_IDS);
 
        if ($ids eq '') {
@@ -277,10 +261,10 @@ sub paysys_import_form {
              if ($binding_hash{lc($DATA_ARR->[$i]->{$BINDING_FIELD})}) {
                 my($uid, $login, $fio)=split(/:/, $binding_hash{lc($DATA_ARR->[$i]->{$BINDING_FIELD})});
                 my $user   = $users->info($uid);
-                my $ext_id = $DATA_ARR->[$i]->{EXT_ID} || "$DATA_ARR->[$i]->{DATE}_$FORM{IMPORT_TYPE}.$ID";
+                my $ext_id = $DATA_ARR->[$i]->{EXT_ID} || "$DATA_ARR->[$i]->{DATE}.$FORM{IMPORT_TYPE}.$ID";
                 $payments->add($user, { SUM  => $DATA_ARR->[$i]->{SUM},
  	                     DESCRIBE     => $DATA_ARR->[$i]->{DESCRIBE} || '', 
- 	                     METHOD       => ($DATA_ARR->[$i]->{PAYMENT_METHOD} && $DATA_ARR->[$i]->{PAYMENT_METHOD} ne '') ? $DATA_ARR->[$i]->{PAYMENT_METHOD} : 1, 
+ 	                     METHOD       => $DATA_ARR->[$i]->{PAYMENT_METHOD} || 1, 
  	                     DATE         => $DATA_ARR->[$i]->{DATE} || undef, 
                        EXT_ID       => $ext_id,
                        CHECK_EXT_ID => $ext_id,
@@ -311,11 +295,11 @@ sub paysys_import_form {
                 my($uid, $login, $fio)=split(/:/, $binding_hash{$DATA_ARR->[$i]->{$BINDING_FIELD}});
                 my $user = $users->info($uid);
                 $fees->take($user, $DATA_ARR->[$i]->{SUM}, { 
- 	                     DESCRIBE       => $DATA_ARR->[$i]->{DESCRIBE} || '', 
+ 	                     DESCRIBE      => $DATA_ARR->[$i]->{DESCRIBE} || '', 
  	                     INNER_DESCRIBE => $DATA_ARR->[$i]->{EXT_ID} || '', 
- 	                     DATE           => $DATA_ARR->[$i]->{DATE} || undef, 
+ 	                     DATE          => $DATA_ARR->[$i]->{DATE} || undef, 
  	                     INNER_DESCRIBE => $DATA_ARR->[$i]->{INNER_DESCRIBE} || '',
- 	                     METHOD         => $DATA_ARR->[$i]->{METHOD}, 
+ 	                 #    METHOD       => $DATA_ARR->[$i]->{PAYMENT_METHOD}, 
                    #    EXT_ID       => "$DATA_ARR->[$i]->{DATE}.$FORM{IMPORT_TYPE}.$ID",
                    #    CHECK_EXT_ID => "$DATA_ARR->[$i]->{DATE}.$FORM{IMPORT_TYPE}.$ID"
                         } );
@@ -347,24 +331,20 @@ sub paysys_import_form {
               }
           }
 
-         if ($#payments_arr == -1) {
-           $html->message('err', $_ERROR, "_NO_DATA");
-           return 0;         	
-          }
-
-         my $list = $payments->list({ EXT_ID    => join(';', @payments_arr), 
-          	                          PAGE_ROWS => 1000000 
+          my $list = $payments->list({ EXT_ID    => join(';', @payments_arr), 
+          	                           PAGE_ROWS => 1000000 
           	                          });
           
-
-         foreach my $line (@$list) {
+          foreach my $line (@$list) {
           	$payments->del({UID => $line->[11] }, $line->[0]);
-         	  $total_count++;
-         	  $total_sum += $line->[4];
-          }
+          	#if ($payments->{TOTAL} > 0) {
+          	  $total_count++;
+          	  $total_sum += $line->[4];
+          	# }
+           }
           
-         $html->message('info', $_DELETED, "\n$_TOTAL: $total_count $_SUM: $total_sum");
-         return 0;
+          print $html->message('info', $_DELETED, "\n$_TOTAL: $total_count $_SUM: $total_sum");
+          return 0;
      	  }
      	 else {
 
@@ -395,27 +375,11 @@ function CheckAllINBOX() {
          for ( my $i = 0; $i<=$#{ $DATA_ARR }; $i++) {
        	   my $ID = $DATA_ARR->[$i]->{PAYSYS_EXT_ID} || $i;
   
-       	   my $PAYMENT_METHOD_SEL = '';
-       	   
-       	   if ($attr->{TYPE} eq 'PAYMENTS') {
-       	     $html->form_select('PAYMENT_METHOD_'.$ID, 
-                                { SELECTED     => $DATA_ARR->[$i]->{PAYMENT_METHOD} || '',
- 	                                SEL_HASH     => \%PAYMENTS_METHODS,
- 	                                NO_ID        => 1,
- 	                                SORT_KEY     => 1 	                                
+       	   my $PAYMENT_METHOD_SEL =  $html->form_select('PAYMENT_METHOD_'.$ID, 
+                                { SELECTED      => $DATA_ARR->[$i]->{PAYMENT_METHOD} || '',
+ 	                                SEL_ARRAY     => \@PAYMENT_METHODS,
+ 	                                ARRAY_NUM_ID  => 1
  	                               });
-            }
-           elsif($attr->{TYPE} eq 'FEES') {
-             %FEES_METHODS = %{ get_fees_types({ SHORT => 1 }) };
-             
-             $PAYMENT_METHOD_SEL =  $html->form_select('METHOD_'.$ID, 
-                                { SELECTED     => $FORM{'METHOD_'.$ID},
- 	                                SEL_HASH     => { %FEES_METHODS },
- 	                                NO_ID        => 1,
- 	                                SORT_KEY     => 1
- 	                               });
-            }
-           
            my $info = ''; 
 
            if ($binding_hash{lc($DATA_ARR->[$i]->{$BINDING_FIELD})}) {
@@ -428,21 +392,21 @@ function CheckAllINBOX() {
        	    }
       	
       	   #print "$DATA_ARR->[$i]->{TERMINAL_ID}, $DATA_ARR->[$i]->{NUM_AGENT}<br>";
-      	   my $date = $DATA_ARR->[$i]->{DATE} || $FORM{DATE};
+      	
            $table->addrow(
               $html->form_input(IDS, $ID, { TYPE => 'checkbox' }) .  $ID,
               $html->form_input('FIO_'.$ID, $DATA_ARR->[$i]->{FIO} || '', { SIZE => 40}) . "$info", 
               $html->form_input('PHONE_'.$ID, $DATA_ARR->[$i]->{PHONE} || '', { SIZE => 12}),
               ($BINDING_FIELD eq 'CONTRACT_ID') ? $DATA_ARR->[$i]->{CONTRACT_ID} : $html->form_input('CONTRACT_ID_'. $ID, $DATA_ARR->[$i]->{CONTRACT_ID} || '', { SIZE => 12 }),
               $DATA_ARR->[$i]->{SUM},
-              $date,
+              $DATA_ARR->[$i]->{DATE} || $FORM{DATE},
               $DATA_ARR->[$i]->{BANK_ACCOUNT},
               $PAYMENT_METHOD_SEL,
               $DATA_ARR->[$i]->{ADDRESS},
               $html->form_input('DESCRIBE_'.$ID, $DATA_ARR->[$i]->{DESCRIBE} || ''),
               $html->form_input('INNER_DESCRIBE_'.$ID, $DATA_ARR->[$i]->{INNER_DESCRIBE} || ''),
               $html->form_input($BINDING_FIELD.'_'.$ID, $DATA_ARR->[$i]->{$BINDING_FIELD} || ''),
-              $html->form_input('EXT_ID_'.$ID, $DATA_ARR->[$i]->{EXT_ID} || $date.'_'.$FORM{IMPORT_TYPE}.$ID),
+              $html->form_input('EXT_ID_'.$ID, $DATA_ARR->[$i]->{EXT_ID} || ''),
              );
           
            $HIDDEN_HASH{'SUM_'.$ID}         = $DATA_ARR->[$i]->{SUM};
@@ -617,9 +581,6 @@ sub paysys_payment {
 	elsif($FORM{PAYMENT_SYSTEM} == 73) {
      paysys_yandex();
 	 }
-  elsif($FORM{PAYMENT_SYSTEM} == 77 or defined($FORM{abillserrormsg}) ) {
-    paysys_cp_visa();
-	 }
 	else {
 		PRE_LABEL:
 	  my %info = ();
@@ -637,7 +598,6 @@ sub paysys_payment {
 	                             66 => 'PAYSYS_PAYPAL_RECIEVER_EMAIL',
                                72 => 'PAYSYS_IPAY_MERCHANT_ID',
                                73 => 'PAYSYS_YANDEX_ID',
-                               77 => 'PAYSYS_CP_VISA'
 
 	                              );
 	  
@@ -675,6 +635,7 @@ if ($FORM{info}) {
     $table->addrow($k, $v);
    }
 
+  $Paysys->{debug}=1;
   $Paysys->{INFO}=$table->show();
   $table = $html->table( { width   => '500',
   	                       caption => $_INFO,
@@ -1381,27 +1342,22 @@ $info{SUM_VAL_SEL}=$html->form_select('sum_val',
 # vadim.ignatkin@pbank.com.ua
 #**********************************************************
 sub paysys_privatbank {
-  my %info = ();
-	
-  my $payment_system    = 'PBANK';
-  my $payment_system_id = 48;
-  my $order_id = $FORM{orderid};
-
+my %info = ();
 	
 if ($FORM{FALSE}) {
-	if ($FORM{reasoncode} == 11 ) {
-    $FORM{reasoncodedesc}="$ERR_INVALID_SIGNATURE";
+	if ($FORM{ReasonCode} == 11 ) {
+    $FORM{ReasonCodeDesc}="$ERR_INVALID_SIGNATURE";
 	 }
-	elsif ($FORM{reasoncode} == 2 ) {
-    $FORM{reasoncodedesc}="$ERR_TRANSACTION_DECLINED";
+	elsif ($FORM{ReasonCode} == 2 ) {
+    $FORM{ReasonCodeDesc}="$ERR_TRANSACTION_DECLINED";
 	 }
-	$html->message('err', $_ERROR, "$_FAILED ID: $FORM{orderid} [$FORM{reasoncode}/$FORM{responsecode}] $FORM{reasoncodedesc} ");
+	$html->message('err', $_ERROR, "$_FAILED ID: $FORM{OrderID} [$FORM{ReasonCode}/$FORM{ResponseCode}] $FORM{ReasonCodeDesc} ");
 	$html->setCookie('lastindex', "", "Fri, 1-Jan-2038 00:00:01", $web_path, $domain, $secure);
 
 	return 0;
  }
 elsif ($FORM{TRUE}) {
-   my $list = $Paysys->list({ TRANSACTION_ID => "$FORM{orderid}", 
+   my $list = $Paysys->list({ TRANSACTION_ID => "$FORM{OrderID}", 
    	                          UID => $LIST_PARAMS{UID} });
 
    if ($Paysys->{TOTAL} > 0) {
@@ -1421,7 +1377,7 @@ else {
 	 }
 	
 	#Info section  
-  $Paysys->add({ SYSTEM_ID      => $payment_system_id, 
+  $Paysys->add({ SYSTEM_ID      => 48, 
   	             DATETIME       => "'$DATE $TIME'", 
   	             SUM            => $FORM{SUM},
   	             UID            => $user->{UID}, 
@@ -1929,10 +1885,6 @@ sub paysys_qiwi {
   my %info = ();
 	require "modules/Paysys/Qiwi.pm";
 
-	my $payment_system    = 'QIWI';
-	my $payment_system_id = 59;
-
-
 if ($FORM{send_invoice}) {
 	$FORM{COMMENT}=$user->{LOGIN};
   my $result = qiwi_invoice_request(\%FORM);
@@ -1940,21 +1892,20 @@ if ($FORM{send_invoice}) {
   if ($result->{'result-code'}->[0]->{fatal} eq 'true') {
   	my $error = "$result->{'result-code'}->[0]->{content}";
   	if ($result->{'result-code'}->[0]->{content} == 150) {
-  	   $error .= "$ERR_TERMINAL";
+  	   $error .= 'Ошибка на терминале';
   	 }
   	$html->message('err', "$_ERROR", "$_ERROR: $error");
    }
   else {
- 	  $html->message('info', "$_INFO", "$_INVOICE_SENDED ID: '$FORM{OPERATION_ID}'\n$_PHONE: $FORM{PHONE}");
- 	  $Paysys->add({ SYSTEM_ID    => $payment_system_id, 
+ 	  $html->message('info', "$_INFO", "$_INVOICE_SENDED ID: '$FORM{OPERATION_ID}' $_PHONE: $FORM{PHONE}");
+ 	  $Paysys->add({ SYSTEM_ID    => 59, 
   	             DATETIME       => "'$DATE $TIME'", 
   	             SUM            => $FORM{SUM},
   	             UID            => $user->{UID}, 
                  IP             => "$ENV{'REMOTE_ADDR'}",
                  TRANSACTION_ID => "$FORM{OPERATION_ID}",
                  INFO           => '-',
-                 PAYSYS_IP      => "$ENV{'REMOTE_ADDR'}",
-                 STATUS         => 1,
+                 PAYSYS_IP      => "$ENV{'REMOTE_ADDR'}"
                });
  	 }
 
@@ -2015,7 +1966,7 @@ my %status_hash = (
 130 => 'Отказ от провайдера',
 148 => 'Не прошел фин. контроль',
 149 => 'Не прошел фин. контроль',
-150 => 'Ошибка авторизации (неверный логин/пароль)',
+150 => 'Ошибка на терминале',
 160 => 'Не проведена',
 );
 
@@ -2230,62 +2181,6 @@ else {
   #$conf{PAYSYS_LMI_RESULT_URL} = "http://$ENV{SERVER_NAME}". ( ($ENV{SERVER_PORT}!= 80) ? ":$ENV{SERVER_PORT}" : '' ) ."/paysys_check.cgi" if (! $conf{PAYSYS_LMI_RESULT_URL});
   return $html->tpl_show(_include('paysys_ipay_add', 'Paysys'), \%info,  { OUTPUT2RETURN => $attr->{OUTPUT2RETURN} });
  }
-}
-
-
-#**********************************************************
-# User portal payments system with Cyberplat Visa
-#**********************************************************
-sub paysys_cp_visa () {
-
-if(defined($FORM{abillserrormsg})) {
-	my @AbillsErrorMsg = (
-		'Transaction successfuly added',
-		'User not found',
-		'Billing system error',
-		'Dublicate payment',
-		'Transaction error'		
-	);
-
-	$html->message('err', $_ERROR, "$_FAILED - $AbillsErrorMsg[$FORM{abillserrormsg}]");
-	#print 'lol';
-}
-else {
-  my @fio;
-  my $users = Users->new($db, $admin, \%conf); 		
-  $user = $users->info($LIST_PARAMS{UID});
-  $users->pi({ UID => $LIST_PARAMS{UID} });
-  (@fio) = split(' ', $users->{FIO});	
-
-
-  my %info = ();
-  my $sum;
-  $info{PAYMENT_NO} = $FORM{OPERATION_ID};
-
-  if ($FORM{SUM} =~ /^(\d+)\.?(\d+)?$/) {
-    $sum = "$1$2"
-  }
-  $info{amount_with_point} = $FORM{SUM};
-  $info{desc} = $FORM{DESCRIBE};	
-	
-if($conf{PAYSYS_CP_VISA_TEST_MODE} == 1) {	
-  $info{lastname}   = 'Ivanov';
-  $info{firstname}  = 'Ivan';
-  $info{middlename} = 'Ivanovich';
-  $info{email}      = 'support@cyberplat.com';
-  $info{phone}      = 7445-4060;
-} 
-else {
-  $info{lastname}    = $fio[0] || '';
-  $info{firstname}   = $fio[1] || '';
-  $info{middlename}  = $fio[2] || '';
-  $info{email}       = $users->{EMAIL} || '';
-  $info{phone}       = $users->{PHONE} || ''; 	
- 	
-}
-
-  return $html->tpl_show(_include('paysys_cyberplat_visa', 'Paysys'), \%info,  { OUTPUT2RETURN => $attr->{OUTPUT2RETURN} });
-}
 }
 
 1

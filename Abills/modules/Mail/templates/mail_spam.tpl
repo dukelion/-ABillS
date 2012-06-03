@@ -1,7 +1,7 @@
 <form action=$SELF_URL METHOD=POST>
 <input type=hidden name='index' value='$index'>
 <input type=hidden name='ID' value='$FORM{chg}'>
-<table class=form>
+<table>
 
 <tr><td>$_REQUIRED_SCORE:</td><td>%REQUIRED_SCORE_SEL%</td></tr>
 <tr><td>$_REWRITE_HEADER:</td><td><input type=text name=REWRITE_HEADER value='%REWRITE_HEADER%'></td></tr>
@@ -35,7 +35,6 @@
 <tr><td>$_CHANGED:</td><td>%CHANGED%</td></tr>
 -->
 
-<tr><th class=even colspan=2><input type=submit name=%ACTION% value='%LNG_ACTION%'></th></tr>
 </table>
-
+<input type=submit name=%ACTION% value='%LNG_ACTION%'>
 </form>

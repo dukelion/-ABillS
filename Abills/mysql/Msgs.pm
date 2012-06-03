@@ -361,7 +361,7 @@ sub message_add {
 	my ($attr) = @_;
 
   %DATA = $self->get_data($attr, { default => \%DATA }); 
-#warn (%DATA);
+
   my $CLOSED_DATE = ($DATA{STATE} == 1 || $DATA{STATE} == 2 ) ? 'now()' : "'0000-00-00 00:00:00'";
 
   $self->query($db, "insert into msgs_messages (uid, subject, chapter, message, ip, date, reply, aid, state, gid,
@@ -388,45 +388,6 @@ sub message_add {
 
   $self->{MSG_ID} = $self->{INSERT_ID};
   
-### OTRS interop PoC
-my $User = $CONF->{otrsSoapUser};
-my $Pw   = $CONF->{otrsSoapPassword};
-my $soapProxyURL = $CONF->{otrsUrl}.'/rpc.pl';
-eval "use SOAP::Lite( 'autodispatch', proxy => '$soapProxyURL' ); 1" or return $self;
-my $RPC = Core->new();
-
-my %TicketData = (
-    Title        => $DATA{SUBJECT},
-    Queue	     => 'Raw',
-    Lock         => 'unlock',
-    Priority     => '3 normal',
-    State        => 'open',
-    CustomerUser => 'customer@example.com',
-    OwnerID      => 6,
-    UserID       => 1,
-); 
-my $TicketID = $RPC->Dispatch( $User, $Pw, 'TicketObject', 'TicketCreate', %TicketData => 1 );
-my %ArticleData = (
-    TicketID         => $TicketID,
-    ArticleType      => 'note-internal',
-    SenderType       => 'customer',
-    From             => 'root', 
-    To               => 'customer',
-    Cc               => '',
-    ReplyTo          => '',
-    Subject          => $DATA{SUBJECT},
-    Body             => $DATA{MESSAGE},
-    MessageID        => '',
-    Charset          => 'UTF-8',
-    HistoryType      => 'EmailCustomer',
-    HistoryComment   => 'HistoryComment',
-    UserID           => 1,
-    NoAgentNotify    => 0, 
-    MimeType         => 'text/plain',
-    Loop             => 0,
-);
-my $ArticleID = $RPC->Dispatch($User, $Pw, 'TicketObject', 'ArticleSend', %ArticleData =>1);
-### end OTRS interop PoC
 	return $self;
 }
 

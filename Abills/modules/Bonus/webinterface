@@ -140,7 +140,7 @@ foreach my $line (@$list) {
     $delete = "$_DELETED";
    }
   else {
-  	$delete = ($permissions{1}{2} && $line->[4]  > 0) ?  $html->button($_DEL, "index=$index&SUM=$line->[4]&del=$line->[0]&UID=". $line->[13], { MESSAGE => "$_DEL [$line->[0]] ?", CLASS => 'del' }) : ''; 
+  	$delete = ($permissions{1}{2} && $line->[4]  > 0) ?  $html->button($_DEL, "index=$index&SUM=$line->[4]&del=$line->[0]&UID=". $line->[13], { MESSAGE => "$_DEL [$line->[0]] ?", BUTTON => 1 }) : ''; 
    }
 
   $table->addrow($html->b($line->[0]), 
@@ -244,7 +244,7 @@ my $table = $html->table( { width      => '100%',
 my ($add);
 foreach my $line (@$list) {
   if ($permissions{4}{1}) {
-    $add = $html->button($_ADD, "index=$index&TP_ID=$line->[0]&add=$line->[0]", { CLASS => 'add' });
+    $add = $html->button($_ADD, "index=$index&TP_ID=$line->[0]&add=$line->[0]");
    }
   
   if($FORM{TP_ID} eq $line->[0]) {
@@ -257,8 +257,8 @@ foreach my $line (@$list) {
   $table->addrow($line->[0], $line->[1], 
      $status[$line->[2]],  
      $html->button("$_RULES", "index=$index&RULES=1&TP_ID=$line->[0]"),
-     $html->button($_CHANGE, "index=$index&chg=$line->[0]", { CLASS => 'change' }),
-     $html->button($_DEL, "index=$index&del=$line->[0]", { MESSAGE => "$_DEL $line->[0] ?", CLASS => 'del' }) 
+     $html->button($_CHANGE, "index=$index&chg=$line->[0]"),
+     $html->button($_DEL, "index=$index&del=$line->[0]", { MESSAGE => "$_DEL $line->[0] ?" }) 
    );
 }
 
@@ -266,7 +266,7 @@ print $table->show();
 
 $table = $html->table( { width      => '100%',
                          cols_align => ['right', 'right'],
-                         rows       => [ [ "$_TOTAL:", $html->b($Tariffs->{TOTAL}) ] ]
+                         rows       => [ [ "$_TOTAL:", "<b>$Tariffs->{TOTAL}</b>" ] ]
                       } );
 
 print $table->show();
@@ -349,7 +349,7 @@ my %BONUS_HUSH = (TRAFFIC_IN_BONUS_MB   => $_TRAFFIC_IN_BONUS_MB,
 my ($add);
 foreach my $line (@$list) {
   if ($permissions{4}{1}) {
-    $add = $html->button($_ADD, "index=$index&TP_ID=$line->[0]&add=$line->[0]", { CLASS => 'add' });
+    $add = $html->button($_ADD, "index=$index&TP_ID=$line->[0]&add=$line->[0]");
    }
   
   if($FORM{TP_ID} eq $line->[0]) {
@@ -363,8 +363,8 @@ foreach my $line (@$list) {
      $BONUS_HUSH{$line->[1]}, 
      $line->[2],  
      $line->[3],  
-     $html->button($_CHANGE, "index=$index&RULES=1&TP_ID=$FORM{TP_ID}&chg=$line->[4]", { CLASS => 'change' }),
-     $html->button($_DEL, "index=$index&TP_ID=$FORM{TP_ID}&RULES=1&del=$line->[4]", { MESSAGE => "$_DEL $line->[4] ?", CLASS => 'del' }) 
+     $html->button($_CHANGE, "index=$index&RULES=1&TP_ID=$FORM{TP_ID}&chg=$line->[4]"),
+     $html->button($_DEL, "index=$index&TP_ID=$FORM{TP_ID}&RULES=1&del=$line->[4]", { MESSAGE => "$_DEL $line->[4] ?" }) 
    );
 }
 
@@ -503,7 +503,7 @@ foreach my $line (@$list) {
      $line->[1], 
      $line->[2], 
      ($line->[3]) ? $html->color_mark($status[$line->[3]], $_COLORS[6]) : $status[$line->[3]],  
-     $html->button($_INFO, "index=15&MODULE=Bonus&UID=$line->[4]", { CLASS => 'show' } ) 
+     $html->button($_INFO, "index=15&MODULE=Bonus&UID=$line->[4]" ) 
    );
 }
 
@@ -511,7 +511,7 @@ print $table->show();
 
 $table = $html->table( { width      => '100%',
                          cols_align => ['right', 'right'],
-                         rows       => [ [ "$_TOTAL:", $html->b($Tariffs->{TOTAL}) ] ]
+                         rows       => [ [ "$_TOTAL:", "<b>$Tariffs->{TOTAL}</b>" ] ]
                       } );
 
 print $table->show();
@@ -603,148 +603,6 @@ sub bonus_report {
 	my $REPORT = '';
 	
 	
-	
-	
-	
-	return $REPORT;
-}
-
-
-#**********************************************************
-#
-#**********************************************************
-sub bonus_pre_payment {
-	my($attr)=@_;
-	my $REPORT = '';
-	
-	
-	if ($conf{BONUS_SERVICE_DISCOUNT}) {
-    bonus_service_discount_mk($attr);
-   }
-	
-	return $REPORT;
-}
-
-
-
-#**********************************************************
-#
-#**********************************************************
-sub bonus_service_discount_mk {
-	my ($attr)=@_;
-	my $return = 0;
-	
-	use Dv;
-	$Dv = Dv->new($db, $admin, \%conf);
-	$Dv->info($attr->{USER_INFO}->{UID});
-	
-	my $periods           = 0;
-	my $registration_days = 0;
-
-	if($Dv->{MONTH_ABON} > 0) {
-	  $periods = int($FORM{SUM} / $Dv->{MONTH_ABON});
-   }
-
-
-  if($periods > 0) {
-    my ($year, $month, $day)=split(/-/, $attr->{USER_INFO}->{REGISTRATION}, 3);
-    my $seltime = POSIX::mktime(0, 0, 0, $day, ($month - 1), ($year - 1900));
-    $registration_days= int((time() -  $seltime) / 86400 );
-    my $list = $Bonus->service_discount_list({ REGISTRATION_DAYS => "<=$registration_days",
-    	                                         PERIODS           => "<=$periods",
-    	                                         PAGE_ROWS         => 1,
-    	                                         SORT              => "1 DESC, 2 DESC"
-    	                                          });
-    
-    if ($Bonus->{TOTAL} > 0) {
-    	my $discount         = $list->[0]->[2];
-    	my $discount_period  = $list->[0]->[3];
-    	
-    	if ($discount_period>0) {
-    	  $discount_period =  strftime "%Y-%m-%d", localtime(time + 86400 * $discount_period)
-    	 }
-    	
-    	$users->change($attr->{USER_INFO}->{UID}, { REDUCTION      => $discount,
-    		                                          REDUCTION_DATE => $discount_period,
-    		                                          UID            => $attr->{USER_INFO}->{UID}
-    		                                                    });
-     }
-    
-   }
-	
-	return $return;
-}
-
-
-
-#**********************************************************
-# 
-#**********************************************************
-sub bonus_service_discount {
-	my ($attr)=@_;
-	my $REPORT = '';
-
-  $Bonus->{ACTION}='add';
-  $Bonus->{LNG_ACTION}=$_ADD;
-
-
-  if ($FORM{add}) {
- 	  $Bonus->service_discount_add({ %FORM });
-    if(! $Bonus->{errno}) {
-       $html->message('info', $_INFO, "$_ADDED");
-     }
-   }
-  elsif ($FORM{change}) {
-    $Bonus->service_discount_change({ %FORM });
-   
-    if(! $Bonus->{errno}) {
-      $html->message('info', $_INFO, "$_CHANGED ID: $FORM{ID}");
-     }
-   }
-  elsif ($FORM{chg}) {
-    $Bonus->service_discount_info($FORM{chg});
-
-    $Bonus->{ACTION}='change';
-    $Bonus->{LNG_ACTION}=$_CHANGE;
-
-    if(! $Bonus->{errno}) {
-      $html->message('info', $_INFO, "$_CHANGING");
-     }
-  	}
-  elsif ($FORM{del}  && $FORM{is_js_confirmed}) {
-    $Bonus->service_discount_del({ ID => $FORM{del} });
-
-    if(! $Bonus->{errno}) {
-      $html->message('info', $_INFO, "$_DELETED ID: $FORM{del}");
-     }
-   }	
-	
-	$html->tpl_show(_include('bonus_service_discount', 'Bonus'), $Bonus);
-	
-	my $list = $Bonus->service_discount_list({ %LIST_PARAMS });
-	
-	my $table = $html->table( { width      => '100%',
-                            caption    => "$_BONUS",
-                            border     => 1,
-                            title      => ["$_SERVICE $_PERIOD ($_MONTH)", "$_REGISTRATION $_DAYS", "$_REDUCTION %", "$_REDUCTION $_DAYS", '-'],
-                            cols_align => ['right', 'right', 'right', 'right', 'center:noprint'],
-                            qs         => $pages_qs,
-                            pages      => $Bonus->{TOTAL},
-                            ID         => 'BONUX_SERVICE_DISCOUNT'
-                           } );
-
-
-foreach my $line (@$list) {
-  my $delete = $html->button($_DEL, "index=$index&del=$line->[4]", { MESSAGE => "$_DEL [$line->[0]] ?", CLASS => 'del' });
-  $table->addrow($line->[0], 
-    $line->[1], 
-    $line->[2], 
-    $line->[3], 
-    $delete
-	 )
-}
-
-print $table->show();
 	
 	
 	

@@ -64,7 +64,6 @@ sub cards_main {
   	return 0;
    }
 
-
 if ($FORM{change}) {
   my @ORDERS  = ();    
   my $list;  
@@ -85,7 +84,7 @@ if ($FORM{change}) {
      }
    }
 
-  #Add receipt for diller
+  #Add invoice for diller
   if ($FORM{DILLER_ID}) {
   	$Cards->cards_diller_info({ ID => $FORM{DILLER_ID} });
 
@@ -106,7 +105,7 @@ if ($FORM{change}) {
          push @ORDERS, "$_ICARDS $_SERIAL: $seria |0|$v|$price";
         }
        
- 		   docs_receipt_add({ #CUSTOMER  => $Cards->{NAME},
+ 		   docs_invoice_add({ #CUSTOMER  => $Cards->{NAME},
                          	ORDERS    => [ @ORDERS ],
                          	create    => 1,
                          	FROM      => $FROM,
@@ -173,7 +172,6 @@ if (in_array('Multidoms', \@MODULES) && $permissions{10}) {
 else {
   $Cards->{DOMAIN_SEL}='';	
 }
-
 
 my $table;
   $Cards->{SUM}   =undef if (! $FORM{SUM});
@@ -410,9 +408,9 @@ sub cards_add {
   $Cards->{PASSWD_LENGTH}  = $conf{CARDS_PAYMENT_PIN_LENGTH} if ($conf{CARDS_PAYMENT_PIN_LENGTH});
   $Cards->{PASSWD_SYMBOLS} = $conf{CARDS_PIN_SYMBOLS} if ($conf{CARDS_PIN_SYMBOLS});
   
-	$Cards->{CARDS_TYPE}  = $html->tpl_show(_include('cards_payment', 'Cards'), { %$Cards, %FORM }, { notprint => 1 });
+	$Cards->{CARDS_TYPE}  = $html->tpl_show(_include('cards_payment', 'Cards'), $Cards, { notprint => 1 });
 	$Cards->{TYPE_CAPTION}= $_PAYMENTS;
-	$html->tpl_show(_include('cards_add', 'Cards'), { %$Cards, %FORM });
+	$html->tpl_show(_include('cards_add', 'Cards'), $Cards);
 }
 
 
@@ -524,7 +522,7 @@ sub cards_users_add  {
       if ($FORM{LOGIN_FILE}) {
       	 $html->message('info', $_INFO, "$_FILE: $FORM{LOGIN_FILE}{filename}");
        }
-
+      
       #Create service cards from file
       if(defined($FORM{FILE_DATA})) {
       	my @rows = split(/[\r]{0,1}\n/, $FORM{"FILE_DATA"}{'Contents'});
@@ -587,14 +585,12 @@ sub cards_users_add  {
        }
 
       $LOGIN_NUMBER=$begin;
-      my $cards_number_length = $conf{CARDS_NUMBER_LENGTH} || 11;
       #Create numeric or random logins
   	  for(my $i=$begin; $i<$begin+$count; $i++) {
           my $LOGIN_LENGTH = (length("$FORM{LOGIN_PREFIX}$LOGIN_NUMBER") < $FORM{LOGIN_LENGTH}) ? $FORM{LOGIN_LENGTH} - length($FORM{LOGIN_PREFIX}) : $FORM{LOGIN_LENGTH};
-          my $password     = mk_unique_value($FORM{PASSWD_LENGTH}, { SYMBOLS => $FORM{PASSWD_SYMBOLS} || undef });
-  	 	    #my $serial   = sprintf("%s%.11d", $FORM{SERIAL}, $i);
-  	 	    my $serial       = sprintf("%s%.".$cards_number_length."d", $FORM{SERIAL}, $i);
-  	 	    my $login        = sprintf("%s%.". $LOGIN_LENGTH."d", $FORM{LOGIN_PREFIX}, $LOGIN_NUMBER);
+          my $password = mk_unique_value($FORM{PASSWD_LENGTH}, { SYMBOLS => $FORM{PASSWD_SYMBOLS} || undef });
+  	 	    my $serial   = sprintf("%s%.11d", $FORM{SERIAL}, $i);
+  	 	    my $login    = sprintf("%s%.". $LOGIN_LENGTH."d", $FORM{LOGIN_PREFIX}, $LOGIN_NUMBER);
 
           if($conf{CARDS_LOGIN_PASSWD_SAME}) {
           	$login = $password;
@@ -643,10 +639,10 @@ elsif ($FORM{del}  && $FORM{is_js_confirmed} ) {
   $Cards->{EXPARAMS}   = $attr->{EXTRA_TPL};
   $Cards->{DILLERS_SEL}= cards_dillers_sel();
   $Cards->{STATUS_SEL} = $html->form_select('STATUS', { 
- 	                                           SEL_ARRAY    => ['', @status ],
- 	                                           ARRAY_NUM_ID => 1,
- 	                                           NO_ID        => 1
- 	                                          });
+ 	                                         SEL_ARRAY    => ['', @status ],
+ 	                                         ARRAY_NUM_ID => 1,
+ 	                                         NO_ID        => 1
+ 	                                        });
 
 	$Cards->{CARDS_TYPE} = $html->tpl_show(_include('cards_logins', 'Cards'), $Cards, { OUTPUT2RETURN => 1 });
 	$html->tpl_show(_include('cards_add', 'Cards'), $Cards);
@@ -681,11 +677,7 @@ sub cards_users_gen_confim {
 sub cards_user_payment () {
   
   my $begin_time = check_time();
-  if ($conf{CARDS_SKIP_COMPANY} && $user->{COMPANY_ID}) {
-  	$html->message('err', $_INFO, "$ERR_COMPANY_DISABLE");	
-  	return 0;
-   }
-
+  
  	$user = Users->new($db, $admin, \%conf);
 	if (($FORM{PIN} && $FORM{SERIAL}) || ($FORM{PIN} && $conf{CARDS_PIN_ONLY})) {
 		$db->{AutoCommit} =0;
@@ -730,20 +722,8 @@ sub cards_user_payment () {
 
 	    return 0;
 	   }
-    else {
-    	if ($Cards->{UID}) {
-    		$user->info($Cards->{UID});
-        use Log;
-        my $Log         = Log->new($db, \%conf); 
-        
-        my $list = $Log->log_list({ USER => $user->{LOGIN}  });
-        if($Log->{TOTAL} > 0) {
-          $html->message('err', $_ERROR, "$status[2]", { ID => 607 });
-          return 0;	
-         }    		
-    	 }
-    	
-    	
+    else { 
+ 
      $user->info($LIST_PARAMS{UID});
      if ($conf{CARDS_DEBUG}) {
      	 my $gt = '';
@@ -758,6 +738,7 @@ sub cards_user_payment () {
      	 while(my($k, $v)=each %FORM) {
      	 	 $output .="$k=$v;" if ($FORM{$k} ne '__BUFFER');
      	  }
+
 
        my $test = `echo "$DATE $TIME $user->{LOGIN}  $Cards->{SERIAL}$Cards->{NUMBER} A:$ENV{HTTP_USER_AGENT} QS:$ENV{QUERY_STRING} RA:$ENV{REMOTE_ADDR} $output  ($gt)"  >> /tmp/cards_debug`;	
       }
@@ -822,12 +803,9 @@ sub cards_user_payment () {
                                 });
          }
         }
+       $db->commit();
 
-       # Check if not card exist
-       $payments->list({ EXT_ID  => "$Cards->{SERIAL}$Cards->{NUMBER}" });
-       if ($payments->{TOTAL} <= 1) {       
-         $db->commit();
-        }      
+       
 
        if ($conf{CARDS_DEBUG}) {
        	 my $gt = '';

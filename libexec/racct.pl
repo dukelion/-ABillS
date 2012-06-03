@@ -175,17 +175,7 @@ sub acct {
       if ($RAD->{CALLING_STATION_ID} =~ /(\S{2})(\S{2})\.(\S{2})(\S{2})\.(\S{2})(\S{2})/) {
         $RAD->{CALLING_STATION_ID}="$1:$2:$3:$4:$5:$6";
        }
-     }
-    elsif(ref $RAD->{CISCO_AVPAIR} eq 'ARRAY') {
-    	foreach my $line (@{ $RAD->{CISCO_AVPAIR} }) {
-        if ($line =~ /client-mac-address=([a-f0-9\.\-\:]+)/) {
-          $RAD->{CALLING_STATION_ID}=$1;
-          if ($RAD->{CALLING_STATION_ID} =~ /(\S{2})(\S{2})\.(\S{2})(\S{2})\.(\S{2})(\S{2})/) {
-            $RAD->{CALLING_STATION_ID}="$1:$2:$3:$4:$5:$6";
-           }
-         }
-    	 }
-     }
+    }
     elsif (defined($RAD->{NAS_PORT}) && $RAD->{NAS_PORT} == 0 && ($RAD->{CISCO_NAS_PORT} && $RAD->{CISCO_NAS_PORT} =~ /\d\/\d\/\d\/(\d+)/)) {
      	$RAD->{NAS_PORT}=$1;
       }
@@ -320,7 +310,7 @@ sub acct {
   $RAD->{SESSION_START}      = (defined($RAD->{ACCT_SESSION_TIME})) ?  time - $RAD->{ACCT_SESSION_TIME} : 0;
   $RAD->{NAS_PORT}           = 0  if  (! defined($RAD->{NAS_PORT}));
   $RAD->{CONNECT_INFO}       = '' if  (! defined($RAD->{CONNECT_INFO}));
-  $RAD->{ACCT_TERMINATE_CAUSE} =  ($RAD->{ACCT_TERMINATE_CAUSE} && defined($ACCT_TERMINATE_CAUSES{"$RAD->{ACCT_TERMINATE_CAUSE}"})) ? $ACCT_TERMINATE_CAUSES{"$RAD->{ACCT_TERMINATE_CAUSE}"} : 0;
+  $RAD->{ACCT_TERMINATE_CAUSE} =  (defined($RAD->{ACCT_TERMINATE_CAUSE}) && defined($ACCT_TERMINATE_CAUSES{"$RAD->{ACCT_TERMINATE_CAUSE}"})) ? $ACCT_TERMINATE_CAUSES{"$RAD->{ACCT_TERMINATE_CAUSE}"} : 0;
 
   if ($RAD->{'TUNNEL_CLIENT_ENDPOINT'} && ! $RAD->{CALLING_STATION_ID}) { 
     $RAD->{CALLING_STATION_ID}=$RAD->{'TUNNEL_CLIENT_ENDPOINT'}; 
@@ -329,7 +319,7 @@ sub acct {
     $RAD->{CALLING_STATION_ID} = '';
    }
 # Make accounting with external programs
-if ($conf{extern_acct_dir} && -d $conf{extern_acct_dir}) {
+if (-d $conf{extern_acct_dir}) {
   opendir DIR, $conf{extern_acct_dir} or die "Can't open dir '$conf{extern_acct_dir}' $!\n";
     my @contents = grep  !/^\.\.?$/  , readdir DIR;
   closedir DIR;
@@ -363,7 +353,7 @@ if(defined($ACCT{$nas->{NAS_TYPE}})) {
    }
 
   $acct_mod{"$nas->{NAS_TYPE}"} = $ACCT{$nas->{NAS_TYPE}}->new($db, \%conf);  
-  $r = $acct_mod{"$nas->{NAS_TYPE}"}->accounting($RAD, $nas, { RAD_REQUEST => \%RAD_REQUEST });
+  $r = $acct_mod{"$nas->{NAS_TYPE}"}->accounting($RAD, $nas);
 }
 else {
   $acct_mod{'default'} = Acct->new($db, \%conf);
