@@ -91,13 +91,14 @@ foreach my $line (@balance) {
 #	next if($user->{DISABLE} != 0);
 
         my $customer;
-        $customer->{'username'} = $username;
+        my $pi = $users->pi({UID => $uid});
+        $customer->{'username'} = $pi->{FIO};
         $customer->{'uid'} = $uid;
         $customer->{'invoice_sum'} = $invoice_sum;
         $customer->{'payments_sum'} = $payments_sum;
-        $customer->{'outbalance'} = $invoice_sum - $payments_sum;
+        $customer->{'outbalance'} = $payments_sum - $invoice_sum;
         $customer->{'deposit'} = $user->{DEPOSIT};
-        $customer->{'status'} = $info->{STATUS};
+        $customer->{'status'} = $user->{DISABLE};
         $customer->{'tarif_status'} = $service_status[$info->{STATUS}];
 
         $tab{$username} = $customer;
@@ -107,13 +108,13 @@ foreach my $line (@balance) {
 sub generate_htmltab {
 	my (%tab) = @_;
 	my $htmltab = new HTML::Table(
-		-cols=>6,
-		-head=>["Customer Name","Invoice Sum","Payments Sum","Abills Deposit","Customer status","Tariff Status","Outstanding Balance"],
+		-cols=>7,
+		-head=>["Login","Customer Name","Invoice Sum","Payments Sum","Abills Deposit","Customer status","Tariff Status","Outstanding Balance"],
 		-border=>1,
 		-bgcolor=>'WhiteSmoke',
 	);
 	foreach my $line (keys(%tab)){
-		my @array = ($line,@{$tab{$line}}{qw/invoice_sum payments_sum deposit status tarif_status outbalance/});
+		my @array = ($line,@{$tab{$line}}{qw/username invoice_sum payments_sum deposit status tarif_status outbalance/});
 		$array[0] = sprintf '<a title="%s" href="https://bill.neda.af/admin/index.cgi?index=15&UID=%s">%s</a>',$line,$tab{$line}{UID},$line;
                 $array[6] = sprintf '<b>%s</b>',$tab{$line}{outbalance};
 		$htmltab->addRow(@array);
@@ -126,6 +127,7 @@ sub generate_texttab {
 	my (%tab) = @_;
 	my $texttab = Text::Table->new(
 		      "Login",
+	      \' | ', "Customer Name",
 	      \' | ', "Customer ID",
 	      \' | ', "Invoice Sum",
 	      \' | ', "Payments Sum",
@@ -135,7 +137,7 @@ sub generate_texttab {
 	      \' | ', "Outstanding Balance"
         );
 	foreach my $line (keys(%tab)){
-		my @array = ($line,@{$tab{$line}}{qw/uid invoice_sum payments_sum deposit status tarif_status outbalance/});
+		my @array = ($line,@{$tab{$line}}{qw/username uid invoice_sum payments_sum deposit status tarif_status outbalance/});
 		$texttab->load([@array]);
 	};
 
@@ -172,7 +174,7 @@ if ($DEBUG) {
 			From => "$conf{ADMIN_MAIL}",
 			To =>   'valferov@neda.af',
 #			To =>	"Billing Mailing list <billing@neda.af>, <devteam@neda.af>",
-			Subject => "Customers disabling report ".strftime("%Y-%m-%d",localtime()),
+			Subject => "Outstanding balance report ".strftime("%Y-%m-%d",localtime()),
 		],
 		body => $htmlmessage,
 		text_body => $textmessage
