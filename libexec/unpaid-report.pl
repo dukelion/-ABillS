@@ -88,7 +88,7 @@ foreach my $line (@balance) {
         my $info = $Dv->info($uid);
 	my $user = $users->info($uid);
 
-	next if($user->{DISABLE} != 0);
+#	next if($user->{DISABLE} != 0);
 
         my $customer;
         $customer->{'username'} = $username;
@@ -108,13 +108,14 @@ sub generate_htmltab {
 	my (%tab) = @_;
 	my $htmltab = new HTML::Table(
 		-cols=>6,
-		-head=>["Customer Name","Invoice Sum","Payments Sum","Outstanding Balance","Abills Deposit","Customer status","Tariff Status"],
+		-head=>["Customer Name","Invoice Sum","Payments Sum","Abills Deposit","Customer status","Tariff Status","Outstanding Balance"],
 		-border=>1,
 		-bgcolor=>'WhiteSmoke',
 	);
 	foreach my $line (keys(%tab)){
-		my @array = ($line,@{$tab{$line}}{qw/invoice_sum payments_sum outbalance deposit status tarif_status/});
+		my @array = ($line,@{$tab{$line}}{qw/invoice_sum payments_sum deposit status tarif_status outbalance/});
 		$array[0] = sprintf '<a title="%s" href="https://bill.neda.af/admin/index.cgi?index=15&UID=%s">%s</a>',$line,$tab{$line}{UID},$line;
+                $array[6] = sprintf '<b>%s</b>',$tab{$line}{outbalance};
 		$htmltab->addRow(@array);
 	};
 	my $htmlmessage = sprintf "<p>%s</p>\n",$htmltab->getTable;
@@ -128,13 +129,13 @@ sub generate_texttab {
 	      \' | ', "Customer ID",
 	      \' | ', "Invoice Sum",
 	      \' | ', "Payments Sum",
-	      \' | ', "Outstanding Balance",
 	      \' | ', "Abills Deposit",
 	      \' | ', "Customer status",
-	      \' | ', "Tariff Status"
+	      \' | ', "Tariff Status",
+	      \' | ', "Outstanding Balance"
         );
 	foreach my $line (keys(%tab)){
-		my @array = ($line,@{$tab{$line}}{qw/uid invoice_sum payments_sum outbalance deposit status tarif_status/});
+		my @array = ($line,@{$tab{$line}}{qw/uid invoice_sum payments_sum deposit status tarif_status outbalance/});
 		$texttab->load([@array]);
 	};
 
