@@ -22,8 +22,6 @@ use Sys::Hostname;
 
 my ($DEBUG) = @ARGV;
 $DEBUG     = $DEBUG     ? 1 : 0  ;
-$DEBUG = 1;
-
 
 require $Bin . '/config.pl';
 unshift(@INC, $Bin . '/../', $Bin . '/../Abills', $Bin . "/../Abills/$conf{dbtype}");
@@ -116,7 +114,7 @@ sub generate_htmltab {
 	foreach my $line (keys(%tab)){
 		my @array = ($line,@{$tab{$line}}{qw/username invoice_sum payments_sum deposit status tarif_status outbalance/});
 		$array[0] = sprintf '<a title="%s" href="https://bill.neda.af/admin/index.cgi?index=15&UID=%s">%s</a>',$line,$tab{$line}{UID},$line;
-                $array[6] = sprintf '<b>%s</b>',$tab{$line}{outbalance};
+                $array[7] = sprintf '<b>%s</b>',$tab{$line}{outbalance};
 		$htmltab->addRow(@array);
 	};
 	my $htmlmessage = sprintf "<p>%s</p>\n",$htmltab->getTable;
