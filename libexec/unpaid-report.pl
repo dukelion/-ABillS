@@ -80,6 +80,7 @@ my @balance = @{$$res{'list'}};
 my $Dv       = Dv->new($db, $admin, \%conf);
 
 my %tab;
+my $total=0;
 foreach my $line (@balance) {
 	my ($username,$uid,$invoice_sum,$payments_sum) = @$line;
 
@@ -98,6 +99,7 @@ foreach my $line (@balance) {
         $customer->{'deposit'} = $user->{DEPOSIT};
         $customer->{'status'} = $user->{DISABLE};
         $customer->{'tarif_status'} = $service_status[$info->{STATUS}];
+        $total += $customer->{'outbalance'};
 
         $tab{$username} = $customer;
 
@@ -155,6 +157,8 @@ if ($begin_time > 0)  {
 	my $gen_time = $end_time - $begin_time;
 	$footer .= sprintf("\n\n GT: %2.5f\n", $gen_time);
 }
+
+$footer .= "\nTotal outstanding balance: $total\n";
 
 my $htmlmessage;
 $htmlmessage .= generate_htmltab(%tab);
