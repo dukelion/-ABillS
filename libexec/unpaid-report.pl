@@ -10,10 +10,13 @@ use strict;
 use Data::Dumper::Simple;
 use Text::Table;
 use HTML::Table;
-use Email::MIME::CreateHTML;
-use Email::Send;
+#use Email::MIME::CreateHTML;
+#use Email::Send;
+use Mail::Sender;
 use Time::Local;
 use List::Util qw[min max];
+use Spreadsheet::WriteExcel;
+use File::Temp;
 
 use POSIX;
 
@@ -147,9 +150,45 @@ sub generate_texttab {
 
 	return $textmessage;
 }
+sub generate_exceltab {
+  my (%tab) = @_;
+  #my $fh = File::Temp->new();
+  #my $fname = $fh->filename;
+  unlink ('/tmp/unpaid.xls');
+  my $fname = '/tmp/unpaid.xls';
+
+  my $exceltab = Spreadsheet::WriteExcel->new($fname);
+  my $sheet1 = $exceltab->add_worksheet();
+  my @colnames = ("Login","Customer Name","Invoice Sum","Payments Sum","Abills Deposit","Customer status","Tariff Status","Outstanding Balance");
+  my @colvalues = (qw/username invoice_sum payments_sum deposit status tarif_status outbalance/);
+
+  &writerowexcel(\@colnames,0);
+  my $datarow = 1;
+  foreach my $line (sort { $tab{$a}{'DisableDate'} cmp $tab{$b}{'DisableDate'} } keys(%tab)){
+          my @array = ($line,@{$tab{$line}}{qw/username invoice_sum payments_sum deposit status tarif_status outbalance/});
+          $array[0] = sprintf 'https://bill.neda.af/admin/index.cgi?index=15&UID=%s',$line,$tab{$line}{UID};
+          &writerowexcel (\@array,$datarow);
+          $datarow++;
+  };
+
+  $exceltab->close();
+  return $fname;
+
+  sub writerowexcel {
+    my ($row,$rownum) = @_;
+    my $col = 0;
+    foreach my $value (@$row) {
+      $sheet1->write($rownum,$col,$value);
+#      warn Dumper $value;
+      $col++;
+    }
+  }
+}
 
 
 my $footer;
+
+$footer .= "\nTotal outstanding balance: $total\n";
 
 if ($begin_time > 0)  {
 	Time::HiRes->import(qw(gettimeofday));
@@ -158,31 +197,49 @@ if ($begin_time > 0)  {
 	$footer .= sprintf("\n\n GT: %2.5f\n", $gen_time);
 }
 
-$footer .= "\nTotal outstanding balance: $total\n";
+my $excelfile = generate_exceltab(%tab);
 
 my $htmlmessage;
 $htmlmessage .= generate_htmltab(%tab);
 $htmlmessage .= "\n$footer\n";
 
 my $textmessage;
-$textmessage .= generate_texttab(%tab);
+#$textmessage .= generate_texttab(%tab);
 $textmessage .= $footer;
+
 
 if ($DEBUG) {
 	print $textmessage;
 } else {
-	my $email = Email::MIME->create_html(
-		header => [
-			From => "$conf{ADMIN_MAIL}",
-			To =>   'valferov@neda.af',
-#			To =>	"Billing Mailing list <billing@neda.af>, <devteam@neda.af>",
-			Subject => "Outstanding balance report ".strftime("%Y-%m-%d",localtime()),
-		],
-		body => $htmlmessage,
-		text_body => $textmessage
-	);
-	my $sender = Email::Send->new({mailer => 'Sendmail'});
-	$sender->send($email);
+#	my $email = Email::MIME->create_html(
+#		header => [
+#			From => "$conf{ADMIN_MAIL}",
+##			To =>   'valferov@neda.af',
+#			To =>   'Billing Mailing list <billing@neda.af>, <devteam@neda.af>, Hamidullah <hamidullah@neda.af>',
+##			To =>	"Billing Mailing list <billing@neda.af>, <devteam@neda.af>",
+#			Subject => "Outstanding balance report ".strftime("%Y-%m-%d",localtime()),
+#		],
+#		body => $htmlmessage,
+#		text_body => $textmessage
+#	);
+#	my $sender = Email::Send->new({mailer => 'Sendmail'});
+#	$sender->send($email);
+  my $to_addresses = 'valferov@neda.af';
+  my $subject = "Outstanding balance report ".strftime("%Y-%m-%d",localtime());
+  my $message = $textmessage;
+
+  my $sender = new Mail::Sender
+  {
+      smtp => '192.168.1.17',
+      from => "$conf{ADMIN_MAIL}"
+  };
+  $sender->MailFile(
+    {
+        to      => $to_addresses,
+        subject => $subject,
+        msg     => $textmessage,
+        file    => $excelfile
+    });
 }
 
 sub updateDisableDate () {
