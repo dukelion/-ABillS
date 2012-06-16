@@ -73,10 +73,17 @@ my %active_tab;
 
 require "Abills/mysql/Dv.pm";
 
-my $q = 'select  users.id,users.uid,invoice_sum, pay_sum from '.
-'(SELECT i.uid,sum(o.price) as invoice_sum FROM `docs_invoices` i, docs_invoice_orders o WHERE  i.id = o.invoice_id group by uid) as i,'.
-'(SELECT uid,sum(sum) as pay_sum FROM payments p group by uid) as p, users '.
-'where p.uid = i.uid and users.uid = i.uid';
+my $q = qq|
+select  users.id,users.uid,coalesce(invoice_sum,0), coalesce(pay_sum,0)
+from
+users left join
+(SELECT i.uid,sum(o.price) as invoice_sum FROM `docs_invoices` i, docs_invoice_orders o WHERE  i.id = o.invoice_id group by uid) as i on users.uid = i.uid
+left join
+(SELECT uid,sum(sum) as pay_sum FROM payments p group by uid) as p  on p.uid = i.uid
+|;
+
+print $q;
+
 my $res = $admin->query($db,$q);
 my @balance = @{$$res{'list'}};
 
