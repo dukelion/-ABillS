@@ -174,7 +174,6 @@ sub reportforgroups(){
 
 		if ($disableCode > 0) {
 			my $pi = $users->pi({UID => $uid});
-		#warn Dumper($pi);
 			my $warncustomer;
 			$warncustomer->{'FIO'} = $pi->{FIO};
 			$warncustomer->{'Deposit'} = $user->{DEPOSIT};
